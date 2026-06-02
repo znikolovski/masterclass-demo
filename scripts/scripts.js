@@ -5,6 +5,7 @@ import {
   decorateIcons,
   decorateBlocks,
   decorateTemplateAndTheme,
+  getMetadata,
   waitForFirstImage,
   loadSection,
   loadSections,
@@ -25,6 +26,9 @@ function buildHeroBlock(main) {
   if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
     // Check if h1 or picture is already inside a hero block
     if (h1.closest('[class*="hero"]') || picture.closest('[class*="hero"]')) {
+      return;
+    }
+    if (main.querySelector('.hero-adventure')) {
       return;
     }
     const section = document.createElement('div');
@@ -263,7 +267,11 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  if (window.location.pathname.includes('/blog/')) {
+  const template = getMetadata('template');
+  const isBlogArticle = document.body.classList.contains('blog-article')
+    || template === 'blog-article'
+    || window.location.pathname.includes('/blog/');
+  if (isBlogArticle) {
     loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
   }
   loadFonts();

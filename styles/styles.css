@@ -472,6 +472,16 @@ main .section.accent {
   text-align: center;
 }
 
+main .section.hero-adventure-container {
+  max-width: 100%;
+  padding-inline: 0;
+}
+
+main .section.hero-adventure-container > div {
+  max-width: 100%;
+  padding-inline: 0;
+}
+
 main .section.hero-adventure-container:has(+ .section.accent) {
   padding-bottom: 0;
 }

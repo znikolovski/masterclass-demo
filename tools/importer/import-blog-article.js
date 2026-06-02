@@ -7,6 +7,7 @@ import cardsArticleParser from './parsers/cards-article.js';
 
 import cleanupTransformer from './transformers/wknd-adventures-cleanup.js';
 import sectionsTransformer from './transformers/wknd-adventures-sections.js';
+import blogArticleSectionsTransformer from './transformers/blog-article-sections.js';
 
 const parsers = {
   'hero-adventure': heroAdventureParser,
@@ -29,6 +30,7 @@ const PAGE_TEMPLATE = {
 const transformers = [
   cleanupTransformer,
   sectionsTransformer,
+  blogArticleSectionsTransformer,
 ];
 
 function executeTransformers(hookName, element, payload) {

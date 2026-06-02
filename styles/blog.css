@@ -1,14 +1,18 @@
-/* Blog article page styles — extracted from source */
+/* Blog article page styles */
+/* stylelint-disable no-descending-specificity */
 
-/* Article body section — constrained width (only hero section's article content) */
-main > .section.hero-adventure-container > .default-content-wrapper {
+/* Narrow article body */
+main > .section.hero-adventure-container > .default-content-wrapper,
+main > .section:first-of-type:has(.hero-adventure) > .default-content-wrapper,
+main > .section.narrow > .default-content-wrapper {
   max-width: 768px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Body paragraphs */
-main > .section > .default-content-wrapper > p {
+/* Body sections only */
+main > .section:not(:first-of-type) > .default-content-wrapper > p,
+main > .section:first-of-type:has(.hero-adventure) > .default-content-wrapper > p {
   font-size: 16px;
   line-height: 1.7;
   color: var(--text-color);
@@ -136,13 +140,20 @@ main > .section.secondary blockquote {
   }
 }
 
-/* Hero section on blog — override height for articles */
-main > .section:first-of-type .hero-adventure {
+/* Hero section on blog */
+main > .section.hero-adventure-container,
+main > .section:first-of-type:has(.hero-adventure) {
+  padding-bottom: 0;
+}
+
+main > .section.hero-adventure-container .hero-adventure,
+main > .section:first-of-type:has(.hero-adventure) .hero-adventure {
   min-height: 550px;
 }
 
 /* Author avatar in hero */
-main > .section:first-of-type .hero-adventure img:not(:first-of-type) {
+main > .section.hero-adventure-container .hero-adventure img:not(:first-of-type),
+main > .section:first-of-type:has(.hero-adventure) .hero-adventure img:not(:first-of-type) {
   width: 80px;
   height: 80px;
   border-radius: 0;
@@ -150,7 +161,8 @@ main > .section:first-of-type .hero-adventure img:not(:first-of-type) {
 }
 
 @media (width >= 900px) {
-  main > .section:first-of-type .hero-adventure {
+  main > .section.hero-adventure-container .hero-adventure,
+  main > .section:first-of-type:has(.hero-adventure) .hero-adventure {
     min-height: 550px;
   }
 }
