@@ -3,9 +3,18 @@
  * DA library documents stay as fragments; only git copies use this wrapper.
  */
 
-export function wrapLibraryPreviewPage(title, sectionHtml) {
+/**
+ * @param {string} title Page title
+ * @param {string} sectionHtml Section divs (library fragment)
+ * @param {{ bodyClasses?: string[], stylesheets?: string[] }} [options]
+ */
+export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
   const body = sectionHtml.trim();
   const indented = body.split('\n').map((line) => `    ${line}`).join('\n');
+  const bodyClasses = ['library-preview', ...(options.bodyClasses || [])].filter(Boolean).join(' ');
+  const extraStyles = (options.stylesheets || [])
+    .map((href) => `    <link rel="stylesheet" href="${href}">`)
+    .join('\n');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -21,8 +30,9 @@ export function wrapLibraryPreviewPage(title, sectionHtml) {
     <script src="/scripts/scripts.js" type="module"></script>
     <link rel="stylesheet" href="/styles/styles.css">
     <link rel="stylesheet" href="/styles/library-preview.css">
+${extraStyles}
   </head>
-  <body class="library-preview">
+  <body class="${bodyClasses}">
     <header></header>
     <main>
 ${indented}

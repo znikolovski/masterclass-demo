@@ -4,7 +4,6 @@ import {
   loadFooter,
   decorateIcons,
   decorateBlocks,
-  decorateTemplateAndTheme,
   getMetadata,
   waitForFirstImage,
   loadSection,
@@ -221,15 +220,54 @@ export function decorateMain(main) {
 }
 
 /**
+ * Reads page metadata from head or the in-document metadata block (library/git previews).
+ * @param {string} name Metadata key
+ * @param {Document} doc Document to search
+ * @returns {string}
+ */
+function getPageMetadataValue(name, doc = document) {
+  const fromHead = getMetadata(name, doc);
+  if (fromHead) return fromHead;
+  const block = doc.querySelector('main .metadata');
+  if (!block) return '';
+  const row = [...block.children].find((child) => {
+    const cells = child.querySelectorAll(':scope > div');
+    return cells.length >= 2
+      && cells[0].textContent.trim().toLowerCase() === name.toLowerCase();
+  });
+  if (!row) return '';
+  const cells = row.querySelectorAll(':scope > div');
+  return cells[1]?.textContent.trim() || '';
+}
+
+/**
+ * Applies template/theme body classes from head meta or metadata block.
+ * @param {Document} doc Document to read metadata from
+ */
+function applyTemplateAndTheme(doc = document) {
+  const addClasses = (element, classes) => {
+    classes.split(',').forEach((c) => {
+      const cls = toClassName(c.trim());
+      if (cls) element.classList.add(cls);
+    });
+  };
+  const template = getPageMetadataValue('template', doc);
+  if (template) addClasses(document.body, template);
+  const theme = getPageMetadataValue('theme', doc);
+  if (theme) addClasses(document.body, theme);
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
-  decorateTemplateAndTheme();
+  applyTemplateAndTheme(doc);
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    applyTemplateAndTheme(doc);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
     if (firstSection) {
@@ -267,10 +305,11 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  const template = getMetadata('template');
+  const template = getPageMetadataValue('template', doc);
   const isBlogArticle = document.body.classList.contains('blog-article')
     || template === 'blog-article'
-    || window.location.pathname.includes('/blog/');
+    || window.location.pathname.includes('/blog/')
+    || window.location.pathname.includes('/templates/blog-article/');
   if (isBlogArticle) {
     loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
   }

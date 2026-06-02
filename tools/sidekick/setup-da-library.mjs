@@ -58,6 +58,18 @@ async function putSource(token, daPath, body, mime = 'application/json') {
   }
 }
 
+async function triggerPreview(token, daPath) {
+  const pagePath = daPath.replace(/\.html$/, '');
+  const res = await fetch(`https://admin.hlx.page/preview/${ORG}/${SITE}/main/${pagePath}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.warn(`  ⚠ preview ${pagePath} → ${res.status}: ${text.slice(0, 120)}`);
+  }
+}
+
 async function getConfig(token) {
   const res = await fetch(`https://admin.da.live/config/${ORG}/${SITE}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -173,12 +185,18 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   const fragment = readFileSync(abs, 'utf8');
   const label = basename(daPath, '.html').replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase()}${label.slice(1)} — Library preview`;
+  const previewOptions = daPath.includes('templates/blog-article/')
+    ? { bodyClasses: ['blog-article'], stylesheets: ['/styles/blog.css'] }
+    : {};
 
   await putSource(token, daPath, fragment, 'text/html');
+  if (daPath.startsWith('templates/')) {
+    await triggerPreview(token, daPath);
+  }
 
   const gitPath = join(ROOT, daPath);
   mkdirSync(dirname(gitPath), { recursive: true });
-  writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment));
+  writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment, previewOptions));
   console.log(`  ✓ ${daPath} (DA fragment + git preview page)`);
 }
 
