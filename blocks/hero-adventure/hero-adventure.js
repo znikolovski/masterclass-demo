@@ -1,18 +1,44 @@
 /**
- * Moves misplaced section-metadata out of the hero block (bad imports/migrations).
+ * Pulls h1 and author fields from the section wrapper into the hero content row.
  * @param {Element} block
  */
-function relocateMisplacedSectionMetadata(block) {
+function adoptOrphanHeroFields(block) {
   const section = block.closest('.section');
-  block.querySelectorAll(':scope .section-metadata').forEach((meta) => {
-    if (section && meta.parentElement !== section) {
-      section.append(meta);
+  const contentRow = block.querySelector(':scope > div:last-child');
+  if (!section || !contentRow || contentRow.querySelector('h1')) return;
+
+  const wrapper = section.querySelector('.default-content-wrapper');
+  if (!wrapper) return;
+
+  let adoptedAuthor = false;
+  [...wrapper.children].forEach((child) => {
+    if (child.matches('h1')) {
+      const cell = document.createElement('div');
+      cell.append(child);
+      contentRow.append(cell);
+      return;
+    }
+    if (!adoptedAuthor && child.matches('p') && child.querySelector('picture')) {
+      const cell = document.createElement('div');
+      cell.append(...child.childNodes);
+      child.remove();
+      contentRow.append(cell);
+      adoptedAuthor = true;
+      return;
+    }
+    if (adoptedAuthor && child.matches('p') && !child.querySelector('a')) {
+      const text = child.textContent.trim();
+      if (text.length > 0 && text.length < 80) {
+        const cell = document.createElement('div');
+        cell.textContent = text;
+        child.remove();
+        contentRow.append(cell);
+      }
     }
   });
 }
 
 /**
- * Removes section-metadata table cells that were authored inside the hero row.
  * @param {Element} contentRow
  */
 function removeInlineMetadataCells(contentRow) {
@@ -21,8 +47,13 @@ function removeInlineMetadataCells(contentRow) {
       cell.remove();
       return;
     }
-    const text = cell.textContent.trim().toLowerCase();
-    if (text === 'style' || text.includes('hero-adventure-container')) {
+    if (/^hero-adventure-container$/i.test(cell.textContent.trim())) {
+      cell.remove();
+      return;
+    }
+    const key = cell.children[0]?.textContent?.trim().toLowerCase();
+    const val = cell.children[1]?.textContent?.trim().toLowerCase() || '';
+    if (key === 'style' && val.includes('hero-adventure')) {
       cell.remove();
     }
   });
@@ -33,7 +64,7 @@ export default function decorate(block) {
     block.classList.add('no-image');
   }
 
-  relocateMisplacedSectionMetadata(block);
+  adoptOrphanHeroFields(block);
 
   const contentRow = block.querySelector(':scope > div:last-child');
   if (!contentRow) return;
@@ -41,16 +72,14 @@ export default function decorate(block) {
   removeInlineMetadataCells(contentRow);
 
   const cells = [...contentRow.children];
-  const h1Cell = cells.find((cell) => cell.querySelector('h1'));
   const avatarCell = cells.find((cell) => cell.querySelector('picture'));
-  const textCells = cells.filter((cell) => cell !== h1Cell && cell !== avatarCell
-    && !cell.querySelector('picture') && !cell.querySelector('h1'));
+  const textCells = cells.filter((cell) => cell !== avatarCell
+    && !cell.querySelector('h1') && !cell.querySelector('picture'));
 
   const pic = avatarCell?.querySelector('picture');
-  if (!pic || textCells.length < 2) return;
-
   const nameCell = textCells[0];
   const dateCell = textCells[1];
+  if (!pic || !nameCell || !dateCell) return;
 
   const byline = document.createElement('div');
   byline.className = 'hero-byline';

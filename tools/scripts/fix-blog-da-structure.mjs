@@ -33,14 +33,75 @@ function getToken() {
   return null;
 }
 
-function insertHrAfterHero(html) {
+/**
+ * Rebuilds a hero-adventure block when h1/author were split out by a bad migration.
+ * @param {string} html
+ */
+function isHeroBlockSplit(html) {
+  return /<div class="hero-adventure">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<div>\s*<h1/i.test(html);
+}
+
+function repairHeroBlock(html) {
+  if (!html.includes('class="hero-adventure"')) return html;
+  if (!isHeroBlockSplit(html)) {
+    return removeMetadataInsideHero(html);
+  }
+
+  const heroPos = html.indexOf('class="hero-adventure"');
+  const hrPos = html.indexOf('<hr>', heroPos);
+  if (hrPos === -1) return html;
+
+  const sectionStart = html.lastIndexOf('<div>', Math.max(0, heroPos - 10));
+  const chunk = html.slice(sectionStart, hrPos);
+
+  const bgPicture = chunk.match(
+    /<div class="hero-adventure">\s*<div>[\s\S]*?(<picture>[\s\S]*?<\/picture>)/i,
+  )?.[1];
+  const h1Match = chunk.match(/<h1[\s\S]*?<\/h1>/i)?.[0];
+  if (!bgPicture || !h1Match) return html;
+
+  const tagMatch = chunk.match(
+    /<div class="hero-adventure">[\s\S]*?<\/div>\s*<\/div>\s*<div>\s*<div>([^<]+)<\/div>/i,
+  );
+  const tag = tagMatch?.[1]?.trim() || '';
+  const afterH1 = chunk.slice(chunk.indexOf(h1Match) + h1Match.length);
+  const authorMatch = afterH1.match(
+    /<div>\s*(<picture>[\s\S]*?<\/picture>)\s*<\/div>\s*<div>([^<]+)<\/div>\s*<div>([^<]+)<\/div>/i,
+  );
+
+  const authorRows = authorMatch
+    ? `<div>${authorMatch[1]}</div>
+      <div>${authorMatch[2]}</div>
+      <div>${authorMatch[3]}</div>`
+    : '';
+
+  const rebuilt = `<div>
+  <div class="hero-adventure">
+    <div>
+      <div>${bgPicture}</div>
+    </div>
+    <div>
+      <div>${tag}</div>
+      <div>${h1Match}</div>
+      ${authorRows}
+    </div>
+  </div>
+${sectionMetadataBlock('hero-adventure-container')}
+</div>
+`;
+
+  return `${html.slice(0, sectionStart)}${rebuilt}\n<hr>\n${html.slice(hrPos + 4)}`;
+}
+
+function insertHrAfterHeroSection(html) {
+  if (html.includes('<hr>')) return html;
   const marker = 'class="hero-adventure"';
   const start = html.indexOf(marker);
   if (start === -1) return html;
 
-  const open = html.lastIndexOf('<div', start);
+  const sectionStart = html.lastIndexOf('<div>', Math.max(0, start - 10));
   let depth = 0;
-  let i = open;
+  let i = sectionStart;
   while (i < html.length) {
     if (html.startsWith('<div', i)) depth += 1;
     if (html.startsWith('</div>', i)) {
@@ -170,9 +231,12 @@ function ensureTemplateMetadata(html) {
 
 function fixBlogHtml(html) {
   let out = html.trim();
-  out = insertHrAfterHero(out);
+  out = repairHeroBlock(out);
+  out = insertHrAfterHeroSection(out);
   out = normalizeStyledSections(out);
-  out = ensureHeroSectionMetadata(out);
+  if (!out.includes('hero-adventure-container')) {
+    out = ensureHeroSectionMetadata(out);
+  }
   out = ensureBodyNarrowMetadata(out);
   out = removeEmptySections(out);
   out = ensureTemplateMetadata(out);
