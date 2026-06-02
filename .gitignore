@@ -12,3 +12,7 @@ helix-importer-ui
 !CLAUDE.md
 !AGENTS.md
 migration-work/navigation-validation/
+
+.hlx/.da-token.json
+
+content

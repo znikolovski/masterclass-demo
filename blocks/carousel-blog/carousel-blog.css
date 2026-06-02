@@ -1,0 +1,414 @@
+/* WKND Adventures — horizontal blog card carousel */
+
+main .section.carousel-blog-wrapper {
+  background-color: var(--light-color);
+  margin: 0;
+  padding: 0;
+  max-width: 100% !important;
+}
+
+main .section.carousel-blog-wrapper > div {
+  max-width: 100%;
+  padding: 0;
+}
+
+.carousel-blog {
+  --carousel-blog-gap: 16px;
+  --carousel-blog-slide-size: 86%;
+
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 24px;
+  border-top: 1px solid var(--accent-color);
+}
+
+.carousel-blog-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 24px;
+}
+
+.carousel-blog-header-text {
+  flex: 1 1 280px;
+}
+
+.carousel-blog-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--heading-font-family);
+  font-size: 10.4px;
+  font-weight: 600;
+  letter-spacing: 0.52px;
+  line-height: 1;
+  color: #fff;
+  background-color: var(--accent-color);
+  padding: 5px 8px 3px;
+  border-radius: 9999px;
+  margin: 0 0 12px;
+}
+
+.carousel-blog-header h2 {
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-font-size-xl);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.carousel-blog-view-all {
+  flex: 0 0 auto;
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--text-color);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+
+.carousel-blog-view-all:hover,
+.carousel-blog-view-all:focus-visible {
+  color: var(--accent-color);
+}
+
+.carousel-blog-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.carousel-blog .carousel-blog-navigation-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.carousel-blog .carousel-blog-navigation-buttons button {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-radius: 50%;
+  padding: 0;
+  border: 2px solid var(--text-color);
+  background-color: var(--background-color);
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.carousel-blog .carousel-blog-navigation-buttons button:hover,
+.carousel-blog .carousel-blog-navigation-buttons button:focus-visible {
+  box-shadow: 5px 5px 0 0 var(--accent-color);
+  transform: translate(-2px, -2px);
+}
+
+.carousel-blog .carousel-blog-navigation-buttons button::after {
+  display: block;
+  content: '';
+  border: 2px solid var(--text-color);
+  border-bottom: 0;
+  border-left: 0;
+  height: 10px;
+  width: 10px;
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 2px);
+  transform: translate(-50%, -50%) rotate(-135deg);
+}
+
+.carousel-blog .carousel-blog-navigation-buttons button.slide-next::after {
+  transform: translate(-50%, -50%) rotate(45deg);
+  left: calc(50% - 2px);
+}
+
+.carousel-blog .carousel-blog-slide-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel-blog .carousel-blog-slide-indicator button {
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  background-color: rgb(221 216 207);
+  border: none;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.carousel-blog .carousel-blog-slide-indicator button:disabled,
+.carousel-blog .carousel-blog-slide-indicator button:hover,
+.carousel-blog .carousel-blog-slide-indicator button:focus-visible {
+  background-color: var(--accent-color);
+  transform: scale(1.15);
+}
+
+.carousel-blog .carousel-blog-slides-container {
+  position: relative;
+  overflow: hidden;
+  margin: 0 -24px;
+  padding: 0 24px;
+}
+
+.carousel-blog .carousel-blog-slides {
+  display: flex;
+  gap: var(--carousel-blog-gap);
+  margin: 0;
+  padding: 4px 0 12px;
+  list-style: none;
+  overflow: hidden auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.carousel-blog .carousel-blog-slides::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-blog .carousel-blog-slide {
+  flex: 0 0 var(--carousel-blog-slide-size);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--background-color);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgb(221 216 207);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.carousel-blog .carousel-blog-slide:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 20px rgb(15 26 20 / 10%);
+}
+
+.carousel-blog .carousel-blog-slide-image {
+  line-height: 0;
+  overflow: hidden;
+}
+
+.carousel-blog .carousel-blog-slide-image a {
+  display: block;
+}
+
+.carousel-blog .carousel-blog-slide-image img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.carousel-blog .carousel-blog-slide-image a:hover img,
+.carousel-blog .carousel-blog-slide-image a:focus-visible img {
+  transform: scale(1.04);
+}
+
+.carousel-blog .carousel-blog-slide-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.carousel-blog .carousel-blog-slide-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--heading-font-family);
+  font-size: 10.4px;
+  font-weight: 600;
+  letter-spacing: 0.52px;
+  line-height: 1;
+  color: #fff;
+  background-color: var(--accent-color);
+  padding: 5px 8px 3px;
+  border-radius: 9999px;
+  margin: 0 0 12px;
+}
+
+.carousel-blog .carousel-blog-slide-title {
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+}
+
+.carousel-blog .carousel-blog-slide-title a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.carousel-blog .carousel-blog-slide-title a:hover,
+.carousel-blog .carousel-blog-slide-title a:focus-visible {
+  color: var(--accent-color);
+}
+
+.carousel-blog .carousel-blog-slide-description {
+  font-family: var(--body-font-family);
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(122 138 128);
+  margin: 0 0 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.carousel-blog .carousel-blog-slide-date {
+  font-family: var(--heading-font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(122 138 128);
+  margin: 0 0 12px;
+}
+
+.carousel-blog .carousel-blog-slide-cta-wrap {
+  margin: auto 0 0;
+}
+
+.carousel-blog .carousel-blog-slide-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border: 2px solid var(--text-color);
+  border-radius: 9999px;
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  color: var(--text-color);
+  text-decoration: none;
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.carousel-blog .carousel-blog-slide-cta:hover,
+.carousel-blog .carousel-blog-slide-cta:focus-visible {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  box-shadow: 5px 5px 0 0 var(--accent-color);
+  transform: translate(-2px, -2px);
+}
+
+.carousel-blog .carousel-blog-empty {
+  font-family: var(--body-font-family);
+  text-align: center;
+  color: rgb(122 138 128);
+  padding: 48px 24px;
+}
+
+@media (width >= 600px) {
+  .carousel-blog {
+    --carousel-blog-slide-size: calc((100% - var(--carousel-blog-gap)) / 2);
+  }
+
+  .carousel-blog .carousel-blog-slide-title {
+    font-size: var(--heading-font-size-s);
+  }
+}
+
+@media (width >= 900px) {
+  .carousel-blog {
+    --carousel-blog-gap: 20px;
+    --carousel-blog-slide-size: calc((100% - 2 * var(--carousel-blog-gap)) / 3);
+
+    padding: 80px 32px;
+  }
+
+  .carousel-blog .carousel-blog-slides-container {
+    margin: 0 -32px;
+    padding: 0 32px;
+  }
+
+  .carousel-blog .carousel-blog-slide-title {
+    font-size: var(--heading-font-size-m);
+  }
+}
+
+/* Intro section on test / landing pages */
+main .section.carousel-blog-container {
+  background-color: var(--dark-color);
+  color: #fff;
+  margin: 0;
+  padding: 80px 0;
+}
+
+main .section.carousel-blog-container > div {
+  max-width: 1200px;
+}
+
+main .section.carousel-blog-container > div > p:first-child {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--heading-font-family);
+  font-size: 10.4px;
+  font-weight: 600;
+  letter-spacing: 0.52px;
+  line-height: 1;
+  color: #fff;
+  background-color: var(--accent-color);
+  padding: 5px 8px 3px;
+  border-radius: 9999px;
+  margin: 0 0 16px;
+}
+
+main .section.carousel-blog-container h1 {
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+main .section.carousel-blog-container .paragraph-lg,
+main .section.carousel-blog-container > div > p:nth-of-type(3) {
+  font-size: var(--body-font-size-m);
+  line-height: 1.6;
+  color: rgb(255 255 255 / 75%);
+  max-width: 640px;
+  margin: 0 0 24px;
+}
+
+main .section.carousel-blog-container > div > p:last-child a:any-link {
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+main .section.carousel-blog-container > div > p:last-child a:any-link:hover,
+main .section.carousel-blog-container > div > p:last-child a:any-link:focus-visible {
+  color: var(--accent-color);
+}
+
+@media (width >= 900px) {
+  main .section.carousel-blog-container {
+    padding: 100px 0;
+  }
+}

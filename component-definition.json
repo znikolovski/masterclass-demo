@@ -1,0 +1,566 @@
+{
+  "groups": [
+    {
+      "title": "Default Content",
+      "id": "default",
+      "components": [
+        {
+          "title": "Text",
+          "id": "text",
+          "plugins": {
+            "da": {
+              "name": "text",
+              "type": "text"
+            }
+          }
+        },
+        {
+          "title": "Image",
+          "id": "image",
+          "model": "image",
+          "plugins": {
+            "da": {
+              "name": "image",
+              "type": "image",
+              "fields": [
+                {
+                  "name": "imageAlt",
+                  "selector": "img[alt]"
+                },
+                {
+                  "name": "image",
+                  "selector": "img[src]"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Sections",
+      "id": "sections",
+      "components": [
+        {
+          "title": "Section",
+          "id": "section",
+          "filter": "section",
+          "model": "section",
+          "plugins": {
+            "da": {
+              "unsafeHTML": "<div></div>"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Blocks",
+      "id": "blocks",
+      "components": [
+        {
+          "title": "Accordion FAQ",
+          "id": "accordion-faq",
+          "filter": "accordion-faq",
+          "plugins": {
+            "da": {
+              "name": "accordion-faq",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Accordion FAQ Item",
+          "id": "accordion-faq-item",
+          "model": "accordion-faq-item",
+          "plugins": {
+            "da": {
+              "name": "accordion-faq-item",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "summary",
+                  "selector": "div:nth-child(1)"
+                },
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Cards",
+          "id": "cards",
+          "filter": "cards",
+          "plugins": {
+            "da": {
+              "name": "cards",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Card",
+          "id": "card",
+          "model": "card",
+          "plugins": {
+            "da": {
+              "name": "card",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div:nth-child(1) picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div:nth-child(1) picture img[alt]"
+                },
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Cards Steps",
+          "id": "cards-steps",
+          "filter": "cards-steps",
+          "plugins": {
+            "da": {
+              "name": "cards-steps",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Cards Steps Item",
+          "id": "cards-steps-item",
+          "model": "cards-steps-item",
+          "plugins": {
+            "da": {
+              "name": "cards-steps-item",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "number",
+                  "selector": "div:nth-child(1)"
+                },
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Carousel Blog",
+          "id": "carousel-blog",
+          "model": "carousel-blog",
+          "filter": "carousel-blog",
+          "plugins": {
+            "da": {
+              "name": "carousel-blog",
+              "rows": 1,
+              "columns": 3,
+              "fields": [
+                {
+                  "name": "heading",
+                  "selector": "div:nth-child(1) > div:nth-child(1)"
+                },
+                {
+                  "name": "limit",
+                  "selector": "div:nth-child(1) > div:nth-child(2)"
+                },
+                {
+                  "name": "viewAllPath",
+                  "selector": "div:nth-child(1) > div:nth-child(3)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Carousel Blog Post",
+          "id": "carousel-blog-post",
+          "model": "carousel-blog-post",
+          "plugins": {
+            "da": {
+              "name": "carousel-blog-post",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div:nth-child(1) picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div:nth-child(1) picture img[alt]"
+                },
+                {
+                  "name": "tag",
+                  "selector": "div:nth-child(2) > p:first-of-type"
+                },
+                {
+                  "name": "title",
+                  "selector": "div:nth-child(2) h2, div:nth-child(2) h3"
+                },
+                {
+                  "name": "link",
+                  "selector": "div:nth-child(2) a[href]"
+                },
+                {
+                  "name": "description",
+                  "selector": "div:nth-child(2) > p:not(:has(a))"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Carousel Hero",
+          "id": "carousel-hero",
+          "filter": "carousel-hero",
+          "plugins": {
+            "da": {
+              "name": "carousel-hero",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Carousel Hero Slide",
+          "id": "carousel-hero-slide",
+          "model": "carousel-hero-slide",
+          "plugins": {
+            "da": {
+              "name": "carousel-hero-slide",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div:nth-child(1) picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div:nth-child(1) picture img[alt]"
+                },
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Columns",
+          "id": "columns",
+          "model": "columns",
+          "filter": "columns",
+          "plugins": {
+            "da": {
+              "name": "columns",
+              "rows": 1,
+              "columns": 2,
+              "behaviour": "columns"
+            }
+          }
+        },
+        {
+          "title": "Columns Row",
+          "id": "columns-row",
+          "model": "columns-row",
+          "filter": "columns-row",
+          "plugins": {
+            "da": {
+              "name": "columns-row",
+              "behaviour": "columns-row"
+            }
+          }
+        },
+        {
+          "title": "Columns Cell",
+          "id": "columns-cell",
+          "model": "columns-cell",
+          "filter": "columns-cell",
+          "plugins": {
+            "da": {
+              "unsafeHTML": "<div></div>",
+              "behaviour": "columns-cell"
+            }
+          }
+        },
+        {
+          "title": "Columns Article",
+          "id": "columns-article",
+          "model": "columns-article",
+          "plugins": {
+            "da": {
+              "name": "columns-article",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div > div:nth-child(1) picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div > div:nth-child(1) picture img[alt]"
+                },
+                {
+                  "name": "text",
+                  "selector": "div > div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Columns Featured",
+          "id": "columns-featured",
+          "model": "columns-featured",
+          "plugins": {
+            "da": {
+              "name": "columns-featured",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div > div:nth-child(1) picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div > div:nth-child(1) picture img[alt]"
+                },
+                {
+                  "name": "text",
+                  "selector": "div > div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Columns Gallery",
+          "id": "columns-gallery",
+          "filter": "columns-gallery",
+          "plugins": {
+            "da": {
+              "name": "columns-gallery",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Columns Gallery Row",
+          "id": "columns-gallery-row",
+          "model": "columns-gallery-row",
+          "plugins": {
+            "da": {
+              "name": "columns-gallery-row",
+              "rows": 1,
+              "columns": 0,
+              "fields": [
+                {
+                  "name": "text",
+                  "selector": ":scope"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Fragment",
+          "id": "fragment",
+          "model": "fragment",
+          "plugins": {
+            "da": {
+              "name": "fragment",
+              "rows": 1,
+              "columns": 1,
+              "fields": [
+                {
+                  "name": "fragmentUrl",
+                  "selector": "div > div > p > a[href]"
+                },
+                {
+                  "name": "fragmentUrlText",
+                  "selector": "div > div > p > a"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Hero Adventure",
+          "id": "hero-adventure",
+          "model": "hero-adventure",
+          "plugins": {
+            "da": {
+              "name": "hero-adventure",
+              "rows": 2,
+              "columns": 1,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div:nth-child(1) picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div:nth-child(1) picture img[alt]"
+                },
+                {
+                  "name": "eyebrow",
+                  "selector": "div:nth-child(2) > div:nth-child(1)"
+                },
+                {
+                  "name": "title",
+                  "selector": "div:nth-child(2) > div:nth-child(2)"
+                },
+                {
+                  "name": "description",
+                  "selector": "div:nth-child(2) > div:nth-child(3)"
+                },
+                {
+                  "name": "cta1Link",
+                  "selector": "div:nth-child(2) > div:nth-child(4) a[href]"
+                },
+                {
+                  "name": "cta1Text",
+                  "selector": "div:nth-child(2) > div:nth-child(4) a"
+                },
+                {
+                  "name": "cta2Link",
+                  "selector": "div:nth-child(2) > div:nth-child(5) a[href]"
+                },
+                {
+                  "name": "cta2Text",
+                  "selector": "div:nth-child(2) > div:nth-child(5) a"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Marquee Ticker",
+          "id": "marquee-ticker",
+          "filter": "marquee-ticker",
+          "plugins": {
+            "da": {
+              "name": "marquee-ticker",
+              "rows": 1,
+              "columns": 1
+            }
+          }
+        },
+        {
+          "title": "Marquee Ticker Item",
+          "id": "marquee-ticker-item",
+          "model": "marquee-ticker-item",
+          "plugins": {
+            "da": {
+              "name": "marquee-ticker-item",
+              "rows": 1,
+              "columns": 1,
+              "fields": [
+                {
+                  "name": "text",
+                  "selector": ":scope"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Section Metadata",
+          "id": "section-metadata",
+          "model": "section-metadata",
+          "plugins": {
+            "da": {
+              "name": "section-metadata",
+              "type": "key-value-block"
+            }
+          }
+        },
+        {
+          "title": "Tabs Activity",
+          "id": "tabs-activity",
+          "filter": "tabs-activity",
+          "plugins": {
+            "da": {
+              "name": "tabs-activity",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Tabs Activity Tab",
+          "id": "tabs-activity-tab",
+          "model": "tabs-activity-tab",
+          "plugins": {
+            "da": {
+              "name": "tabs-activity-tab",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "tabLabel",
+                  "selector": "div:nth-child(1)"
+                },
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Teaser",
+          "id": "teaser",
+          "model": "teaser",
+          "plugins": {
+            "da": {
+              "name": "teaser",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "image",
+                  "selector": "div > div picture img[src], div picture img[src]"
+                },
+                {
+                  "name": "imageAlt",
+                  "selector": "div > div picture img[alt], div picture img[alt]"
+                },
+                {
+                  "name": "text",
+                  "selector": "div > div > div:last-child, div > div:last-child"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

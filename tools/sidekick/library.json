@@ -2,28 +2,48 @@
   "blocks": {
     "data": [
       {
-        "name": "Hero Adventure",
-        "path": "/tools/sidekick/blocks/hero-adventure"
-      },
-      {
-        "name": "Columns Featured",
-        "path": "/tools/sidekick/blocks/columns-featured"
-      },
-      {
-        "name": "Tabs Activity",
-        "path": "/tools/sidekick/blocks/tabs-activity"
-      },
-      {
         "name": "Accordion FAQ",
         "path": "/tools/sidekick/blocks/accordion-faq"
+      },
+      {
+        "name": "Cards",
+        "path": "/tools/sidekick/blocks/cards"
       },
       {
         "name": "Cards Steps",
         "path": "/tools/sidekick/blocks/cards-steps"
       },
       {
+        "name": "Carousel Blog",
+        "path": "/tools/sidekick/blocks/carousel-blog"
+      },
+      {
+        "name": "Carousel Hero",
+        "path": "/tools/sidekick/blocks/carousel-hero"
+      },
+      {
+        "name": "Columns",
+        "path": "/tools/sidekick/blocks/columns"
+      },
+      {
+        "name": "Columns Article",
+        "path": "/tools/sidekick/blocks/columns-article"
+      },
+      {
+        "name": "Columns Featured",
+        "path": "/tools/sidekick/blocks/columns-featured"
+      },
+      {
         "name": "Columns Gallery",
         "path": "/tools/sidekick/blocks/columns-gallery"
+      },
+      {
+        "name": "Fragment",
+        "path": "/tools/sidekick/blocks/fragment"
+      },
+      {
+        "name": "Hero Adventure",
+        "path": "/tools/sidekick/blocks/hero-adventure"
       },
       {
         "name": "Marquee Ticker",
@@ -32,6 +52,14 @@
       {
         "name": "Section Metadata",
         "path": "/tools/sidekick/blocks/section-metadata"
+      },
+      {
+        "name": "Tabs Activity",
+        "path": "/tools/sidekick/blocks/tabs-activity"
+      },
+      {
+        "name": "Teaser",
+        "path": "/tools/sidekick/blocks/teaser"
       }
     ]
   },
@@ -40,6 +68,10 @@
       {
         "name": "Blog Article",
         "path": "/tools/sidekick/templates/blog-article"
+      },
+      {
+        "name": "Field Notes",
+        "path": "/tools/sidekick/templates/field-notes"
       },
       {
         "name": "Landing Page",

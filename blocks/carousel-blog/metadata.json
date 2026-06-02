@@ -1,0 +1,28 @@
+{
+  "variantName": "carousel-blog",
+  "baseBlock": "carousel",
+  "version": "1.0.0",
+  "created": "2026-06-02T00:00:00.000Z",
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "comfortable",
+    "purpose": "blog-post-carousel",
+    "imagePattern": "card"
+  },
+  "contentPattern": {
+    "structure": "dynamic blog feed from query index",
+    "buttonCount": 1,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "homepage recent posts",
+      "field notes landing pages",
+      "blog hub pages"
+    ],
+    "notSuitableFor": [
+      "full-bleed hero carousels",
+      "product galleries"
+    ]
+  }
+}

@@ -3,13 +3,15 @@ import {
   loadHeader,
   loadFooter,
   decorateIcons,
-  decorateSections,
   decorateBlocks,
   decorateTemplateAndTheme,
   waitForFirstImage,
   loadSection,
   loadSections,
   loadCSS,
+  readBlockConfig,
+  toClassName,
+  toCamelCase,
 } from './aem.js';
 
 /**
@@ -21,8 +23,9 @@ function buildHeroBlock(main) {
   const picture = main.querySelector('picture');
   // eslint-disable-next-line no-bitwise
   if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    if (h1.closest('[class*="hero"]') || picture.closest('[class*="hero"]')) {
-      return;
+    // Check if h1 or picture is already inside a hero block
+    if (h1.closest('.hero') || picture.closest('.hero')) {
+      return; // Don't create a duplicate hero block
     }
     const section = document.createElement('div');
     section.append(buildBlock('hero', { elems: [picture, h1] }));
@@ -83,22 +86,19 @@ function decorateButtons(main) {
     const p = a.closest('p');
     const text = a.textContent.trim();
 
-    // quick structural checks
     if (a.querySelector('img') || p.textContent.trim() !== text) return;
 
-    // skip URL display links
     try {
       if (new URL(a.href).href === new URL(text, window.location).href) return;
     } catch { /* continue */ }
 
-    // require authored formatting for buttonization
     const strong = a.closest('strong');
     const em = a.closest('em');
     if (!strong && !em) return;
 
     p.className = 'button-wrapper';
     a.className = 'button';
-    if (strong && em) { // high-impact call-to-action
+    if (strong && em) {
       a.classList.add('accent');
       const outer = strong.contains(em) ? strong : em;
       outer.replaceWith(a);
@@ -112,25 +112,52 @@ function decorateButtons(main) {
   });
 }
 
-function decorateButtonGroups(main) {
-  main.querySelectorAll('.default-content-wrapper > p').forEach((p) => {
-    const links = p.querySelectorAll(':scope > a[href]');
-    if (links.length === 0) return;
-    const textContent = p.textContent.trim();
-    const linkText = Array.from(links).map((a) => a.textContent.trim()).join(' ');
-    if (textContent !== linkText) return;
+/**
+ * Decorates all sections in a container element.
+ * Overrides aem.js version to support UE richtext class handling.
+ * @param {Element} main The container element
+ */
+function decorateSections(main) {
+  main.querySelectorAll(':scope > div').forEach((section) => {
+    const wrappers = [];
+    let defaultContent = false;
+    [...section.children].forEach((e) => {
+      if (e.classList.contains('richtext')) {
+        e.removeAttribute('class');
+        if (!defaultContent) {
+          const wrapper = document.createElement('div');
+          wrapper.classList.add('default-content-wrapper');
+          wrappers.push(wrapper);
+          defaultContent = true;
+        }
+      } else if (e.tagName === 'DIV' || !defaultContent) {
+        const wrapper = document.createElement('div');
+        wrappers.push(wrapper);
+        defaultContent = e.tagName !== 'DIV';
+        if (defaultContent) wrapper.classList.add('default-content-wrapper');
+      }
+      wrappers[wrappers.length - 1].append(e);
+    });
+    wrappers.forEach((wrapper) => section.append(wrapper));
+    section.classList.add('section');
+    section.dataset.sectionStatus = 'initialized';
+    section.style.display = 'none';
 
-    if (links.length >= 2) {
-      const div = document.createElement('div');
-      div.className = 'button-group';
-      links.forEach((a, i) => {
-        if (i === 0) a.classList.add('button');
-        else a.classList.add('button-ghost');
-        div.append(a);
+    const sectionMeta = section.querySelector('div.section-metadata');
+    if (sectionMeta) {
+      const meta = readBlockConfig(sectionMeta);
+      Object.keys(meta).forEach((key) => {
+        if (key === 'style') {
+          const styles = meta.style
+            .split(',')
+            .filter((style) => style)
+            .map((style) => toClassName(style.trim()));
+          styles.forEach((style) => section.classList.add(style));
+        } else {
+          section.dataset[toCamelCase(key)] = meta[key];
+        }
       });
-      p.replaceWith(div);
-    } else if (links.length === 1 && p === p.parentElement.lastElementChild) {
-      links[0].classList.add('button');
+      sectionMeta.parentNode.remove();
     }
   });
 }
@@ -141,12 +168,12 @@ function decorateButtonGroups(main) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  // hopefully forward compatible button decoration
+  decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
-  decorateButtons(main);
-  decorateButtonGroups(main);
 }
 
 /**
@@ -160,7 +187,13 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
+    const firstSection = main.querySelector('.section');
+    if (firstSection) {
+      await loadSection(firstSection, (section) => {
+        if (document.body.classList.contains('quick-edit')) return Promise.resolve();
+        return waitForFirstImage(section);
+      });
+    }
   }
 
   try {
@@ -190,10 +223,28 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  if (window.location.pathname.includes('/blog/')) {
-    loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
-  }
   loadFonts();
+
+  const loadQuickEdit = async (...args) => {
+    // eslint-disable-next-line import/no-cycle
+    const { default: initQuickEdit } = await import('../tools/quick-edit/quick-edit.js');
+    initQuickEdit(...args);
+  };
+
+  const addSidekickListeners = (sk) => {
+    sk.addEventListener('custom:quick-edit', loadQuickEdit);
+  };
+
+  const sk = document.querySelector('aem-sidekick');
+  if (sk) {
+    addSidekickListeners(sk);
+  } else {
+    // wait for sidekick to be loaded
+    document.addEventListener('sidekick-ready', () => {
+    // sidekick now loaded
+      addSidekickListeners(document.querySelector('aem-sidekick'));
+    }, { once: true });
+  }
 }
 
 /**
@@ -206,10 +257,27 @@ function loadDelayed() {
   // load anything that can be postponed to the latest here
 }
 
-async function loadPage() {
+export async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();
 }
 
+// UE Editor support before page load
+if (/\.(stage-ue|ue)\.da\.live$/.test(window.location.hostname)) {
+  // eslint-disable-next-line import/no-unresolved
+  await import(`${window.hlx.codeBasePath}/ue/scripts/ue.js`).then(({ default: ue }) => ue());
+}
+
 loadPage();
+
+(function da() {
+  const { searchParams } = new URL(window.location.href);
+  const lp = searchParams.get('dapreview');
+  // eslint-disable-next-line import/no-unresolved
+  if (lp) import('https://da.live/scripts/dapreview.js').then((mod) => mod.default(loadPage));
+
+  const exp = searchParams.get('daexperiment');
+  // eslint-disable-next-line import/no-unresolved
+  if (exp) import('https://da.live/nx/public/plugins/exp/exp.js');
+}());

@@ -1,0 +1,503 @@
+[
+  {
+    "id": "page-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title",
+        "valueType": "string"
+      },
+      {
+        "component": "textarea",
+        "name": "description",
+        "label": "Description",
+        "valueType": "string"
+      },
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "robots",
+        "label": "Robots",
+        "valueType": "string",
+        "description": "e.g. index, follow or noindex, nofollow"
+      }
+    ]
+  },
+  {
+    "id": "image",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Alt Text",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "section",
+    "fields": [
+      {
+        "component": "text",
+        "name": "name",
+        "label": "Section Name",
+        "valueType": "string",
+        "description": "Label shown in the content tree"
+      },
+      {
+        "component": "multiselect",
+        "name": "style",
+        "label": "Style",
+        "valueType": "string",
+        "options": [
+          { "name": "Default", "value": "default" },
+          { "name": "Inverse (dark)", "value": "inverse" },
+          { "name": "Secondary (light beige)", "value": "secondary" },
+          { "name": "Accent (orange)", "value": "accent" },
+          { "name": "Light", "value": "light" },
+          { "name": "Dark", "value": "dark" },
+          { "name": "Highlight", "value": "highlight" },
+          { "name": "Narrow", "value": "narrow" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "section-metadata",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "style",
+        "label": "Section Style",
+        "valueType": "string",
+        "options": [
+          { "name": "Inverse (dark)", "value": "inverse" },
+          { "name": "Secondary (light beige)", "value": "secondary" },
+          { "name": "Accent (orange)", "value": "accent" },
+          { "name": "Light", "value": "light" },
+          { "name": "Dark", "value": "dark" },
+          { "name": "Highlight", "value": "highlight" },
+          { "name": "Narrow", "value": "narrow" },
+          { "name": "Carousel blog wrapper", "value": "carousel-blog-wrapper" },
+          { "name": "Carousel blog intro", "value": "carousel-blog-container" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "accordion-faq-item",
+    "fields": [
+      {
+        "component": "text",
+        "name": "summary",
+        "label": "Question",
+        "valueType": "string",
+        "required": true
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Answer",
+        "valueType": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "card",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Content",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "cards-steps-item",
+    "fields": [
+      {
+        "component": "text",
+        "name": "number",
+        "label": "Step Number",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Step Content",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "carousel-blog",
+    "fields": [
+      {
+        "component": "text",
+        "name": "heading",
+        "label": "Heading",
+        "valueType": "string",
+        "value": "Recent Field Notes"
+      },
+      {
+        "component": "number",
+        "name": "limit",
+        "label": "Number of posts",
+        "valueType": "number",
+        "value": 6,
+        "validation": {
+          "numberMin": 1,
+          "numberMax": 12
+        }
+      },
+      {
+        "component": "aem-content",
+        "name": "viewAllPath",
+        "label": "View all link",
+        "valueType": "string",
+        "value": "/field-notes"
+      }
+    ]
+  },
+  {
+    "id": "carousel-blog-post",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "tag",
+        "label": "Category tag",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title",
+        "valueType": "string"
+      },
+      {
+        "component": "aem-content",
+        "name": "link",
+        "label": "Link",
+        "valueType": "string"
+      },
+      {
+        "component": "textarea",
+        "name": "description",
+        "label": "Description",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "carousel-hero-slide",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Background Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Content",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "columns",
+    "fields": [
+      {
+        "component": "number",
+        "name": "columns",
+        "label": "Number of Columns",
+        "valueType": "number",
+        "value": 2,
+        "validation": {
+          "numberMin": 1,
+          "numberMax": 6
+        }
+      }
+    ]
+  },
+  {
+    "id": "columns-row",
+    "fields": []
+  },
+  {
+    "id": "columns-cell",
+    "fields": []
+  },
+  {
+    "id": "columns-article",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Content",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "columns-featured",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Content",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "columns-gallery-row",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Row content (images)",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "fragment",
+    "fields": [
+      {
+        "component": "aem-content",
+        "name": "fragmentUrl",
+        "label": "Fragment path",
+        "valueType": "string",
+        "required": true
+      },
+      {
+        "component": "text",
+        "name": "fragmentUrlText",
+        "label": "Link text",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "hero-adventure",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Background Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "eyebrow",
+        "label": "Eyebrow / tag",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title",
+        "valueType": "string"
+      },
+      {
+        "component": "select",
+        "name": "titleType",
+        "label": "Heading level",
+        "valueType": "string",
+        "value": "h1",
+        "options": [
+          { "name": "H1", "value": "h1" },
+          { "name": "H2", "value": "h2" },
+          { "name": "H3", "value": "h3" }
+        ]
+      },
+      {
+        "component": "textarea",
+        "name": "description",
+        "label": "Description",
+        "valueType": "string"
+      },
+      {
+        "component": "aem-content",
+        "name": "cta1Link",
+        "label": "Primary CTA link",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "cta1Text",
+        "label": "Primary CTA text",
+        "valueType": "string"
+      },
+      {
+        "component": "aem-content",
+        "name": "cta2Link",
+        "label": "Secondary CTA link",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "cta2Text",
+        "label": "Secondary CTA text",
+        "valueType": "string"
+      },
+      {
+        "component": "reference",
+        "name": "authorImage",
+        "label": "Author image (blog)",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "authorName",
+        "label": "Author name (blog)",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "publishDate",
+        "label": "Publish date (blog)",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "marquee-ticker-item",
+    "fields": [
+      {
+        "component": "text",
+        "name": "text",
+        "label": "Ticker text",
+        "valueType": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "tabs-activity-tab",
+    "fields": [
+      {
+        "component": "text",
+        "name": "tabLabel",
+        "label": "Tab label",
+        "valueType": "string",
+        "required": true
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Tab panel content",
+        "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "teaser",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image",
+        "valueType": "string",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "imageAlt",
+        "label": "Image Alt",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Content",
+        "valueType": "string"
+      }
+    ]
+  }
+]

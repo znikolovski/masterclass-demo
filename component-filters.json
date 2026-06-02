@@ -1,0 +1,95 @@
+[
+  {
+    "id": "main",
+    "components": [
+      "section"
+    ]
+  },
+  {
+    "id": "section",
+    "components": [
+      "text",
+      "image",
+      "accordion-faq",
+      "cards",
+      "cards-steps",
+      "carousel-blog",
+      "carousel-hero",
+      "columns",
+      "columns-article",
+      "columns-featured",
+      "columns-gallery",
+      "fragment",
+      "hero-adventure",
+      "marquee-ticker",
+      "section-metadata",
+      "tabs-activity",
+      "teaser"
+    ]
+  },
+  {
+    "id": "accordion-faq",
+    "components": [
+      "accordion-faq-item"
+    ]
+  },
+  {
+    "id": "cards",
+    "components": [
+      "card"
+    ]
+  },
+  {
+    "id": "cards-steps",
+    "components": [
+      "cards-steps-item"
+    ]
+  },
+  {
+    "id": "carousel-blog",
+    "components": [
+      "carousel-blog-post"
+    ]
+  },
+  {
+    "id": "carousel-hero",
+    "components": [
+      "carousel-hero-slide"
+    ]
+  },
+  {
+    "id": "columns",
+    "components": [
+      "columns-row"
+    ]
+  },
+  {
+    "id": "columns-row",
+    "components": []
+  },
+  {
+    "id": "columns-cell",
+    "components": [
+      "text",
+      "image"
+    ]
+  },
+  {
+    "id": "columns-gallery",
+    "components": [
+      "columns-gallery-row"
+    ]
+  },
+  {
+    "id": "tabs-activity",
+    "components": [
+      "tabs-activity-tab"
+    ]
+  },
+  {
+    "id": "marquee-ticker",
+    "components": [
+      "marquee-ticker-item"
+    ]
+  }
+]
