@@ -1,9 +1,9 @@
 {
   ":type": "sheet",
   "columns": ["name", "path"],
-  "total": 15,
+  "total": 16,
   "offset": 0,
-  "limit": 15,
+  "limit": 16,
   "data": [
     {
       "name": "Accordion FAQ",
@@ -64,6 +64,10 @@
     {
       "name": "Teaser",
       "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
+    },
+    {
+      "name": "YouTube Video",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/youtube-video/youtube-video.html"
     }
   ]
 }

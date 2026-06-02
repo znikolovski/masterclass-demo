@@ -559,6 +559,32 @@
               ]
             }
           }
+        },
+        {
+          "title": "YouTube Video",
+          "id": "youtube-video",
+          "model": "youtube-video",
+          "plugins": {
+            "da": {
+              "name": "youtube-video",
+              "rows": 3,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "youtubeUrl",
+                  "selector": "div:nth-child(1) > div:nth-child(2) a[href], div:nth-child(1) > div:nth-child(2)"
+                },
+                {
+                  "name": "title",
+                  "selector": "div:nth-child(2) > div:nth-child(2)"
+                },
+                {
+                  "name": "autoplay",
+                  "selector": "div:nth-child(3) > div:nth-child(1)"
+                }
+              ]
+            }
+          }
         }
       ]
     }

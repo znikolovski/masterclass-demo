@@ -499,5 +499,30 @@
         "valueType": "string"
       }
     ]
+  },
+  {
+    "id": "youtube-video",
+    "fields": [
+      {
+        "component": "text",
+        "name": "youtubeUrl",
+        "label": "YouTube URL",
+        "valueType": "string",
+        "required": true,
+        "description": "Full youtube.com or youtu.be link"
+      },
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Caption",
+        "valueType": "string"
+      },
+      {
+        "component": "boolean",
+        "name": "autoplay",
+        "label": "Autoplay (muted)",
+        "valueType": "boolean"
+      }
+    ]
   }
 ]

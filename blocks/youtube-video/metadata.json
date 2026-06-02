@@ -1,0 +1,29 @@
+{
+  "variantName": "youtube-video",
+  "baseBlock": "embed",
+  "version": "1.0.0",
+  "created": "2026-06-02T00:00:00.000Z",
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "comfortable",
+    "purpose": "video-embed",
+    "imagePattern": "none"
+  },
+  "contentPattern": {
+    "structure": "youtube url + optional caption + optional autoplay",
+    "buttonCount": 0,
+    "imageCount": 0
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "adventure recaps",
+      "how-to guides",
+      "field notes with video",
+      "landing page hero support"
+    ],
+    "notSuitableFor": [
+      "background video loops",
+      "multi-video galleries"
+    ]
+  }
+}
