@@ -5,10 +5,17 @@
  *
  * Prerequisites: `aem content clone --path /` (cached token in .hlx/.da-token.json)
  * Usage: node tools/sidekick/setup-da-library.mjs
+ *
+ * Also writes blocks/{name}/{name}.html and templates/{name}/{name}.html in git
+ * so DA block preview URLs ending in .html resolve on the code bus (aem.page).
  */
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { basename, dirname, join, relative } from 'node:path';
+import {
+  mkdirSync, readFileSync, readdirSync, statSync, writeFileSync,
+} from 'node:fs';
+import {
+  basename, dirname, join, relative,
+} from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ORG = 'znikolovski';
@@ -156,7 +163,7 @@ for (const file of ['library/blocks.json', 'library/templates.json']) {
   console.log(`  ✓ ${file}`);
 }
 
-// 2. Sync block/template HTML from sidekick snippets into blocks/ and templates/
+// 2. Sync block/template HTML from sidekick snippets → DA + git (for .html preview URLs)
 const sidekickRoot = join(ROOT, 'tools/sidekick');
 for (const abs of walkPlainHtml(sidekickRoot)) {
   const rel = relative(sidekickRoot, abs);
@@ -164,7 +171,10 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   const daPath = rel.replace(/\.plain\.html$/, '.html');
   const html = readFileSync(abs, 'utf8');
   await putSource(token, daPath, html, 'text/html');
-  console.log(`  ✓ ${daPath}`);
+  const gitPath = join(ROOT, daPath);
+  mkdirSync(dirname(gitPath), { recursive: true });
+  writeFileSync(gitPath, html);
+  console.log(`  ✓ ${daPath} (DA + git)`);
 }
 
 // 3. DA site config — library tab pointing at index sheets
