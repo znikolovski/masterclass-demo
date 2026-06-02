@@ -47,15 +47,35 @@ main > .section > .default-content-wrapper > figure img {
   border-radius: 16px;
 }
 
-/* Inline images in article — full width, break out of narrow container */
-main > .section > .default-content-wrapper > p > picture {
+/* Inline images in article body — full width, break out of narrow container */
+main > .section.narrow > .default-content-wrapper > p > picture,
+main > .section:first-of-type:has(.hero-adventure) > .default-content-wrapper > p > picture {
   display: block;
   margin: 32px calc(-1 * (50vw - 50%));
   padding: 0 calc(50vw - 50%);
 }
 
-main > .section > .default-content-wrapper > p > picture img {
+main > .section.narrow > .default-content-wrapper > p > picture img,
+main > .section:first-of-type:has(.hero-adventure) > .default-content-wrapper > p > picture img {
   width: 100%;
+  border-radius: 16px;
+}
+
+/* Gallery sections — wide image belongs inside columns-gallery, not break-out */
+main > .section:has(.columns-gallery) > .default-content-wrapper > p > picture,
+main > .section.inverse > .default-content-wrapper > p > picture {
+  display: block;
+  margin: 32px 0 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+main > .section:has(.columns-gallery) > .default-content-wrapper > p > picture img,
+main > .section.inverse > .default-content-wrapper > p > picture img {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: cover;
   border-radius: 16px;
 }
 

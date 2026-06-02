@@ -1,4 +1,24 @@
+/**
+ * Moves a trailing paragraph with only a picture into the block as a full-width row.
+ * @param {Element} block
+ */
+function adoptOrphanWideImage(block) {
+  const next = block.nextElementSibling;
+  if (!next?.matches('p')) return;
+  const pic = next.querySelector('picture');
+  if (!pic || next.textContent.trim()) return;
+
+  const row = document.createElement('div');
+  const col = document.createElement('div');
+  col.append(pic);
+  row.append(col);
+  block.append(row);
+  next.remove();
+}
+
 export default function decorate(block) {
+  adoptOrphanWideImage(block);
+
   const cols = [...block.firstElementChild.children];
   block.classList.add(`columns-gallery-${cols.length}-cols`);
 

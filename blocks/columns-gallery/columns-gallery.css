@@ -1,4 +1,5 @@
 /* Block: columns-gallery — image grid with rounded corners */
+/* stylelint-disable no-descending-specificity */
 
 .columns-gallery {
   display: flex;
@@ -34,11 +35,21 @@
 }
 
 /* Second row: full-width single image */
+.columns-gallery > div:nth-child(2) {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
 .columns-gallery > div:nth-child(2) img {
   display: block;
   width: 100%;
   height: 360px;
   object-fit: cover;
+}
+
+.columns-gallery > div:nth-child(2) picture {
+  display: block;
+  line-height: 0;
 }
 
 @media (width >= 900px) {
@@ -47,3 +58,4 @@
     gap: 24px;
   }
 }
+/* stylelint-enable no-descending-specificity */

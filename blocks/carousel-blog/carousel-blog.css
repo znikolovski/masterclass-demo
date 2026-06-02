@@ -352,6 +352,7 @@ main .section.carousel-blog-wrapper > div {
 }
 
 /* Intro section on test / landing pages */
+/* stylelint-disable no-descending-specificity */
 main .section.carousel-blog-container {
   background-color: var(--dark-color);
   color: #fff;
@@ -363,7 +364,7 @@ main .section.carousel-blog-container > div {
   max-width: 1200px;
 }
 
-main .section.carousel-blog-container > div > p:first-child {
+main .section.carousel-blog-container > div > p:first-child:not(:has(picture)) {
   display: inline-flex;
   align-items: center;
   font-family: var(--heading-font-family);
@@ -376,6 +377,19 @@ main .section.carousel-blog-container > div > p:first-child {
   padding: 5px 8px 3px;
   border-radius: 9999px;
   margin: 0 0 16px;
+}
+
+main .section.carousel-blog-container > div > p:has(picture) {
+  margin: 0 0 32px;
+  line-height: 0;
+}
+
+main .section.carousel-blog-container > div > p:has(picture) img {
+  width: 100%;
+  max-height: min(56vh, 520px);
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
 }
 
 main .section.carousel-blog-container h1 {
@@ -412,3 +426,4 @@ main .section.carousel-blog-container > div > p:last-child a:any-link:focus-visi
     padding: 100px 0;
   }
 }
+/* stylelint-enable no-descending-specificity */
