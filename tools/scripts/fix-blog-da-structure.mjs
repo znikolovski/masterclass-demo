@@ -90,36 +90,50 @@ ${sectionMetadataBlock('hero-adventure-container')}
 </div>
 `;
 
-  return `${html.slice(0, sectionStart)}${rebuilt}\n<hr>\n${html.slice(hrPos + 4)}`;
+  const tail = html.slice(hrPos).replace(/^<hr>\s*/i, '');
+  return `${html.slice(0, sectionStart)}${rebuilt}\n${tail}`;
 }
 
-function insertHrAfterHeroSection(html) {
-  if (html.includes('<hr>')) return html;
-  const marker = 'class="hero-adventure"';
-  const start = html.indexOf(marker);
-  if (start === -1) return html;
+/**
+ * Wraps loose article paragraphs in a DA section div (EDS ignores bare nodes after <hr>).
+ * @param {string} html
+ */
+function wrapArticleBodyInSection(html) {
+  let out = html.replace(/<hr>\s*/gi, '\n');
 
-  const sectionStart = html.lastIndexOf('<div>', Math.max(0, start - 10));
-  let depth = 0;
-  let i = sectionStart;
-  while (i < html.length) {
-    if (html.startsWith('<div', i)) depth += 1;
-    if (html.startsWith('</div>', i)) {
-      depth -= 1;
-      if (depth === 0) {
-        i += 6;
-        const ws = html.slice(i).match(/^\s*/)[0];
-        i += ws.length;
-        if (html.startsWith('<hr', i)) return html;
-        if (/^<(p|h2|h3|ul|ol|blockquote)\b/i.test(html.slice(i))) {
-          return `${html.slice(0, i)}\n<hr>\n${html.slice(i)}`;
-        }
-        return html;
-      }
+  const heroMeta = out.search(
+    /<div class="section-metadata">[\s\S]*?hero-adventure-container[\s\S]*?<\/div>\s*<\/div>/i,
+  );
+  if (heroMeta === -1) return out;
+
+  let start = out.indexOf('</div>', heroMeta);
+  while (start !== -1) {
+    start += 6;
+    const ws = out.slice(start).match(/^\s*/)[0];
+    start += ws.length;
+    if (/^<p[\s>]/i.test(out.slice(start))) break;
+    if (/^<div class="(?:secondary|inverse)">/i.test(out.slice(start))) return out;
+    if (/^<div>[\s\S]*?<div class="(?:secondary|inverse)">/i.test(out.slice(start, start + 80))) {
+      return out;
     }
-    i += 1;
+    const nextClose = out.indexOf('</div>', start);
+    if (nextClose === -1) return out;
+    start = nextClose;
   }
-  return html;
+  if (start === -1 || !/^<p[\s>]/i.test(out.slice(start))) return out;
+
+  const rest = out.slice(start);
+  const endMatch = rest.search(/<div class="(?:secondary|inverse)">/i);
+  const body = (endMatch === -1 ? rest : rest.slice(0, endMatch)).trim();
+  if (!body || /^<div[\s>]/i.test(body)) return out;
+
+  if (body.includes('class="section-metadata"') && body.includes('>narrow<')) {
+    return out;
+  }
+
+  const wrapped = `<div>\n${body}\n${sectionMetadataBlock('narrow')}\n</div>\n`;
+  const end = endMatch === -1 ? out.length : start + endMatch;
+  return out.slice(0, start) + wrapped + out.slice(end);
 }
 
 function sectionMetadataBlock(style) {
@@ -196,20 +210,6 @@ function ensureHeroSectionMetadata(html) {
   return `${out.slice(0, insertAt)}${meta}${out.slice(insertAt)}`;
 }
 
-function ensureBodyNarrowMetadata(html) {
-  if (!html.includes('<hr>')) return html;
-  const parts = html.split(/<hr>\s*/i);
-  if (parts.length < 2) return html;
-
-  const body = parts[1];
-  if (body.includes('class="section-metadata"') || body.includes('>narrow<')) {
-    return html;
-  }
-  const bodyClose = body.lastIndexOf('</div>');
-  if (bodyClose === -1) return html;
-  const updated = `${body.slice(0, bodyClose)}\n${sectionMetadataBlock('narrow')}\n${body.slice(bodyClose)}`;
-  return `${parts[0]}<hr>\n${updated}${parts.slice(2).join('<hr>\n')}`;
-}
 
 function removeEmptySections(html) {
   return html.replace(/<div>\s*<\/div>\s*/g, '');
@@ -232,12 +232,11 @@ function ensureTemplateMetadata(html) {
 function fixBlogHtml(html) {
   let out = html.trim();
   out = repairHeroBlock(out);
-  out = insertHrAfterHeroSection(out);
   out = normalizeStyledSections(out);
   if (!out.includes('hero-adventure-container')) {
     out = ensureHeroSectionMetadata(out);
   }
-  out = ensureBodyNarrowMetadata(out);
+  out = wrapArticleBodyInSection(out);
   out = removeEmptySections(out);
   out = ensureTemplateMetadata(out);
   return out;
