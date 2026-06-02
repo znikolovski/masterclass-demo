@@ -53,12 +53,12 @@ main > .section.dark a:any-link {
   color: var(--accent-color);
 }
 
-/* Image styling — full-width hero-style images */
-main > .section:first-of-type > div > p:first-child > picture {
+/* Image styling — full-width hero-style images (default content only, not hero-adventure block) */
+main > .section:first-of-type:not(:has(.hero-adventure)) > div > p:first-child > picture {
   display: block;
 }
 
-main > .section:first-of-type > div > p:first-child > picture img {
+main > .section:first-of-type:not(:has(.hero-adventure)) > div > p:first-child > picture img {
   width: 100%;
   height: 70vh;
   object-fit: cover;

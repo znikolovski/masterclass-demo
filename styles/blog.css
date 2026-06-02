@@ -151,15 +151,6 @@ main > .section:first-of-type:has(.hero-adventure) .hero-adventure {
   min-height: 550px;
 }
 
-/* Author avatar in hero */
-main > .section.hero-adventure-container .hero-adventure img:not(:first-of-type),
-main > .section:first-of-type:has(.hero-adventure) .hero-adventure img:not(:first-of-type) {
-  width: 80px;
-  height: 80px;
-  border-radius: 0;
-  object-fit: cover;
-}
-
 @media (width >= 900px) {
   main > .section.hero-adventure-container .hero-adventure,
   main > .section:first-of-type:has(.hero-adventure) .hero-adventure {

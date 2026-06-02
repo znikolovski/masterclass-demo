@@ -87,17 +87,52 @@ function normalizeStyledSections(html) {
   return out;
 }
 
+function findHeroBlockEnd(html) {
+  const marker = 'class="hero-adventure"';
+  const start = html.indexOf(marker);
+  if (start === -1) return -1;
+
+  const open = html.lastIndexOf('<div', start);
+  let depth = 0;
+  let i = open;
+  while (i < html.length) {
+    if (html.startsWith('<div', i)) depth += 1;
+    if (html.startsWith('</div>', i)) {
+      depth -= 1;
+      if (depth === 0) return i + 6;
+    }
+    i += 1;
+  }
+  return -1;
+}
+
+function removeMetadataInsideHero(html) {
+  const marker = 'class="hero-adventure"';
+  const start = html.indexOf(marker);
+  if (start === -1) return html;
+
+  const open = html.lastIndexOf('<div', start);
+  const end = findHeroBlockEnd(html);
+  if (end === -1) return html;
+
+  const block = html.slice(open, end);
+  const cleaned = block
+    .replace(/\s*<div class="section-metadata">[\s\S]*?<\/div>\s*/gi, '')
+    .replace(/\s*<div>\s*<div>style<\/div>\s*<div>hero-adventure-container<\/div>\s*<\/div>\s*/gi, '');
+  return html.slice(0, open) + cleaned + html.slice(end);
+}
+
 function ensureHeroSectionMetadata(html) {
-  if (html.includes('hero-adventure-container')) return html;
   if (!html.includes('class="hero-adventure"')) return html;
 
-  const heroEnd = html.indexOf('class="hero-adventure"');
-  const close = html.indexOf('</div>', html.indexOf('</div>', html.indexOf('</div>', heroEnd) + 6) + 6);
-  if (close === -1) return html;
+  let out = removeMetadataInsideHero(html);
+  if (out.includes('hero-adventure-container')) return out;
 
-  const insertAt = close + 6;
+  const insertAt = findHeroBlockEnd(out);
+  if (insertAt === -1) return out;
+
   const meta = `\n${sectionMetadataBlock('hero-adventure-container')}`;
-  return `${html.slice(0, insertAt)}${meta}${html.slice(insertAt)}`;
+  return `${out.slice(0, insertAt)}${meta}${out.slice(insertAt)}`;
 }
 
 function ensureBodyNarrowMetadata(html) {
