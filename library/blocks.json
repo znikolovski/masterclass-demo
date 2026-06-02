@@ -1,0 +1,69 @@
+{
+  ":type": "sheet",
+  "columns": ["name", "path"],
+  "total": 15,
+  "offset": 0,
+  "limit": 15,
+  "data": [
+    {
+      "name": "Accordion FAQ",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/accordion-faq/accordion-faq.html"
+    },
+    {
+      "name": "Cards",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards/cards.html"
+    },
+    {
+      "name": "Cards Steps",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards-steps/cards-steps.html"
+    },
+    {
+      "name": "Carousel Blog",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-blog/carousel-blog.html"
+    },
+    {
+      "name": "Carousel Hero",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-hero/carousel-hero.html"
+    },
+    {
+      "name": "Columns",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns/columns.html"
+    },
+    {
+      "name": "Columns Article",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-article/columns-article.html"
+    },
+    {
+      "name": "Columns Featured",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-featured/columns-featured.html"
+    },
+    {
+      "name": "Columns Gallery",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-gallery/columns-gallery.html"
+    },
+    {
+      "name": "Fragment",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/fragment/fragment.html"
+    },
+    {
+      "name": "Hero Adventure",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/hero-adventure/hero-adventure.html"
+    },
+    {
+      "name": "Marquee Ticker",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/marquee-ticker/marquee-ticker.html"
+    },
+    {
+      "name": "Section Metadata",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/section-metadata/section-metadata.html"
+    },
+    {
+      "name": "Tabs Activity",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
+    },
+    {
+      "name": "Teaser",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
+    }
+  ]
+}

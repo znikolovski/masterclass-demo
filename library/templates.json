@@ -1,0 +1,21 @@
+{
+  ":type": "sheet",
+  "columns": ["key", "value"],
+  "total": 3,
+  "offset": 0,
+  "limit": 3,
+  "data": [
+    {
+      "key": "Blog Article",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html"
+    },
+    {
+      "key": "Field Notes",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html"
+    },
+    {
+      "key": "Landing Page",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html"
+    }
+  ]
+}
