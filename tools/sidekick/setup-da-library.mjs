@@ -6,8 +6,8 @@
  * Prerequisites: `aem content clone --path /` (cached token in .hlx/.da-token.json)
  * Usage: node tools/sidekick/setup-da-library.mjs
  *
- * Also writes blocks/{name}/{name}.html and templates/{name}/{name}.html in git
- * so DA block preview URLs ending in .html resolve on the code bus (aem.page).
+ * Git copies use full HTML documents (scripts + styles) so DA .html preview URLs
+ * on the code bus render styled blocks. DA keeps fragment-only HTML for authoring.
  */
 
 import {
@@ -17,6 +17,7 @@ import {
   basename, dirname, join, relative,
 } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { wrapLibraryPreviewPage } from './wrap-library-preview.mjs';
 
 const ORG = 'znikolovski';
 const SITE = 'masterclass-demo';
@@ -169,12 +170,16 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   const rel = relative(sidekickRoot, abs);
   if (!rel.startsWith('blocks/') && !rel.startsWith('templates/')) continue;
   const daPath = rel.replace(/\.plain\.html$/, '.html');
-  const html = readFileSync(abs, 'utf8');
-  await putSource(token, daPath, html, 'text/html');
+  const fragment = readFileSync(abs, 'utf8');
+  const label = basename(daPath, '.html').replace(/-/g, ' ');
+  const title = `${label.charAt(0).toUpperCase()}${label.slice(1)} — Library preview`;
+
+  await putSource(token, daPath, fragment, 'text/html');
+
   const gitPath = join(ROOT, daPath);
   mkdirSync(dirname(gitPath), { recursive: true });
-  writeFileSync(gitPath, html);
-  console.log(`  ✓ ${daPath} (DA + git)`);
+  writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment));
+  console.log(`  ✓ ${daPath} (DA fragment + git preview page)`);
 }
 
 // 3. DA site config — library tab pointing at index sheets
