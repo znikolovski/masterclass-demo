@@ -8,6 +8,11 @@ helix-importer-ui
 *.bak
 .idea
 
+# Local agent / IDE tooling
+.agents/
+.claude/
+.cursor/
+
 # Ensure these files are tracked
 !CLAUDE.md
 !AGENTS.md
