@@ -76,6 +76,29 @@ function buildAutoBlocks(main) {
   }
 }
 
+function decorateButtonGroups(main) {
+  main.querySelectorAll('.default-content-wrapper > p').forEach((p) => {
+    const links = p.querySelectorAll(':scope > a[href]');
+    if (links.length === 0) return;
+    const textContent = p.textContent.trim();
+    const linkText = Array.from(links).map((a) => a.textContent.trim()).join(' ');
+    if (textContent !== linkText) return;
+
+    if (links.length >= 2) {
+      const div = document.createElement('div');
+      div.className = 'button-group';
+      links.forEach((a, i) => {
+        if (i === 0) a.classList.add('button');
+        else a.classList.add('button-ghost');
+        div.append(a);
+      });
+      p.replaceWith(div);
+    } else if (links.length === 1 && p === p.parentElement.lastElementChild) {
+      links[0].classList.add('button');
+    }
+  });
+}
+
 /**
  * Decorates formatted links to style them as buttons.
  * @param {HTMLElement} main The main container element
@@ -117,8 +140,37 @@ function decorateButtons(main) {
  * Overrides aem.js version to support UE richtext class handling.
  * @param {Element} main The container element
  */
+function isEmptySection(section) {
+  const text = section.textContent.trim();
+  const hasMedia = section.querySelector('img, picture, video, svg, iframe');
+  return !text && !hasMedia;
+}
+
+function applySectionMetadata(section, sectionMeta) {
+  const meta = readBlockConfig(sectionMeta);
+  Object.keys(meta).forEach((key) => {
+    if (key === 'style') {
+      const styles = meta.style
+        .split(',')
+        .filter((style) => style)
+        .map((style) => toClassName(style.trim()));
+      styles.forEach((style) => section.classList.add(style));
+    } else {
+      section.dataset[toCamelCase(key)] = meta[key];
+    }
+  });
+  const wrapper = sectionMeta.closest('.section-metadata-wrapper') || sectionMeta.parentElement;
+  if (wrapper && wrapper !== section) wrapper.remove();
+  else sectionMeta.remove();
+}
+
 function decorateSections(main) {
   main.querySelectorAll(':scope > div').forEach((section) => {
+    if (isEmptySection(section)) {
+      section.remove();
+      return;
+    }
+
     const wrappers = [];
     let defaultContent = false;
     [...section.children].forEach((e) => {
@@ -143,22 +195,9 @@ function decorateSections(main) {
     section.dataset.sectionStatus = 'initialized';
     section.style.display = 'none';
 
-    const sectionMeta = section.querySelector('div.section-metadata');
-    if (sectionMeta) {
-      const meta = readBlockConfig(sectionMeta);
-      Object.keys(meta).forEach((key) => {
-        if (key === 'style') {
-          const styles = meta.style
-            .split(',')
-            .filter((style) => style)
-            .map((style) => toClassName(style.trim()));
-          styles.forEach((style) => section.classList.add(style));
-        } else {
-          section.dataset[toCamelCase(key)] = meta[key];
-        }
-      });
-      sectionMeta.parentNode.remove();
-    }
+    section.querySelectorAll('div.section-metadata').forEach((sectionMeta) => {
+      applySectionMetadata(section, sectionMeta);
+    });
   });
 }
 
@@ -174,6 +213,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateButtonGroups(main);
 }
 
 /**
@@ -223,6 +263,9 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  if (window.location.pathname.includes('/blog/')) {
+    loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
+  }
   loadFonts();
 
   const loadQuickEdit = async (...args) => {

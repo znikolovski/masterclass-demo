@@ -8,5 +8,7 @@ export default function decorate(block) {
       section.classList.add(...value.split(',').map((s) => s.trim()));
     }
   });
-  block.closest('.section-metadata-wrapper')?.remove();
+  const wrapper = block.closest('.section-metadata-wrapper') || block.parentElement;
+  if (wrapper && wrapper !== section) wrapper.remove();
+  else block.remove();
 }
