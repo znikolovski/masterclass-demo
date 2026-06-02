@@ -1,0 +1,39 @@
+{
+  "variantName": "columns-featured",
+  "baseBlock": "columns",
+  "version": "1.0.0",
+  "created": "2026-05-27T02:46:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://wkndadventures.com/",
+    "originPage": "homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "spacious",
+    "purpose": "featured-article",
+    "imagePattern": "large"
+  },
+  "contentPattern": {
+    "structure": "image + pretitle + heading + paragraph + CTA",
+    "buttonCount": 1,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "featured article teasers",
+      "image + text side-by-side layouts",
+      "promotional content with large imagery"
+    ],
+    "notSuitableFor": [
+      "multi-item grids",
+      "text-only layouts",
+      "data comparison tables"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["/index"],
+    "reuseCount": 2,
+    "lastUsed": "2026-05-27T03:59:00.000Z"
+  }
+}

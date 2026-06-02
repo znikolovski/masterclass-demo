@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/expeditions.html",
+  "path": "expeditions",
+  "timestamp": "2026-05-29T10:54:54.309Z",
+  "title": "Expeditions — WKND Adventures",
+  "template": "landing-page",
+  "blocks": [
+    "hero-adventure",
+    "tabs-activity",
+    "cards-steps",
+    "cards-steps"
+  ]
+}

@@ -21,9 +21,8 @@ function buildHeroBlock(main) {
   const picture = main.querySelector('picture');
   // eslint-disable-next-line no-bitwise
   if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    // Check if h1 or picture is already inside a hero block
-    if (h1.closest('.hero') || picture.closest('.hero')) {
-      return; // Don't create a duplicate hero block
+    if (h1.closest('[class*="hero"]') || picture.closest('[class*="hero"]')) {
+      return;
     }
     const section = document.createElement('div');
     section.append(buildBlock('hero', { elems: [picture, h1] }));
@@ -113,6 +112,29 @@ function decorateButtons(main) {
   });
 }
 
+function decorateButtonGroups(main) {
+  main.querySelectorAll('.default-content-wrapper > p').forEach((p) => {
+    const links = p.querySelectorAll(':scope > a[href]');
+    if (links.length === 0) return;
+    const textContent = p.textContent.trim();
+    const linkText = Array.from(links).map((a) => a.textContent.trim()).join(' ');
+    if (textContent !== linkText) return;
+
+    if (links.length >= 2) {
+      const div = document.createElement('div');
+      div.className = 'button-group';
+      links.forEach((a, i) => {
+        if (i === 0) a.classList.add('button');
+        else a.classList.add('button-ghost');
+        div.append(a);
+      });
+      p.replaceWith(div);
+    } else if (links.length === 1 && p === p.parentElement.lastElementChild) {
+      links[0].classList.add('button');
+    }
+  });
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
@@ -124,6 +146,7 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateButtons(main);
+  decorateButtonGroups(main);
 }
 
 /**
@@ -167,6 +190,9 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  if (window.location.pathname.includes('/blog/')) {
+    loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
+  }
   loadFonts();
 }
 

@@ -1,1 +1,87 @@
-/* add global styles that can be loaded post LCP here */
+/* Post-LCP global styles for WKND Adventures */
+
+/* Footer section styling */
+footer {
+  background-color: var(--dark-color);
+  color: rgb(255 255 255 / 70%);
+  padding: 60px 0 40px;
+}
+
+footer h4 {
+  color: #fff;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+footer a:any-link {
+  color: rgb(255 255 255 / 70%);
+}
+
+footer a:hover {
+  color: var(--accent-color);
+}
+
+/* Links in content — underline on hover */
+main a:any-link:hover {
+  color: var(--accent-color);
+}
+
+/* Improve overall page spacing */
+main > .section {
+  margin: 0;
+  padding: 80px 0;
+}
+
+main > .section:first-of-type {
+  padding-top: 0;
+}
+
+/* Dark section (footer-like CTA areas) */
+main > .section.dark {
+  background-color: var(--dark-color);
+  color: #fff;
+}
+
+main > .section.dark h2,
+main > .section.dark h3 {
+  color: #fff;
+}
+
+main > .section.dark a:any-link {
+  color: var(--accent-color);
+}
+
+/* Image styling — full-width hero-style images */
+main > .section:first-of-type > div > p:first-child > picture {
+  display: block;
+}
+
+main > .section:first-of-type > div > p:first-child > picture img {
+  width: 100%;
+  height: 70vh;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+/* List styling */
+main ul {
+  padding-left: 1.5em;
+}
+
+main li {
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (width >= 900px) {
+  main > .section {
+    padding: 100px 0;
+  }
+
+  main > .section > div {
+    max-width: 1200px;
+  }
+}

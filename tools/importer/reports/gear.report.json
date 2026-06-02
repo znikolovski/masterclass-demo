@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/gear.html",
+  "path": "gear",
+  "timestamp": "2026-05-29T10:55:09.165Z",
+  "title": "Gear — WKND Adventures",
+  "template": "landing-page",
+  "blocks": [
+    "hero-adventure",
+    "columns-featured",
+    "tabs-activity",
+    "cards-steps"
+  ]
+}

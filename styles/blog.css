@@ -1,0 +1,158 @@
+/* Blog article page styles — extracted from source */
+
+/* Article body section — constrained width (only hero section's article content) */
+main > .section.hero-adventure-container > .default-content-wrapper {
+  max-width: 768px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Body paragraphs */
+main > .section > .default-content-wrapper > p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-color);
+  margin-bottom: 16px;
+}
+
+/* Section headings in article body */
+main > .section:not(.inverse) > .default-content-wrapper > h2 {
+  font-size: var(--heading-font-size-xl);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-top: 48px;
+  margin-bottom: 16px;
+  color: var(--text-color);
+}
+
+/* H3 in article body */
+main > .section > .default-content-wrapper > h3 {
+  font-size: var(--heading-font-size-l);
+  font-weight: 700;
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+
+/* Figures (image + caption) */
+main > .section > .default-content-wrapper > figure {
+  margin: 48px 0;
+}
+
+main > .section > .default-content-wrapper > figure img {
+  width: 100%;
+  border-radius: 16px;
+}
+
+/* Inline images in article — full width, break out of narrow container */
+main > .section > .default-content-wrapper > p > picture {
+  display: block;
+  margin: 32px calc(-1 * (50vw - 50%));
+  padding: 0 calc(50vw - 50%);
+}
+
+main > .section > .default-content-wrapper > p > picture img {
+  width: 100%;
+  border-radius: 16px;
+}
+
+main > .section > .default-content-wrapper > figure figcaption {
+  font-size: 14px;
+  color: rgb(122 138 128);
+  font-style: italic;
+  margin-top: 12px;
+}
+
+/* Blockquotes */
+main > .section > .default-content-wrapper > blockquote {
+  border-left: 4px solid var(--accent-color);
+  padding: 0 0 0 24px;
+  margin: 32px 0;
+  font-size: 16px;
+  font-style: italic;
+  color: rgb(61 79 69);
+}
+
+main > .section > .default-content-wrapper > blockquote p {
+  margin: 0;
+}
+
+/* Lists (gear lists etc.) */
+main > .section > .default-content-wrapper > ul {
+  padding-left: 1.5em;
+  margin: 24px 0;
+}
+
+main > .section > .default-content-wrapper > ul > li {
+  margin-bottom: 8px;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* Sidebar section (What We Carried summary + pull quote) */
+main > .section.secondary > .default-content-wrapper {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+main > .section.secondary h3 {
+  font-size: 20px;
+  margin-top: 0;
+}
+
+main > .section.secondary blockquote {
+  border-left: 4px solid var(--accent-color);
+  padding: 0 0 0 24px;
+  margin: 32px 0 0;
+  font-size: 16px;
+  font-style: italic;
+  color: rgb(61 79 69);
+}
+
+@media (width >= 900px) {
+  main > .section.secondary > .default-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0 48px;
+  }
+
+  main > .section.secondary > .default-content-wrapper > h3 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  main > .section.secondary > .default-content-wrapper > ul {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  main > .section.secondary > .default-content-wrapper > blockquote {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    margin-top: 0;
+  }
+}
+
+/* Hero section on blog — override height for articles */
+main > .section:first-of-type .hero-adventure {
+  min-height: 550px;
+}
+
+/* Author avatar in hero */
+main > .section:first-of-type .hero-adventure img:not(:first-of-type) {
+  width: 80px;
+  height: 80px;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+@media (width >= 900px) {
+  main > .section:first-of-type .hero-adventure {
+    min-height: 550px;
+  }
+}
+
+/* More Stories section uses tabs-activity block — no additional CSS needed */

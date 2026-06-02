@@ -1,0 +1,50 @@
+{
+  "blocks": {
+    "data": [
+      {
+        "name": "Hero Adventure",
+        "path": "/tools/sidekick/blocks/hero-adventure"
+      },
+      {
+        "name": "Columns Featured",
+        "path": "/tools/sidekick/blocks/columns-featured"
+      },
+      {
+        "name": "Tabs Activity",
+        "path": "/tools/sidekick/blocks/tabs-activity"
+      },
+      {
+        "name": "Accordion FAQ",
+        "path": "/tools/sidekick/blocks/accordion-faq"
+      },
+      {
+        "name": "Cards Steps",
+        "path": "/tools/sidekick/blocks/cards-steps"
+      },
+      {
+        "name": "Columns Gallery",
+        "path": "/tools/sidekick/blocks/columns-gallery"
+      },
+      {
+        "name": "Marquee Ticker",
+        "path": "/tools/sidekick/blocks/marquee-ticker"
+      },
+      {
+        "name": "Section Metadata",
+        "path": "/tools/sidekick/blocks/section-metadata"
+      }
+    ]
+  },
+  "templates": {
+    "data": [
+      {
+        "name": "Blog Article",
+        "path": "/tools/sidekick/templates/blog-article"
+      },
+      {
+        "name": "Landing Page",
+        "path": "/tools/sidekick/templates/landing-page"
+      }
+    ]
+  }
+}

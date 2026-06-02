@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/sustainability.html",
+  "path": "sustainability",
+  "timestamp": "2026-05-29T10:55:15.593Z",
+  "title": "Sustainability — WKND Adventures",
+  "template": "landing-page",
+  "blocks": [
+    "hero-adventure",
+    "columns-featured",
+    "cards-steps"
+  ]
+}

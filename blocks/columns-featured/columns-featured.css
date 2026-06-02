@@ -1,0 +1,106 @@
+.columns-featured-wrapper {
+  background-color: var(--light-color);
+  max-width: 100% !important;
+  padding: 80px 24px !important;
+}
+
+.columns-featured {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.columns-featured > div {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.columns-featured > div > div:first-child {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.columns-featured > div > div:first-child picture {
+  display: block;
+  height: 100%;
+}
+
+.columns-featured > div > div:first-child img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.columns-featured > div > div:last-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.columns-featured > div > div:last-child p:first-child {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  font-family: var(--heading-font-family);
+  font-size: 10.4px;
+  font-weight: 600;
+  letter-spacing: 0.52px;
+  line-height: 1;
+  color: #fff;
+  background-color: var(--accent-color);
+  padding: 5px 8px 3px;
+  border-radius: 9999px;
+  margin: 0 0 16px;
+}
+
+.columns-featured h2 {
+  font-size: var(--heading-font-size-xl);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+
+.columns-featured > div > div:last-child p:nth-child(3) {
+  font-size: var(--body-font-size-m);
+  line-height: 1.6;
+  color: rgb(122 138 128);
+  margin: 0 0 24px;
+}
+
+.columns-featured > div > div:last-child p:last-child a {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 32px;
+  border: 2px solid var(--text-color);
+  border-radius: 9999px;
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.columns-featured > div > div:last-child p:last-child a:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+@media (width >= 900px) {
+  .columns-featured-wrapper {
+    padding: 80px 32px !important;
+  }
+
+  .columns-featured > div {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 48px;
+  }
+
+  .columns-featured > div > div {
+    flex: 1;
+  }
+}

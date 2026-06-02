@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "projectType": "doc"
+  },
+  "templates": [
+    {
+      "name": "homepage",
+      "urls": [
+        "https://wknd-adventures.com/"
+      ],
+      "description": "Main landing page with hero, tabs, accordion, steps, gallery, and CTA sections",
+      "blocks": [
+        {
+          "name": "hero-adventure",
+          "instances": ["section.hero-section"]
+        },
+        {
+          "name": "columns-featured",
+          "instances": [".featured-article"]
+        },
+        {
+          "name": "tabs-activity",
+          "instances": [".tab-container"]
+        },
+        {
+          "name": "marquee-ticker",
+          "instances": [".ticker-strip"]
+        },
+        {
+          "name": "accordion-faq",
+          "instances": [".faq-list"]
+        },
+        {
+          "name": "cards-steps",
+          "instances": [".editorial-index"]
+        },
+        {
+          "name": "columns-gallery",
+          "instances": [".grid-images"]
+        }
+      ],
+      "sections": [
+        {
+          "id": "section-1",
+          "name": "Hero",
+          "selector": "section.hero-section",
+          "style": null,
+          "blocks": ["hero-adventure"],
+          "defaultContent": []
+        },
+        {
+          "id": "section-2",
+          "name": "Featured Story",
+          "selector": "section.secondary-section:first-of-type",
+          "style": "secondary",
+          "blocks": ["columns-featured"],
+          "defaultContent": []
+        },
+        {
+          "id": "section-3",
+          "name": "Browse by Activity",
+          "selector": "main > section:nth-of-type(3)",
+          "style": null,
+          "blocks": ["tabs-activity"],
+          "defaultContent": [".section-heading h2"]
+        },
+        {
+          "id": "section-4",
+          "name": "Marquee Ticker",
+          "selector": ".ticker-strip",
+          "style": null,
+          "blocks": ["marquee-ticker"],
+          "defaultContent": []
+        },
+        {
+          "id": "section-5",
+          "name": "Not Sure Where to Start",
+          "selector": "section.inverse-section:first-of-type",
+          "style": "inverse",
+          "blocks": [],
+          "defaultContent": ["section.inverse-section .tag", "section.inverse-section h2", "section.inverse-section .paragraph-lg", "section.inverse-section .button-group"]
+        },
+        {
+          "id": "section-6",
+          "name": "Quick Answers FAQ",
+          "selector": "main > section:nth-of-type(5)",
+          "style": null,
+          "blocks": ["accordion-faq"],
+          "defaultContent": [".section-heading h2"]
+        },
+        {
+          "id": "section-7",
+          "name": "How We Work",
+          "selector": "section.secondary-section:nth-of-type(2)",
+          "style": "secondary",
+          "blocks": ["cards-steps"],
+          "defaultContent": [".section-heading h2"]
+        },
+        {
+          "id": "section-8",
+          "name": "In the Field Gallery",
+          "selector": "section.inverse-section:nth-of-type(2)",
+          "style": "inverse",
+          "blocks": ["columns-gallery"],
+          "defaultContent": [".section-heading h2", ".section-heading .text-button"]
+        },
+        {
+          "id": "section-9",
+          "name": "Final CTA",
+          "selector": "section.accent-section",
+          "style": "accent",
+          "blocks": [],
+          "defaultContent": ["section.accent-section h2", "section.accent-section .paragraph-lg", "section.accent-section .button-group"]
+        }
+      ]
+    },
+    {
+      "name": "blog-article",
+      "urls": [
+        "https://wknd-adventures.com/blog/alpine-cycling.html",
+        "https://wknd-adventures.com/blog/desert-survival-guide.html",
+        "https://wknd-adventures.com/blog/kayaking-norway.html",
+        "https://wknd-adventures.com/blog/mountain-photography.html",
+        "https://wknd-adventures.com/blog/patagonia-trek.html",
+        "https://wknd-adventures.com/blog/surfing-costa-rica.html",
+        "https://wknd-adventures.com/blog/ultralight-backpacking.html",
+        "https://wknd-adventures.com/blog/wild-swimming-guide.html",
+        "https://wknd-adventures.com/blog/winter-mountaineering.html",
+        "https://wknd-adventures.com/blog/yosemite-rock-climbing.html"
+      ],
+      "description": "Blog article page with adventure content, author info, and related posts",
+      "blocks": []
+    },
+    {
+      "name": "landing-page",
+      "urls": [
+        "https://wknd-adventures.com/about.html",
+        "https://wknd-adventures.com/adventures.html",
+        "https://wknd-adventures.com/basecamp.html",
+        "https://wknd-adventures.com/community.html",
+        "https://wknd-adventures.com/destinations.html",
+        "https://wknd-adventures.com/expeditions.html",
+        "https://wknd-adventures.com/faq.html",
+        "https://wknd-adventures.com/field-notes.html",
+        "https://wknd-adventures.com/gear.html",
+        "https://wknd-adventures.com/sustainability.html"
+      ],
+      "description": "Informational landing page with sections for about, destinations, gear, FAQ, and other site content",
+      "blocks": []
+    }
+  ]
+}

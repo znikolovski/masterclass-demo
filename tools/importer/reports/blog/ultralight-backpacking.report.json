@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/blog/ultralight-backpacking.html",
+  "path": "blog/ultralight-backpacking",
+  "timestamp": "2026-06-01T06:57:50.790Z",
+  "title": "Sub-10 lb: What to Cut, What to Keep — WKND Adventures",
+  "template": "blog-article",
+  "blocks": [
+    "hero-adventure",
+    "columns-gallery",
+    "cards-article"
+  ]
+}

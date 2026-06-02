@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/blog/patagonia-trek.html",
+  "path": "blog/patagonia-trek",
+  "timestamp": "2026-06-01T06:57:41.096Z",
+  "title": "W Circuit: 9 Days, 115 km — WKND Adventures",
+  "template": "blog-article",
+  "blocks": [
+    "hero-adventure",
+    "columns-gallery",
+    "cards-article"
+  ]
+}

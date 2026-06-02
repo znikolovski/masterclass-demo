@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/blog/wild-swimming-guide.html",
+  "path": "blog/wild-swimming-guide",
+  "timestamp": "2026-06-01T06:57:55.504Z",
+  "title": "Reading a River: The Wild Swimming Guide — WKND Adventures",
+  "template": "blog-article",
+  "blocks": [
+    "hero-adventure",
+    "columns-gallery",
+    "cards-article"
+  ]
+}

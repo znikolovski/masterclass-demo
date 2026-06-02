@@ -21,7 +21,7 @@
 
 @media (width >= 900px) {
   .columns > div {
-    align-items: center;
+    align-items: stretch;
     flex-direction: unset;
     gap: 24px;
   }
@@ -30,4 +30,82 @@
     flex: 1;
     order: unset;
   }
+}
+
+/* Columns inside inverse sections — card style */
+.section.inverse .columns > div > div {
+  background-color: rgb(30 45 36);
+  border: 1px solid rgb(60 80 65);
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.section.inverse .columns h3 {
+  font-size: var(--heading-font-size-s);
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.section.inverse .columns p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 70%);
+  margin: 0;
+}
+
+/* Columns inside secondary sections — white card style */
+.section.secondary .columns > div > div {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.section.secondary .columns > div > div > p:first-child {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--heading-font-family);
+  font-size: 10.4px;
+  font-weight: 600;
+  letter-spacing: 0.52px;
+  line-height: 1;
+  color: #fff;
+  background-color: var(--accent-color);
+  padding: 5px 8px 3px;
+  border-radius: 9999px;
+  margin: 0 0 16px;
+}
+
+.section.secondary .columns h3 {
+  font-size: var(--heading-font-size-xl);
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.section.secondary .columns > div > div > p:nth-child(3) {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgb(61 79 69);
+  margin: 0 0 24px;
+}
+
+.section.secondary .columns > div > div > p:last-child a {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 32px;
+  border: 2px solid var(--text-color);
+  border-radius: 9999px;
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--text-color);
+  text-decoration: none;
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.section.secondary .columns > div > div > p:last-child a:hover {
+  box-shadow: 5px 5px 0 0 var(--accent-color);
+  transform: translate(-2px, -2px);
 }

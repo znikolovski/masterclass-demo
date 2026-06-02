@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/blog/winter-mountaineering.html",
+  "path": "blog/winter-mountaineering",
+  "timestamp": "2026-06-01T06:58:00.391Z",
+  "title": "Why Cold Routes Demand Warm Minds — WKND Adventures",
+  "template": "blog-article",
+  "blocks": [
+    "hero-adventure",
+    "columns-gallery",
+    "cards-article"
+  ]
+}

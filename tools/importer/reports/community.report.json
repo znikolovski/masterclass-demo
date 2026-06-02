@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/community.html",
+  "path": "community",
+  "timestamp": "2026-05-29T10:54:43.929Z",
+  "title": "Community — WKND Adventures",
+  "template": "landing-page",
+  "blocks": [
+    "hero-adventure",
+    "columns-featured",
+    "columns-featured",
+    "accordion-faq",
+    "cards-steps"
+  ]
+}

@@ -1,5 +1,4 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { loadFragment } from '../fragment/fragment.js';
 
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
@@ -60,7 +59,7 @@ function focusNavSection() {
  */
 function toggleAllNavSections(sections, expanded = false) {
   if (!sections) return;
-  sections.querySelectorAll('.nav-sections .default-content-wrapper > ul > li').forEach((section) => {
+  sections.querySelectorAll('.nav-sections > ul > li').forEach((section) => {
     section.setAttribute('aria-expanded', expanded);
   });
 }
@@ -113,16 +112,18 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
  * @param {Element} block The header block element
  */
 export default async function decorate(block) {
-  // load nav as fragment
   const navMeta = getMetadata('nav');
   const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
-  const fragment = await loadFragment(navPath);
 
-  // decorate nav DOM
+  let resp = await fetch('/content/nav.plain.html');
+  if (!resp.ok) resp = await fetch(`${navPath}.plain.html`);
+  if (!resp.ok) return;
+
+  const html = await resp.text();
   block.textContent = '';
   const nav = document.createElement('nav');
   nav.id = 'nav';
-  while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
+  nav.innerHTML = html;
 
   const classes = ['brand', 'sections', 'tools'];
   classes.forEach((c, i) => {
@@ -131,24 +132,82 @@ export default async function decorate(block) {
   });
 
   const navBrand = nav.querySelector('.nav-brand');
-  const brandLink = navBrand.querySelector('.button');
-  if (brandLink) {
-    brandLink.className = '';
-    brandLink.closest('.button-container').className = '';
+  if (navBrand) {
+    const brandLink = navBrand.querySelector('a');
+    if (brandLink) {
+      brandLink.className = 'logo';
+      brandLink.innerHTML = '<div class="nav-logo-icon"><svg width="100%" height="100%" viewBox="0 0 33 33" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M28,0H5C2.24,0,0,2.24,0,5v23c0,2.76,2.24,5,5,5h23c2.76,0,5-2.24,5-5V5c0-2.76-2.24-5-5-5ZM29,17c-6.63,0-12,5.37-12,12h-1c0-6.63-5.37-12-12-12v-1c6.63,0,12-5.37,12-12h1c0,6.63,5.37,12,12,12v1Z" fill="currentColor"></path></svg></div><span class="logo-text">WKND<br>Adventures</span>';
+    }
   }
 
   const navSections = nav.querySelector('.nav-sections');
   if (navSections) {
-    navSections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((navSection) => {
-      if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
-      navSection.addEventListener('click', () => {
-        if (isDesktop.matches) {
+    navSections.querySelectorAll(':scope > ul > li').forEach((navSection) => {
+      if (navSection.querySelector('ul')) {
+        navSection.classList.add('nav-drop');
+
+        const panel = navSection.querySelector(':scope > ul');
+        if (panel) {
+          panel.classList.add('nav-panel');
+          panel.querySelectorAll(':scope > li').forEach((item) => {
+            const nestedUl = item.querySelector(':scope > ul');
+            if (nestedUl) {
+              item.classList.add('nav-panel-section');
+              const headingText = item.firstChild;
+              const isText = headingText && headingText.nodeType === Node.TEXT_NODE;
+              if (isText && headingText.textContent.trim()) {
+                const heading = document.createElement('span');
+                heading.className = 'nav-panel-heading';
+                heading.textContent = headingText.textContent.trim();
+                headingText.replaceWith(heading);
+              }
+              nestedUl.classList.add('nav-panel-articles');
+              nestedUl.querySelectorAll(':scope > li').forEach((article) => {
+                article.classList.add('nav-article');
+              });
+            } else {
+              item.classList.add('nav-panel-link');
+            }
+          });
+        }
+      }
+
+      navSection.addEventListener('click', (e) => {
+        if (isDesktop.matches && !e.target.closest('a')) {
           const expanded = navSection.getAttribute('aria-expanded') === 'true';
           toggleAllNavSections(navSections);
           navSection.setAttribute('aria-expanded', expanded ? 'false' : 'true');
         }
       });
+
+      navSection.addEventListener('mouseenter', () => {
+        if (isDesktop.matches && navSection.classList.contains('nav-drop')) {
+          toggleAllNavSections(navSections);
+          navSection.setAttribute('aria-expanded', 'true');
+        }
+      });
     });
+
+    let closeTimeout;
+    const scheduleClose = () => {
+      closeTimeout = setTimeout(() => toggleAllNavSections(navSections), 200);
+    };
+    const cancelClose = () => clearTimeout(closeTimeout);
+
+    nav.addEventListener('mouseleave', () => {
+      if (isDesktop.matches) scheduleClose();
+    });
+    nav.addEventListener('mouseenter', cancelClose);
+
+    const observer = new MutationObserver(() => {
+      nav.querySelectorAll('.nav-panel').forEach((panel) => {
+        panel.removeEventListener('mouseenter', cancelClose);
+        panel.removeEventListener('mouseleave', scheduleClose);
+        panel.addEventListener('mouseenter', cancelClose);
+        panel.addEventListener('mouseleave', scheduleClose);
+      });
+    });
+    observer.observe(navSections, { attributes: true, subtree: true });
   }
 
   // hamburger for mobile
@@ -160,9 +219,12 @@ export default async function decorate(block) {
   hamburger.addEventListener('click', () => toggleMenu(nav, navSections));
   nav.prepend(hamburger);
   nav.setAttribute('aria-expanded', 'false');
-  // prevent mobile nav behavior on window resize
-  toggleMenu(nav, navSections, isDesktop.matches);
-  isDesktop.addEventListener('change', () => toggleMenu(nav, navSections, isDesktop.matches));
+  isDesktop.addEventListener('change', () => {
+    if (isDesktop.matches) {
+      nav.setAttribute('aria-expanded', 'false');
+      document.body.style.overflowY = '';
+    }
+  });
 
   const navWrapper = document.createElement('div');
   navWrapper.className = 'nav-wrapper';

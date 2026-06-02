@@ -1,0 +1,39 @@
+{
+  "variantName": "cards-steps",
+  "baseBlock": "cards",
+  "version": "1.0.0",
+  "created": "2026-05-27T03:59:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://wknd-adventures.com/",
+    "originPage": "homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "spacious",
+    "purpose": "process-steps",
+    "imagePattern": "noimg"
+  },
+  "contentPattern": {
+    "structure": "numbered step + heading + paragraph",
+    "buttonCount": 0,
+    "imageCount": 0
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "process/methodology sections",
+      "numbered steps with descriptions",
+      "how-we-work or how-it-works content"
+    ],
+    "notSuitableFor": [
+      "card grids with images",
+      "product listings",
+      "content where numbering is not needed"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["/index"],
+    "reuseCount": 1,
+    "lastUsed": "2026-05-27T03:59:00.000Z"
+  }
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WKND Story Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Instrument Sans', sans-serif; background: #f4f2ef; color: #0f1a14; min-height: 100vh; }
+    .app-header { background: #0f1a14; color: #fff; padding: 20px 32px; display: flex; align-items: center; gap: 12px; }
+    .app-header h1 { font-family: 'Syncopate', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.07em; }
+    .app-header .subtitle { font-size: 14px; opacity: 0.6; margin-left: auto; }
+    .container { max-width: 800px; margin: 40px auto; padding: 0 24px; }
+    .card { background: #fff; border-radius: 16px; padding: 40px; margin-bottom: 24px; border: 1px solid #ddd8cf; }
+    .card h2 { font-family: 'Syncopate', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.07em; margin-bottom: 24px; color: #0f1a14; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #0f1a14; }
+    .field input, .field textarea, .field select { width: 100%; padding: 12px 16px; border: 1px solid #ddd8cf; border-radius: 8px; font-family: inherit; font-size: 15px; transition: border-color 0.2s; }
+    .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: #e8651a; }
+    .field textarea { min-height: 120px; resize: vertical; }
+    .field .hint { font-size: 13px; color: #7a8a80; margin-top: 4px; }
+    .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .tag { display: inline-flex; align-items: center; padding: 4px 10px; background: #e8651a; color: #fff; border-radius: 9999px; font-size: 11px; font-weight: 600; font-family: 'Syncopate', sans-serif; letter-spacing: 0.05em; }
+    .btn-group { display: flex; gap: 16px; margin-top: 32px; }
+    .btn { display: inline-flex; align-items: center; padding: 12px 32px; border-radius: 9999px; font-family: 'Syncopate', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.07em; cursor: pointer; border: 2px solid; transition: transform 0.15s, box-shadow 0.15s; text-decoration: none; }
+    .btn-primary { background: #0f1a14; border-color: #0f1a14; color: #fff; box-shadow: 3px 3px 0 0 #e8651a; }
+    .btn-primary:hover { box-shadow: 5px 5px 0 0 #e8651a; transform: translate(-2px, -2px); }
+    .btn-secondary { background: transparent; border-color: #0f1a14; color: #0f1a14; box-shadow: 3px 3px 0 0 #e8651a; }
+    .btn-secondary:hover { box-shadow: 5px 5px 0 0 #e8651a; transform: translate(-2px, -2px); }
+    .preview { background: #0f1a14; color: #fff; border-radius: 16px; padding: 40px; margin-top: 24px; display: none; }
+    .preview h3 { font-family: 'Syncopate', sans-serif; font-size: 14px; margin-bottom: 16px; letter-spacing: 0.07em; }
+    .preview pre { background: #1a2e22; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+    .success { background: #e8651a; color: #0f1a14; padding: 16px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px; display: none; }
+    .section-add { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px dashed #ddd8cf; border-radius: 8px; cursor: pointer; font-size: 14px; color: #7a8a80; transition: border-color 0.2s; margin-top: 12px; }
+    .section-add:hover { border-color: #e8651a; color: #e8651a; }
+    .section-item { background: #f4f2ef; border-radius: 8px; padding: 16px; margin-top: 12px; }
+    .section-item .field { margin-bottom: 12px; }
+    .remove-section { font-size: 12px; color: #e8651a; cursor: pointer; float: right; }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <svg width="24" height="24" viewBox="0 0 33 33" aria-hidden="true"><path d="M28,0H5C2.24,0,0,2.24,0,5v23c0,2.76,2.24,5,5,5h23c2.76,0,5-2.24,5-5V5c0-2.76-2.24-5-5-5ZM29,17c-6.63,0-12,5.37-12,12h-1c0-6.63-5.37-12-12-12v-1c6.63,0,12-5.37,12-12h1c0,6.63,5.37,12,12,12v1Z" fill="currentColor"></path></svg>
+    <h1>Story Creator</h1>
+    <span class="subtitle">WKND Adventures</span>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2>Story Details</h2>
+      <div class="field">
+        <label for="title">Article Title</label>
+        <input type="text" id="title" placeholder="e.g. Six Days Through the High Alps by Bike">
+      </div>
+      <div class="field">
+        <label for="author">Author Name</label>
+        <input type="text" id="author" placeholder="e.g. Alex R.">
+      </div>
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category">
+          <option value="">Select a category...</option>
+          <option value="Climbing">Climbing</option>
+          <option value="Cycling">Cycling</option>
+          <option value="Desert">Desert</option>
+          <option value="Expedition">Expedition</option>
+          <option value="Gear Guide">Gear Guide</option>
+          <option value="Hiking">Hiking</option>
+          <option value="Photography">Photography</option>
+          <option value="Surfing">Surfing</option>
+          <option value="Water">Water</option>
+          <option value="Winter">Winter</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="region">Region</label>
+        <input type="text" id="region" placeholder="e.g. Europe, Patagonia, Norway">
+      </div>
+      <div class="field">
+        <label for="readtime">Read Time</label>
+        <input type="text" id="readtime" placeholder="e.g. 10 min read">
+      </div>
+      <div class="field">
+        <label for="description">Meta Description</label>
+        <textarea id="description" placeholder="A brief description for search engines and social sharing (1-2 sentences)"></textarea>
+        <span class="hint">Used for SEO and link previews when shared</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Opening</h2>
+      <div class="field">
+        <label for="intro">Opening Paragraph</label>
+        <textarea id="intro" placeholder="The hook that draws readers in. Set the scene — where, when, what it felt like."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Sections</h2>
+      <div id="sections-container"></div>
+      <div class="section-add" onclick="addSection()">+ Add a section</div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="generateStory()">Generate Story</button>
+      <button class="btn btn-secondary" onclick="copyToClipboard()">Copy HTML</button>
+    </div>
+
+    <div class="success" id="success-msg">Story HTML copied to clipboard! Paste it into DA.live to publish.</div>
+
+    <div class="preview" id="preview">
+      <h3>Generated HTML</h3>
+      <pre id="preview-code"></pre>
+    </div>
+  </div>
+
+  <script>
+    let sectionCount = 0;
+
+    function addSection() {
+      sectionCount++;
+      const container = document.getElementById('sections-container');
+      const section = document.createElement('div');
+      section.className = 'section-item';
+      section.id = `section-${sectionCount}`;
+      section.innerHTML = `
+        <span class="remove-section" onclick="this.parentElement.remove()">Remove</span>
+        <div class="field">
+          <label>Section Heading</label>
+          <input type="text" class="section-heading" placeholder="e.g. Day 1: The Approach">
+        </div>
+        <div class="field">
+          <label>Section Content</label>
+          <textarea class="section-content" placeholder="Write the content for this section..."></textarea>
+        </div>
+      `;
+      container.appendChild(section);
+    }
+
+    function generateStory() {
+      const title = document.getElementById('title').value || 'Untitled Story';
+      const author = document.getElementById('author').value || 'WKND Team';
+      const category = document.getElementById('category').value || 'Adventure';
+      const region = document.getElementById('region').value || '';
+      const readtime = document.getElementById('readtime').value || '5 min read';
+      const description = document.getElementById('description').value || title;
+      const intro = document.getElementById('intro').value || '';
+
+      const now = new Date();
+      const month = now.toLocaleString('en', { month: 'long' });
+      const year = now.getFullYear();
+
+      let tags = category;
+      if (region) tags += ` · ${region}`;
+
+      let sectionsHtml = '';
+      document.querySelectorAll('.section-item').forEach((item) => {
+        const heading = item.querySelector('.section-heading').value;
+        const content = item.querySelector('.section-content').value;
+        if (heading) {
+          const id = heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          sectionsHtml += `<h2 id="${id}">${heading}</h2>`;
+        }
+        if (content) {
+          content.split('\n\n').forEach((para) => {
+            if (para.trim()) sectionsHtml += `<p>${para.trim()}</p>`;
+          });
+        }
+      });
+
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      const html = `<div>
+<p>${tags}</p>
+<h1 id="${slug}">${title}</h1>
+<p>${author}</p>
+<p>${month} ${year} · ${readtime}</p>
+<p>${intro}</p>
+${sectionsHtml}
+</div>
+<div><div class="metadata"><div><div>Title</div><div>${title} — WKND Adventures</div></div><div><div>Description</div><div>${description}</div></div></div></div>`;
+
+      document.getElementById('preview').style.display = 'block';
+      document.getElementById('preview-code').textContent = html;
+      return html;
+    }
+
+    function copyToClipboard() {
+      const html = generateStory();
+      navigator.clipboard.writeText(html).then(() => {
+        const msg = document.getElementById('success-msg');
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 3000);
+      });
+    }
+
+    // Start with 2 sections
+    addSection();
+    addSection();
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://wknd-adventures.com/blog/mountain-photography.html",
+  "path": "blog/mountain-photography",
+  "timestamp": "2026-06-01T06:57:36.062Z",
+  "title": "The Camera on Your Back — WKND Adventures",
+  "template": "blog-article",
+  "blocks": [
+    "hero-adventure",
+    "columns-gallery",
+    "cards-article"
+  ]
+}

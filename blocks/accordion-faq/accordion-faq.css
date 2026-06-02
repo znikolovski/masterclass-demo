@@ -1,0 +1,81 @@
+/* Block: accordion-faq — card-style expandable items */
+
+.accordion-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Each FAQ item — rounded card */
+.accordion-faq details {
+  border: 1px solid rgb(221 216 207);
+  border-radius: 16px;
+  background-color: #fff;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.accordion-faq details:hover {
+  border-color: var(--accent-color);
+  background-color: var(--light-color);
+}
+
+.accordion-faq details[open] {
+  border-color: var(--accent-color);
+  background-color: #fff;
+}
+
+/* Summary (question label) */
+.accordion-faq details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: var(--body-font-family);
+  line-height: 1.4;
+  color: var(--text-color);
+  cursor: pointer;
+  list-style: none;
+}
+
+.accordion-faq details summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-faq details summary p {
+  margin: 0;
+}
+
+/* "+" icon via pseudo-element */
+.accordion-faq details summary::after {
+  content: "+";
+  font-size: 24px;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+/* "×" when open */
+.accordion-faq details[open] summary::after {
+  content: "×";
+}
+
+/* Answer body */
+.accordion-faq details .accordion-faq-item-body {
+  padding: 0 24px 24px;
+  font-size: 18px;
+  font-family: var(--body-font-family);
+  line-height: 1.7;
+  color: rgb(61 79 69);
+}
+
+.accordion-faq details .accordion-faq-item-body p {
+  margin: 0;
+}
