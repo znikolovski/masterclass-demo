@@ -190,9 +190,7 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
     : {};
 
   await putSource(token, daPath, fragment, 'text/html');
-  if (daPath.startsWith('templates/')) {
-    await triggerPreview(token, daPath);
-  }
+  await triggerPreview(token, daPath);
 
   const gitPath = join(ROOT, daPath);
   mkdirSync(dirname(gitPath), { recursive: true });

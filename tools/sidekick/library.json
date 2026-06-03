@@ -3,63 +3,67 @@
     "data": [
       {
         "name": "Accordion FAQ",
-        "path": "/tools/sidekick/blocks/accordion-faq"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/accordion-faq/accordion-faq.html"
       },
       {
         "name": "Cards",
-        "path": "/tools/sidekick/blocks/cards"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards/cards.html"
       },
       {
         "name": "Cards Steps",
-        "path": "/tools/sidekick/blocks/cards-steps"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards-steps/cards-steps.html"
       },
       {
         "name": "Carousel Blog",
-        "path": "/tools/sidekick/blocks/carousel-blog"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-blog/carousel-blog.html"
       },
       {
         "name": "Carousel Hero",
-        "path": "/tools/sidekick/blocks/carousel-hero"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-hero/carousel-hero.html"
       },
       {
         "name": "Columns",
-        "path": "/tools/sidekick/blocks/columns"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns/columns.html"
       },
       {
         "name": "Columns Article",
-        "path": "/tools/sidekick/blocks/columns-article"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-article/columns-article.html"
       },
       {
         "name": "Columns Featured",
-        "path": "/tools/sidekick/blocks/columns-featured"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-featured/columns-featured.html"
       },
       {
         "name": "Columns Gallery",
-        "path": "/tools/sidekick/blocks/columns-gallery"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-gallery/columns-gallery.html"
       },
       {
         "name": "Fragment",
-        "path": "/tools/sidekick/blocks/fragment"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/fragment/fragment.html"
       },
       {
         "name": "Hero Adventure",
-        "path": "/tools/sidekick/blocks/hero-adventure"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/hero-adventure/hero-adventure.html"
       },
       {
         "name": "Marquee Ticker",
-        "path": "/tools/sidekick/blocks/marquee-ticker"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/marquee-ticker/marquee-ticker.html"
       },
       {
         "name": "Section Metadata",
-        "path": "/tools/sidekick/blocks/section-metadata"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/section-metadata/section-metadata.html"
       },
       {
         "name": "Tabs Activity",
-        "path": "/tools/sidekick/blocks/tabs-activity"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
       },
       {
         "name": "Teaser",
-        "path": "/tools/sidekick/blocks/teaser"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
+      },
+      {
+        "name": "YouTube Video",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/youtube-video/youtube-video.html"
       }
     ]
   },
@@ -67,15 +71,15 @@
     "data": [
       {
         "name": "Blog Article",
-        "path": "/tools/sidekick/templates/blog-article"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html"
       },
       {
         "name": "Field Notes",
-        "path": "/tools/sidekick/templates/field-notes"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html"
       },
       {
         "name": "Landing Page",
-        "path": "/tools/sidekick/templates/landing-page"
+        "path": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html"
       }
     ]
   }
