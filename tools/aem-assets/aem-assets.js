@@ -43,16 +43,17 @@ function getMetaDefaults() {
   return { org, site, ref: 'main' };
 }
 
-function getBootstrapAemConfig() {
+function getBootstrapConfig() {
   const el = document.getElementById('aem-assets-bootstrap');
-  if (!el?.textContent) return {};
+  if (!el?.textContent) return { aem: {}, codeOrigin: '' };
   try {
-    const json = JSON.parse(el.textContent);
-    if (json.repositoryId) return { 'aem.repositoryId': json.repositoryId };
+    const json = JSON.parse(el.textContent.trim());
+    const aem = {};
+    if (json.repositoryId) aem['aem.repositoryId'] = json.repositoryId;
+    return { aem, codeOrigin: json.codeOrigin || '' };
   } catch {
-    /* ignore invalid bootstrap JSON */
+    return { aem: {}, codeOrigin: '' };
   }
-  return {};
 }
 
 function parseHelixHost(url) {
@@ -306,12 +307,17 @@ function bindInsertHandler(getActions, imageAsLink) {
   frame.addEventListener('load', () => debug('innerFrame.load', { src: frame.src }));
   frame.addEventListener('error', () => debug('innerFrame.error', { src: frame.src }));
 
+  const bootstrap = getBootstrapConfig();
   const bootstrapIdentity = resolveSiteIdentity({});
-  const codeOrigin = getCodeOrigin(bootstrapIdentity);
-  const aemConfig = getBootstrapAemConfig();
-  debug('bootstrap', { bootstrapIdentity, codeOrigin, aemConfig });
+  const codeOrigin = bootstrap.codeOrigin || getCodeOrigin(bootstrapIdentity);
+  const aemConfig = bootstrap.aem;
+  debug('bootstrap', { bootstrapIdentity, codeOrigin, aemConfig, frameSrc: frame.src });
 
-  mountPicker(frame, aemConfig, codeOrigin, '');
+  if (!frame.src || !frame.src.includes('asset-selector')) {
+    mountPicker(frame, aemConfig, codeOrigin, '');
+  } else {
+    showStatus('Select an asset, then confirm. The image is inserted at the cursor.');
+  }
 
   loadExtensionConfig(codeOrigin).then((fetched) => {
     if (!fetched['aem.repositoryId'] || fetched['aem.repositoryId'] === aemConfig['aem.repositoryId']) {

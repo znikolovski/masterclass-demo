@@ -64,16 +64,16 @@
   </head>
   <body>
     <script type="application/json" id="aem-assets-bootstrap">
-      {"repositoryId":"author-p115476-e1135027.adobeaemcloud.com"}
+      {"repositoryId":"author-p115476-e1135027.adobeaemcloud.com","codeOrigin":"https://main--masterclass-demo--znikolovski.aem.page"}
     </script>
     <p class="aem-assets-status" id="aem-assets-status" hidden></p>
     <pre class="aem-assets-debug" id="aem-assets-debug" hidden></pre>
-    <iframe id="aem-assets-frame" title="AEM Assets"></iframe>
-    <script type="module">
-      import { setConfig } from 'https://da.live/nx/scripts/nexter.js';
-
-      setConfig({ imsClientId: 'da-web', env: 'prod' });
-      import('./aem-assets.js');
-    </script>
+    <!-- src set in HTML so the picker loads even if module JS is delayed or blocked -->
+    <iframe
+      id="aem-assets-frame"
+      title="AEM Assets"
+      src="https://experience.adobe.com/solutions/CQ-helix-assets-addon/static-assets/resources/asset-selector.html?rail=true&amp;aem.repositoryId=author-p115476-e1135027.adobeaemcloud.com&amp;extConfigUrl=https%3A%2F%2Fmain--masterclass-demo--znikolovski.aem.page%2Ftools%2Fassets-selector%2Fconfig.json"
+    ></iframe>
+    <script type="module" src="./aem-assets.js"></script>
   </body>
 </html>
