@@ -8,6 +8,27 @@ const SELECTOR_URL = 'https://experience.adobe.com/solutions/CQ-helix-assets-add
 const SELECTOR_ORIGIN = 'https://experience.adobe.com';
 const SDK_TIMEOUT_MS = 20_000;
 
+function isDebugMode() {
+  try {
+    if (new URLSearchParams(window.location.search).has('debug')) return true;
+    return window.localStorage?.getItem('aem-assets-debug') === '1';
+  } catch {
+    return false;
+  }
+}
+
+const debugLog = [];
+
+function debug(line, data) {
+  const entry = data === undefined ? String(line) : `${line} ${JSON.stringify(data)}`;
+  debugLog.push(`${new Date().toISOString().slice(11, 23)} ${entry}`);
+  if (!isDebugMode()) return;
+  const el = document.getElementById('aem-assets-debug');
+  if (!el) return;
+  el.hidden = false;
+  el.textContent = debugLog.join('\n');
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -226,10 +247,12 @@ function mountPicker(frame, aemConfig, codeOrigin, pagePath) {
     return null;
   }
 
-  frame.src = buildSelectorUrl({ aemConfig, codeOrigin, pagePath });
+  const src = buildSelectorUrl({ aemConfig, codeOrigin, pagePath });
+  frame.src = src;
   frame.dataset.webPath = pagePath || '';
+  debug('mountPicker', { codeOrigin, pagePath, src });
   showStatus('Select an asset, then confirm. The image is inserted at the cursor.');
-  return frame.src;
+  return src;
 }
 
 function bindInsertHandler(getActions, imageAsLink) {
@@ -268,9 +291,25 @@ function bindInsertHandler(getActions, imageAsLink) {
   const frame = document.getElementById('aem-assets-frame');
   if (!frame) return;
 
+  debug('init', {
+    href: window.location.href,
+    referrer: document.referrer || '(none)',
+    debug: isDebugMode(),
+  });
+
+  window.addEventListener('error', (e) => {
+    debug('window.error', { message: e.message, filename: e.filename, lineno: e.lineno });
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    debug('unhandledrejection', { reason: String(e.reason) });
+  });
+  frame.addEventListener('load', () => debug('innerFrame.load', { src: frame.src }));
+  frame.addEventListener('error', () => debug('innerFrame.error', { src: frame.src }));
+
   const bootstrapIdentity = resolveSiteIdentity({});
   const codeOrigin = getCodeOrigin(bootstrapIdentity);
   const aemConfig = getBootstrapAemConfig();
+  debug('bootstrap', { bootstrapIdentity, codeOrigin, aemConfig });
 
   mountPicker(frame, aemConfig, codeOrigin, '');
 
@@ -287,15 +326,27 @@ function bindInsertHandler(getActions, imageAsLink) {
   try {
     const sdk = await waitForSdk();
     sdkActions = sdk.actions;
+    debug('sdk.ready', {
+      hasSendHTML: Boolean(sdkActions?.sendHTML),
+      contextType: typeof sdk.context,
+    });
     const identity = resolveSiteIdentity(sdk);
     const pagePath = getPagePath(sdk);
     const origin = getCodeOrigin(identity);
 
     mountPicker(frame, { ...aemConfig, ...(await loadExtensionConfig(origin)) }, origin, pagePath);
-  } catch {
+  } catch (err) {
+    debug('sdk.failed', { error: String(err) });
     showStatus(
       'Asset picker is open. If insert does not work, use the toolbar AEM image icon or reload the page.',
       false,
     );
+    if (isDebugMode()) {
+      showStatus(`SDK: ${err}. Picker URL: ${frame.src || '(not set)'}`, true);
+    }
+  }
+
+  if (isDebugMode()) {
+    debug('copyHint', { text: 'Copy this panel and paste into chat' });
   }
 }());

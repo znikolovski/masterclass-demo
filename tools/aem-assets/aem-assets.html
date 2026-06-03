@@ -43,6 +43,23 @@
         width: 100%;
         min-height: 0;
       }
+
+      .aem-assets-debug {
+        margin: 0;
+        padding: 8px 12px;
+        font: 11px/1.4 ui-monospace, monospace;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        border-bottom: 1px solid #333;
+        max-height: 40vh;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .aem-assets-debug[hidden] {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -50,12 +67,13 @@
       {"repositoryId":"author-p115476-e1135027.adobeaemcloud.com"}
     </script>
     <p class="aem-assets-status" id="aem-assets-status" hidden></p>
+    <pre class="aem-assets-debug" id="aem-assets-debug" hidden></pre>
     <iframe id="aem-assets-frame" title="AEM Assets"></iframe>
     <script type="module">
       import { setConfig } from 'https://da.live/nx/scripts/nexter.js';
 
       setConfig({ imsClientId: 'da-web', env: 'prod' });
-      await import('./aem-assets.js');
+      import('./aem-assets.js');
     </script>
   </body>
 </html>
