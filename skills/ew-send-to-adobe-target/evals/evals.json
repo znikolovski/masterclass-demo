@@ -1,20 +1,20 @@
 {
   "evals": [
     {
-      "id": "export-fragment-to-target",
-      "prompt": "Export the columns-featured fragment to Adobe Target as an offer named Columns Featured",
+      "id": "ew-guide-export-fragment",
+      "prompt": "Export this fragment to Adobe Target from Experience Workspace",
       "expected_workflow": [
-        "Uses ew-send-to-adobe-target skill",
-        "Runs send-to-target.mjs with --path /fragments/columns-featured",
-        "Does not call IMS directly without ETC proxy"
+        "Does not run node or da-auth",
+        "Guides Library Send to Adobe Target extension",
+        "Confirms document is previewed"
       ]
     },
     {
-      "id": "ew-target-ui-guidance",
-      "prompt": "How do I send this page to Target from Experience Workspace?",
+      "id": "ew-troubleshoot-cors",
+      "prompt": "Send to Adobe Target shows a CORS error on IMS in EW",
       "expected_workflow": [
-        "Mentions Library Send to Adobe Target extension",
-        "Mentions prerequisites adobe-target.json and preview"
+        "Suggests hard refresh and code sync",
+        "Does not reference .hlx or local CLI"
       ]
     }
   ]

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 /**
+ * Local/repo maintenance CLI only — not used from Experience Workspace.
+ * EW authors use the Library → Send to Adobe Target extension (see skills/ew-send-to-adobe-target).
+ *
  * CLI: preview a DA page/fragment and create or update an Adobe Target HTML offer.
  * Uses DA ETC CORS proxy for IMS + Target (same as tools/adobe-target/target-api.js).
  *

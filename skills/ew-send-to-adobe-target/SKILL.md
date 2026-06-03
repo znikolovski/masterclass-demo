@@ -1,135 +1,123 @@
 ---
 name: ew-send-to-adobe-target
 description: >-
-  Export AEM Edge Delivery pages or /fragments documents to Adobe Target as HTML
-  offers from Experience Workspace chat or via CLI. Use when the user asks to send
-  to Target, export to Adobe Target, create a Target offer from a page or fragment,
-  update or delete a Target offer, or use Target from Experience Workspace without
-  the Prepare menu.
+  Guides authors to export AEM Edge Delivery pages or fragments to Adobe Target
+  using the Send to Adobe Target library extension in Experience Workspace. Use when
+  the user asks to send to Target, export to Adobe Target, create or update a Target
+  offer, delete a Target offer, or fix errors from the Target extension in EW chat.
+  Does not use local scripts, da-auth, or .hlx tokens.
 license: Apache-2.0
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  environment: experience-workspace
 ---
 
 # Send to Adobe Target (Experience Workspace)
 
-Export DA-authored **pages** or **fragments** to Adobe Target as immutable HTML offers. This project implements the same flow as [Send to Adobe Target](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target), exposed for **Experience Workspace** (no Prepare menu).
+Help authors export the **currently open** DA page or fragment to Adobe Target as an immutable HTML offer, using the in-browser **Send to Adobe Target** extension — the EW equivalent of [Prepare → Send to Adobe Target](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target).
+
+## Runtime constraints (read first)
+
+This skill is for the **Experience Workspace agent**, not a local IDE agent.
+
+| Available | Not available |
+|-----------|----------------|
+| User’s EW session (Adobe IMS already signed in) | Running `node`, shell scripts, or repo CLI tools |
+| **Library → Send to Adobe Target** extension UI | Reading `.hlx/.da-token.json` or running **da-auth** |
+| Coaching, checklists, troubleshooting | Calling `ims-na1.adobelogin.com` or `mc.adobe.io` directly from chat |
+
+**The agent cannot perform the export.** It guides the author through the extension and interprets errors.
 
 ## When to use
 
-- User wants to **export / send / push** content to **Adobe Target** from EW or chat
-- User is on a **fragment** (e.g. `/fragments/columns-featured`) or **page** (`/index`)
-- User asks to **create, update, or delete** a Target offer linked to DA content
-- User hit **CORS / preview URL / Target API** errors in the EW extension
+- “Send this to Target” / “export to Adobe Target” while editing in EW
+- Creating or updating an offer from a **page** or **fragment** (e.g. `/fragments/columns-featured`)
+- Deleting a linked Target offer
+- Extension errors: preview URL, CORS, missing config, empty `<main>`
 
-## Prerequisites (verify first)
+## Prerequisites (confirm with the author)
 
-| Requirement | Location |
-|-------------|----------|
-| Target API credentials | `/.da/adobe-target.json` in DA (`tenant`, `clientId`, `clientSecret`) — **never preview/publish** |
-| DA IMS token | `.hlx/.da-token.json` or run **da-auth** skill |
-| Code on `main` synced | `tools/adobe-target/` on code bus (extension + CLI) |
-| Library row (EW UI) | DA config **library** tab → **Send to Adobe Target** → `…/tools/adobe-target/adobe-target.html` |
-| Content previewed | Source document must be **previewed** before export |
+Ask or verify before guiding export:
 
-**Site defaults (this repo):** org `znikolovski`, site `masterclass-demo`, preview `https://main--masterclass-demo--znikolovski.aem.page`
+1. **Target credentials in DA** — Sheet `adobe-target` under the site’s `/.da` folder with `tenant`, `clientId`, `clientSecret`. Open in DA: `https://da.live/#/{org}/{site}/.da` → sheet **adobe-target**. Do **not** preview or publish this sheet.
+2. **Library extension registered** — Site config **library** tab includes **Send to Adobe Target** pointing at the project’s `tools/adobe-target/adobe-target.html` on the preview host (code bus on `main`).
+3. **Code synced** — After extension fixes ship, author may need a hard refresh in EW (~2–5 minutes after merge to `main`).
+4. **Document previewed** — The page or fragment must be **previewed** in DA (export uses preview HTML).
+5. **Supported content** — Pages and fragments only (not sheets or media).
 
-## Two ways to export
+**This site:** org `znikolovski`, site `masterclass-demo`, preview host `https://main--masterclass-demo--znikolovski.aem.page`.
 
-### A) Author in Experience Workspace (UI)
+## Author workflow (what you guide)
 
-1. Open the **page or fragment** in [Experience Workspace](https://da.live/canvas#).
-2. Open **Library** → **Send to Adobe Target** (fullsize dialog).
-3. Enter offer name → **Create offer** / **Update offer**.
-4. Hard-refresh if the extension was just deployed (~2–5 min code sync).
+Walk the author through these steps in order:
 
-The extension previews via `admin.hlx.page`, reads `<main>` HTML from preview, calls Target API through the **DA ETC CORS proxy** (`da-etc.adobeaem.workers.dev`), and stores `adobe.target.offerId` in page metadata.
+1. **Open the document** in Experience Workspace (page or fragment they want to export).
+2. **Preview** the document if it is not already on the preview tier (Sidekick / publish flow — use EW UI labels the author sees).
+3. Open **Library** (sidebar).
+4. Select **Send to Adobe Target** (fullsize dialog).
+5. In the dialog:
+   - If an offer is already linked, they see **Update offer** or **Delete offer**.
+   - Otherwise enter an **offer name** (suggest a clear name from the path, e.g. `Columns Featured` for `/fragments/columns-featured`).
+6. Click **Create offer** or **Update offer**.
+7. Wait for success message; the extension writes `adobe.target.offerId` into the document **metadata** block.
 
-### B) Agent from chat (CLI) — preferred in Cursor
+### Suggested offer names
 
-Run from repo root with a valid DA token:
+| Source path | Suggested name |
+|-------------|----------------|
+| `/fragments/columns-featured` | Columns Featured |
+| `/index` | WKND Homepage |
 
-```bash
-# Create or update offer from a fragment
-node tools/adobe-target/send-to-target.mjs \
-  --path /fragments/columns-featured \
-  --name "Columns Featured"
+Adjust if the author prefers their Target naming convention.
 
-# Create or update from homepage
-node tools/adobe-target/send-to-target.mjs \
-  --path /index \
-  --name "WKND Homepage"
+## Agent workflow (EW chat)
 
-# Delete offer linked in page metadata
-node tools/adobe-target/send-to-target.mjs \
-  --path /fragments/columns-featured \
-  --delete
-```
-
-**Before running:** invoke **da-auth** if token is missing or APIs return 401.
-
-**Output:** JSON with `offerId`, `previewUrl`, `action` (`created` | `updated`).
-
-## Agent workflow (chat)
-
-Copy and track:
+Use this checklist in the conversation — do not run terminal commands:
 
 ```
-- [ ] Confirm source path (/index or /fragments/…)
-- [ ] Confirm offer name (or --delete)
-- [ ] Ensure DA token (da-auth)
-- [ ] Run send-to-target.mjs
-- [ ] Report offerId + preview URL to user
+- [ ] Confirm which document is open (page vs fragment path)
+- [ ] Confirm document is previewed
+- [ ] Confirm adobe-target sheet exists in /.da (ask if unsure)
+- [ ] Guide: Library → Send to Adobe Target
+- [ ] Confirm offer name or update/delete intent
+- [ ] If error: map to troubleshooting table below
+- [ ] On success: remind author offer lives in Target; DA is source of truth
 ```
 
-**Decision:**
-
-| User has path + name? | Action |
-|----------------------|--------|
-| Yes | Run CLI (B) |
-| No, editing in EW now | Guide to Library extension (A) |
-| Delete offer | CLI with `--delete` |
-
-**Do not** call `ims-na1.adobelogin.com` or `mc.adobe.io` directly from browser context — use `tools/adobe-target/target-api.js` (ETC proxy) or the CLI script.
+**If the author asks you to “do it for them”:** Explain that export runs only inside the extension in their browser session; provide the numbered steps above and stay on the thread while they click through.
 
 ## What gets exported
 
-- All HTML **inside `<main>`** on the **preview** URL (undecorated sections), per [DA Target docs](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target)
-- Offer type: immutable **XF HTML** offer; DA remains source of truth
-- Metadata written to DA source: `adobe.target.offerId` in a **metadata** block table
+Per [DA documentation](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target):
 
-## Troubleshooting
+- HTML inside **`<main>`** from the **preview** URL (undecorated section markup)
+- Offer type: immutable **XF HTML** offer in Adobe Target
+- DA stores `adobe.target.offerId` in a **metadata** table on the same document
 
-| Symptom | Fix |
-|---------|-----|
-| `Preview did not return a URL` | Use `json.preview.url` from `admin.hlx.page` POST |
-| CORS on `ims-na1.adobelogin.com` | Use **da-etc** proxy in `target-api.js` |
-| `Preview HTML has no main` | Preview the document; confirm `<main>` on preview URL |
-| `Could not load adobe-target.json` | Add `/.da/adobe-target.json` sheet in DA |
-| Extension 404 | Wait for code sync to `main` |
+## Troubleshooting (extension messages)
 
-## Related project files
+| What the author sees | What to tell them |
+|----------------------|------------------|
+| Preview did not return a URL | Ensure the doc is **previewed**; retry after preview completes. Extension expects `preview.url` from the preview API. |
+| CORS / IMS token failed | Hard-refresh EW so the latest extension loads (uses DA **ETC CORS proxy**, not direct IMS). Confirm code sync on `main` completed. |
+| Could not load `/.da/adobe-target.json` | Add or fix the **adobe-target** sheet under `/.da` with tenant, clientId, clientSecret. |
+| Preview HTML has no `<main>` | Open the preview URL in a tab and confirm the page renders a full document; fragments should still include `<main>` on preview. |
+| Extension / dialog 404 | Library path must resolve on preview host: `…/tools/adobe-target/adobe-target.html`. Wait for code sync, then hard-refresh. |
+| Could not connect to the editor | Reload EW; reopen the document; open the extension again from Library. |
 
-| File | Role |
-|------|------|
-| `tools/adobe-target/send-to-target.mjs` | CLI for agents |
-| `tools/adobe-target/target-service.js` | Browser extension orchestration |
-| `tools/adobe-target/target-api.js` | IMS + Target via ETC proxy |
-| `tools/adobe-target/adobe-target.html` | EW library extension shell |
-| `tools/sidekick/setup-da-library.mjs` | Registers library + prepare rows |
+**Do not** suggest local token files, `da-auth`, or Node scripts to EW authors.
 
-## Security
+## Classic DA (optional)
 
-- **Never** commit or log `clientSecret`
-- **Never** call IMS from browser without the ETC proxy
-- Config sheet `/.da/adobe-target.json` must stay unpublished
+If the author also uses classic Document Authoring, the same flow exists under **Prepare → Send to Adobe Target** (OOTB plugin, no custom path). EW uses the **Library** entry instead because there is no Prepare menu.
 
-## Cursor setup
+## Security reminders (tell admins, not secrets)
 
-This skill is versioned under `skills/ew-send-to-adobe-target/`. Cursor loads skills from `.agents/skills/` (gitignored). After pull, sync once:
+- `clientSecret` belongs only in the unpublished `/.da/adobe-target` sheet
+- Never paste credentials into chat
+- Offers in Target are immutable; update/delete from DA or the extension, not by editing HTML inside Target
 
-```bash
-mkdir -p .agents/skills && cp -r skills/ew-send-to-adobe-target .agents/skills/
-```
+## Out of scope unless asked
 
-Or copy to `~/.cursor/skills/ew-send-to-adobe-target/` for all projects.
+- **Delivery** of Target offers on the live site (at.js, alloy, mboxes) — see [Fragments](https://www.aem.live/docs/fragments) and the DA doc delivery section
+- **Fragment inclusion** on pages — use the Fragment block / Fragment Picker, not this skill
