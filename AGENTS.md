@@ -38,7 +38,8 @@ The repository provides the basic structure, blocks, and configuration needed to
 ├── scripts/         # JavaScript libraries and utilities
     ├── aem.js           # Core AEM Library for Edge Delivery page decoration logic (NEVER MODIFY THIS FILE)
     ├── scripts.js       # Global JavaScript utilities, main entry point for page decoration
-    └── delayed.js       # Delayed functionality such as martech loading
+    ├── delayed.js       # Delayed functionality (non-martech)
+    └── martech-config.js # Web SDK datastream + Launch URLs (see docs/MARTECH.md)
 ├── fonts/           # Web fonts
 ├── icons/           # SVG icons
 ├── head.html        # Global HTML head content

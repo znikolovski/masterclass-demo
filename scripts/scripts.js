@@ -13,6 +13,19 @@ import {
   toClassName,
   toCamelCase,
 } from './aem.js';
+/* eslint-disable import/no-relative-packages -- aem-martech git subtree at plugins/martech */
+import {
+  initMartech,
+  martechEager,
+  martechLazy,
+  martechDelayed,
+} from '../plugins/martech/src/index.js';
+/* eslint-enable import/no-relative-packages */
+import {
+  WEB_SDK_CONFIG,
+  isMartechConfigured,
+  getLaunchUrls,
+} from './martech-config.js';
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -258,23 +271,96 @@ function applyTemplateAndTheme(doc = document) {
 }
 
 /**
+ * @param {string} name Metadata key
+ * @param {Document} doc Document
+ * @returns {boolean}
+ */
+function isPageMetadataOn(name, doc = document) {
+  const value = getPageMetadataValue(name, doc).toLowerCase();
+  return value === 'on' || value === 'true' || value === 'yes';
+}
+
+/**
+ * @param {Document} doc Document
+ * @returns {boolean}
+ */
+function isAnalyticsEnabled(doc = document) {
+  const value = getPageMetadataValue('analytics', doc).toLowerCase();
+  if (value === 'off' || value === 'false' || value === 'no') return false;
+  return true;
+}
+
+/**
+ * Phase 1 consent stub; wire CMP and updateUserConsent() for production.
+ * @returns {boolean}
+ */
+function isConsentGiven() {
+  const { hostname } = window.location;
+  return hostname === 'localhost'
+    || hostname.endsWith('.page')
+    || hostname.endsWith('.live');
+}
+
+/**
+ * @param {Document} doc Document
+ * @returns {boolean}
+ */
+function isPersonalizationEnabled(doc = document) {
+  return isPageMetadataOn('target', doc) && isConsentGiven();
+}
+
+/** @type {Promise<void>|null} */
+let martechLoadedPromise = null;
+
+/**
+ * @param {Document} doc Document
+ * @returns {Promise<void>|null}
+ */
+function loadMartech(doc = document) {
+  if (!isMartechConfigured()) return null;
+  if (!martechLoadedPromise) {
+    martechLoadedPromise = initMartech(
+      WEB_SDK_CONFIG,
+      {
+        personalization: isPersonalizationEnabled(doc),
+        analytics: isAnalyticsEnabled(doc),
+        trackPageView: isAnalyticsEnabled(doc),
+        launchUrls: getLaunchUrls(),
+      },
+    );
+  }
+  return martechLoadedPromise;
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   applyTemplateAndTheme(doc);
+
+  const martechPromise = loadMartech(doc);
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
     applyTemplateAndTheme(doc);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
-    if (firstSection) {
-      await loadSection(firstSection, (section) => {
+    const loadFirstSection = firstSection
+      ? loadSection(firstSection, (section) => {
         if (document.body.classList.contains('quick-edit')) return Promise.resolve();
         return waitForFirstImage(section);
-      });
+      })
+      : Promise.resolve();
+
+    if (martechPromise) {
+      await Promise.all([
+        martechPromise.then(() => martechEager()),
+        loadFirstSection,
+      ]);
+    } else {
+      await loadFirstSection;
     }
   }
 
@@ -303,6 +389,10 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadFooter(doc.querySelector('footer'));
+
+  if (martechLoadedPromise) {
+    await martechLoadedPromise.then(() => martechLazy());
+  }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   const template = getPageMetadataValue('template', doc);
@@ -348,9 +438,13 @@ async function loadLazy(doc) {
  * without impacting the user experience.
  */
 function loadDelayed() {
-  // eslint-disable-next-line import/no-cycle
-  window.setTimeout(() => import('./delayed.js'), 3000);
-  // load anything that can be postponed to the latest here
+  window.setTimeout(() => {
+    if (martechLoadedPromise) {
+      martechLoadedPromise.then(() => martechDelayed());
+    }
+    // eslint-disable-next-line import/no-cycle
+    import('./delayed.js');
+  }, 3000);
 }
 
 export async function loadPage() {

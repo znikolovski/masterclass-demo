@@ -27,6 +27,29 @@
         "label": "Robots",
         "valueType": "string",
         "description": "e.g. index, follow or noindex, nofollow"
+      },
+      {
+        "component": "select",
+        "name": "target",
+        "label": "Adobe Target",
+        "valueType": "string",
+        "description": "Enable Target personalization on this page (use only for active experiments)",
+        "options": [
+          { "name": "Off", "value": "" },
+          { "name": "On", "value": "on" }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "analytics",
+        "label": "Adobe Analytics",
+        "valueType": "string",
+        "description": "Auto page view via Web SDK (default on when unset)",
+        "options": [
+          { "name": "Default (on)", "value": "" },
+          { "name": "On", "value": "on" },
+          { "name": "Off", "value": "off" }
+        ]
       }
     ]
   },
