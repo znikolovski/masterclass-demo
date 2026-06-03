@@ -19,6 +19,7 @@ import {
   martechEager,
   martechLazy,
   martechDelayed,
+  updateUserConsent,
 } from '../plugins/martech/src/index.js';
 /* eslint-enable import/no-relative-packages */
 import {
@@ -327,7 +328,15 @@ function loadMartech(doc = document) {
         trackPageView: isAnalyticsEnabled(doc),
         launchUrls: getLaunchUrls(),
       },
-    );
+    ).then(() => {
+      if (!isConsentGiven()) return undefined;
+      return updateUserConsent({
+        collect: true,
+        personalize: isPersonalizationEnabled(doc),
+        marketing: true,
+        share: true,
+      });
+    });
   }
   return martechLoadedPromise;
 }
