@@ -135,9 +135,31 @@ function buildLibraryRows(existingRows = []) {
       title: 'Templates',
       path: `${CONTENT_BASE}/library/templates.json`,
     },
+    {
+      // Not "AEM Assets" — that name is reserved for DA built-in (aem-assets).
+      title: 'Browse AEM Assets',
+      path: `${PREVIEW_BASE}/tools/aem-assets/aem-assets.html`,
+      experience: 'fullsize-dialog',
+    },
   ];
   required.forEach((row) => byTitle.set(row.title, { ...byTitle.get(row.title), ...row }));
   return [...byTitle.values()];
+}
+
+function orderMultiSheetConfig(sheets, names) {
+  // da-live getFirstSheet() uses Object.keys(config)[0], NOT :names[0].
+  // Sheet keys must come first with "data" first so aem.repositoryId is found.
+  const out = {};
+  names.forEach((name) => {
+    if (sheets[name]) out[name] = sheets[name];
+  });
+  Object.keys(sheets).forEach((name) => {
+    if (!names.includes(name) && !name.startsWith(':')) out[name] = sheets[name];
+  });
+  out[':names'] = names;
+  out[':type'] = 'multi-sheet';
+  if (sheets[':version'] != null) out[':version'] = sheets[':version'];
+  return out;
 }
 
 function buildDaConfig(existing) {
@@ -151,23 +173,21 @@ function buildDaConfig(existing) {
     data: libraryRows,
   };
 
+  const sheetOrder = ['data', 'permissions', 'library', 'prepare'];
+  const present = new Set(existing?.[':names'] || Object.keys(existing || {}).filter((k) => !k.startsWith(':')));
+  const names = sheetOrder.filter((n) => present.has(n) || n === 'library' || n === 'data' || n === 'permissions');
+  if (!names.includes('data')) names.unshift('data');
+  if (!names.includes('permissions')) names.push('permissions');
+  if (!names.includes('library')) names.push('library');
+  [...present].forEach((n) => {
+    if (!names.includes(n)) names.push(n);
+  });
+
   if (existing?.[':type'] === 'multi-sheet') {
-    // DA getFirstSheet() reads :names[0] only. AEM Assets injection checks
-    // aem.repositoryId on that sheet — it must be "data", not "permissions".
-    const sheetOrder = ['data', 'permissions', 'library', 'prepare'];
-    const present = new Set(existing[':names'] || []);
-    const names = sheetOrder.filter((n) => present.has(n) || n === 'library' || n === 'data' || n === 'permissions');
-    if (!names.includes('library')) names.push('library');
-    if (!names.includes('data')) names.unshift('data');
-    if (!names.includes('permissions')) names.push('permissions');
-    [...present].forEach((n) => {
-      if (!names.includes(n)) names.push(n);
-    });
-    return {
-      ...existing,
-      ':names': names,
-      library: librarySheet,
-    };
+    return orderMultiSheetConfig(
+      { ...existing, library: librarySheet },
+      names,
+    );
   }
 
   const permissions = existing?.permissions || {
@@ -182,18 +202,19 @@ function buildDaConfig(existing) {
 
   const data = existing?.data || {
     ':type': 'sheet',
-    columns: [],
+    columns: ['key', 'value'],
     total: 0,
     data: [],
   };
 
-  return {
-    ':names': ['data', 'permissions', 'library'],
-    ':type': 'multi-sheet',
-    permissions,
-    data,
-    library: librarySheet,
-  };
+  return orderMultiSheetConfig(
+    {
+      data,
+      permissions,
+      library: librarySheet,
+    },
+    ['data', 'permissions', 'library'],
+  );
 }
 
 function normalizeLibrarySheets(root) {
