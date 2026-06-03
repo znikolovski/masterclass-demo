@@ -1,4 +1,13 @@
-const IMS_TOKEN_URL = 'https://ims-na1.adobelogin.com/ims/token/v3';
+/**
+ * Adobe Target + IMS calls via DA ETC CORS proxy (same pattern as da-live prepare Target).
+ * @see https://github.com/adobe/da-live/blob/main/blocks/shared/utils.js#L125
+ */
+const DA_ETC_ORIGIN = 'https://da-etc.adobeaem.workers.dev';
+
+function etcFetch(href, options) {
+  const url = `${DA_ETC_ORIGIN}/cors?url=${encodeURIComponent(href)}`;
+  return fetch(url, options);
+}
 
 function getEditUrl(aemUrl) {
   const parsed = new URL(aemUrl);
@@ -9,7 +18,7 @@ function getEditUrl(aemUrl) {
 }
 
 export async function getAccessToken(clientId, clientSecret) {
-  const resp = await fetch(IMS_TOKEN_URL, {
+  const resp = await etcFetch('https://ims-na1.adobelogin.com/ims/token/v3', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -20,9 +29,11 @@ export async function getAccessToken(clientId, clientSecret) {
     }),
   });
   if (!resp.ok) {
-    return { error: `Failed to get access token: ${resp.status}` };
+    const error = await resp.text();
+    return { error: `Failed to get access token: ${resp.status}${error ? ` - ${error}` : ''}` };
   }
   const data = await resp.json();
+  if (data.error) return { error: data.error_description || data.error };
   return { token: data.access_token };
 }
 
@@ -45,7 +56,7 @@ export async function saveOffer(config, name, content, aemUrl, displayName, offe
     },
   };
 
-  const resp = await fetch(url, {
+  const resp = await etcFetch(url, {
     method: isUpdate ? 'PUT' : 'POST',
     headers: {
       Authorization: `Bearer ${config.token}`,
@@ -67,7 +78,7 @@ export async function saveOffer(config, name, content, aemUrl, displayName, offe
 
 export async function getOffer(config, offerId) {
   const url = `https://mc.adobe.io/${config.tenant}/target/offers/content/${offerId}`;
-  const resp = await fetch(url, {
+  const resp = await etcFetch(url, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${config.token}`,
@@ -94,7 +105,7 @@ export async function getOffer(config, offerId) {
 
 export async function deleteOffer(config, offerId) {
   const url = `https://mc.adobe.io/${config.tenant}/target/offers/content/${offerId}`;
-  const resp = await fetch(url, {
+  const resp = await etcFetch(url, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${config.token}`,

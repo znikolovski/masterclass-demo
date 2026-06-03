@@ -32,7 +32,7 @@ export async function fetchTargetConfig(org, site, imsToken) {
   if (error) return { error };
 
   return {
-    tenant, clientId, clientSecret, token,
+    tenant, clientId, token,
   };
 }
 
