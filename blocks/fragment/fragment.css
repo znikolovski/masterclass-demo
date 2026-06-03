@@ -1,1 +1,10 @@
-/* stylelint-disable no-empty-source */
+.fragment.fragment-error {
+  padding: 1rem;
+  border: 1px dashed var(--color-accent, #e8651a);
+  color: var(--color-text, inherit);
+}
+
+.fragment.fragment-error p {
+  margin: 0;
+  font-size: var(--body-font-size-s, 0.875rem);
+}

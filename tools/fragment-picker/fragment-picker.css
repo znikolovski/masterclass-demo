@@ -1,0 +1,111 @@
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: adobe-clean, 'Source Sans Pro', sans-serif;
+  color: #222;
+  background: #fff;
+}
+
+.fp-header {
+  padding: 16px 16px 8px;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.fp-header h1 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fp-lead {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #444;
+}
+
+.fp-search {
+  display: block;
+}
+
+.fp-search input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid #cacaca;
+  border-radius: 4px;
+}
+
+.fp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.fp-status {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #444;
+}
+
+.fp-status.is-error {
+  color: #8b0000;
+  background: #fff5f5;
+}
+
+.fp-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 16px;
+}
+
+.fp-item {
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.fp-item button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.fp-item button:hover,
+.fp-item button:focus-visible {
+  background: #f5f5f5;
+}
+
+.fp-item-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.fp-item-path {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  font-family: ui-monospace, monospace;
+}
+
+.fp-empty {
+  padding: 16px;
+  font-size: 13px;
+  color: #666;
+}

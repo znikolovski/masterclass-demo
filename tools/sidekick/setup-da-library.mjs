@@ -142,6 +142,11 @@ function buildLibraryRows(existingRows = []) {
       experience: 'fullsize-dialog',
     },
     {
+      title: 'Fragment Picker',
+      path: `${PREVIEW_BASE}/tools/fragment-picker/fragment-picker.html`,
+      experience: 'dialog',
+    },
+    {
       // EW Extensions panel (classic DA uses Prepare → Send to Adobe Target OOTB).
       title: 'Send to Adobe Target',
       path: `${PREVIEW_BASE}/tools/adobe-target/adobe-target.html`,

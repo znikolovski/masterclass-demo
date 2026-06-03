@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="da-org" content="znikolovski" />
+    <meta name="da-site" content="masterclass-demo" />
+    <title>Fragment Picker</title>
+    <link rel="stylesheet" href="./fragment-picker.css" />
+  </head>
+  <body>
+    <script type="application/json" id="fragment-picker-bootstrap">
+      {"codeOrigin":"https://main--masterclass-demo--znikolovski.aem.page"}
+    </script>
+    <header class="fp-header">
+      <h1>Fragment Picker</h1>
+      <p class="fp-lead">Choose a published fragment to insert as a Fragment block on this page.</p>
+      <label class="fp-search">
+        <span class="fp-sr-only">Search fragments</span>
+        <input type="search" id="fp-search" placeholder="Search fragments…" autocomplete="off" />
+      </label>
+    </header>
+    <p class="fp-status" id="fp-status" hidden></p>
+    <ul class="fp-list" id="fp-list" aria-label="Fragments"></ul>
+    <script type="module" src="./fragment-picker.js"></script>
+  </body>
+</html>

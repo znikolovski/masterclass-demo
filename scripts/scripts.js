@@ -58,12 +58,12 @@ function buildAutoBlocks(main) {
     const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
     if (fragments.length > 0) {
       // eslint-disable-next-line import/no-cycle
-      import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
+      import('../blocks/fragment/fragment.js').then(({ loadFragment, resolveFragmentPath }) => {
         fragments.forEach(async (fragment) => {
           try {
-            const { pathname } = new URL(fragment.href);
-            const frag = await loadFragment(pathname);
-            fragment.parentElement.replaceWith(...frag.children);
+            const path = resolveFragmentPath(fragment.getAttribute('href') || fragment.href);
+            const frag = path ? await loadFragment(path) : null;
+            if (frag) fragment.parentElement.replaceWith(...frag.children);
           } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Fragment loading failed', error);

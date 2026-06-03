@@ -62,8 +62,9 @@ export async function savePreview(org, site, sourcePath, imsToken) {
   });
   if (!resp.ok) return { error: 'Could not preview the page.' };
   const json = await resp.json();
-  if (!json?.url) return { error: 'Preview did not return a URL.' };
-  return json;
+  const url = json?.preview?.url || json?.url;
+  if (!url) return { error: 'Preview did not return a URL.' };
+  return { ...json, url };
 }
 
 export function parseOfferIdFromHtml(html) {

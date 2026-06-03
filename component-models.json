@@ -343,9 +343,12 @@
       {
         "component": "aem-content",
         "name": "fragmentUrl",
-        "label": "Fragment path",
+        "label": "Fragment",
         "valueType": "string",
-        "required": true
+        "required": true,
+        "validation": {
+          "rootPath": "/fragments"
+        }
       },
       {
         "component": "text",
