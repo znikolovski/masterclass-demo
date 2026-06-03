@@ -120,6 +120,12 @@ function wrapDaTemplate(fragment) {
 
 function buildLibraryRows(existingRows = []) {
   const byTitle = new Map(existingRows.map((row) => [row.title, row]));
+  // DA injects built-in "AEM Assets" when aem.repositoryId is in site config (data tab).
+  // A custom library row with the same title breaks both classic DA and EW: da-library maps
+  // name "aem-assets" to experience "assets" and iframes the row path (our .js URL) instead
+  // of calling openAssets / renderAssets. See adobe/da-live ew-panel-extensions/aem-assets.js.
+  byTitle.delete('AEM Assets');
+
   const required = [
     {
       title: 'Blocks',
@@ -128,12 +134,6 @@ function buildLibraryRows(existingRows = []) {
     {
       title: 'Templates',
       path: `${CONTENT_BASE}/library/templates.json`,
-    },
-    {
-      title: 'AEM Assets',
-      // DA library imports the .js module into its shell (does not load the .html page).
-      path: `${PREVIEW_BASE}/tools/aem-assets/aem-assets.js`,
-      experience: 'fullsize-dialog',
     },
   ];
   required.forEach((row) => byTitle.set(row.title, { ...byTitle.get(row.title), ...row }));
