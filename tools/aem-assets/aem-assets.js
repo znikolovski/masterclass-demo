@@ -7,6 +7,10 @@
 const SELECTOR_URL = 'https://experience.adobe.com/solutions/CQ-helix-assets-addon/static-assets/resources/asset-selector.html';
 const SELECTOR_ORIGIN = 'https://experience.adobe.com';
 const SDK_TIMEOUT_MS = 20_000;
+const DEFAULT_ORG = 'znikolovski';
+const DEFAULT_SITE = 'masterclass-demo';
+const DEFAULT_REPOSITORY_ID = 'author-p115476-e1135027.adobeaemcloud.com';
+const DEFAULT_CODE_ORIGIN = `https://main--${DEFAULT_SITE}--${DEFAULT_ORG}.aem.page`;
 
 function isDebugMode() {
   try {
@@ -43,17 +47,93 @@ function getMetaDefaults() {
   return { org, site, ref: 'main' };
 }
 
+function getDefaultBootstrap() {
+  return {
+    aem: { 'aem.repositoryId': DEFAULT_REPOSITORY_ID },
+    codeOrigin: DEFAULT_CODE_ORIGIN,
+  };
+}
+
 function getBootstrapConfig() {
+  const defaults = getDefaultBootstrap();
   const el = document.getElementById('aem-assets-bootstrap');
-  if (!el?.textContent) return { aem: {}, codeOrigin: '' };
+  if (!el?.textContent?.trim()) return defaults;
   try {
     const json = JSON.parse(el.textContent.trim());
-    const aem = {};
+    const aem = { ...defaults.aem };
     if (json.repositoryId) aem['aem.repositoryId'] = json.repositoryId;
-    return { aem, codeOrigin: json.codeOrigin || '' };
+    return { aem, codeOrigin: json.codeOrigin || defaults.codeOrigin };
   } catch {
-    return { aem: {}, codeOrigin: '' };
+    return defaults;
   }
+}
+
+/** DA library loads the .js module only (not aem-assets.html); build UI in the host shell. */
+function ensurePluginShell() {
+  let frame = document.getElementById('aem-assets-frame');
+  if (frame) return frame;
+
+  if (!document.getElementById('aem-assets-shell-style')) {
+    const style = document.createElement('style');
+    style.id = 'aem-assets-shell-style';
+    style.textContent = `
+      html, body { margin: 0; height: 100%; overflow: hidden; }
+      body.aem-assets-shell {
+        display: flex; flex-direction: column;
+        font-family: adobe-clean, 'Source Sans Pro', sans-serif;
+      }
+      .aem-assets-status {
+        margin: 0; padding: 8px 12px; font-size: 12px; line-height: 1.4;
+        background: #f5f5f5; border-bottom: 1px solid #e1e1e1; color: #444;
+      }
+      .aem-assets-status[hidden] { display: none; }
+      .aem-assets-status.is-error { background: #fff5f5; color: #8b0000; }
+      .aem-assets-debug {
+        margin: 0; padding: 8px 12px; font: 11px/1.4 ui-monospace, monospace;
+        background: #1e1e1e; color: #d4d4d4; border-bottom: 1px solid #333;
+        max-height: 40vh; overflow: auto; white-space: pre-wrap; word-break: break-all;
+      }
+      .aem-assets-debug[hidden] { display: none; }
+      #aem-assets-frame { flex: 1; border: 0; width: 100%; min-height: 0; }
+    `;
+    document.head.append(style);
+  }
+
+  document.body.classList.add('aem-assets-shell');
+
+  if (!document.getElementById('aem-assets-bootstrap')) {
+    const boot = document.createElement('script');
+    boot.type = 'application/json';
+    boot.id = 'aem-assets-bootstrap';
+    boot.textContent = JSON.stringify({
+      repositoryId: DEFAULT_REPOSITORY_ID,
+      codeOrigin: DEFAULT_CODE_ORIGIN,
+    });
+    document.body.append(boot);
+  }
+
+  if (!document.getElementById('aem-assets-status')) {
+    const status = document.createElement('p');
+    status.className = 'aem-assets-status';
+    status.id = 'aem-assets-status';
+    status.hidden = true;
+    document.body.append(status);
+  }
+
+  if (!document.getElementById('aem-assets-debug')) {
+    const panel = document.createElement('pre');
+    panel.className = 'aem-assets-debug';
+    panel.id = 'aem-assets-debug';
+    panel.hidden = true;
+    document.body.append(panel);
+  }
+
+  frame = document.createElement('iframe');
+  frame.id = 'aem-assets-frame';
+  frame.title = 'AEM Assets';
+  document.body.append(frame);
+  debug('ensurePluginShell', { host: window.location.href });
+  return frame;
 }
 
 function parseHelixHost(url) {
@@ -169,14 +249,25 @@ function getPagePath(sdk) {
 }
 
 async function loadExtensionConfig(codeOrigin) {
+  const url = `${codeOrigin}/tools/assets-selector/config.json`;
   try {
-    const res = await fetch(`${codeOrigin}/tools/assets-selector/config.json`);
-    if (!res.ok) return {};
-    const json = await res.json();
+    const res = await fetch(url);
+    if (!res.ok) {
+      debug('config.fetch.fail', { url, status: res.status });
+      return {};
+    }
+    const text = await res.text();
+    if (!text.trim()) {
+      debug('config.fetch.empty', { url });
+      return {};
+    }
+    const json = JSON.parse(text);
     const out = {};
     if (json.repositoryId) out['aem.repositoryId'] = json.repositoryId;
+    debug('config.fetch.ok', { url, repositoryId: json.repositoryId });
     return out;
-  } catch {
+  } catch (err) {
+    debug('config.fetch.error', { url, error: String(err) });
     return {};
   }
 }
@@ -289,8 +380,7 @@ function bindInsertHandler(getActions, imageAsLink) {
 }
 
 (async function init() {
-  const frame = document.getElementById('aem-assets-frame');
-  if (!frame) return;
+  const frame = ensurePluginShell();
 
   debug('init', {
     href: window.location.href,

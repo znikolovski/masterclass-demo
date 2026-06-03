@@ -131,7 +131,8 @@ function buildLibraryRows(existingRows = []) {
     },
     {
       title: 'AEM Assets',
-      path: `${PREVIEW_BASE}/tools/aem-assets/aem-assets.html`,
+      // DA library imports the .js module into its shell (does not load the .html page).
+      path: `${PREVIEW_BASE}/tools/aem-assets/aem-assets.js`,
       experience: 'fullsize-dialog',
     },
   ];
