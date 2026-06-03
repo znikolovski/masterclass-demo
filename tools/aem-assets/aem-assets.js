@@ -16,11 +16,69 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
-function getCodeOrigin(context) {
-  if (context.ref === 'local') return 'http://localhost:3000';
-  const branch = context.ref || context.branch || 'main';
-  const { org, repo } = context;
-  return `https://${branch}--${repo}--${org}.aem.page`;
+/** Resolve DA org + site from SDK payload, mountpoint, path, or URLs. */
+function resolveSiteIdentity(sdk) {
+  const ctx = sdk.context || {};
+  let org = sdk.org || ctx.org || ctx.owner || sdk.owner;
+  let site = sdk.repo || sdk.site || ctx.repo || ctx.site || ctx.project || sdk.project;
+
+  const mount = ctx.mountpoint || ctx.mountPoint || sdk.mountpoint
+    || ctx.config?.mountpoint || sdk.config?.mountpoint;
+  if (typeof mount === 'string') {
+    const m = mount.match(/content\.da\.live\/([^/]+)\/([^/]+)/i);
+    if (m) {
+      org = org || m[1];
+      site = site || m[2];
+    }
+  }
+
+  const docPath = ctx.path || ctx.pathname || ctx.webPath || sdk.path || sdk.pathname;
+  if (typeof docPath === 'string') {
+    const m = docPath.match(/^\/([^/]+)\/([^/]+)/);
+    if (m) {
+      org = org || m[1];
+      site = site || m[2];
+    }
+  }
+
+  const appMatch = window.location.pathname.match(/\/app\/([^/]+)\/([^/]+)/);
+  if (appMatch) {
+    org = org || appMatch[1];
+    site = site || appMatch[2];
+  }
+
+  const parseHelixHost = (url) => {
+    try {
+      const parts = new URL(url).hostname.split('.')[0].split('--');
+      if (parts.length >= 3) return { ref: parts[0], site: parts[1], org: parts[2] };
+    } catch {
+      /* ignore invalid URLs */
+    }
+    return null;
+  };
+
+  [document.referrer, window.location.href].forEach((url) => {
+    if (!url || (org && site)) return;
+    const parsed = parseHelixHost(url);
+    if (parsed) {
+      org = org || parsed.org;
+      site = site || parsed.site;
+    }
+    const hashMatch = url.match(/#\/([^/]+)\/([^/]+)/);
+    if (hashMatch) {
+      org = org || hashMatch[1];
+      site = site || hashMatch[2];
+    }
+  });
+
+  return { org, site, ref: ctx.ref || sdk.ref || ctx.branch || sdk.branch || 'main' };
+}
+
+function getCodeOrigin(identity) {
+  if (identity.ref === 'local') return 'http://localhost:3000';
+  const branch = identity.ref || 'main';
+  const { org, site } = identity;
+  return `https://${branch}--${site}--${org}.aem.page`;
 }
 
 function collectAemConfig(context) {
@@ -41,9 +99,10 @@ function collectAemConfig(context) {
   return out;
 }
 
-async function fetchSiteAemConfig(org, repo, token) {
+async function fetchSiteAemConfig(org, site, token) {
+  if (!org || !site || org === 'undefined' || site === 'undefined') return {};
   try {
-    const res = await fetch(`https://admin.da.live/config/${org}/${repo}`, {
+    const res = await fetch(`https://admin.da.live/config/${org}/${site}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return {};
@@ -134,22 +193,35 @@ function handleSelectorMessage(event, actions, imageAsLink) {
   const frame = document.getElementById('aem-assets-frame');
 
   try {
-    const { context, token, actions } = await DA_SDK;
+    const sdk = await DA_SDK;
+    const { context, token, actions } = sdk;
+    const identity = resolveSiteIdentity(sdk);
     const aemConfig = {
-      ...collectAemConfig(context),
-      ...(await fetchSiteAemConfig(context.org, context.repo, token)),
+      ...collectAemConfig(context || sdk),
+      ...(await fetchSiteAemConfig(identity.org, identity.site, token)),
     };
 
     if (!aemConfig['aem.repositoryId']) {
+      const configHint = identity.org && identity.site
+        ? `https://da.live/config#/${identity.org}/${identity.site}`
+        : 'https://da.live/config';
       showStatus(
-        'Missing aem.repositoryId in DA site config. Add it under https://da.live/config before using AEM Assets.',
+        `Missing aem.repositoryId in DA site config. Add it under ${configHint} (data tab), then save.`,
         true,
       );
       return;
     }
 
-    const codeOrigin = getCodeOrigin(context);
-    const pagePath = context.path || context.webPath || context.href || '';
+    if (!identity.org || !identity.site) {
+      showStatus(
+        'Could not detect DA org/site from the editor. Open AEM Assets from a document in DA, not the raw preview URL.',
+        true,
+      );
+      return;
+    }
+
+    const codeOrigin = getCodeOrigin(identity);
+    const pagePath = context?.path || context?.webPath || context?.href || sdk.path || '';
     const imageAsLink = aemConfig['aem.assets.image.type'] === 'link';
 
     frame.src = buildSelectorUrl({ aemConfig, codeOrigin, pagePath });
