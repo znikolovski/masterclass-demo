@@ -152,13 +152,20 @@ function buildDaConfig(existing) {
   };
 
   if (existing?.[':type'] === 'multi-sheet') {
-    const names = new Set(existing[':names'] || []);
-    names.add('library');
-    if (!names.has('permissions')) names.add('permissions');
-    if (!names.has('data')) names.add('data');
+    // DA getFirstSheet() reads :names[0] only. AEM Assets injection checks
+    // aem.repositoryId on that sheet — it must be "data", not "permissions".
+    const sheetOrder = ['data', 'permissions', 'library', 'prepare'];
+    const present = new Set(existing[':names'] || []);
+    const names = sheetOrder.filter((n) => present.has(n) || n === 'library' || n === 'data' || n === 'permissions');
+    if (!names.includes('library')) names.push('library');
+    if (!names.includes('data')) names.unshift('data');
+    if (!names.includes('permissions')) names.push('permissions');
+    [...present].forEach((n) => {
+      if (!names.includes(n)) names.push(n);
+    });
     return {
       ...existing,
-      ':names': [...names],
+      ':names': names,
       library: librarySheet,
     };
   }
@@ -181,7 +188,7 @@ function buildDaConfig(existing) {
   };
 
   return {
-    ':names': ['permissions', 'data', 'library'],
+    ':names': ['data', 'permissions', 'library'],
     ':type': 'multi-sheet',
     permissions,
     data,
