@@ -1,21 +1,28 @@
 {
   ":type": "sheet",
-  "columns": ["key", "value"],
+  "columns": [
+    "key",
+    "value",
+    "path"
+  ],
   "total": 3,
   "offset": 0,
   "limit": 3,
   "data": [
     {
       "key": "Blog Article",
-      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html"
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html"
     },
     {
       "key": "Field Notes",
-      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html"
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html"
     },
     {
       "key": "Landing Page",
-      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html"
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html"
     }
   ]
 }

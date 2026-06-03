@@ -161,6 +161,27 @@ function buildDaConfig(existing) {
   };
 }
 
+function normalizeLibrarySheets(root) {
+  const templatesPath = join(root, 'library/templates.json');
+  const blocksPath = join(root, 'library/blocks.json');
+
+  const templates = JSON.parse(readFileSync(templatesPath, 'utf8'));
+  templates.columns = ['key', 'value', 'path'];
+  templates.data = templates.data.map(({ key, value, path }) => {
+    const url = path || value;
+    return { key, value: value || url, path: path || url };
+  });
+  writeFileSync(templatesPath, `${JSON.stringify(templates, null, 2)}\n`);
+
+  const blocks = JSON.parse(readFileSync(blocksPath, 'utf8'));
+  blocks.columns = ['name', 'path', 'value'];
+  blocks.data = blocks.data.map(({ name, path, value }) => {
+    const url = path || value;
+    return { name, path: url, value: value || url };
+  });
+  writeFileSync(blocksPath, `${JSON.stringify(blocks, null, 2)}\n`);
+}
+
 const token = getToken();
 if (!token) {
   console.error('No DA token. Run: aem content clone --path /');
@@ -168,6 +189,8 @@ if (!token) {
 }
 
 console.log('Setting up DA Library…\n');
+
+normalizeLibrarySheets(ROOT);
 
 // 1. Library index sheets (DA sheet format)
 for (const file of ['library/blocks.json', 'library/templates.json']) {
