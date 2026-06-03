@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>AEM Assets</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        font-family: adobe-clean, 'Source Sans Pro', sans-serif;
+      }
+
+      .aem-assets-status {
+        margin: 0;
+        padding: 8px 12px;
+        font-size: 12px;
+        line-height: 1.4;
+        background: #f5f5f5;
+        border-bottom: 1px solid #e1e1e1;
+        color: #444;
+      }
+
+      .aem-assets-status[hidden] {
+        display: none;
+      }
+
+      .aem-assets-status.is-error {
+        background: #fff5f5;
+        color: #8b0000;
+      }
+
+      #aem-assets-frame {
+        flex: 1;
+        border: 0;
+        width: 100%;
+        min-height: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="aem-assets-status" id="aem-assets-status" hidden></p>
+    <iframe id="aem-assets-frame" title="AEM Assets"></iframe>
+    <script type="module" src="./aem-assets.js"></script>
+  </body>
+</html>

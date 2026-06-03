@@ -7,7 +7,8 @@
  * Usage: node tools/sidekick/setup-da-library.mjs
  *
  * Git copies use full HTML documents (scripts + styles) so DA .html preview URLs
- * on the code bus render styled blocks. DA keeps fragment-only HTML for authoring.
+ * on the code bus render styled blocks. DA uploads use full documents; templates
+ * use <table> block markup so Experience Workspace insertTemplate preserves blocks.
  */
 
 import {
@@ -22,6 +23,7 @@ import { wrapLibraryPreviewPage } from './wrap-library-preview.mjs';
 const ORG = 'znikolovski';
 const SITE = 'masterclass-demo';
 const CONTENT_BASE = `https://content.da.live/${ORG}/${SITE}`;
+const PREVIEW_BASE = `https://main--${SITE}--${ORG}.aem.page`;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
 function getToken() {
@@ -104,8 +106,21 @@ function walkPlainHtml(dir, files = []) {
   return files;
 }
 
-function buildDaConfig(existing) {
-  const libraryRows = [
+/** Full DA page skeleton — templates must match live page source shape for EW insert. */
+function wrapDaDocument(fragment) {
+  return `<body><header></header><main>\n${fragment.trim()}\n</main><footer></footer></body>`;
+}
+
+/** EW insertTemplate collapses sibling section divs; <hr> restores section breaks on save. */
+function wrapDaTemplate(fragment) {
+  const withSectionBreaks = fragment.replace(/<\/div>\s*\n\s*<hr>\s*\n\s*<div>/gi, '</div>\n<hr>\n<div>')
+    .replace(/<\/div>\s*\n\s*<div>/g, '</div>\n<hr>\n<div>');
+  return wrapDaDocument(withSectionBreaks);
+}
+
+function buildLibraryRows(existingRows = []) {
+  const byTitle = new Map(existingRows.map((row) => [row.title, row]));
+  const required = [
     {
       title: 'Blocks',
       path: `${CONTENT_BASE}/library/blocks.json`,
@@ -114,7 +129,19 @@ function buildDaConfig(existing) {
       title: 'Templates',
       path: `${CONTENT_BASE}/library/templates.json`,
     },
+    {
+      title: 'AEM Assets',
+      path: `${PREVIEW_BASE}/tools/aem-assets/aem-assets.html`,
+      experience: 'fullsize-dialog',
+    },
   ];
+  required.forEach((row) => byTitle.set(row.title, { ...byTitle.get(row.title), ...row }));
+  return [...byTitle.values()];
+}
+
+function buildDaConfig(existing) {
+  const existingLibrary = existing?.library?.data || [];
+  const libraryRows = buildLibraryRows(existingLibrary);
 
   const librarySheet = {
     ':type': 'sheet',
@@ -212,13 +239,16 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
     ? { bodyClasses: ['blog-article'], stylesheets: ['/styles/blog.css'] }
     : {};
 
-  await putSource(token, daPath, fragment, 'text/html');
+  const isTemplate = daPath.startsWith('templates/');
+  const daBody = isTemplate ? wrapDaTemplate(fragment) : fragment;
+
+  await putSource(token, daPath, daBody, 'text/html');
   await triggerPreview(token, daPath);
 
   const gitPath = join(ROOT, daPath);
   mkdirSync(dirname(gitPath), { recursive: true });
   writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment, previewOptions));
-  console.log(`  ✓ ${daPath} (DA fragment + git preview page)`);
+  console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview page)`);
 }
 
 // 3. DA site config — library tab pointing at index sheets
