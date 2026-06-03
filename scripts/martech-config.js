@@ -6,8 +6,8 @@
  */
 
 export const WEB_SDK_CONFIG = {
-  datastreamId: 'REPLACE_ME',
-  orgId: 'REPLACE_ME@AdobeOrg',
+  datastreamId: '56dee4fc-21a9-4e37-83ab-bdd874957aba',
+  orgId: '28260E2056581D3B7F000101@AdobeOrg',
 };
 
 /** Launch embed URLs (staging for .aem.page, production for .aem.live if different). */
