@@ -3,7 +3,6 @@
  * @see https://docs.da.live/developers/guides/developing-apps-and-plugins
  * @see https://docs.da.live/administrators/guides/setup-aem-assets
  */
-import DA_SDK from 'https://da.live/nx/utils/sdk.js';
 
 const SELECTOR_URL = 'https://experience.adobe.com/solutions/CQ-helix-assets-addon/static-assets/resources/asset-selector.html';
 const SELECTOR_ORIGIN = 'https://experience.adobe.com';
@@ -21,6 +20,18 @@ function getMetaDefaults() {
   const org = document.querySelector('meta[name="da-org"]')?.content?.trim();
   const site = document.querySelector('meta[name="da-site"]')?.content?.trim();
   return { org, site, ref: 'main' };
+}
+
+function getBootstrapAemConfig() {
+  const el = document.getElementById('aem-assets-bootstrap');
+  if (!el?.textContent) return {};
+  try {
+    const json = JSON.parse(el.textContent);
+    if (json.repositoryId) return { 'aem.repositoryId': json.repositoryId };
+  } catch {
+    /* ignore invalid bootstrap JSON */
+  }
+  return {};
 }
 
 function parseHelixHost(url) {
@@ -196,7 +207,8 @@ function showStatus(message, isError = false) {
   el.classList.toggle('is-error', isError);
 }
 
-function waitForSdk() {
+async function waitForSdk() {
+  const { default: DA_SDK } = await import('https://da.live/nx/utils/sdk.js');
   return Promise.race([
     DA_SDK,
     new Promise((_, reject) => {
@@ -215,6 +227,7 @@ function mountPicker(frame, aemConfig, codeOrigin, pagePath) {
   }
 
   frame.src = buildSelectorUrl({ aemConfig, codeOrigin, pagePath });
+  frame.dataset.webPath = pagePath || '';
   showStatus('Select an asset, then confirm. The image is inserted at the cursor.');
   return frame.src;
 }
@@ -257,9 +270,16 @@ function bindInsertHandler(getActions, imageAsLink) {
 
   const bootstrapIdentity = resolveSiteIdentity({});
   const codeOrigin = getCodeOrigin(bootstrapIdentity);
-  const aemConfig = await loadExtensionConfig(codeOrigin);
+  const aemConfig = getBootstrapAemConfig();
 
   mountPicker(frame, aemConfig, codeOrigin, '');
+
+  loadExtensionConfig(codeOrigin).then((fetched) => {
+    if (!fetched['aem.repositoryId'] || fetched['aem.repositoryId'] === aemConfig['aem.repositoryId']) {
+      return;
+    }
+    mountPicker(frame, fetched, codeOrigin, frame.dataset.webPath || '');
+  });
 
   let sdkActions = null;
   bindInsertHandler(() => sdkActions, false);
@@ -271,7 +291,7 @@ function bindInsertHandler(getActions, imageAsLink) {
     const pagePath = getPagePath(sdk);
     const origin = getCodeOrigin(identity);
 
-    mountPicker(frame, aemConfig, origin, pagePath);
+    mountPicker(frame, { ...aemConfig, ...(await loadExtensionConfig(origin)) }, origin, pagePath);
   } catch {
     showStatus(
       'Asset picker is open. If insert does not work, use the toolbar AEM image icon or reload the page.',
