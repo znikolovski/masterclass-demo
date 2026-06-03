@@ -7,6 +7,7 @@ import DA_SDK from 'https://da.live/nx/utils/sdk.js';
 
 const SELECTOR_URL = 'https://experience.adobe.com/solutions/CQ-helix-assets-addon/static-assets/resources/asset-selector.html';
 const SELECTOR_ORIGIN = 'https://experience.adobe.com';
+const SDK_TIMEOUT_MS = 20_000;
 
 function escapeHtml(value) {
   return String(value)
@@ -19,7 +20,7 @@ function escapeHtml(value) {
 function getMetaDefaults() {
   const org = document.querySelector('meta[name="da-org"]')?.content?.trim();
   const site = document.querySelector('meta[name="da-site"]')?.content?.trim();
-  return { org, site };
+  return { org, site, ref: 'main' };
 }
 
 function parseHelixHost(url) {
@@ -90,9 +91,8 @@ function extractFromObject(obj, depth = 0) {
   return out;
 }
 
-/** Resolve DA org + site — EW/canvas often omits context.org; hostname + meta are reliable. */
-function resolveSiteIdentity(sdk) {
-  const identity = { ...getMetaDefaults(), ref: 'main' };
+function resolveSiteIdentity(sdk = {}) {
+  const identity = { ...getMetaDefaults() };
 
   mergeIdentity(identity, parseHelixHost(window.location.href));
 
@@ -103,12 +103,12 @@ function resolveSiteIdentity(sdk) {
 
   if (typeof sdk.context === 'string') {
     mergeIdentity(identity, parsePathOrgSite(sdk.context));
-  } else {
+  } else if (sdk.context) {
     mergeIdentity(identity, extractFromObject(sdk.context));
-    mergeIdentity(identity, extractFromObject(sdk));
   }
+  mergeIdentity(identity, extractFromObject(sdk));
 
-  [document.referrer, window.location.href].forEach((url) => {
+  [document.referrer].forEach((url) => {
     if (!url) return;
     mergeIdentity(identity, parseHelixHost(url));
     const hashMatch = url.match(/#\/([^/]+)\/([^/]+)/);
@@ -116,11 +116,6 @@ function resolveSiteIdentity(sdk) {
       mergeIdentity(identity, { org: hashMatch[1], site: hashMatch[2] });
     }
   });
-
-  const ctx = typeof sdk.context === 'object' && sdk.context ? sdk.context : {};
-  if (ctx.ref || sdk.ref || ctx.branch || sdk.branch) {
-    identity.ref = ctx.ref || sdk.ref || ctx.branch || sdk.branch || identity.ref;
-  }
 
   return identity;
 }
@@ -134,27 +129,10 @@ function getCodeOrigin(identity) {
   return `https://${branch}--${site}--${org}.aem.page`;
 }
 
-function collectAemConfig(source) {
-  const out = {};
-  if (!source || typeof source !== 'object') return out;
-
-  Object.entries(source).forEach(([key, value]) => {
-    if (key.startsWith('aem.') && typeof value === 'string') out[key] = value;
-  });
-
-  if (Array.isArray(source.data)) {
-    source.data.forEach((row) => {
-      if (row?.key?.startsWith('aem.') && row.value) out[row.key] = row.value;
-    });
-  }
-
-  if (source.config && typeof source.config === 'object') {
-    Object.entries(source.config).forEach(([key, value]) => {
-      if (key.startsWith('aem.') && typeof value === 'string') out[key] = value;
-    });
-  }
-
-  return out;
+function getPagePath(sdk) {
+  if (typeof sdk?.context === 'string') return sdk.context;
+  const ctx = sdk?.context;
+  return ctx?.path || ctx?.webPath || ctx?.href || sdk?.path || '';
 }
 
 async function loadExtensionConfig(codeOrigin) {
@@ -170,32 +148,11 @@ async function loadExtensionConfig(codeOrigin) {
   }
 }
 
-async function fetchSiteAemConfig(org, site, token, actions) {
-  if (!isValidSiteId(org) || !isValidSiteId(site)) return {};
-
-  const url = `https://admin.da.live/config/${org}/${site}`;
-  const opts = { headers: { Authorization: `Bearer ${token}` } };
-
-  try {
-    const res = actions?.daFetch
-      ? await actions.daFetch(url, opts)
-      : await fetch(url, opts);
-    if (!res.ok) return {};
-    const cfg = await res.json();
-    const rows = cfg.data?.data || [];
-    return Object.fromEntries(
-      rows.filter((r) => r.key?.startsWith('aem.')).map((r) => [r.key, r.value]),
-    );
-  } catch {
-    return {};
-  }
-}
-
 function buildSelectorUrl({ aemConfig, codeOrigin, pagePath }) {
   const params = new URLSearchParams({ rail: 'true' });
-  Object.entries(aemConfig).forEach(([key, value]) => {
-    if (value) params.set(key, value);
-  });
+  if (aemConfig['aem.repositoryId']) {
+    params.set('aem.repositoryId', aemConfig['aem.repositoryId']);
+  }
   params.set('extConfigUrl', `${codeOrigin}/tools/assets-selector/config.json`);
   if (pagePath) params.set('webPath', pagePath);
   return `${SELECTOR_URL}?${params.toString()}`;
@@ -239,69 +196,86 @@ function showStatus(message, isError = false) {
   el.classList.toggle('is-error', isError);
 }
 
-function handleSelectorMessage(event, actions, imageAsLink) {
-  if (event.origin !== SELECTOR_ORIGIN) return;
+function waitForSdk() {
+  return Promise.race([
+    DA_SDK,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('DA SDK handshake timed out')), SDK_TIMEOUT_MS);
+    }),
+  ]);
+}
 
-  let payload;
-  try {
-    payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-  } catch {
-    return;
+function mountPicker(frame, aemConfig, codeOrigin, pagePath) {
+  if (!aemConfig['aem.repositoryId']) {
+    showStatus(
+      'Missing repositoryId in tools/assets-selector/config.json. Push code sync, then hard-refresh.',
+      true,
+    );
+    return null;
   }
 
-  const action = payload?.config?.action;
-  if (!action || action === 'close') return;
-  if (action !== 'done' || !Array.isArray(payload.data) || payload.data.length === 0) return;
+  frame.src = buildSelectorUrl({ aemConfig, codeOrigin, pagePath });
+  showStatus('Select an asset, then confirm. The image is inserted at the cursor.');
+  return frame.src;
+}
 
-  const html = payload.data.map((asset) => assetToHtml(asset, imageAsLink)).filter(Boolean).join('\n');
-  if (!html) {
-    showStatus('No insertable asset URL was returned. Publish the asset in AEM and try again.', true);
-    return;
-  }
+function bindInsertHandler(getActions, imageAsLink) {
+  window.addEventListener('message', (event) => {
+    if (event.origin !== SELECTOR_ORIGIN) return;
 
-  actions.sendHTML(html);
-  actions.closeLibrary();
+    let payload;
+    try {
+      payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+    } catch {
+      return;
+    }
+
+    const action = payload?.config?.action;
+    if (!action || action === 'close') return;
+    if (action !== 'done' || !Array.isArray(payload.data) || payload.data.length === 0) return;
+
+    const actions = getActions();
+    if (!actions?.sendHTML) {
+      showStatus('Cannot insert: open AEM Assets from a DA document (Experience Workspace).', true);
+      return;
+    }
+
+    const html = payload.data.map((asset) => assetToHtml(asset, imageAsLink)).filter(Boolean).join('\n');
+    if (!html) {
+      showStatus('No insertable asset URL was returned. Publish the asset in AEM and try again.', true);
+      return;
+    }
+
+    actions.sendHTML(html);
+    actions.closeLibrary();
+  });
 }
 
 (async function init() {
   const frame = document.getElementById('aem-assets-frame');
+  if (!frame) return;
+
+  const bootstrapIdentity = resolveSiteIdentity({});
+  const codeOrigin = getCodeOrigin(bootstrapIdentity);
+  const aemConfig = await loadExtensionConfig(codeOrigin);
+
+  mountPicker(frame, aemConfig, codeOrigin, '');
+
+  let sdkActions = null;
+  bindInsertHandler(() => sdkActions, false);
 
   try {
-    const sdk = await DA_SDK;
-    const { context, token, actions } = sdk;
+    const sdk = await waitForSdk();
+    sdkActions = sdk.actions;
     const identity = resolveSiteIdentity(sdk);
-    const codeOrigin = getCodeOrigin(identity);
+    const pagePath = getPagePath(sdk);
+    const origin = getCodeOrigin(identity);
 
-    const ctxObj = typeof context === 'object' && context ? context : sdk;
-    const aemConfig = {
-      ...await loadExtensionConfig(codeOrigin),
-      ...collectAemConfig(ctxObj),
-      ...(await fetchSiteAemConfig(identity.org, identity.site, token, actions)),
-    };
-
-    if (!aemConfig['aem.repositoryId']) {
-      const configHint = isValidSiteId(identity.org) && isValidSiteId(identity.site)
-        ? `https://da.live/config#/${identity.org}/${identity.site}`
-        : 'https://da.live/config';
-      showStatus(
-        `Missing aem.repositoryId. Add it under ${configHint} (data tab) or in tools/assets-selector/config.json.`,
-        true,
-      );
-      return;
-    }
-
-    const pagePath = typeof context === 'string'
-      ? context
-      : (context?.path || context?.webPath || context?.href || sdk.path || '');
-    const imageAsLink = aemConfig['aem.assets.image.type'] === 'link';
-
-    frame.src = buildSelectorUrl({ aemConfig, codeOrigin, pagePath });
-    showStatus('Select an asset, then confirm. The image is inserted at the cursor.');
-
-    window.addEventListener('message', (event) => {
-      handleSelectorMessage(event, actions, imageAsLink);
-    });
-  } catch (err) {
-    showStatus(err?.message || 'Failed to initialize AEM Assets plugin.', true);
+    mountPicker(frame, aemConfig, origin, pagePath);
+  } catch {
+    showStatus(
+      'Asset picker is open. If insert does not work, use the toolbar AEM image icon or reload the page.',
+      false,
+    );
   }
 }());

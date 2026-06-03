@@ -48,6 +48,11 @@
   <body>
     <p class="aem-assets-status" id="aem-assets-status" hidden></p>
     <iframe id="aem-assets-frame" title="AEM Assets"></iframe>
-    <script type="module" src="./aem-assets.js"></script>
+    <script type="module">
+      import { setConfig } from 'https://da.live/nx/scripts/nexter.js';
+
+      setConfig({ imsClientId: 'da-web', env: 'prod' });
+      await import('./aem-assets.js');
+    </script>
   </body>
 </html>
