@@ -1,3 +1,4 @@
 helix-importer-ui
 *.min.js
 tools/aem-assets/aem-assets.js
+tools/adobe-target/adobe-target.js

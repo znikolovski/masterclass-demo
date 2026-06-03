@@ -141,6 +141,13 @@ function buildLibraryRows(existingRows = []) {
       path: `${PREVIEW_BASE}/tools/aem-assets/aem-assets.html`,
       experience: 'fullsize-dialog',
     },
+    {
+      // EW Extensions panel (classic DA uses Prepare → Send to Adobe Target OOTB).
+      title: 'Send to Adobe Target',
+      path: `${PREVIEW_BASE}/tools/adobe-target/adobe-target.html`,
+      experience: 'fullsize-dialog',
+      icon: 'https://da.live/blocks/edit/img/S2_Icon_Target_20_N.svg#S2_Icon_Target',
+    },
   ];
   required.forEach((row) => byTitle.set(row.title, { ...byTitle.get(row.title), ...row }));
   return [...byTitle.values()];
