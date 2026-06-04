@@ -25,6 +25,16 @@ Leave `target` off on most pages to protect LCP. Enable only on pages with activ
 
 Web SDK defaults to `pending` consent. Wire a CMP and call `updateUserConsent()` from `scripts/scripts.js` before enabling personalization on production `.aem.live` hosts.
 
+## Demo traffic (Analytics)
+
+Daily simulated traffic can run via GitHub Actions (`.github/workflows/daily-traffic-simulation.yaml`, 06:00 UTC) or locally:
+
+```bash
+npm run simulate:traffic:daily
+```
+
+Each run fetches `query-index.json` from production first so new pages are included, then drives ~10k page hits with clustered virtual visitors (returning ECIDs via `tools/scripts/output/visitor-pool`).
+
 ## Validation
 
 - `npm run lint`

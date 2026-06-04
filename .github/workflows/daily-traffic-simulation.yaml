@@ -1,0 +1,81 @@
+# Daily Analytics demo traffic against production (.aem.live).
+# Refreshes query-index.json before each run so new pages are included.
+# Persists visitor-pool artifact for returning visitors across days.
+
+name: Daily traffic simulation
+
+on:
+  schedule:
+    # 06:00 UTC daily
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      hits:
+        description: Page hits to simulate
+        required: false
+        default: '10000'
+      concurrency:
+        description: Parallel browser workers (1-8)
+        required: false
+        default: '6'
+
+env:
+  LIVE_BASE: https://main--masterclass-demo--znikolovski.aem.live
+  HITS: ${{ github.event.inputs.hits || '10000' }}
+  CONCURRENCY: ${{ github.event.inputs.concurrency || '6' }}
+
+jobs:
+  simulate-traffic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Restore visitor pool
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: visitor-pool
+          path: tools/scripts/output/visitor-pool
+
+      - name: Run daily traffic simulation
+        run: |
+          node tools/scripts/simulate-live-audience-traffic.mjs \
+            --base="${{ env.LIVE_BASE }}" \
+            --hits="${{ env.HITS }}" \
+            --concurrency="${{ env.CONCURRENCY }}" \
+            --from-index \
+            --visitor-pool-dir=tools/scripts/output/visitor-pool \
+            --out-dir=tools/scripts/output
+
+      - name: Upload visitor pool
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visitor-pool
+          path: tools/scripts/output/visitor-pool
+          retention-days: 45
+          if-no-files-found: ignore
+
+      - name: Upload run logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: traffic-run-${{ github.run_id }}
+          path: |
+            tools/scripts/output/traffic-run-*.json
+            tools/scripts/output/traffic-mix-*.json
+            tools/scripts/output/site-index-*.json
+          retention-days: 14
+          if-no-files-found: ignore

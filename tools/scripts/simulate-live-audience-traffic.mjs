@@ -2,11 +2,11 @@
 /**
  * Simulate WKND audience traffic on production (.aem.live) for Analytics demo data.
  *
- * Uses Playwright to load pages so Launch / Web SDK fire real page-view beacons
- * (prop1=live, journey/adventure derived from paths).
+ * Uses Playwright with persisted storage state per virtual visitor so the Web SDK
+ * reuses the same ECID across multiple visits (returning visitors).
  *
- * Each run randomizes audience mix at startup. Re-run over several days for a
- * spread of traffic over time.
+ * Each run randomizes audience mix at startup. Re-run over several days with the
+ * same --visitor-pool-dir for cross-day returning visitors.
  *
  * Prerequisites:
  *   npm install -D playwright
@@ -15,14 +15,27 @@
  * Examples:
  *   node tools/scripts/simulate-live-audience-traffic.mjs
  *   node tools/scripts/simulate-live-audience-traffic.mjs --hits=500 --concurrency=2
+ *   node tools/scripts/simulate-live-audience-traffic.mjs --visitors=1200
+ *   node tools/scripts/simulate-live-audience-traffic.mjs --visitor-pool-dir=tools/scripts/output/visitor-pool
  *   node tools/scripts/simulate-live-audience-traffic.mjs --dry-run
- *   node tools/scripts/simulate-live-audience-traffic.mjs --base=https://main--masterclass-demo--znikolovski.aem.live
+ *   node tools/scripts/simulate-live-audience-traffic.mjs --no-index   # skip query-index refresh
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AUDIENCE_PROFILES, PROFILE_IDS } from './lib/audience-traffic-profiles.mjs';
+import { enrichProfilesFromIndex } from './lib/enrich-profiles-from-index.mjs';
+import { fetchQueryIndex } from './lib/site-index.mjs';
+import {
+  buildTrafficSchedule,
+  createRng,
+  ensureVisitorPoolDir,
+  hasVisitorState,
+  loadPoolManifest,
+  savePoolManifest,
+  visitorStoragePath,
+} from './lib/traffic-visitors.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -30,7 +43,8 @@ const DEFAULT_BASE = 'https://main--masterclass-demo--znikolovski.aem.live';
 const DEFAULT_HITS = 10000;
 const DEFAULT_CONCURRENCY = 4;
 const ANALYTICS_WAIT_MS = 3500;
-const BETWEEN_VISITS_MS = [300, 1200];
+const BETWEEN_SESSIONS_MS = [300, 1200];
+const RETURNING_SESSIONS_MS = [8000, 45000];
 
 /** @param {string[]} argv */
 function parseArgs(argv) {
@@ -40,57 +54,27 @@ function parseArgs(argv) {
     concurrency: DEFAULT_CONCURRENCY,
     dryRun: false,
     seed: null,
+    visitors: null,
     outDir: join(__dirname, 'output'),
+    visitorPoolDir: null,
+    persistVisitors: true,
+    fromIndex: true,
   };
   argv.forEach((arg) => {
     if (arg === '--dry-run') opts.dryRun = true;
+    else if (arg === '--no-index') opts.fromIndex = false;
+    else if (arg === '--from-index') opts.fromIndex = true;
+    else if (arg === '--no-persist-visitors') opts.persistVisitors = false;
     else if (arg.startsWith('--base=')) opts.base = arg.slice(7);
     else if (arg.startsWith('--hits=')) opts.hits = Math.max(1, parseInt(arg.slice(7), 10) || DEFAULT_HITS);
     else if (arg.startsWith('--concurrency=')) {
       opts.concurrency = Math.min(8, Math.max(1, parseInt(arg.slice(14), 10) || DEFAULT_CONCURRENCY));
     } else if (arg.startsWith('--seed=')) opts.seed = parseInt(arg.slice(7), 10);
+    else if (arg.startsWith('--visitors=')) opts.visitors = parseInt(arg.slice(11), 10);
     else if (arg.startsWith('--out-dir=')) opts.outDir = arg.slice(10);
+    else if (arg.startsWith('--visitor-pool-dir=')) opts.visitorPoolDir = arg.slice(19);
   });
   return opts;
-}
-
-/**
- * @param {number} seed
- */
-function createRng(seed) {
-  let s = seed >>> 0;
-  return () => {
-    s = (s + 0x6D2B79F5) >>> 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (Math.imul(t ^ (t >>> 7), 61 | t) ^ t) >>> 0;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/**
- * @param {() => number} rng
- * @returns {Record<string, number>}
- */
-function randomizeAudienceMix(rng) {
-  const weights = PROFILE_IDS.map(() => rng() + 0.05);
-  const sum = weights.reduce((a, b) => a + b, 0);
-  return Object.fromEntries(
-    PROFILE_IDS.map((id, i) => [id, weights[i] / sum]),
-  );
-}
-
-/**
- * @param {Record<string, number>} mix
- * @param {() => number} rng
- */
-function pickAudience(mix, rng) {
-  const r = rng();
-  let acc = 0;
-  for (const id of PROFILE_IDS) {
-    acc += mix[id];
-    if (r <= acc) return id;
-  }
-  return PROFILE_IDS[PROFILE_IDS.length - 1];
 }
 
 /**
@@ -120,99 +104,189 @@ async function waitForAnalytics(page) {
 }
 
 /**
- * @param {number} total
+ * @param {import('playwright').Browser} browser
+ * @param {string} origin
+ * @param {{ profileId: string, paths: string[], visitorId: string }} task
+ * @param {string|null} poolDir
+ * @param {boolean} persistVisitors
+ * @param {(profileId: string, path: string, visitorId: string) => void} onHit
+ * @param {(profileId: string, path: string, visitorId: string, err: Error) => void} onError
  */
-function createHitQuota(total) {
-  let remaining = total;
-  let done = 0;
-  return {
-    take() {
-      if (remaining <= 0) return false;
-      remaining -= 1;
-      done += 1;
-      return true;
-    },
-    get done() { return done; },
-    get remaining() { return remaining; },
+async function runSession(
+  browser,
+  origin,
+  task,
+  poolDir,
+  persistVisitors,
+  onHit,
+  onError,
+) {
+  const storagePath = poolDir ? visitorStoragePath(poolDir, task.visitorId) : null;
+  const isReturning = storagePath && hasVisitorState(poolDir, task.visitorId);
+
+  const contextOptions = {
+    userAgent: 'WKND-DemoTraffic/1.0 (Analytics audience simulator; +https://www.aem.live)',
+    viewport: { width: 1280, height: 800 },
+    locale: 'en-US',
   };
+  if (isReturning && storagePath) {
+    contextOptions.storageState = storagePath;
+  }
+
+  const context = await browser.newContext(contextOptions);
+  const page = await context.newPage();
+
+  for (const path of task.paths) {
+    const url = `${origin}${path.startsWith('/') ? path : `/${path}`}`;
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await waitForAnalytics(page);
+      onHit(task.profileId, path, task.visitorId);
+    } catch (err) {
+      onError(task.profileId, path, task.visitorId, err);
+    }
+    await page.waitForTimeout(200 + Math.floor(Math.random() * 400));
+  }
+
+  if (persistVisitors && storagePath) {
+    await context.storageState({ path: storagePath });
+  }
+  await context.close();
+
+  return isReturning;
 }
 
 /**
  * @param {import('playwright').Browser} browser
  * @param {string} origin
- * @param {Record<string, number>} mix
- * @param {() => number} rng
- * @param {ReturnType<typeof createHitQuota>} quota
- * @param {(profileId: string, path: string) => void} onHit
- * @param {(profileId: string, path: string, err: Error) => void} onError
+ * @param {{ profileId: string, paths: string[], visitorId: string }[]} schedule
+ * @param {string|null} poolDir
+ * @param {boolean} persistVisitors
+ * @param {number} concurrency
+ * @param {(profileId: string, path: string, visitorId: string) => void} onHit
+ * @param {(profileId: string, path: string, visitorId: string, err: Error) => void} onError
  */
-async function runVisitor(browser, origin, mix, rng, quota, onHit, onError) {
-  while (quota.remaining > 0) {
-    const profileId = pickAudience(mix, rng);
-    const profile = AUDIENCE_PROFILES[profileId];
-    const journey = profile.journeys[Math.floor(rng() * profile.journeys.length)];
+async function runScheduledTraffic(
+  browser,
+  origin,
+  schedule,
+  poolDir,
+  persistVisitors,
+  concurrency,
+  onHit,
+  onError,
+) {
+  let nextIndex = 0;
+  const rng = createRng(schedule.length);
 
-    const context = await browser.newContext({
-      userAgent: 'WKND-DemoTraffic/1.0 (Analytics audience simulator; +https://www.aem.live)',
-      viewport: { width: 1280, height: 800 },
-      locale: 'en-US',
-    });
-    const page = await context.newPage();
+  const worker = async () => {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= schedule.length) break;
 
-    for (const path of journey) {
-      if (!quota.take()) break;
-      const url = `${origin}${path.startsWith('/') ? path : `/${path}`}`;
-      try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await waitForAnalytics(page);
-        onHit(profileId, path);
-      } catch (err) {
-        onError(profileId, path, err);
-      }
-      await page.waitForTimeout(200 + Math.floor(rng() * 400));
+      const task = schedule[index];
+      const isReturning = await runSession(
+        browser,
+        origin,
+        task,
+        poolDir,
+        persistVisitors,
+        onHit,
+        onError,
+      );
+
+      const gap = isReturning
+        ? RETURNING_SESSIONS_MS[0] + Math.floor(rng() * (RETURNING_SESSIONS_MS[1] - RETURNING_SESSIONS_MS[0]))
+        : BETWEEN_SESSIONS_MS[0] + Math.floor(rng() * (BETWEEN_SESSIONS_MS[1] - BETWEEN_SESSIONS_MS[0]));
+      await new Promise((r) => setTimeout(r, gap));
     }
+  };
 
-    await context.close();
-    const pause = BETWEEN_VISITS_MS[0]
-      + Math.floor(rng() * (BETWEEN_VISITS_MS[1] - BETWEEN_VISITS_MS[0]));
-    await new Promise((r) => setTimeout(r, pause));
-  }
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
 }
 
 /**
  * @param {Record<string, number>} mix
  * @param {number} hits
- * @param {() => number} rng
+ * @param {number} seed
  */
-function estimatePlan(mix, hits, seed) {
+function estimateHitDistribution(mix, hits, seed, profiles) {
   const perAudience = {};
   PROFILE_IDS.forEach((id) => { perAudience[id] = 0; });
-  let remaining = hits;
-  const rngCopy = createRng((seed + 1) >>> 0);
-  while (remaining > 0) {
-    const id = pickAudience(mix, rngCopy);
-    const journey = AUDIENCE_PROFILES[id].journeys[
-      Math.floor(rngCopy() * AUDIENCE_PROFILES[id].journeys.length)
-    ];
-    const n = Math.min(journey.length, remaining);
-    perAudience[id] += n;
-    remaining -= n;
-  }
+  const { scheduled } = buildTrafficSchedule({
+    hits, seed, rng: createRng(seed + 1), profiles,
+  });
+  scheduled.forEach(({ profileId, paths }) => {
+    perAudience[profileId] += paths.length;
+  });
   return perAudience;
+}
+
+/**
+ * @param {string} origin
+ * @param {boolean} fromIndex
+ * @param {number} seed
+ */
+async function resolveProfiles(origin, fromIndex, seed) {
+  if (!fromIndex) {
+    return { profiles: AUDIENCE_PROFILES, indexMeta: null, enrichStats: null };
+  }
+
+  const index = await fetchQueryIndex(origin);
+  const rng = createRng(seed + 404);
+  const { profiles, stats } = enrichProfilesFromIndex(AUDIENCE_PROFILES, index, rng);
+  return {
+    profiles,
+    indexMeta: {
+      fetchedAt: index.fetchedAt,
+      pathCount: index.pathCount,
+    },
+    enrichStats: stats,
+    indexSnapshot: index,
+  };
 }
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const origin = assertLiveOrigin(opts.base);
   const seed = opts.seed ?? Date.now();
-  const rng = createRng(seed);
-  const mix = randomizeAudienceMix(rng);
+  const poolDir = opts.persistVisitors
+    ? (opts.visitorPoolDir || join(opts.outDir, 'visitor-pool'))
+    : null;
 
-  const mixReport = PROFILE_IDS.map((id) => ({
-    id,
-    label: AUDIENCE_PROFILES[id].label,
-    share: Math.round(mix[id] * 1000) / 10,
-  })).sort((a, b) => b.share - a.share);
+  if (poolDir) ensureVisitorPoolDir(poolDir);
+
+  mkdirSync(opts.outDir, { recursive: true });
+
+  const {
+    profiles, indexMeta, enrichStats, indexSnapshot,
+  } = await resolveProfiles(origin, opts.fromIndex, seed);
+
+  if (indexSnapshot) {
+    const indexPath = join(opts.outDir, `site-index-${seed}.json`);
+    writeFileSync(indexPath, JSON.stringify({
+      ...indexMeta,
+      paths: indexSnapshot.paths,
+      byCategory: indexSnapshot.byCategory,
+    }, null, 2));
+  }
+
+  const scheduleResult = buildTrafficSchedule({
+    hits: opts.hits,
+    seed,
+    visitors: opts.visitors,
+    profiles,
+  });
+  const { mixReport, scheduled, visitorStats, visitorCount } = scheduleResult;
+
+  const poolManifest = poolDir ? loadPoolManifest(poolDir) : { visitors: {} };
+  let crossDayReturning = 0;
+  if (poolDir) {
+    scheduled.forEach(({ visitorId }) => {
+      if (hasVisitorState(poolDir, visitorId)) crossDayReturning += 1;
+    });
+  }
 
   const runMeta = {
     startedAt: new Date().toISOString(),
@@ -220,20 +294,39 @@ async function main() {
     targetHits: opts.hits,
     seed,
     concurrency: opts.concurrency,
+    visitorCount,
+    visitorStats,
+    crossDayReturningSessions: crossDayReturning,
+    persistVisitors: opts.persistVisitors,
+    visitorPoolDir: poolDir,
     audienceMix: mixReport,
+    fromIndex: opts.fromIndex,
+    indexMeta,
+    enrichStats,
   };
 
   console.log('WKND live audience traffic simulator');
-  console.log(`  Origin:       ${origin}`);
-  console.log(`  Target hits:  ${opts.hits}`);
-  console.log(`  Concurrency:  ${opts.concurrency}`);
-  console.log(`  Seed:         ${seed}`);
-  console.log('  Audience mix (% of visits):');
+  console.log(`  Origin:         ${origin}`);
+  if (indexMeta) {
+    console.log(`  Site index:     ${indexMeta.pathCount} paths from query-index.json`);
+    console.log(`  Paths in use:   ${enrichStats?.uniquePathsUsed ?? '—'}`);
+  }
+  console.log(`  Target hits:    ${opts.hits}`);
+  console.log(`  Sessions:       ${scheduled.length}`);
+  console.log(`  Unique visitors: ${visitorStats.uniqueVisitors}`);
+  console.log(`  Returning (2+ sessions this run): ${visitorStats.returningVisitors} (${visitorStats.returningShare}%)`);
+  if (poolDir) {
+    console.log(`  Visitor pool:   ${poolDir}`);
+    console.log(`  Cross-day return sessions: ${crossDayReturning}`);
+  }
+  console.log(`  Concurrency:    ${opts.concurrency}`);
+  console.log(`  Seed:           ${seed}`);
+  console.log('  Audience mix (% of sessions):');
   mixReport.forEach(({ label, share }) => {
     console.log(`    ${share.toString().padStart(5)}%  ${label}`);
   });
 
-  const estimate = estimatePlan(mix, opts.hits, seed);
+  const estimate = estimateHitDistribution(scheduleResult.mix, opts.hits, seed, profiles);
   console.log('  Expected hit distribution (approx):');
   PROFILE_IDS.filter((id) => estimate[id] > 0)
     .sort((a, b) => estimate[b] - estimate[a])
@@ -241,10 +334,9 @@ async function main() {
       console.log(`    ~${estimate[id]} hits  ${AUDIENCE_PROFILES[id].label}`);
     });
 
-  mkdirSync(opts.outDir, { recursive: true });
   const mixPath = join(opts.outDir, `traffic-mix-${seed}.json`);
   writeFileSync(mixPath, JSON.stringify(runMeta, null, 2));
-  console.log(`  Mix saved:    ${mixPath}`);
+  console.log(`  Mix saved:      ${mixPath}`);
 
   if (opts.dryRun) {
     console.log('\nDry run — no browser traffic sent.');
@@ -261,46 +353,54 @@ async function main() {
     process.exit(1);
   }
 
-  const quota = createHitQuota(opts.hits);
+  let hitsDone = 0;
   let errors = 0;
   const started = Date.now();
 
   const onHit = () => {
-    if (quota.done % 100 === 0 || quota.done === opts.hits) {
+    hitsDone += 1;
+    if (hitsDone % 100 === 0 || hitsDone === opts.hits) {
       const elapsed = (Date.now() - started) / 1000;
-      const rate = quota.done / elapsed;
-      const eta = Math.round((opts.hits - quota.done) / Math.max(rate, 0.01));
-      console.log(`  Progress: ${quota.done}/${opts.hits} hits (${rate.toFixed(1)}/s, ~${eta}s left)`);
+      const rate = hitsDone / elapsed;
+      const eta = Math.round((opts.hits - hitsDone) / Math.max(rate, 0.01));
+      console.log(`  Progress: ${hitsDone}/${opts.hits} hits (${rate.toFixed(1)}/s, ~${eta}s left)`);
     }
   };
 
-  const onError = (profileId, path, err) => {
+  const onError = (profileId, path, visitorId, err) => {
     errors += 1;
     if (errors <= 10) {
-      console.warn(`  WARN ${profileId} ${path}: ${err.message}`);
+      console.warn(`  WARN ${visitorId} ${profileId} ${path}: ${err.message}`);
     }
   };
 
   console.log('\nStarting browsers…');
   const browser = await chromium.launch({ headless: true });
 
-  const workers = Array.from({ length: opts.concurrency }, (_, i) => runVisitor(
+  await runScheduledTraffic(
     browser,
     origin,
-    mix,
-    createRng((seed + 1009 * (i + 1)) >>> 0),
-    quota,
+    scheduled,
+    poolDir,
+    opts.persistVisitors,
+    opts.concurrency,
     onHit,
     onError,
-  ));
+  );
 
-  await Promise.all(workers);
   await browser.close();
+
+  if (poolDir) {
+    scheduled.forEach(({ visitorId }) => {
+      poolManifest.visitors[visitorId] = (poolManifest.visitors[visitorId] || 0) + 1;
+    });
+    savePoolManifest(poolDir, poolManifest);
+  }
 
   const summary = {
     ...runMeta,
     finishedAt: new Date().toISOString(),
-    hitsCompleted: quota.done,
+    hitsCompleted: hitsDone,
     errors,
     durationSec: Math.round((Date.now() - started) / 1000),
   };
@@ -308,7 +408,7 @@ async function main() {
   writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
 
   console.log('\nDone.');
-  console.log(`  Hits:     ${quota.done}/${opts.hits}`);
+  console.log(`  Hits:     ${hitsDone}/${opts.hits}`);
   console.log(`  Errors:   ${errors}`);
   console.log(`  Duration: ${summary.durationSec}s`);
   console.log(`  Summary:  ${summaryPath}`);

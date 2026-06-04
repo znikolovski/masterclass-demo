@@ -8,8 +8,10 @@
     "lint:css": "stylelint \"blocks/**/*.css\" \"styles/*.css\"",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
-    "simulate:traffic": "node tools/scripts/simulate-live-audience-traffic.mjs",
-    "simulate:traffic:dry": "node tools/scripts/simulate-live-audience-traffic.mjs --dry-run"
+    "simulate:traffic": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index",
+    "simulate:traffic:dry": "node tools/scripts/simulate-live-audience-traffic.mjs --dry-run --from-index",
+    "simulate:traffic:daily": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index --hits=10000 --concurrency=6",
+    "simulate:traffic:backfill": "node tools/scripts/batch-traffic-backfill.mjs"
   },
   "repository": {
     "type": "git",
