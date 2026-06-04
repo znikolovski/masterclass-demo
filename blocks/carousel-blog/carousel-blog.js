@@ -259,10 +259,12 @@ export default async function decorate(block) {
   const {
     heading, limit, viewAllPath, rows,
   } = parseConfig(block);
-  let posts = await fetchBlogPosts(limit);
-  if (posts.length === 0) {
-    posts = parseFallbackSlides(rows);
-  }
+
+  // Author-authored slide rows win over the blog index feed.
+  const authoredSlides = parseFallbackSlides(rows);
+  const posts = authoredSlides.length > 0
+    ? authoredSlides.slice(0, limit)
+    : await fetchBlogPosts(limit);
 
   block.textContent = '';
   if (posts.length === 0) {

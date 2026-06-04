@@ -10,7 +10,7 @@
     "imagePattern": "card"
   },
   "contentPattern": {
-    "structure": "dynamic blog feed from query index",
+    "structure": "manual slide rows when authored; otherwise latest posts from blog-index",
     "buttonCount": 1,
     "imageCount": 1
   },
