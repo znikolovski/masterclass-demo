@@ -13,21 +13,28 @@ import {
   toClassName,
   toCamelCase,
 } from './aem.js';
-/* eslint-disable import/no-relative-packages -- aem-martech git subtree at plugins/martech */
-import {
-  initMartech,
-  martechEager,
-  martechLazy,
-  martechDelayed,
-  updateUserConsent,
-} from '../plugins/martech/src/index.js';
-/* eslint-enable import/no-relative-packages */
 import { pushAnalyticsPageContext } from './analytics-page.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
   getLaunchUrls,
 } from './martech-config.js';
+
+/** Loaded after LCP — see https://www.aem.live/developer/keeping-it-100 */
+const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap';
+
+/** @type {Promise<typeof import('../plugins/martech/src/index.js')>|null} */
+let martechModulePromise = null;
+
+/** @returns {Promise<typeof import('../plugins/martech/src/index.js')>} */
+function getMartechModule() {
+  if (!martechModulePromise) {
+    /* eslint-disable import/no-relative-packages -- aem-martech git subtree */
+    martechModulePromise = import('../plugins/martech/src/index.js');
+    /* eslint-enable import/no-relative-packages */
+  }
+  return martechModulePromise;
+}
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -55,6 +62,7 @@ function buildHeroBlock(main) {
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
+  loadCSS(GOOGLE_FONTS_STYLESHEET);
   await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
   try {
     if (!window.location.hostname.includes('localhost')) sessionStorage.setItem('fonts-loaded', 'true');
@@ -319,10 +327,10 @@ let martechLoadedPromise = null;
  * @param {Document} doc Document
  * @returns {Promise<void>|null}
  */
-function loadMartech(doc = document) {
+async function loadMartech(doc = document) {
   if (!isMartechConfigured()) return null;
   if (!martechLoadedPromise) {
-    martechLoadedPromise = initMartech(
+    martechLoadedPromise = getMartechModule().then((martech) => martech.initMartech(
       WEB_SDK_CONFIG,
       {
         personalization: isPersonalizationEnabled(doc),
@@ -332,13 +340,13 @@ function loadMartech(doc = document) {
       },
     ).then(() => {
       if (!isConsentGiven()) return undefined;
-      return updateUserConsent({
+      return martech.updateUserConsent({
         collect: true,
         personalize: isPersonalizationEnabled(doc),
         marketing: true,
         share: true,
       });
-    });
+    }));
   }
   return martechLoadedPromise;
 }
@@ -351,7 +359,8 @@ async function loadEager(doc) {
   document.documentElement.lang = 'en';
   applyTemplateAndTheme(doc);
 
-  const martechPromise = loadMartech(doc);
+  const needsEagerMartech = isMartechConfigured() && isPersonalizationEnabled(doc);
+  const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
@@ -367,7 +376,7 @@ async function loadEager(doc) {
 
     if (martechPromise) {
       await Promise.all([
-        martechPromise.then(() => martechEager()),
+        martechPromise.then(() => getMartechModule().then((m) => m.martechEager())),
         loadFirstSection,
       ]);
     } else {
@@ -390,6 +399,10 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
+  if (!martechLoadedPromise && isMartechConfigured()) {
+    loadMartech(doc);
+  }
+
   loadHeader(doc.querySelector('header'));
 
   const main = doc.querySelector('main');
@@ -406,7 +419,7 @@ async function loadLazy(doc) {
     if (isAnalyticsEnabled(doc)) {
       pushAnalyticsPageContext(doc, getPageMetadataValue);
     }
-    await martechLazy();
+    await getMartechModule().then((m) => m.martechLazy());
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
@@ -455,7 +468,7 @@ async function loadLazy(doc) {
 function loadDelayed() {
   window.setTimeout(() => {
     if (martechLoadedPromise) {
-      martechLoadedPromise.then(() => martechDelayed());
+      martechLoadedPromise.then(() => getMartechModule().then((m) => m.martechDelayed()));
     }
     // eslint-disable-next-line import/no-cycle
     import('./delayed.js');

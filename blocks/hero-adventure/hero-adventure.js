@@ -1,3 +1,38 @@
+import { createOptimizedPicture } from '../../scripts/aem.js';
+
+/**
+ * Optimizes the hero background image for LCP (eager load, smaller mobile payload).
+ * @param {Element} block
+ */
+function optimizeHeroBackground(block) {
+  const picture = block.querySelector(':scope > div:first-child picture');
+  const img = picture?.querySelector('img');
+  if (!img?.src) return;
+
+  const optimized = createOptimizedPicture(img.src, img.alt || '', true, [
+    { media: '(min-width: 900px)', width: '1600' },
+    { width: '600' },
+  ]);
+  const optImg = optimized.querySelector('img');
+  if (optImg) {
+    try {
+      const url = new URL(optImg.src, window.location.href);
+      url.searchParams.set('optimize', 'low');
+      optImg.src = url.toString();
+      optimized.querySelectorAll('source').forEach((source) => {
+        const srcset = source.getAttribute('srcset');
+        if (srcset) {
+          source.setAttribute('srcset', srcset.replace(/optimize=medium/g, 'optimize=low'));
+        }
+      });
+    } catch {
+      // keep default optimized URLs
+    }
+    optImg.setAttribute('fetchpriority', 'high');
+  }
+  picture.replaceWith(optimized);
+}
+
 /**
  * Pulls h1 and author fields from the section wrapper into the hero content row.
  * @param {Element} block
@@ -62,6 +97,8 @@ function removeInlineMetadataCells(contentRow) {
 export default function decorate(block) {
   if (!block.querySelector(':scope > div:first-child picture')) {
     block.classList.add('no-image');
+  } else {
+    optimizeHeroBackground(block);
   }
 
   adoptOrphanHeroFields(block);
