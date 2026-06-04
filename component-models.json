@@ -50,6 +50,38 @@
           { "name": "On", "value": "on" },
           { "name": "Off", "value": "off" }
         ]
+      },
+      {
+        "component": "select",
+        "name": "adventureCategory",
+        "label": "Adventure category",
+        "valueType": "string",
+        "description": "Primary activity interest for audience segments (eVar4). Leave empty to infer from URL.",
+        "options": [
+          { "name": "Auto (from URL)", "value": "" },
+          { "name": "Climbing", "value": "climbing" },
+          { "name": "Trekking & hiking", "value": "trekking" },
+          { "name": "Winter & alpine", "value": "winter-alpine" },
+          { "name": "Cycling", "value": "cycling" },
+          { "name": "Water", "value": "water" },
+          { "name": "Desert", "value": "desert" },
+          { "name": "Photography & story", "value": "photography" },
+          { "name": "General outdoor", "value": "general-outdoor" }
+        ]
+      },
+      {
+        "component": "select",
+        "name": "journeyStage",
+        "label": "Journey stage",
+        "valueType": "string",
+        "description": "Visitor intent for audience segments (prop3). Leave empty to infer from URL.",
+        "options": [
+          { "name": "Auto (from URL)", "value": "" },
+          { "name": "Inspiration", "value": "inspiration" },
+          { "name": "Discovery", "value": "discovery" },
+          { "name": "Planning", "value": "planning" },
+          { "name": "Community", "value": "community" }
+        ]
       }
     ]
   },

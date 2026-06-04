@@ -22,6 +22,7 @@ import {
   updateUserConsent,
 } from '../plugins/martech/src/index.js';
 /* eslint-enable import/no-relative-packages */
+import { pushAnalyticsPageContext } from './analytics-page.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
@@ -298,6 +299,7 @@ function isAnalyticsEnabled(doc = document) {
 function isConsentGiven() {
   const { hostname } = window.location;
   return hostname === 'localhost'
+    || hostname === 'localhost.local'
     || hostname.endsWith('.page')
     || hostname.endsWith('.live');
 }
@@ -400,7 +402,11 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   if (martechLoadedPromise) {
-    await martechLoadedPromise.then(() => martechLazy());
+    await martechLoadedPromise;
+    if (isAnalyticsEnabled(doc)) {
+      pushAnalyticsPageContext(doc, getPageMetadataValue);
+    }
+    await martechLazy();
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);

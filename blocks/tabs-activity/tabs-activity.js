@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 import { toClassName } from '../../scripts/aem.js';
+import { pushInteractionEvent } from '../../scripts/analytics-acdl.js';
 
 export default async function decorate(block) {
   // build tablist
@@ -40,6 +41,11 @@ export default async function decorate(block) {
       });
       tabpanel.setAttribute('aria-hidden', false);
       button.setAttribute('aria-selected', true);
+      pushInteractionEvent('tabSelect', {
+        block: 'tabs-activity',
+        label: button.textContent.trim(),
+        detail: button.id,
+      });
     });
     tablist.append(button);
     tab.remove();

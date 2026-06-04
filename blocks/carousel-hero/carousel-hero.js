@@ -1,7 +1,10 @@
+import { pushCarouselChange } from '../../scripts/analytics-acdl.js';
+
 function updateActiveSlide(slide) {
   const block = slide.closest('.carousel-hero');
   const slideIndex = parseInt(slide.dataset.slideIndex, 10);
   block.dataset.activeSlide = slideIndex;
+  pushCarouselChange(block, slideIndex, 'carousel-hero');
 
   const slides = block.querySelectorAll('.carousel-hero-slide');
 

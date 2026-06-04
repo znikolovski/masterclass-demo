@@ -1,3 +1,5 @@
+import { pushInteractionEvent } from '../../scripts/analytics-acdl.js';
+
 const YOUTUBE_ID_PATTERN = /^[\w-]{11}$/;
 
 const YOUTUBE_HOSTS = new Set([
@@ -103,11 +105,35 @@ function buildEmbedSrc(id, autoplay) {
   return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
 }
 
+let playerCounter = 0;
+
+/**
+ * @returns {Promise<typeof window.YT>}
+ */
+function loadYouTubeApi() {
+  return new Promise((resolve) => {
+    if (window.YT?.Player) {
+      resolve(window.YT);
+      return;
+    }
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.append(tag);
+    }
+    const previous = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (previous) previous();
+      resolve(window.YT);
+    };
+  });
+}
+
 /**
  * Decorate the youtube-video block.
  * @param {Element} block
  */
-export default function decorate(block) {
+export default async function decorate(block) {
   const { videoUrl, title, autoplay } = parseConfig(block);
   const videoId = parseYouTubeId(videoUrl);
 
@@ -124,16 +150,60 @@ export default function decorate(block) {
   const wrapper = document.createElement('div');
   wrapper.className = 'youtube-video-embed';
 
-  const iframe = document.createElement('iframe');
-  iframe.src = buildEmbedSrc(videoId, autoplay);
-  iframe.title = title || 'YouTube video player';
-  iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-  iframe.setAttribute('allowfullscreen', '');
-  iframe.setAttribute('loading', 'lazy');
-  iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-
-  wrapper.append(iframe);
+  playerCounter += 1;
+  const playerId = `youtube-video-player-${playerCounter}`;
+  const mount = document.createElement('div');
+  mount.id = playerId;
+  mount.className = 'youtube-video-player';
+  wrapper.append(mount);
   block.append(wrapper);
+
+  const videoTitle = title || 'YouTube video player';
+  let started = false;
+
+  try {
+    const YT = await loadYouTubeApi();
+    // eslint-disable-next-line no-new -- YouTube IFrame API constructor side effect
+    new YT.Player(playerId, {
+      host: 'https://www.youtube-nocookie.com',
+      videoId,
+      playerVars: {
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        ...(autoplay ? { autoplay: 1, mute: 1 } : {}),
+      },
+      events: {
+        onStateChange: (event) => {
+          if (event.data === YT.PlayerState.PLAYING && !started) {
+            started = true;
+            pushInteractionEvent('videoStart', {
+              block: 'youtube-video',
+              label: videoTitle,
+              detail: videoId,
+            });
+          }
+          if (event.data === YT.PlayerState.ENDED) {
+            pushInteractionEvent('videoComplete', {
+              block: 'youtube-video',
+              label: videoTitle,
+              detail: videoId,
+            });
+            started = false;
+          }
+        },
+      },
+    });
+  } catch {
+    const iframe = document.createElement('iframe');
+    iframe.src = buildEmbedSrc(videoId, autoplay);
+    iframe.title = videoTitle;
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('loading', 'lazy');
+    iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    mount.replaceWith(iframe);
+  }
 
   if (title) {
     const caption = document.createElement('p');

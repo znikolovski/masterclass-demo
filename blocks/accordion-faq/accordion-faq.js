@@ -4,6 +4,8 @@
  * https://www.hlx.live/developer/block-collection/accordion
  */
 
+import { pushInteractionEvent } from '../../scripts/analytics-acdl.js';
+
 export default function decorate(block) {
   [...block.children].forEach((row) => {
     // decorate accordion item label
@@ -19,6 +21,14 @@ export default function decorate(block) {
 
     details.className = 'accordion-faq-item';
     details.append(summary, body);
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      pushInteractionEvent('faqExpand', {
+        block: 'accordion-faq',
+        label: summary.textContent.trim(),
+        detail: '',
+      });
+    });
     row.replaceWith(details);
   });
 }

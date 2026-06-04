@@ -1,4 +1,5 @@
 import { createOptimizedPicture } from '../../scripts/aem.js';
+import { pushCarouselChange } from '../../scripts/analytics-acdl.js';
 
 function updateActiveSlide(block, slideIndex) {
   const slides = block.querySelectorAll('.carousel-blog-slide');
@@ -20,6 +21,8 @@ function updateActiveSlide(block, slideIndex) {
     if (idx !== index) btn.removeAttribute('disabled');
     else btn.setAttribute('disabled', 'true');
   });
+
+  pushCarouselChange(block, index, 'carousel-blog');
 }
 
 function showSlide(block, slideIndex = 0) {

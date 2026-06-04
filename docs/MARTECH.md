@@ -33,3 +33,5 @@ Web SDK defaults to `pending` consent. Wire a CMP and call `updateUserConsent()`
   - Experiment page (`target: on`): test the same URL on a page where metadata enables Target
 
 Martech does not initialize until `scripts/martech-config.js` placeholders are replaced, so baseline PSI should match pre-martech behavior.
+
+For Launch setup, variable mapping, and corrected domain configuration, see [ANALYTICS-LAUNCH-PLAN.md](./ANALYTICS-LAUNCH-PLAN.md).
