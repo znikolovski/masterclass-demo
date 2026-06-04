@@ -13,6 +13,7 @@
       "accordion-faq",
       "cards",
       "cards-steps",
+      "carousel",
       "carousel-blog",
       "carousel-hero",
       "columns",
@@ -44,6 +45,12 @@
     "id": "cards-steps",
     "components": [
       "cards-steps-item"
+    ]
+  },
+  {
+    "id": "carousel",
+    "components": [
+      "carousel-blog-post"
     ]
   },
   {

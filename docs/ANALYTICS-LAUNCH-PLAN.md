@@ -797,15 +797,27 @@ Add `adventureCategory` and `journeyStage` to page metadata in Universal Editor 
 
 ---
 
+### Workspace segment picker troubleshooting
+
+If approved segments do not appear when you search in an Analysis Workspace project:
+
+1. **Report suite** — Project must use **`ags050wknd`** (not another demo RSID).
+2. **Component type** — Add a **Segment** filter (not a dimension).
+3. **Page URL in segment definitions** — The **`Page URL`** dimension (`variables/pageurl`) is **not segmentable in Analysis Workspace** (Data Warehouse only). Segments that reference it are marked **`data_warehouse`** only and are hidden from the Workspace picker even when approved. Use **`Environment` (prop1)** for live/preview/local filters and **`Page`** (`variables/page`) for path-based fallbacks.
+
+All **EDS** / **WKND** segments on `ags050wknd` were updated (2026-06-02) to Workspace-compatible definitions (`oberon` in `supported_products`).
+
+---
+
 ### Tier 1 — Operational filters (not audience)
 
 Keep these for data hygiene only — apply as Workspace include/exclude, not as “audiences.”
 
 | Segment name | Container | Definition |
 |--------------|-----------|------------|
-| **EDS - Live Traffic** | Hit | `prop1` **equals** `live` **OR** `Page URL` **contains** `.aem.live` |
-| **EDS - Preview Traffic** | Hit | `prop1` **equals** `preview` **OR** `Page URL` **contains** `.aem.page` |
-| **EDS - Non-Production (exclude)** | Hit | Preview **OR** Local (`prop1` = `local` / URL contains `localhost`) |
+| **EDS - Live Traffic** | Hit | `prop1` **equals** `live` |
+| **EDS - Preview Traffic** | Hit | `prop1` **equals** `preview` |
+| **EDS - Non-Production (exclude)** | Hit | `prop1` **equals** `preview` **OR** `local` |
 
 ---
 
@@ -813,7 +825,7 @@ Keep these for data hygiene only — apply as Workspace include/exclude, not as 
 
 **Container: Visit** — “Visited at least one page about this adventure type during the session.”
 
-Prefer **`eVar4` equals** when metadata is live. **Fallback** uses `Page URL` / `Page` **contains** (from current WKND blog paths).
+Prefer **`eVar4` equals** when metadata is live. **Fallback** uses **`Page`** **contains** (not Page URL — not Workspace-segmentable).
 
 | Segment name | Primary (`eVar4`) | URL / title fallback (OR within row) |
 |--------------|-------------------|--------------------------------------|
@@ -830,9 +842,9 @@ Prefer **`eVar4` equals** when metadata is live. **Fallback** uses `Page URL` / 
 
 ```
 eVar4 equals climbing
-OR Page URL contains climbing
-OR Page URL contains yosemite
-OR Page URL contains ice-climbing
+OR Page contains climbing
+OR Page contains yosemite
+OR Page contains ice-climbing
 ```
 
 **Composite:**
@@ -983,7 +995,9 @@ Create on **`ags050wknd`**:
 
 **Project name:** `WKND — Adventure Audiences`
 
-**Default filters:** Include **EDS - Live Traffic** · Exclude **EDS - Non-Production**
+**Default filters:** Include **EDS - Live Traffic** on each panel (exclude **EDS - Non-Production** only if you add a Quick segment with **Exclude** — see [build guide](#phase-5--workspace-build-guide-step-by-step)).
+
+**Step-by-step panel instructions:** [Phase 5 — Workspace build guide](#phase-5--workspace-build-guide-step-by-step)
 
 | Panel | What to show | Segments / dimensions |
 |-------|--------------|----------------------|
@@ -1006,6 +1020,314 @@ Create on **`ags050wknd`**:
 - **Inspired-to-plan rate** = visits **Inspired → Planning** / visits **Inspiration Readers**
 
 Reference: [Analysis Workspace overview](https://experienceleague.adobe.com/en/docs/analytics/analyze/analysis-workspace/home)
+
+### Phase 5 — Workspace build guide (step-by-step)
+
+Use these instructions for each panel. Adobe Workspace visualizations are named **Key metric summary**, **Summary number**, **Summary change** (there is no standalone **Summary** viz). **Key metric summary** combines the line trend, percent change, and total number in one tile.
+
+#### Shared project setup (once)
+
+1. **Analytics → Analysis Workspace → Create new project → Blank project**.
+2. **Project settings** (gear, top right):
+   - **Name:** `WKND — Adventure Audiences`
+   - **Report suite:** `ags050wknd`
+3. **Date range** (top right): e.g. **Last 30 days** (extend after more live data accumulates).
+4. For **every panel except Environment QA** (below):
+   - Rename the panel (click panel title).
+   - Drag **`EDS - Live Traffic`** from **Components → Segments** into the **panel segment drop zone** (top of panel). Dragging a saved segment always **includes** that audience; there is no exclude toggle on the chip. Including live-only is enough for production reporting (preview/local are already excluded).
+5. **Optional exclude:** add a **Quick segment** on the panel (**+** or filter icon → Quick segment builder → set **Exclude** → **Environment** equals `preview` OR `local`). See [Workspace segment picker troubleshooting](#workspace-segment-picker-troubleshooting).
+
+**Tier 2 segments (copy-paste in segment search):**
+
+`WKND - Climbing Seekers` · `WKND - Trekking & Hiking` · `WKND - Winter & Alpine` · `WKND - Cycling Adventurers` · `WKND - Water Adventurers` · `WKND - Desert Explorers` · `WKND - Photography & Story` · `WKND - Broad Outdoor Browse`
+
+---
+
+#### Panel 1 — Audience overview
+
+**Goal:** Live-traffic headline KPIs + Tier 2 interest mix side-by-side.
+
+1. Add panel → title **Audience overview** → apply **`EDS - Live Traffic`** filter.
+2. **Key metric summary** (×2):
+   - **Insert → Key metric summary** (or drag from **Visualizations**).
+   - Configure: **Metric** = **Visits** · **Primary date range** = project range · **Comparison date range** = **Previous period** (optional).
+   - **Settings** (gear on viz): **Emphasize number value** for a large center total.
+   - Duplicate or add a second tile: **Metric** = **Unique Visitors** (or **Visitors**).
+3. **Freeform table** — segment comparison:
+   - **Insert → Freeform table**.
+   - **Columns:** drag each **Tier 2** segment listed above (one column per segment).
+   - **Rows:** **Visits**, **Unique Visitors**, **Page Views** (optional).
+   - Optional: right-click metric row → **Column settings** → show **% of column** for share-of-audience (segments can overlap within a visit; totals may exceed 100%).
+4. **Bar** or **Donut** — mix chart:
+   - Select the **Visits** row across segment columns → right-click → **Create visualization from selection** → **Bar** or **Donut**; **or**
+   - New **Bar**: **Dimension** = **Adventure category** (`eVar4`) · **Metric** = **Visits** (uses hit-level metadata when populated).
+5. **Text** (optional): note “Production only · Tier 2 segments may overlap per visit.”
+
+---
+
+#### Panel 2 — Interest × journey
+
+**Goal:** Cross-tab adventure interest against journey stage.
+
+1. New panel → **Interest × journey** → **`EDS - Live Traffic`**.
+2. **Freeform table**:
+   - **Rows:** **Adventure category** (`eVar4`).
+   - **Columns:** **Journey stage** (`prop3`).
+   - **Metrics:** **Visits** (primary), **Unique Visitors** (optional second metric via **Metrics** drag or metric picker).
+3. **Heat map** (optional): select table → right-click → **Create visualization from selection** → **Heat map** for density view.
+4. **Interpretation:** strong cells = e.g. `climbing` × `planning`; empty cells = missing metadata or no traffic yet.
+
+---
+
+#### Panel 3 — Archetype comparison
+
+**Goal:** Compare Tier 4 personas on the same metrics.
+
+1. New panel → **Archetype comparison** → **`EDS - Live Traffic`**.
+2. **Freeform table** (segment comparison):
+   - **Columns** (segments):
+     - `WKND - Aspiring Climber`
+     - `WKND - Climber Ready to Book`
+     - `WKND - Weekend Browser`
+     - Optional: `WKND - Trekker Planner`, `WKND - Returning Adventure Reader`
+   - **Rows:** **Visits**, **Unique Visitors**, **Page Views**, **Bounce Rate**, **Average Time on Site**.
+3. **Bar** (horizontal): select **Visits** row → **Create visualization from selection** → **Bar**.
+4. **Key metric summary** (optional): one tile per archetype is heavy; prefer the table + one bar for exec readouts.
+
+---
+
+#### Panel 4 — Journey progression (the funnel panel)
+
+**Goal:** See movement from inspiration → discovery → planning within visits.
+
+> **Panel numbering:** This is **Panel 4** in the build guide. **Panel 5** is *Content by interest* (top pages table, not a funnel). If you are building a funnel, stay on this panel.
+
+**Important:** Do **not** drag **`WKND - Inspiration Readers`** (and other Tier 3 segments) directly into Fallout touchpoints. Those segments use a **Visit** container. A **Visit**-context Fallout requires **Hit**-level touchpoints — incompatible segments show a warning and **100% fallout**. Use **Journey stage** (`prop3`) values or **Page** paths as touchpoints instead (see Option A), or use Option B/C.
+
+---
+
+**Option A — Fallout visualization (recommended path)**
+
+1. **Create the panel**
+   - **Insert → Panel** (or duplicate an existing panel).
+   - Rename: **Journey progression**.
+   - Drag **`EDS - Live Traffic`** into the **panel segment drop zone** (top of panel).
+
+2. **Add Fallout**
+   - **Insert → Fallout** (left rail **Visualizations → Fallout**, or **+** on panel).
+   - You should see an empty funnel with **Add touchpoint** and a baseline (often **All Visits**).
+
+3. **Set Fallout container to Visits** (same-session journey)
+   - Click the **gear** on the Fallout visualization.
+   - Find **Fallout container** (or **Container**) → choose **Visits** (not Visitors).
+   - **Why:** Inspiration → discovery → planning usually happens in **one visit**. **Visitors** spreads steps across multiple visits and understates in-session progression.
+
+4. **Choose touchpoint type** — pick **one** approach below.
+
+   **A1 — Journey stage (`prop3`)** — best when metadata is on pages
+
+   | Step | What to add |
+   |------|-------------|
+   | 1 | Left rail → **Dimensions** → **Journey stage** → click **›** (expand) → drag value **`inspiration`** onto **Add touchpoint** |
+   | 2 | Drag **`discovery`** as second touchpoint |
+   | 3 | Drag **`planning`** as third touchpoint |
+
+   If values do not appear under **Journey stage**, metadata is not populated yet — use A2.
+
+   **A2 — Page paths** — works with URL/page names today
+
+   For each step, add **one touchpoint** with **multiple pages OR’d together** (drag the next page onto the **same** touchpoint until you see **Combine** / multiple chips):
+
+   | Step | Drag onto the **same** touchpoint (OR) |
+   |------|----------------------------------------|
+   | 1 Inspiration | **Page** items whose names contain `blog` or `field-notes`, or homepage (use **Page** dimension **›** to pick specific pages) |
+   | 2 Discovery | **Page** contains `/adventures` or `/destinations` (search in Page dimension items) |
+   | 3 Planning | **Page** contains `/expeditions`, `/gear`, `/faq`, or `/basecamp` |
+
+   How to pick a single page: **Dimensions → Page → ›** next to Page → select one page (e.g. `WKND | Blog`) → drag to touchpoint.
+
+5. **Touchpoint timing (under each step)**
+   - Default: **Eventual path** — visitor hits step 3 **at some point after** step 1 in the visit (order flexible). Use this for WKND browsing.
+   - **Next hit** — step must be the **very next** page view. Stricter; use only for tight click paths (e.g. checkout).
+
+6. **Read the chart**
+   - **Green %** on a bar = fall-through from **previous** step to this step.
+   - **Gray %** between bars = fallout (left before completing the path).
+   - First bar = starting population (after panel filter **Live Traffic**).
+
+7. **Optional: compare segments at top of Fallout**
+   - Drag **`EDS - Live Traffic`** (or Tier 2 segments) into the **segment drop zone on the Fallout viz** (top of funnel) to compare paths side-by-side — not into touchpoint slots.
+   - Reference: [Compare segments in Fallout](https://experienceleague.adobe.com/en/docs/analytics/analyze/analysis-workspace/visualizations/fallout/compare-segments-fallout)
+
+8. **QA**
+   - If every step shows **100% fallout**, touchpoints are wrong or too narrow — switch A1 ↔ A2 or widen Page OR rules.
+   - **Right-click** a step → **Fallthrough** to see what visitors viewed between two steps.
+
+---
+
+**Option B — Segment comparison table (no Fallout UI — easiest)**
+
+Use when Fallout is empty or too fiddly; shows **how many visits** match each stage, not strict step order.
+
+1. Panel **Journey progression** + **`EDS - Live Traffic`**.
+2. **Freeform table**:
+   - **Columns:** `WKND - Inspiration Readers` · `WKND - Discovery Browsers` · `WKND - Planners & Prep` · `WKND - Inspired → Planning` · `WKND - Discovery → Planning`
+   - **Rows:** **Visits**, **Unique Visitors**
+3. **Interpretation:** **Inspired → Planning** count ≤ **Inspiration Readers**; ratio ≈ “inspired then planned” rate.
+
+---
+
+**Option C — Sequential segment in Segment Builder (true ordered funnel)**
+
+1. **Components → Segments → Create**.
+2. Enable **Sequential segmentation** (clock icon / sequential mode).
+3. **Visit** container, **Then**:
+   - Touch 1: **Journey stage** equals `inspiration` (or Page contains `/blog`)
+   - **Then** Touch 2: **Journey stage** equals `discovery` (or Page contains `/adventures`)
+   - **Then** Touch 3: **Journey stage** equals `planning`
+4. Save as **`WKND - Funnel Inspiration → Discovery → Planning`**.
+5. In Workspace: **Key metric summary** or **Summary number** with that segment vs **Visits** (live) for conversion rate.
+
+---
+
+#### Panel 5 — Content by interest
+
+**Goal:** Top pages per adventure interest — **not a funnel**.
+
+**Option A — Segment drop-down (one panel, switch interest)**
+
+1. New panel → **Content by interest** → **`EDS - Live Traffic`**.
+2. In panel drop zone, hold **Shift** and drag multiple **Tier 2** segments → creates a **segment drop-down** ([drop-down filters](https://experienceleague.adobe.com/en/docs/analytics-learn/tutorials/analysis-workspace/using-panels/using-drop-down-filters)).
+3. **Freeform table:** **Rows** = **Page** · **Metrics** = **Page Views**, **Visits**, **Entries**.
+4. Users pick **Climbing Seekers**, **Trekking & Hiking**, etc. from the drop-down to refresh the table.
+
+**Option B — Static table per interest (duplicate viz)**
+
+1. Add **Freeform table** filtered by dragging **`WKND - Climbing Seekers`** into the table **segment drop zone** (table header), not only the panel zone.
+2. **Rows** = **Page** · sort by **Page Views** descending · limit 10–15 rows.
+3. Duplicate table per Tier 2 segment (8 tables) — clearer for screenshots, more maintenance.
+
+---
+
+#### Panel 6 — Destinations & expeditions
+
+**Goal:** Behavior for destination/expedition researchers.
+
+1. New panel → **Destinations & expeditions** → **`EDS - Live Traffic`**.
+2. Panel filter: add **`WKND - Destination Researchers`** **in addition to** live traffic, **or** use only the segment on the panel (segment already implies visit-level interest; live filter still recommended via **AND** — panel live + table segment, or rely on segment-only if all hits are live).
+   - Simplest: panel **`EDS - Live Traffic`** only; drag **`WKND - Destination Researchers`** onto the **visualization** segment zone.
+3. **Key metric summary:** **Page Views**, **Visits** (two tiles).
+4. **Freeform table:** **Rows** = **Page** (filter: contains `/destinations` or `/expeditions` via table filter icon if needed) · **Metrics** = **Page Views**, **Time Spent on Page** (or **Average Time on Site**).
+5. **Bar:** top 10 pages by **Page Views**.
+
+---
+
+#### Panel 7 — Gear & planning
+
+**Goal:** Planning audience focused on gear.
+
+1. New panel → **Gear & planning** → **`EDS - Live Traffic`**.
+2. Apply segment **`WKND - Gear-Focused Planners`** on panel or viz.
+3. **Key metric summary:** **Entries**, **Bounce Rate** (two tiles; comparison period optional).
+4. **Freeform table:** **Rows** = **Page** · **Metrics** = **Entries**, **Bounce Rate**, **Page Views** · sort by **Entries** desc.
+5. Optional: **Summary change** — select this period vs previous period cells from a small date-comparison table → **Create visualization from selection** → **Summary change**.
+
+---
+
+#### Panel 8 — Blog & field notes
+
+**Goal:** Editorial / inspiration content performance.
+
+1. New panel → **Blog & field notes** → **`EDS - Live Traffic`**.
+2. Segment: **`WKND - Inspiration Readers`** on panel or viz.
+3. **Freeform table:**
+   - **Rows** = **Page** (or **Site section** / **Content type** `eVar3`).
+   - **Columns** = **Adventure category** (`eVar4`) as breakdown (drag to column header).
+   - **Metrics** = **Page Views**, **Visits**.
+4. **Line** or **Key metric summary:** trend **Page Views** over project date range for the segment.
+
+---
+
+#### Panel 9 — Channel × interest
+
+**Goal:** Which channels drive which adventure interests.
+
+1. New panel → **Channel × interest** → **`EDS - Live Traffic`**.
+2. **Bar (stacked)**:
+   - **Dimension** = **Marketing Channel** (or **Last Touch Channel** if Marketing Channel is empty).
+   - **Breakdown** = **Adventure category** (`eVar4`) — drag breakdown into breakdown drop zone on the bar chart.
+   - **Metric** = **Visits**.
+3. If Marketing Channel has little data, use **Referring Domain** or **Environment** (`prop1`) temporarily ([Phase 0 workaround](#phase-0--report-suite-admin)).
+4. **Freeform table** backup: **Rows** = **Marketing Channel** · **Columns** = **Adventure category** · **Metric** = **Visits**.
+
+**Tier 5 segment pairs (optional second table):** columns = `WKND - Search-Driven Adventurers`, `WKND - Social Inspiration Traffic`, etc., rows = **Visits**.
+
+---
+
+#### Panel 10 — New vs returning by interest
+
+**Goal:** Loyalty split within each interest segment.
+
+1. New panel → **New vs returning by interest** → **`EDS - Live Traffic`**.
+2. **Freeform table:**
+   - **Rows** = **New/Repeat** (or **Customer Loyalty** / **Visitor frequency** — use whichever your suite exposes).
+   - **Columns** = **Tier 2** segments (or **Adventure category** `eVar4` if cleaner).
+   - **Metric** = **Unique Visitors** (preferred) or **Visits**.
+3. **Stacked bar:** **Dimension** = **Adventure category** · **Breakdown** = **New/Repeat** · **Metric** = **Unique Visitors**.
+4. **Cohort table** (optional, advanced): **Insert → Cohort table** · retention by **Adventure category** — requires enough return traffic; use 30+ day range.
+
+**Pre-built segments:** `WKND - Returning Adventure Reader` and `WKND - Returning Planner` can be added as extra columns in a second comparison table (Visitor-container segments).
+
+---
+
+#### Panel 11 — Environment QA
+
+**Goal:** Validate preview/staging tagging — **not** for executive reporting.
+
+1. New panel → **Environment QA** — **do not** use **`EDS - Live Traffic`**.
+2. Panel filter: **`EDS - Preview Traffic`** (or Quick segment: **Environment** equals `preview`).
+3. **Freeform table:**
+   - **Rows** = **Environment** (`prop1`) · **Page** (secondary breakdown or separate table).
+   - **Metrics** = **Visits**, **Page Views**.
+4. **Summary number** tiles for quick totals: **Visits** where **Environment** = `preview` / `local`.
+5. Keep this panel at the **bottom** of the project or on a separate **QA** tab so stakeholders do not confuse it with live KPIs.
+
+---
+
+#### Panel 12 — Target (when live)
+
+**Goal:** Personalization performance by archetype (after Target activities deliver impressions).
+
+1. New panel → **Target (when live)** → **`EDS - Live Traffic`**.
+2. **Freeform table:**
+   - **Rows** = **Target Activities** (or **Target Activity > Experience** under **Analytics for Target**).
+   - **Columns** = Tier 4 segments (`WKND - Aspiring Climber`, etc.) **or** breakdown **Adventure category**.
+   - **Metrics** = **Visits**, **Activity conversions** (if configured), **Orders** (if applicable).
+3. **Bar:** **Target Activities** with **Breakdown** = **Control vs Targeted**.
+4. QA segment: **`WKND - Climbing + Preview`** on a **duplicate QA panel** with **`EDS - Preview Traffic`**, not on the exec panel.
+
+---
+
+#### Optional calculated metrics (Components → Calculated metrics)
+
+| Name | Formula (concept) |
+|------|-------------------|
+| **Planning rate** | **Visits** in segment `WKND - Planners & Prep` ÷ **Visits** (global or live segment) |
+| **Inspired-to-plan rate** | **Visits** in `WKND - Inspired → Planning` ÷ **Visits** in `WKND - Inspiration Readers` |
+
+Add these as **Metrics** in **Archetype** or **Journey progression** panels once base tables show non-zero visits.
+
+---
+
+#### Project checklist
+
+- [ ] Project RSID = `ags050wknd`
+- [ ] All 12 panels created and titled
+- [ ] Panels 1–10 and 12: **`EDS - Live Traffic`** on panel
+- [ ] Panel 11: **`EDS - Preview Traffic`** only
+- [ ] Tier 2 / Tier 4 segments searchable in picker ([troubleshooting](#workspace-segment-picker-troubleshooting))
+- [ ] Date range covers live traffic period
+- [ ] **Share** / **Save** project
 
 ---
 

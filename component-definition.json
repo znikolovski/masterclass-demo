@@ -165,6 +165,33 @@
           }
         },
         {
+          "title": "Carousel",
+          "id": "carousel",
+          "model": "carousel-blog",
+          "filter": "carousel-blog",
+          "plugins": {
+            "da": {
+              "name": "carousel",
+              "rows": 1,
+              "columns": 3,
+              "fields": [
+                {
+                  "name": "heading",
+                  "selector": "div:nth-child(1) > div:nth-child(1)"
+                },
+                {
+                  "name": "limit",
+                  "selector": "div:nth-child(1) > div:nth-child(2)"
+                },
+                {
+                  "name": "viewAllPath",
+                  "selector": "div:nth-child(1) > div:nth-child(3)"
+                }
+              ]
+            }
+          }
+        },
+        {
           "title": "Carousel Blog",
           "id": "carousel-blog",
           "model": "carousel-blog",
