@@ -21,3 +21,7 @@ migration-work/navigation-validation/
 .hlx/.da-token.json
 
 content
+
+tools/scripts/output/
+.playwright-cli/
+tools/scripts/test-analytics-acdl-results.json

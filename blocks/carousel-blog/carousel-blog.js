@@ -47,31 +47,63 @@ function isSafePath(path) {
   return typeof path === 'string' && /^\/[a-z0-9\-/]*$/i.test(path);
 }
 
+function isSlideRow(row) {
+  return Boolean(row.querySelector('picture, img'));
+}
+
+/**
+ * Config row: no slide image — heading (and optional limit / view-all path).
+ * Slide rows use h3 titles; only h2 on a non-slide row is treated as block heading.
+ * @param {Element} row
+ * @returns {{ heading: string, limit: number|null, viewAllPath: string|null }|null}
+ */
+function parseConfigRow(row) {
+  if (isSlideRow(row)) return null;
+
+  const cells = [...row.children].map((cell) => cell.textContent.trim());
+  const viewAllLink = row.querySelector('a');
+  const headingEl = row.querySelector('h2');
+
+  if (!headingEl && !cells[0]) return null;
+
+  const heading = headingEl?.textContent?.trim() || cells[0] || '';
+  let limit = null;
+  let viewAllPath = null;
+
+  if (!headingEl && cells[0]) {
+    const limitText = cells[1];
+    if (limitText && !Number.isNaN(Number(limitText))) {
+      limit = Math.min(Math.max(parseInt(limitText, 10), 1), 12);
+    }
+    const viewAllText = cells[2];
+    if (viewAllLink && isSafePath(viewAllLink.getAttribute('href'))) {
+      viewAllPath = viewAllLink.getAttribute('href');
+    } else if (viewAllText && isSafePath(viewAllText)) {
+      viewAllPath = viewAllText;
+    }
+  } else if (viewAllLink && isSafePath(viewAllLink.getAttribute('href'))) {
+    viewAllPath = viewAllLink.getAttribute('href');
+  }
+
+  return { heading, limit, viewAllPath };
+}
+
 function parseConfig(block) {
   const rows = [...block.children];
   let heading = 'Recent Field Notes';
   let limit = 6;
   let viewAllPath = '/field-notes';
+  let hasConfigRow = false;
+  let slideRows = rows;
 
   if (rows.length > 0) {
-    const cells = [...rows[0].children].map((cell) => cell.textContent.trim());
-    const viewAllLink = rows[0].querySelector('a');
-    const headingEl = rows[0].querySelector('h2, h3');
-    if (headingEl) {
-      heading = headingEl.textContent.trim();
-      rows[0].remove();
-    } else if (cells[0]) {
-      const [headingText, limitText, viewAllText] = cells;
-      heading = headingText;
-      if (limitText && !Number.isNaN(Number(limitText))) {
-        limit = Math.min(Math.max(parseInt(limitText, 10), 1), 12);
-      }
-      if (viewAllLink && isSafePath(viewAllLink.getAttribute('href'))) {
-        viewAllPath = viewAllLink.getAttribute('href');
-      } else if (viewAllText && isSafePath(viewAllText)) {
-        viewAllPath = viewAllText;
-      }
-      rows[0].remove();
+    const config = parseConfigRow(rows[0]);
+    if (config) {
+      hasConfigRow = true;
+      if (config.heading) heading = config.heading;
+      if (config.limit != null) limit = config.limit;
+      if (config.viewAllPath) viewAllPath = config.viewAllPath;
+      slideRows = rows.slice(1);
     }
   }
 
@@ -79,7 +111,8 @@ function parseConfig(block) {
     heading,
     limit,
     viewAllPath,
-    rows: [...block.children],
+    hasConfigRow,
+    rows: slideRows,
   };
 }
 
@@ -92,7 +125,9 @@ function parseFallbackSlides(rows) {
     const link = contentCol?.querySelector('a');
     const tagEl = contentCol?.querySelector('p:not(:has(a))');
     const tag = tagEl?.textContent?.trim() || 'Field Notes';
-    const title = contentCol?.querySelector('h3, h2')?.textContent?.trim()
+    const titleEl = contentCol?.querySelector('h3, h2');
+    const title = titleEl?.querySelector('a')?.textContent?.trim()
+      || titleEl?.textContent?.trim()
       || link?.textContent?.trim()
       || '';
     const description = [...contentCol?.querySelectorAll('p') || []]
@@ -257,7 +292,7 @@ let carouselId = 0;
 
 export default async function decorate(block) {
   const {
-    heading, limit, viewAllPath, rows,
+    heading, limit, viewAllPath, hasConfigRow, rows,
   } = parseConfig(block);
 
   // Author-authored slide rows win over the blog index feed.
@@ -284,12 +319,16 @@ export default async function decorate(block) {
 
   const headerText = document.createElement('div');
   headerText.classList.add('carousel-blog-header-text');
-  const eyebrow = document.createElement('p');
-  eyebrow.classList.add('carousel-blog-eyebrow');
-  eyebrow.textContent = 'Field Notes';
   const title = document.createElement('h2');
   title.textContent = heading;
-  headerText.append(eyebrow, title);
+  if (!hasConfigRow) {
+    const eyebrow = document.createElement('p');
+    eyebrow.classList.add('carousel-blog-eyebrow');
+    eyebrow.textContent = 'Field Notes';
+    headerText.append(eyebrow, title);
+  } else {
+    headerText.append(title);
+  }
   header.append(headerText);
 
   if (viewAllPath) {
