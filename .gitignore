@@ -23,5 +23,7 @@ migration-work/navigation-validation/
 content
 
 tools/scripts/output/
+tools/aem-assets/staging/
 .playwright-cli/
 tools/scripts/test-analytics-acdl-results.json
+.claude-plugin/

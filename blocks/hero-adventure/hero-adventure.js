@@ -1,4 +1,4 @@
-import { createOptimizedPicture } from '../../scripts/aem.js';
+import { createResponsivePicture } from '../../scripts/media.js';
 
 /**
  * Optimizes the hero background image for LCP (eager load, smaller mobile payload).
@@ -9,9 +9,9 @@ function optimizeHeroBackground(block) {
   const img = picture?.querySelector('img');
   if (!img?.src) return;
 
-  const optimized = createOptimizedPicture(img.src, img.alt || '', true, [
-    { media: '(min-width: 900px)', width: '1600' },
-    { width: '600' },
+  const optimized = createResponsivePicture(img.src, img.alt || '', true, [
+    { media: '(min-width: 900px)', width: 1600 },
+    { width: 600 },
   ]);
   const optImg = optimized.querySelector('img');
   if (optImg) {

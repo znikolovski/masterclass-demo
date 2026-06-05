@@ -1,0 +1,133 @@
+{
+  "$schema": "https://experience.adobe.com/schemas/aem-assets-metadata-form-spec",
+  "description": "WKND Adventures metadata form for AEM Assets View (Settings > Metadata Forms). Build this form in the new Assets UI — not Tools > Assets > Metadata Schemas (legacy Admin View).",
+  "authorUrl": "author-p115476-e1135027.adobeaemcloud.com",
+  "forms": [
+    {
+      "name": "WKND Adventures — Image",
+      "type": "File",
+      "mimeAutoApply": "image",
+      "notes": "Optional: name the form 'image' instead if you want MIME-based auto-apply for all image uploads. The display name above is easier for authors.",
+      "folderAssignments": [
+        "/content/dam/wknd-adventures"
+      ],
+      "tabs": [
+        {
+          "name": "WKND",
+          "fields": [
+            {
+              "label": "Title",
+              "component": "Single-line text",
+              "property": "dc:title",
+              "required": true,
+              "readOnly": false,
+              "description": "Display title and alt-text fallback for Edge Delivery pages."
+            },
+            {
+              "label": "Description",
+              "component": "Multi-line text",
+              "property": "dc:description",
+              "required": false,
+              "readOnly": false,
+              "description": "Caption or supporting copy when the asset is used in editorial content."
+            },
+            {
+              "label": "Adventure category",
+              "component": "Drop-down",
+              "property": "wknd:adventureCategory",
+              "required": false,
+              "readOnly": false,
+              "description": "Aligns with page metadata adventureCategory (Analytics eVar4 segments).",
+              "choices": [
+                { "label": "Climbing", "value": "climbing" },
+                { "label": "Trekking & hiking", "value": "trekking" },
+                { "label": "Winter & alpine", "value": "winter-alpine" },
+                { "label": "Cycling", "value": "cycling" },
+                { "label": "Water", "value": "water" },
+                { "label": "Desert", "value": "desert" },
+                { "label": "Photography & story", "value": "photography" },
+                { "label": "General outdoor", "value": "general-outdoor" }
+              ]
+            },
+            {
+              "label": "Content usage",
+              "component": "Multi-select dropdown",
+              "property": "wknd:contentUsage",
+              "required": false,
+              "readOnly": false,
+              "description": "Where authors typically place this asset (multi-select). API/scripts must send a string array, e.g. [\"blog\",\"card\"].",
+              "choices": [
+                { "label": "Hero", "value": "hero" },
+                { "label": "Card / teaser", "value": "card" },
+                { "label": "Gallery", "value": "gallery" },
+                { "label": "Blog inline", "value": "blog" },
+                { "label": "Magazine", "value": "magazine" },
+                { "label": "Contributor portrait", "value": "contributor" },
+                { "label": "Icon / UI", "value": "ui" }
+              ]
+            },
+            {
+              "label": "Alt text",
+              "component": "Single-line text",
+              "property": "wknd:altText",
+              "required": false,
+              "readOnly": false,
+              "description": "Explicit accessibility text when different from Title."
+            },
+            {
+              "label": "Asset status",
+              "component": "Asset Status",
+              "property": "dam:assetStatus",
+              "required": true,
+              "readOnly": false,
+              "description": "Must be Approved before Dynamic Media delivery via Asset Selector (copyMode: reference)."
+            },
+            {
+              "label": "Keywords",
+              "component": "Keywords",
+              "property": "dc:subject",
+              "required": false,
+              "readOnly": false,
+              "description": "Free-form search terms in addition to Smart Tags."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "folderMetadata": {
+    "root": "/content/dam/wknd-adventures",
+    "subfolders": [
+      {
+        "path": "/content/dam/wknd-adventures/heroes",
+        "title": "Hero images",
+        "description": "Full-bleed hero backgrounds for adventures, blog, and landing pages."
+      },
+      {
+        "path": "/content/dam/wknd-adventures/adventures",
+        "title": "Adventure imagery",
+        "description": "Destination and activity photos for adventure detail pages."
+      },
+      {
+        "path": "/content/dam/wknd-adventures/activities",
+        "title": "Activity imagery",
+        "description": "Activity-specific photos (climbing, cycling, water sports, etc.)."
+      },
+      {
+        "path": "/content/dam/wknd-adventures/magazine",
+        "title": "Magazine",
+        "description": "Editorial and magazine-style photography."
+      },
+      {
+        "path": "/content/dam/wknd-adventures/blog",
+        "title": "Blog",
+        "description": "Inline and hero images for blog articles."
+      },
+      {
+        "path": "/content/dam/wknd-adventures/contributors",
+        "title": "Contributors",
+        "description": "Author and contributor portraits."
+      }
+    ]
+  }
+}

@@ -4,6 +4,8 @@
  *
  * Uses Playwright with persisted storage state per virtual visitor so the Web SDK
  * reuses the same ECID across multiple visits (returning visitors).
+ * Each session uses a standard Chrome/Safari/Firefox User-Agent (Playwright device
+ * presets) so Analytics Browser is not "None" / bot-flagged.
  *
  * Each run randomizes audience mix at startup. Re-run over several days with the
  * same --visitor-pool-dir for cross-day returning visitors.
@@ -27,6 +29,11 @@ import { fileURLToPath } from 'node:url';
 import { AUDIENCE_PROFILES, PROFILE_IDS } from './lib/audience-traffic-profiles.mjs';
 import { enrichProfilesFromIndex } from './lib/enrich-profiles-from-index.mjs';
 import { fetchQueryIndex } from './lib/site-index.mjs';
+import {
+  buildBrowserContextOptions,
+  pickBrowserDeviceForVisitor,
+  summarizeBrowserMix,
+} from './lib/traffic-browsers.mjs';
 import {
   buildTrafficSchedule,
   createRng,
@@ -105,6 +112,7 @@ async function waitForAnalytics(page) {
 
 /**
  * @param {import('playwright').Browser} browser
+ * @param {Record<string, import('playwright').DeviceDescriptor>} devicesMap
  * @param {string} origin
  * @param {{ profileId: string, paths: string[], visitorId: string }} task
  * @param {string|null} poolDir
@@ -114,6 +122,7 @@ async function waitForAnalytics(page) {
  */
 async function runSession(
   browser,
+  devicesMap,
   origin,
   task,
   poolDir,
@@ -124,14 +133,12 @@ async function runSession(
   const storagePath = poolDir ? visitorStoragePath(poolDir, task.visitorId) : null;
   const isReturning = storagePath && hasVisitorState(poolDir, task.visitorId);
 
-  const contextOptions = {
-    userAgent: 'WKND-DemoTraffic/1.0 (Analytics audience simulator; +https://www.aem.live)',
-    viewport: { width: 1280, height: 800 },
-    locale: 'en-US',
-  };
-  if (isReturning && storagePath) {
-    contextOptions.storageState = storagePath;
-  }
+  const deviceName = pickBrowserDeviceForVisitor(task.visitorId);
+  const { options: contextOptions, browserLabel } = buildBrowserContextOptions(
+    deviceName,
+    devicesMap,
+    { storageState: isReturning && storagePath ? storagePath : undefined },
+  );
 
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
@@ -153,11 +160,12 @@ async function runSession(
   }
   await context.close();
 
-  return isReturning;
+  return { isReturning, deviceName, browserLabel };
 }
 
 /**
  * @param {import('playwright').Browser} browser
+ * @param {Record<string, import('playwright').DeviceDescriptor>} devicesMap
  * @param {string} origin
  * @param {{ profileId: string, paths: string[], visitorId: string }[]} schedule
  * @param {string|null} poolDir
@@ -168,6 +176,7 @@ async function runSession(
  */
 async function runScheduledTraffic(
   browser,
+  devicesMap,
   origin,
   schedule,
   poolDir,
@@ -186,8 +195,9 @@ async function runScheduledTraffic(
       if (index >= schedule.length) break;
 
       const task = schedule[index];
-      const isReturning = await runSession(
+      const sessionResult = await runSession(
         browser,
+        devicesMap,
         origin,
         task,
         poolDir,
@@ -195,6 +205,7 @@ async function runScheduledTraffic(
         onHit,
         onError,
       );
+      const { isReturning } = sessionResult;
 
       const gap = isReturning
         ? RETURNING_SESSIONS_MS[0] + Math.floor(rng() * (RETURNING_SESSIONS_MS[1] - RETURNING_SESSIONS_MS[0]))
@@ -279,6 +290,7 @@ async function main() {
     profiles,
   });
   const { mixReport, scheduled, visitorStats, visitorCount } = scheduleResult;
+  const uniqueVisitorIds = [...new Set(scheduled.map(({ visitorId }) => visitorId))];
 
   const poolManifest = poolDir ? loadPoolManifest(poolDir) : { visitors: {} };
   let crossDayReturning = 0;
@@ -321,6 +333,29 @@ async function main() {
   }
   console.log(`  Concurrency:    ${opts.concurrency}`);
   console.log(`  Seed:           ${seed}`);
+
+  let devicesMap = null;
+  let chromium = null;
+  try {
+    const playwright = await import('playwright');
+    chromium = playwright.chromium;
+    devicesMap = playwright.devices;
+    const browserMix = summarizeBrowserMix(uniqueVisitorIds, devicesMap);
+    runMeta.browserMix = browserMix;
+    console.log('  Browser mix (unique visitors, Analytics Browser dimension):');
+    browserMix.forEach(({ label, count }) => {
+      const pct = Math.round((count / uniqueVisitorIds.length) * 1000) / 10;
+      console.log(`    ${pct.toString().padStart(5)}%  ${label} (${count} visitors)`);
+    });
+  } catch {
+    if (!opts.dryRun) {
+      console.error('\nPlaywright is required. Run:');
+      console.error('  npm install -D playwright');
+      console.error('  npx playwright install chromium');
+      process.exit(1);
+    }
+  }
+
   console.log('  Audience mix (% of sessions):');
   mixReport.forEach(({ label, share }) => {
     console.log(`    ${share.toString().padStart(5)}%  ${label}`);
@@ -343,10 +378,7 @@ async function main() {
     return;
   }
 
-  let chromium;
-  try {
-    ({ chromium } = await import('playwright'));
-  } catch {
+  if (!chromium || !devicesMap) {
     console.error('\nPlaywright is required. Run:');
     console.error('  npm install -D playwright');
     console.error('  npx playwright install chromium');
@@ -379,6 +411,7 @@ async function main() {
 
   await runScheduledTraffic(
     browser,
+    devicesMap,
     origin,
     scheduled,
     poolDir,

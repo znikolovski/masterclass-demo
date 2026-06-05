@@ -1,4 +1,4 @@
-import { createOptimizedPicture } from '../../scripts/aem.js';
+import { createResponsivePicture } from '../../scripts/media.js';
 
 export default function decorate(block) {
   /* change to ul, li */
@@ -12,6 +12,8 @@ export default function decorate(block) {
     });
     ul.append(li);
   });
-  ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+  ul.querySelectorAll('picture > img').forEach((img) => {
+    img.closest('picture').replaceWith(createResponsivePicture(img.src, img.alt, false, [{ width: 750 }]));
+  });
   block.replaceChildren(ul);
 }

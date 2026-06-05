@@ -1,4 +1,4 @@
-import { createOptimizedPicture } from '../../scripts/aem.js';
+import { createResponsivePicture } from '../../scripts/media.js';
 import { pushCarouselChange } from '../../scripts/analytics-acdl.js';
 
 function updateActiveSlide(block, slideIndex) {
@@ -193,7 +193,7 @@ function createSlideContent(post, slideIndex, carouselId) {
   const imageWrap = document.createElement('div');
   imageWrap.classList.add('carousel-blog-slide-image');
   if (post.image) {
-    const pic = createOptimizedPicture(post.image, post.title, false, [{ width: '600' }]);
+    const pic = createResponsivePicture(post.image, post.title, false, [{ width: 600 }]);
     const link = document.createElement('a');
     link.href = post.path;
     link.append(pic);

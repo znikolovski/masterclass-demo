@@ -11,7 +11,18 @@
     "simulate:traffic": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index",
     "simulate:traffic:dry": "node tools/scripts/simulate-live-audience-traffic.mjs --dry-run --from-index",
     "simulate:traffic:daily": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index --hits=10000 --concurrency=6",
-    "simulate:traffic:backfill": "node tools/scripts/batch-traffic-backfill.mjs"
+    "simulate:traffic:backfill": "node tools/scripts/batch-traffic-backfill.mjs",
+    "inventory:images": "node tools/scripts/inventory-content-images.mjs",
+    "setup:dam": "node tools/aem-assets/setup-wknd-dam.mjs",
+    "migrate:manifest": "node tools/aem-assets/build-migration-manifest.mjs",
+    "migrate:checklist": "node tools/aem-assets/generate-upload-checklist.mjs",
+    "migrate:download": "node tools/aem-assets/download-images-for-dam.mjs",
+    "migrate:upload": "node tools/aem-assets/upload-images-to-dam.mjs",
+    "migrate:metadata": "node tools/aem-assets/apply-asset-metadata.mjs",
+    "migrate:verify-metadata": "node tools/aem-assets/verify-asset-metadata.mjs",
+    "migrate:import": "node tools/aem-assets/migrate-images-to-dam.mjs",
+    "migrate:resolve-delivery": "node tools/aem-assets/resolve-delivery-urls.mjs",
+    "migrate:replace-da": "node tools/aem-assets/replace-da-media-urls.mjs"
   },
   "repository": {
     "type": "git",

@@ -13,7 +13,9 @@ import {
   toClassName,
   toCamelCase,
 } from './aem.js';
+import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext } from './analytics-page.js';
+import { optimizePictures } from './media.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
@@ -407,6 +409,13 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+
+  if (main) {
+    optimizePictures(main, { eagerSelector: '.hero-adventure, .carousel-hero, .hero' });
+    if (isAnalyticsEnabled(doc)) {
+      initAssetAnalytics(main);
+    }
+  }
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;

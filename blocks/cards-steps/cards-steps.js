@@ -1,4 +1,4 @@
-import { createOptimizedPicture } from '../../scripts/aem.js';
+import { createResponsivePicture } from '../../scripts/media.js';
 
 export default function decorate(block) {
   /* change to ul, li */
@@ -14,7 +14,7 @@ export default function decorate(block) {
     ul.append(li);
   });
   ul.querySelectorAll('picture > img').forEach((img) => {
-    const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
+    const optimizedPic = createResponsivePicture(img.src, img.alt, false, [{ width: 750 }]);
 
     img.closest('picture').replaceWith(optimizedPic);
   });

@@ -1,0 +1,45 @@
+{
+  "fileName": "WKND Adventures — EDS Design System",
+  "fileKey": "6cx6VFkggGJqijhoROnYDE",
+  "fileUrl": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE/WKND-Adventures---EDS-Design-System",
+  "linkLabel": "Hi-Fi",
+  "pages": {
+    "gettingStarted": { "name": "Getting Started", "nodeId": "5:3", "url": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id=5-3" },
+    "foundations": { "name": "Foundations", "nodeId": "5:4", "url": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id=5-4" },
+    "atoms": { "name": "Atoms", "nodeId": "5:6", "url": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id=5-6" },
+    "blocksHifi": { "name": "Blocks — Hi-Fi", "nodeId": "16:2", "url": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id=16-2" },
+    "templatesHifi": { "name": "Templates — Hi-Fi", "nodeId": "16:3", "url": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id=16-3" }
+  },
+  "atoms": [
+    { "name": "Button", "nodeId": "7:10" },
+    { "name": "Section", "nodeId": "9:14" }
+  ],
+  "blocks": [
+    { "block": "hero-adventure", "frame": "block / hero-adventure", "hifiNodeId": "37:12" },
+    { "block": "hero", "frame": "block / hero", "hifiNodeId": "37:12", "note": "No separate hi-fi; maps to hero-adventure component" },
+    { "block": "cards", "frame": "block / cards", "hifiNodeId": "51:2" },
+    { "block": "cards-steps", "frame": "block / cards-steps", "hifiNodeId": "41:30" },
+    { "block": "columns", "frame": "block / columns", "hifiNodeId": "39:57" },
+    { "block": "columns-article", "frame": "block / columns-article", "hifiNodeId": "41:2" },
+    { "block": "columns-featured", "frame": "block / columns-featured", "hifiNodeId": "41:9" },
+    { "block": "columns-gallery", "frame": "block / columns-gallery", "hifiNodeId": "41:20" },
+    { "block": "accordion-faq", "frame": "block / accordion-faq", "hifiNodeId": "38:18" },
+    { "block": "carousel", "frame": "block / carousel", "hifiNodeId": "41:48", "note": "No generic carousel hi-fi; maps to carousel-hero component" },
+    { "block": "carousel-hero", "frame": "block / carousel-hero", "hifiNodeId": "41:48" },
+    { "block": "carousel-blog", "frame": "block / carousel-blog", "hifiNodeId": "39:31" },
+    { "block": "tabs-activity", "frame": "block / tabs-activity", "hifiNodeId": "39:2" },
+    { "block": "teaser", "frame": "block / teaser", "hifiNodeId": "38:32" },
+    { "block": "marquee-ticker", "frame": "block / marquee-ticker", "hifiNodeId": "41:46" },
+    { "block": "youtube-video", "frame": "block / youtube-video", "hifiNodeId": "16:2", "note": "Hi-fi component pending; links to Blocks — Hi-Fi page" },
+    { "block": "fragment", "frame": "block / fragment", "hifiNodeId": "16:2", "note": "Hi-fi component pending; links to Blocks — Hi-Fi page" },
+    { "block": "section-metadata", "frame": "block / section-metadata", "hifiNodeId": "16:2", "note": "Hi-fi component pending; links to Blocks — Hi-Fi page" },
+    { "block": "header", "frame": "block / header", "hifiNodeId": "37:2" },
+    { "block": "footer", "frame": "block / footer", "hifiNodeId": "50:2" }
+  ],
+  "templates": [
+    { "template": "landing-page", "hifiNodeId": "43:2" },
+    { "template": "blog-article", "hifiNodeId": "44:230" },
+    { "template": "field-notes", "hifiNodeId": "43:65" }
+  ],
+  "nodeUrlPattern": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id={NODE_ID_WITH_DASH}"
+}
