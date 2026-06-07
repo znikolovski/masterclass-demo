@@ -1,4 +1,10 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
+import {
+  applyAdventurePrefillToDom,
+  getAdventureFormKind,
+  prefillAdventureInterestForm,
+  resolveAdventureContext,
+} from '../../scripts/form-context.js';
 import transferRepeatableDOM, { insertAddButton, insertRemoveButton } from './components/repeat/repeat.js';
 import { emailPattern, getSubmitBaseUrl, SUBMISSION_SERVICE } from './constant.js';
 import GoogleReCaptcha from './integrations/recaptcha.js';
@@ -576,6 +582,9 @@ export default async function decorate(block) {
   let rules = true;
   let form;
   if (formDef) {
+    const formHref = container?.href || pathname || '';
+    prefillAdventureInterestForm(formDef, formHref);
+
     const submitProps = formDef?.properties?.['fd:submit'];
     const actionType = submitProps?.actionName || formDef?.properties?.actionType;
     const spreadsheetUrl = submitProps?.spreadsheet?.spreadsheetUrl
@@ -619,6 +628,10 @@ export default async function decorate(block) {
     form.dataset.id = formDef.id;
     if (source === 'aem' && formDef.properties && formDef.properties['fd:path']) {
       form.dataset.formpath = formDef.properties['fd:path'];
+    }
+    const adventureKind = getAdventureFormKind(formHref);
+    if (adventureKind) {
+      applyAdventurePrefillToDom(form, adventureKind, resolveAdventureContext());
     }
     container.replaceWith(form);
   }

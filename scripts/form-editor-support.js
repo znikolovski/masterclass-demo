@@ -438,24 +438,20 @@ export async function applyChanges(event) {
   if (!content) return false;
 
   const parsedUpdate = new DOMParser().parseFromString(content, 'text/html');
-  let element = document.querySelector(`[data-aue-resource="${resource}"]`);
+  const element = document.querySelector(`[data-aue-resource="${resource}"]`);
 
   if (element) {
     const block = element.parentElement?.closest('.block[data-aue-resource]') || element?.closest('.block[data-aue-resource]');
-    if (block) {
-      const blockResource = block.getAttribute('data-aue-resource');
-      const newBlock = parsedUpdate.querySelector(`[data-aue-resource="${blockResource}"]`);
-      if (block.dataset.aueModel === 'form') {
-        const formDef = await fetchFormDefForEditing(
-          element.closest('form') || block.querySelector('form'),
-          parsedUpdate,
-          block,
-        );
-        if (!formDef) return false;
-        const formEl = block.querySelector('form');
-        if (!formEl) return false;
-        return rerenderAnnotatedForm(formEl, formDef);
-      }
+    if (block?.dataset?.aueModel === 'form') {
+      const formDef = await fetchFormDefForEditing(
+        element.closest('form') || block.querySelector('form'),
+        parsedUpdate,
+        block,
+      );
+      if (!formDef) return false;
+      const formEl = block.querySelector('form');
+      if (!formEl) return false;
+      return rerenderAnnotatedForm(formEl, formDef);
     }
 
     const formEl = element.closest('form[data-aue-model="form"], form.edit-mode');

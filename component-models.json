@@ -67,11 +67,18 @@
         ]
       },
       {
+        "component": "text",
+        "name": "adventureInterest",
+        "label": "Adventure interest",
+        "valueType": "string",
+        "description": "Pre-fills adventure interest forms on this page (e.g. Patagonia trek, Trekking). Leave empty to infer from URL or adventure category."
+      },
+      {
         "component": "select",
         "name": "adventureCategory",
         "label": "Adventure category",
         "valueType": "string",
-        "description": "Primary activity interest for audience segments (eVar4). Leave empty to infer from URL.",
+        "description": "Primary activity interest for audience segments (eVar4). Also used to pre-fill B2B adventure type on interest forms. Leave empty to infer from URL.",
         "options": [
           {
             "name": "Auto (from URL)",
