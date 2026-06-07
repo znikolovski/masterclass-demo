@@ -616,7 +616,23 @@
         {
           "title": "Adaptive Form",
           "id": "form",
+          "model": "form",
           "plugins": {
+            "da": {
+              "name": "form",
+              "rows": 2,
+              "columns": 1,
+              "fields": [
+                {
+                  "name": "title",
+                  "selector": "div:nth-child(1) > div"
+                },
+                {
+                  "name": "definition",
+                  "selector": "div:nth-child(2) pre code"
+                }
+              ]
+            },
             "xwalk": {
               "page": {
                 "resourceType": "fd/franklin/components/form/v1/form",

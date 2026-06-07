@@ -80,6 +80,31 @@
         "name": "YouTube Video",
         "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/youtube-video/youtube-video.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/youtube-video/youtube-video.html"
+      },
+      {
+        "name": "Adaptive Form",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/form/form.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/form/form.html"
+      },
+      {
+        "name": "Business Register",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-register/business-register.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-register/business-register.html"
+      },
+      {
+        "name": "Business Login",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-login/business-login.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-login/business-login.html"
+      },
+      {
+        "name": "Business Dashboard",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-dashboard/business-dashboard.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-dashboard/business-dashboard.html"
+      },
+      {
+        "name": "Embed Adaptive Form",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html"
       }
     ]
   },

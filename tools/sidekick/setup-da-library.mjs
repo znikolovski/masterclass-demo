@@ -229,6 +229,40 @@ function buildDaConfig(existing) {
   );
 }
 
+/** EW Sidekick library panel reads /tools/sidekick/library.json (not library/blocks.json). */
+function syncSidekickLibrary(root, site = SITE) {
+  const blocks = JSON.parse(readFileSync(join(root, 'library/blocks.json'), 'utf8'));
+  const templates = JSON.parse(readFileSync(join(root, 'library/templates.json'), 'utf8'));
+  let blocksData = blocks.data.map(({ name, path, value }) => ({ name, path, value }));
+  let templatesData = templates.data.map(({ key, path, value }) => ({
+    name: key,
+    key,
+    path: path || value,
+    value: value || path,
+  }));
+  if (site !== 'masterclass-demo') {
+    const rewrite = (url) => url?.replaceAll('znikolovski/masterclass-demo', `znikolovski/${site}`) || url;
+    blocksData = blocksData.map((row) => ({
+      ...row,
+      path: rewrite(row.path),
+      value: rewrite(row.value),
+    }));
+    templatesData = templatesData.map((row) => ({
+      ...row,
+      path: rewrite(row.path),
+      value: rewrite(row.value),
+    }));
+  }
+  const payload = {
+    blocks: { data: blocksData },
+    templates: { data: templatesData },
+  };
+  writeFileSync(
+    join(root, 'tools/sidekick/library.json'),
+    `${JSON.stringify(payload, null, 2)}\n`,
+  );
+}
+
 function normalizeLibrarySheets(root) {
   const templatesPath = join(root, 'library/templates.json');
   const blocksPath = join(root, 'library/blocks.json');
@@ -259,6 +293,8 @@ if (!token) {
 console.log('Setting up DA Library…\n');
 
 normalizeLibrarySheets(ROOT);
+syncSidekickLibrary(ROOT, SITE);
+console.log(`  ✓ tools/sidekick/library.json (EW Sidekick library, ${SITE})`);
 
 // 1. Library index sheets (DA sheet format)
 for (const file of ['library/blocks.json', 'library/templates.json']) {
