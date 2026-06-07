@@ -64,6 +64,9 @@ async function applyChanges(event) {
         newBlock.style.display = null;
         return true;
       }
+    } else if (element.closest('form[data-aue-model="form"], form.edit-mode')) {
+      // Adaptive form fields are re-rendered and re-annotated in form-editor-support.js
+      return true;
     } else {
       // sections and default content, may be multiple in the case of richtext
       const newElements = parsedUpdate.querySelectorAll(`[data-aue-resource="${resource}"],[data-richtext-resource="${resource}"]`);

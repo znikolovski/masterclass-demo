@@ -385,6 +385,45 @@ function decode(rawContent) {
   return JSON.parse(cleanUp(content));
 }
 
+async function fetchFormDefForEditing(formEl, parsedUpdate, block) {
+  if (block?.dataset?.aueModel === 'form') {
+    const blockResource = block.getAttribute('data-aue-resource');
+    const newBlock = parsedUpdate?.querySelector(`[data-aue-resource="${blockResource}"]`);
+    const jsonContent = newBlock?.querySelector('pre code')?.textContent;
+    if (jsonContent) {
+      return decode(jsonContent);
+    }
+  }
+
+  const guideUrn = formEl.getAttribute('data-aue-resource');
+  if (guideUrn?.startsWith('urn:aemconnection:')) {
+    const guidePath = guideUrn.replace('urn:aemconnection:', '');
+    const edsBase = await mapAemPathToEdsPath(guidePath.replace(/\/guideContainer$/, ''));
+    try {
+      const resp = await fetch(`${edsBase}/guideContainer.model.json`);
+      if (resp.ok) return resp.json();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to refresh form model after UE patch:', error);
+    }
+  }
+
+  const stubDef = getStubFormDef(block || formEl.closest('.block'));
+  return stubDef ? enrichStubFormDef(stubDef) : null;
+}
+
+async function rerenderAnnotatedForm(formEl, formDef) {
+  if (!formEl || !formDef) return false;
+  const rootDef = getFieldById(formDef, formEl.dataset.id, {}) || formDef;
+  formEl.replaceChildren();
+  if (formEl.hasAttribute('data-component-status')) {
+    formEl.removeAttribute('data-component-status');
+  }
+  await generateFormRendition(rootDef, formEl, formDef.id, getItems);
+  annotateFormForEditing(formEl, formDef);
+  return true;
+}
+
 export async function applyChanges(event) {
   // redecorate default content and blocks on patches (in the properties rail)
   const { detail } = event;
@@ -407,26 +446,23 @@ export async function applyChanges(event) {
       const blockResource = block.getAttribute('data-aue-resource');
       const newBlock = parsedUpdate.querySelector(`[data-aue-resource="${blockResource}"]`);
       if (block.dataset.aueModel === 'form') {
-        const newContainer = newBlock.querySelector('pre');
-        const codeEl = newContainer?.querySelector('code');
-        const jsonContent = codeEl?.textContent;
-        if (jsonContent) {
-          const formDef = decode(jsonContent);
-          if (element.classList.contains('panel-wrapper')) {
-            element = element.parentNode;
-          }
-          const parent = element.closest('.panel-wrapper') || element.closest('form') || element.querySelector('form');
-          const parentDef = getFieldById(formDef, parent.dataset.id, {});
-          parent.replaceChildren();
-          if (parent.hasAttribute('data-component-status')) {
-            parent.removeAttribute('data-component-status');
-          }
-          await generateFormRendition(parentDef, parent, formDef?.id, getItems);
-          annotateItems(getContainerChildNodes(parent, parentDef), formDef, {});
-          return true;
-        }
-        return false;
+        const formDef = await fetchFormDefForEditing(
+          element.closest('form') || block.querySelector('form'),
+          parsedUpdate,
+          block,
+        );
+        if (!formDef) return false;
+        const formEl = block.querySelector('form');
+        if (!formEl) return false;
+        return rerenderAnnotatedForm(formEl, formDef);
       }
+    }
+
+    const formEl = element.closest('form[data-aue-model="form"], form.edit-mode');
+    if (formEl) {
+      const formDef = await fetchFormDefForEditing(formEl, parsedUpdate, null);
+      if (!formDef) return false;
+      return rerenderAnnotatedForm(formEl, formDef);
     }
   }
   return true;
