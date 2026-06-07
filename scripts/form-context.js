@@ -2,14 +2,8 @@ import { getMetadata } from './aem.js';
 
 /** @typedef {{ b2cValue?: string, b2bValue?: string, source: string }} AdventureContext */
 
-const B2C_OPTIONS = [
-  { value: 'Patagonia', label: 'Patagonia trek' },
-  { value: 'Yosemite', label: 'Yosemite climbing' },
-  { value: 'Alpine cycling', label: 'Alpine cycling' },
-  { value: 'Wild swimming', label: 'Wild swimming' },
-  { value: 'Norway kayaking', label: 'Norway kayaking' },
-  { value: 'Other', label: 'Other' },
-];
+/** Options URL for blog-index driven adventure select (pathname fetched on current origin). */
+export const BLOG_ARTICLES_OPTIONS_URL = 'https://www.aem.live/blog-index.json';
 
 const B2B_OPTIONS = [
   { value: 'Trekking', label: 'Trekking' },
@@ -46,17 +40,6 @@ const CATEGORY_TO_B2B = {
   desert: 'Custom',
   photography: 'Custom',
   'general-outdoor': 'Custom',
-};
-
-/** Fallback B2C select value when only adventureCategory metadata is set. */
-const CATEGORY_TO_B2C = {
-  climbing: 'Yosemite',
-  trekking: 'Patagonia',
-  cycling: 'Alpine cycling',
-  water: 'Norway kayaking',
-  'winter-alpine': 'Other',
-  desert: 'Other',
-  photography: 'Other',
 };
 
 /**
@@ -96,6 +79,18 @@ function getPageSlug(pathname = window.location.pathname) {
 }
 
 /**
+ * @param {Document} doc
+ */
+function getBlogArticlePath(doc = document) {
+  const pathname = doc.defaultView?.location?.pathname || window.location.pathname;
+  const normalized = pathname.replace(/\.html$/, '').replace(/\/index$/, '');
+  if (normalized.startsWith('/blog/') || normalized.startsWith('/drafts/blog/')) {
+    return normalized;
+  }
+  return '';
+}
+
+/**
  * @param {string} raw
  * @param {Array<{ value: string, label: string }>} options
  */
@@ -120,10 +115,20 @@ function matchOptionValue(raw, options) {
  * @returns {AdventureContext}
  */
 export function resolveAdventureContext(doc = document) {
+  const blogPath = getBlogArticlePath(doc);
+  if (blogPath) {
+    const slug = blogPath.split('/').pop() || '';
+    return {
+      b2cValue: blogPath,
+      b2bValue: SLUG_MAP[slug]?.b2b || '',
+      source: `path:${blogPath}`,
+    };
+  }
+
   const explicit = getPageMetadataValue('adventureInterest', doc);
   if (explicit) {
     return {
-      b2cValue: matchOptionValue(explicit, B2C_OPTIONS),
+      b2cValue: explicit.trim(),
       b2bValue: matchOptionValue(explicit, B2B_OPTIONS)
         || CATEGORY_TO_B2B[explicit.toLowerCase()] || '',
       source: 'metadata:adventureInterest',
@@ -133,7 +138,7 @@ export function resolveAdventureContext(doc = document) {
   const slug = getPageSlug();
   if (slug && SLUG_MAP[slug]) {
     return {
-      b2cValue: SLUG_MAP[slug].b2c,
+      b2cValue: `/blog/${slug}`,
       b2bValue: SLUG_MAP[slug].b2b,
       source: `slug:${slug}`,
     };
@@ -142,19 +147,17 @@ export function resolveAdventureContext(doc = document) {
   const category = getPageMetadataValue('adventureCategory', doc);
   if (category && CATEGORY_TO_B2B[category]) {
     return {
-      b2cValue: CATEGORY_TO_B2C[category] || '',
+      b2cValue: '',
       b2bValue: CATEGORY_TO_B2B[category],
       source: 'metadata:adventureCategory',
     };
   }
 
   const title = getPageMetadataValue('title', doc) || doc.title || '';
-  const b2cFromTitle = matchOptionValue(title, B2C_OPTIONS);
-  if (b2cFromTitle) {
-    const slugMatch = Object.values(SLUG_MAP).find((entry) => entry.b2c === b2cFromTitle);
+  if (title.trim()) {
     return {
-      b2cValue: b2cFromTitle,
-      b2bValue: slugMatch?.b2b || '',
+      b2cValue: title.trim(),
+      b2bValue: '',
       source: 'metadata:title',
     };
   }
@@ -239,6 +242,21 @@ function toFieldClass(name) {
  * @param {'b2c-interest'|'b2b-interest'} kind
  * @param {AdventureContext} context
  */
+/**
+ * @param {HTMLOptionElement} opt
+ * @param {string} value
+ */
+function optionMatchesPrefillValue(opt, value) {
+  const normalized = value.trim().toLowerCase();
+  const optionValue = opt.value.trim().toLowerCase();
+  const optionLabel = opt.textContent.trim().toLowerCase();
+  if (!normalized || !optionValue) return false;
+  if (optionValue === normalized || optionLabel === normalized) return true;
+  if (normalized.startsWith('/blog/') && optionValue === normalized) return true;
+  const titlePrefix = optionLabel.split(':')[0].trim();
+  return titlePrefix.includes(normalized) || normalized.includes(titlePrefix);
+}
+
 export function applyAdventurePrefillToDom(form, kind, context) {
   if (!form || !kind) return;
   const fieldName = kind === 'b2c-interest' ? 'adventure' : 'adventureType';
@@ -248,12 +266,33 @@ export function applyAdventurePrefillToDom(form, kind, context) {
   const select = wrapper?.querySelector('select')
     || form.querySelector(`select[name$="${fieldName}"], select[name*="${fieldName}"]`);
   if (!select) return;
-  const option = [...select.options].find(
-    (opt) => opt.value === value || opt.textContent.trim() === value,
-  );
+  const option = [...select.options].find((opt) => optionMatchesPrefillValue(opt, value));
   if (!option) return;
   select.value = option.value;
   select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @param {string} fieldName
+ * @param {number} [timeoutMs]
+ */
+export function waitForSelectEnumLoad(form, fieldName, timeoutMs = 8000) {
+  const wrapper = form.querySelector(`.field-wrapper.field-${toFieldClass(fieldName)}`);
+  const select = wrapper?.querySelector('select')
+    || form.querySelector(`select[name$="${fieldName}"], select[name*="${fieldName}"]`);
+  if (!select) return Promise.resolve();
+  if (select.dataset.enumLoad === 'done' || select.options.length > 1) {
+    return Promise.resolve();
+  }
+  if (select.dataset.enumLoad !== 'pending') {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    const finish = () => resolve();
+    select.addEventListener('enum-loaded', finish, { once: true });
+    window.setTimeout(finish, timeoutMs);
+  });
 }
 
 /**

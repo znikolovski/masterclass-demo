@@ -4,8 +4,8 @@ compatibility_date = "2024-11-01"
 
 [[kv_namespaces]]
 binding = "WKND_B2B_DATA"
-id = "00000000000000000000000000000000"
-preview_id = "00000000000000000000000000000000"
+id = "88a1179097784a63adc3ce3dab142c83"
+preview_id = "f011105e52844b69b1c062d98d590769"
 
 [vars]
-ALLOWED_ORIGINS = "https://main--wknd-business--znikolovski.aem.page,https://main--wknd-business--znikolovski.aem.live,http://localhost:3000"
+ALLOWED_ORIGINS = "https://main--wknd-business--znikolovski.aem.page,https://main--wknd-business--znikolovski.aem.live,https://main--masterclass-demo--znikolovski.aem.page,https://main--masterclass-demo--znikolovski.aem.live,http://localhost:3000"

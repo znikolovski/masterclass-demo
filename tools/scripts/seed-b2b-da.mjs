@@ -12,7 +12,8 @@ import {
 const ORG = 'znikolovski';
 const SITE = 'wknd-business';
 const BRANCH = 'main';
-const B2B_API = 'https://wknd-b2b-api.wknd-adventures.workers.dev';
+const B2B_API = 'https://wknd-b2b-api.jaggah.workers.dev';
+const FORMS_API = B2B_API;
 const DRY_RUN = process.argv.includes('--dry-run');
 const PREVIEW = process.argv.includes('--preview');
 const PUBLISH = process.argv.includes('--publish');
@@ -157,6 +158,7 @@ ${metadataBlock({
   Description: 'Book curated outdoor experiences for your business with WKND Business.',
   template: 'landing-page',
   'b2b-api': B2B_API,
+  'forms-api': FORMS_API,
 })}`),
   '/register': daPage(`
 ${block('business-register', [
@@ -170,6 +172,7 @@ ${metadataBlock({
   Description: 'Register your business for WKND corporate adventures.',
   template: 'landing-page',
   'b2b-api': B2B_API,
+  'forms-api': FORMS_API,
 })}`),
   '/login': daPage(`
 ${block('business-login', [
@@ -182,6 +185,7 @@ ${metadataBlock({
   Title: 'Sign In — WKND Business',
   template: 'landing-page',
   'b2b-api': B2B_API,
+  'forms-api': FORMS_API,
 })}`),
   '/dashboard': daPage(`
 ${block('business-dashboard', [
@@ -193,6 +197,7 @@ ${metadataBlock({
   Title: 'Dashboard — WKND Business',
   template: 'landing-page',
   'b2b-api': B2B_API,
+  'forms-api': FORMS_API,
 })}`),
   '/contact': daPage(`
 <div>
@@ -205,6 +210,7 @@ ${metadataBlock({
 ${metadataBlock({
   Title: 'Contact — WKND Business',
   template: 'landing-page',
+  'forms-api': FORMS_API,
 })}`),
   '/request-adventure': daPage(`
 <div>
@@ -217,6 +223,7 @@ ${metadataBlock({
 ${metadataBlock({
   Title: 'Request Adventure — WKND Business',
   template: 'landing-page',
+  'forms-api': FORMS_API,
 })}`),
   '/about': daPage(`
 <div>

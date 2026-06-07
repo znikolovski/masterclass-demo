@@ -4,8 +4,10 @@ import {
   getAdventureFormKind,
   prefillAdventureInterestForm,
   resolveAdventureContext,
+  waitForSelectEnumLoad,
 } from '../../scripts/form-context.js';
 import transferRepeatableDOM, { insertAddButton, insertRemoveButton } from './components/repeat/repeat.js';
+import { getFormSubmitUrl } from '../../scripts/forms-api.js';
 import { emailPattern, getSubmitBaseUrl, SUBMISSION_SERVICE } from './constant.js';
 import GoogleReCaptcha from './integrations/recaptcha.js';
 import componentDecorator from './mappings.js';
@@ -47,7 +49,7 @@ const createTextArea = withFieldWrapper((fd) => {
 
 const createSelect = withFieldWrapper((fd) => {
   const select = document.createElement('select');
-  createDropdownUsingEnum(fd, select);
+  void createDropdownUsingEnum(fd, select);
   return select;
 });
 
@@ -595,6 +597,8 @@ export default async function decorate(block) {
       const iframePath = window.frameElement ? window.parent.location.pathname
         : window.location.pathname;
       formDef.action = SUBMISSION_SERVICE + btoa(pathname || iframePath);
+    } else if (isDocumentBasedForm(formDef) && formDef.formSlug) {
+      formDef.action = getFormSubmitUrl(formDef.formSlug);
     } else {
       formDef.action = getSubmitBaseUrl() + (formDef.action || '');
     }
@@ -631,6 +635,9 @@ export default async function decorate(block) {
     }
     const adventureKind = getAdventureFormKind(formHref);
     if (adventureKind) {
+      if (adventureKind === 'b2c-interest') {
+        await waitForSelectEnumLoad(form, 'adventure');
+      }
       applyAdventurePrefillToDom(form, adventureKind, resolveAdventureContext());
     }
     container.replaceWith(form);

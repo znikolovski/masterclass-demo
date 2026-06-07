@@ -29,7 +29,9 @@ export function submitFailure(e, form) {
     errorMessage = document.createElement('div');
     errorMessage.className = 'form-message error-message';
   }
-  errorMessage.innerHTML = 'Some error occured while submitting the form'; // TODO: translation
+  const details = e?.data?.details?.join(', ');
+  const msg = details || e?.data?.error || e?.message;
+  errorMessage.innerHTML = msg || 'Some error occured while submitting the form'; // TODO: translation
   form.prepend(errorMessage);
   errorMessage.scrollIntoView({ behavior: 'smooth' });
   form.setAttribute('data-submitting', 'false');
@@ -82,13 +84,17 @@ async function prepareRequest(form) {
   };
   const body = { data: payload };
   let url;
-  let baseUrl = getSubmitBaseUrl();
-  if (!baseUrl) {
-    // eslint-disable-next-line prefer-template
-    baseUrl = 'https://forms.adobe.com/adobe/forms/af/submit/';
-    url = baseUrl + btoa(`${form.dataset.action}.json`);
+  const action = form.dataset.action || '';
+  if (action.startsWith('http://') || action.startsWith('https://')) {
+    url = action;
   } else {
-    url = form.dataset.action;
+    const baseUrl = getSubmitBaseUrl();
+    if (!baseUrl) {
+      // eslint-disable-next-line prefer-template
+      url = 'https://forms.adobe.com/adobe/forms/af/submit/' + btoa(`${action}.json`);
+    } else {
+      url = action;
+    }
   }
   return { headers, body, url };
 }
@@ -107,10 +113,24 @@ async function submitDocBasedForm(form, captcha) {
       body: JSON.stringify(body),
     });
     if (response.ok) {
-      submitSuccess(response, form);
+      let data = null;
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
+      submitSuccess({ payload: { body: data } }, form);
     } else {
-      const error = await response.text();
-      throw new Error(error);
+      let errData = null;
+      const text = await response.text();
+      try {
+        errData = JSON.parse(text);
+      } catch {
+        errData = { error: text };
+      }
+      const err = new Error(errData?.error || `Request failed (${response.status})`);
+      err.data = errData;
+      throw err;
     }
   } catch (error) {
     submitFailure(error, form);

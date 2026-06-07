@@ -51,24 +51,26 @@ npx wrangler secret put JWT_SECRET
 npm run deploy
 ```
 
-Set page metadata `b2b-api` to your Worker URL (seed script defaults to `https://wknd-b2b-api.wknd-adventures.workers.dev`).
+Set page metadata `b2b-api` to your Worker URL (seed script defaults to `https://wknd-b2b-api.jaggah.workers.dev`).
 
 ## Forms (EDS adaptive form block)
 
-Document-based form JSON is generated in `forms/` and rendered by the `form` block:
+Document-based form JSON is generated in `forms/` and rendered by the `form` block. Submissions POST to the same Cloudflare Worker (`POST /api/forms/{slug}`) — not Adobe Forms.
 
 ```bash
 npm run b2b:forms
 # or Git-only: node tools/scripts/create-wknd-forms.mjs
 ```
 
-| Form | Path | Site |
+| Form | Slug | Site |
 |------|------|------|
-| Contact B2B | `/forms/wknd-contact-b2b.json` | wknd-business |
-| Adventure interest B2B | `/forms/wknd-adventure-interest-b2b.json` | wknd-business |
-| Adventure interest B2C | `/forms/wknd-adventure-interest.json` | masterclass-demo |
+| Contact B2B | `wknd-contact-b2b` | wknd-business |
+| Adventure interest B2B | `wknd-adventure-interest-b2b` | wknd-business |
+| Adventure interest B2C | `wknd-adventure-interest` | masterclass-demo |
 
-To replace with AEM author adaptive forms on `author-p115476-e1135027.adobeaemcloud.com`, publish forms in the Forms console and update form block URLs in DA pages. The AEM MCP server on this program does not expose a forms creation API.
+Set page metadata `forms-api` to your Worker URL (defaults to the same host as `b2b-api`). Each sheet JSON includes `formSlug` so the `form` block routes submits to `/api/forms/{slug}`.
+
+Optional: migrate to AEM author adaptive forms later and swap form block URLs in DA.
 
 ## Local dev
 

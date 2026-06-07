@@ -1,8 +1,9 @@
 /**
- * WKND B2B demo API — Cloudflare Worker fallback for business registration,
- * login, and adventure request dashboard data.
+ * WKND API — Cloudflare Worker for B2B auth/dashboard and document-based form submissions.
  * Demo security: PBKDF2 password hashing, signed JWT sessions, input validation.
  */
+
+import { FORM_SCHEMAS, handleFormSubmit } from './forms.js';
 
 const PBKDF2_ITERATIONS = 100_000;
 const TOKEN_TTL_SEC = 86_400;
@@ -479,6 +480,17 @@ export default {
       }
       if (url.pathname === '/api/b2b/health') {
         return json({ status: 'ok' }, 200, cors);
+      }
+      const formMatch = url.pathname.match(/^\/api\/forms\/([^/]+)$/);
+      if (formMatch && request.method === 'POST' && FORM_SCHEMAS[formMatch[1]]) {
+        return handleFormSubmit(request, env, formMatch[1], {
+          json,
+          corsHeaders,
+          checkRateLimit,
+        });
+      }
+      if (url.pathname === '/api/forms/health') {
+        return json({ status: 'ok', forms: Object.keys(FORM_SCHEMAS) }, 200, cors);
       }
 
       return json({ error: 'Not found' }, 404, cors);

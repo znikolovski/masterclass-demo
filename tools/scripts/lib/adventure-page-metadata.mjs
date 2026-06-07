@@ -58,27 +58,27 @@ export const BLOG_ANALYTICS = {
     journeyStage: 'inspiration',
   },
   'winter-mountaineering': {
-    adventureInterest: 'Other',
+    adventureInterest: 'Winter mountaineering',
     adventureCategory: 'winter-alpine',
     journeyStage: 'inspiration',
   },
   'desert-survival-guide': {
-    adventureInterest: 'Other',
+    adventureInterest: 'Desert survival',
     adventureCategory: 'desert',
     journeyStage: 'inspiration',
   },
   'mountain-photography': {
-    adventureInterest: 'Other',
+    adventureInterest: 'Mountain photography',
     adventureCategory: 'photography',
     journeyStage: 'inspiration',
   },
   'ultralight-backpacking': {
-    adventureInterest: 'Other',
+    adventureInterest: 'Ultralight backpacking',
     adventureCategory: 'trekking',
     journeyStage: 'inspiration',
   },
   'surfing-costa-rica': {
-    adventureInterest: 'Other',
+    adventureInterest: 'Surfing Costa Rica',
     adventureCategory: 'water',
     journeyStage: 'inspiration',
   },

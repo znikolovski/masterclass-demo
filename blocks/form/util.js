@@ -371,6 +371,76 @@ export function createRadioOrCheckboxUsingEnum(fd, wrapper) {
   });
 }
 
+function isSafeBlogPath(path) {
+  return typeof path === 'string'
+    && (path.startsWith('/blog/') || path.startsWith('/drafts/blog/'))
+    && !path.includes('//')
+    && !/^https?:/i.test(path);
+}
+
+/**
+ * @param {object} json
+ * @param {(label: string, value: string) => void} addOption
+ */
+export function populateSelectOptionsFromJson(json, addOption) {
+  const rows = Array.isArray(json?.data) ? json.data : [];
+  if (!rows.length) return;
+
+  const isBlogIndex = rows.some((row) => row.path && row.title);
+  if (isBlogIndex) {
+    rows
+      .filter((entry) => entry.title && isSafeBlogPath(entry.path))
+      .sort((a, b) => a.title.localeCompare(b.title))
+      .forEach((entry) => addOption(entry.title, entry.path));
+    return;
+  }
+
+  rows.forEach((opt) => {
+    const label = opt.Option ?? opt.option ?? opt.Value ?? opt.value ?? '';
+    const value = opt.Value ?? opt.value ?? opt.Option ?? opt.option ?? label;
+    if (label || value) addOption(label, value);
+  });
+}
+
+function isDynamicOptionsHost(hostname) {
+  return hostname.endsWith('hlx.page')
+    || hostname.endsWith('hlx.live')
+    || hostname.endsWith('aem.live')
+    || hostname.endsWith('aem.page');
+}
+
+async function fetchDynamicSelectOptions(pathname) {
+  const base = (window.hlx?.codeBasePath || '').replace(/\/$/, '');
+  const paths = [`${base}${pathname}`];
+  if (pathname.endsWith('/blog-index.json')) {
+    paths.push(`${base}/query-index.json`);
+  }
+
+  const attempts = await Promise.all(paths.map(async (path) => {
+    try {
+      const response = await fetch(path);
+      if (!response.ok) return null;
+      const json = await response.json();
+      return Array.isArray(json?.data) && json.data.length ? json : null;
+    } catch {
+      return null;
+    }
+  }));
+
+  const blogIndex = attempts.find((json) => json?.data?.some((row) => row.path && row.title));
+  if (blogIndex) return blogIndex;
+
+  const queryIndex = attempts.find((json) => json?.data?.length);
+  if (queryIndex) {
+    return {
+      data: queryIndex.data.filter(
+        (entry) => entry.path?.startsWith('/blog/') || entry.path?.startsWith('/drafts/blog/'),
+      ),
+    };
+  }
+  return { data: [] };
+}
+
 export function createDropdownUsingEnum(fd, wrapper) {
   wrapper.innerHTML = '';
   wrapper.required = fd.required;
@@ -402,25 +472,27 @@ export function createDropdownUsingEnum(fd, wrapper) {
   const options = fd?.enum || [];
   const optionNames = fd?.enumNames ?? options;
 
-  if (options.length === 1
-    && options?.[0]?.startsWith('https://')) {
-    const optionsUrl = new URL(options?.[0]);
-    // using async to avoid rendering
-    if (optionsUrl.hostname.endsWith('hlx.page')
-      || optionsUrl.hostname.endsWith('hlx.live')
-      || optionsUrl.hostname.endsWith('aem.live')
-      || optionsUrl.hostname.endsWith('aem.page')) {
-      fetch(`${optionsUrl.pathname}${optionsUrl.search}`)
-        .then(async (response) => {
-          const json = await response.json();
-          const values = [];
-          json.data.forEach((opt) => {
-            addOption(opt.Option, opt.Value);
-            values.push(opt.Value || opt.Option);
-          });
+  if (options.length === 1 && options[0]?.startsWith('https://')) {
+    const optionsUrl = new URL(options[0]);
+    if (isDynamicOptionsHost(optionsUrl.hostname)) {
+      wrapper.dataset.enumLoad = 'pending';
+      return fetchDynamicSelectOptions(`${optionsUrl.pathname}${optionsUrl.search}`)
+        .then((json) => {
+          populateSelectOptionsFromJson(json, addOption);
+          if (ph && optionSelected === false) {
+            ph.setAttribute('selected', '');
+          }
+          wrapper.dataset.enumLoad = 'done';
+          wrapper.dispatchEvent(new CustomEvent('enum-loaded', { bubbles: true }));
+        })
+        .catch(() => {
+          wrapper.dataset.enumLoad = 'error';
+          wrapper.dispatchEvent(new CustomEvent('enum-loaded', { bubbles: true }));
         });
     }
-  } else if (options?.length !== optionNames.length) {
+  }
+
+  if (options?.length !== optionNames.length) {
     options.forEach((value) => addOption(value, value));
   } else {
     options.forEach((value, index) => addOption(optionNames?.[index] ?? value, value));
@@ -429,6 +501,7 @@ export function createDropdownUsingEnum(fd, wrapper) {
   if (ph && optionSelected === false) {
     ph.setAttribute('selected', '');
   }
+  return Promise.resolve();
 }
 
 export async function fetchData(id, search = '') {

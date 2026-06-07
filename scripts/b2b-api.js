@@ -1,5 +1,5 @@
 const SESSION_KEY = 'wknd-b2b-session';
-const DEFAULT_API = 'https://wknd-b2b-api.wknd-adventures.workers.dev';
+const DEFAULT_API = 'https://wknd-b2b-api.jaggah.workers.dev';
 
 /**
  * @param {string} name

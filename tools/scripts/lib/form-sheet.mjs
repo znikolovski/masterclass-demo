@@ -1,10 +1,15 @@
+/** Blog index URL — form block fetches pathname on the current site origin. */
+export const BLOG_ARTICLES_OPTIONS_URL = 'https://www.aem.live/blog-index.json';
+
 /**
  * Build document-based adaptive form sheet JSON for EDS form block.
  * @param {Array<Record<string, string>>} fields
+ * @param {{ formSlug?: string }} [opts]
  */
-export function buildFormSheet(fields) {
+export function buildFormSheet(fields, opts = {}) {
   return {
     ':type': 'sheet',
+    formSlug: opts.formSlug || '',
     total: fields.length,
     offset: 0,
     limit: fields.length,
@@ -132,19 +137,20 @@ export const WKND_FORMS = {
     }),
     field('message', 'textarea', 'Message', { mandatory: true }),
     field('submit', 'submit', 'Send message'),
-  ]),
+  ], { formSlug: 'wknd-contact-b2b' }),
   'wknd-adventure-interest': buildFormSheet([
     field('name', 'text', 'Your name', { mandatory: true }),
     field('email', 'email', 'Email', { mandatory: true }),
     field('adventure', 'select', 'Adventure interest', {
-      options: 'Patagonia,Yosemite,Alpine cycling,Wild swimming,Norway kayaking,Other',
-      optionNames: 'Patagonia trek,Yosemite climbing,Alpine cycling,Wild swimming,Norway kayaking,Other',
+      placeholder: 'Select an adventure',
+      options: BLOG_ARTICLES_OPTIONS_URL,
+      optionNames: BLOG_ARTICLES_OPTIONS_URL,
     }),
     field('dates', 'text', 'Preferred dates'),
     field('groupSize', 'number', 'Group size', { min: '1', max: '50' }),
     field('notes', 'textarea', 'Anything else we should know?'),
     field('submit', 'submit', 'Register interest'),
-  ]),
+  ], { formSlug: 'wknd-adventure-interest' }),
   'wknd-adventure-interest-b2b': buildFormSheet([
     field('company', 'text', 'Company name', { mandatory: true }),
     field('contactName', 'text', 'Contact name', { mandatory: true }),
@@ -161,5 +167,5 @@ export const WKND_FORMS = {
     }),
     field('notes', 'textarea', 'Goals and requirements'),
     field('submit', 'submit', 'Submit request'),
-  ]),
+  ], { formSlug: 'wknd-adventure-interest-b2b' }),
 };
