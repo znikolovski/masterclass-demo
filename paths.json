@@ -5,13 +5,17 @@
     "/content/forms/af/wknd-business/:/forms/",
     "/content/dam/formsanddocuments/wknd-business/:/forms/",
     "/content/forms/aeowknd/:/forms/",
-    "/content/dam/formsanddocuments/aeowknd/:/forms/"
+    "/content/dam/formsanddocuments/aeowknd/:/forms/",
+    "/content/dam/formsanddocuments/wknd/:/forms/",
+    "/content/forms/af/wknd/:/forms/"
   ],
   "includes": [
     "/content/forms/af/masterclass-demo/",
     "/content/dam/formsanddocuments/masterclass-demo/",
     "/content/forms/af/wknd-business/",
+    "/content/forms/af/wknd/",
     "/content/dam/formsanddocuments/wknd-business/",
+    "/content/dam/formsanddocuments/wknd/",
     "/content/forms/aeowknd/",
     "/content/dam/formsanddocuments/aeowknd/",
     "/content/dam/"
