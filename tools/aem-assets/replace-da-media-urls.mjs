@@ -127,6 +127,23 @@ function buildReplacements(manifest) {
       }
     }
 
+    if (item.deliveryUrlLegacy && isLegacyScene7Url(item.deliveryUrlLegacy)) {
+      addRule(
+        escapeRegex(item.deliveryUrlLegacy),
+        item.deliveryUrl,
+        `scene7:${item.fileName}`,
+      );
+      // Scene7 asset name without extension (e.g. ice-climbing-2, ian-provo).
+      const scene7Name = item.deliveryUrlLegacy.split('/').pop();
+      if (scene7Name) {
+        addRule(
+          `https?:\\/\\/[^"'\\s>]*scene7\\.com\\/is\\/(?:image|content)\\/[^/"'\\s>]+\\/${escapeRegex(scene7Name)}(?:\\?[^"'\\s>]*)?`,
+          item.deliveryUrl,
+          `scene7-name:${item.fileName}`,
+        );
+      }
+    }
+
     const rel = item.contentSrc.split('?')[0].replace(/^\.\//, '');
     if (rel.startsWith('media_')) {
       addRule(
