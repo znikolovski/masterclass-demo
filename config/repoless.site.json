@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "code": {
+    "owner": "znikolovski",
+    "repo": "masterclass-demo"
+  },
+  "content": {
+    "source": {
+      "url": "https://content.da.live/znikolovski/masterclass-demo/",
+      "type": "markup"
+    }
+  }
+}

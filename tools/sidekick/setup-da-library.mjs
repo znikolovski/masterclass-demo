@@ -12,7 +12,7 @@
  */
 
 import {
-  mkdirSync, readFileSync, readdirSync, statSync, writeFileSync,
+  existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync,
 } from 'node:fs';
 import {
   basename, dirname, join, relative,
@@ -20,8 +20,8 @@ import {
 import { fileURLToPath } from 'node:url';
 import { wrapLibraryPreviewPage } from './wrap-library-preview.mjs';
 
-const ORG = 'znikolovski';
-const SITE = 'masterclass-demo';
+const ORG = process.env.DA_ORG || 'znikolovski';
+const SITE = process.env.DA_SITE || process.argv.find((a) => a.startsWith('--site='))?.slice(7) || 'masterclass-demo';
 const CONTENT_BASE = `https://content.da.live/${ORG}/${SITE}`;
 const PREVIEW_BASE = `https://main--${SITE}--${ORG}.aem.page`;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -252,7 +252,7 @@ function normalizeLibrarySheets(root) {
 
 const token = getToken();
 if (!token) {
-  console.error('No DA token. Run: aem content clone --path /');
+  console.error('No DA token. Run: npx github:adobe-rnd/da-auth-helper token');
   process.exit(1);
 }
 
@@ -262,12 +262,40 @@ normalizeLibrarySheets(ROOT);
 
 // 1. Library index sheets (DA sheet format)
 for (const file of ['library/blocks.json', 'library/templates.json']) {
-  const body = readFileSync(join(ROOT, file), 'utf8');
+  let body = readFileSync(join(ROOT, file), 'utf8');
+  if (SITE !== 'masterclass-demo') {
+    body = body.replaceAll(`znikolovski/masterclass-demo`, `znikolovski/${SITE}`);
+  }
   await putSource(token, file, body);
   console.log(`  ✓ ${file}`);
 }
 
-// 2. Sync block/template HTML from sidekick snippets → DA + git (for .html preview URLs)
+// 2a. Sync repo block previews referenced by library (form, B2B blocks, etc.)
+const repoBlockPreviews = [
+  'blocks/form/form.html',
+  'blocks/embed-adaptive-form/embed-adaptive-form.html',
+  'blocks/business-register/business-register.html',
+  'blocks/business-login/business-login.html',
+  'blocks/business-dashboard/business-dashboard.html',
+];
+for (const rel of repoBlockPreviews) {
+  const abs = join(ROOT, rel);
+  if (!existsSync(abs)) continue;
+  const daPath = rel;
+  const fragment = readFileSync(abs, 'utf8');
+  const inner = fragment.match(/<main>[\s\S]*<\/main>/i)?.[0]
+    || fragment.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1]
+    || fragment;
+  await putSource(token, daPath, inner.includes('<main>') ? `<!DOCTYPE html><html><body>${inner}</body></html>` : fragment, 'text/html');
+  await triggerPreview(token, daPath);
+  if (SITE === 'masterclass-demo') {
+    console.log(`  ✓ ${daPath} (repo block → DA)`);
+  } else {
+    console.log(`  ✓ ${daPath} (repo block → DA ${SITE})`);
+  }
+}
+
+// 2b. Sync block/template HTML from sidekick snippets → DA + git (for .html preview URLs)
 const sidekickRoot = join(ROOT, 'tools/sidekick');
 for (const abs of walkPlainHtml(sidekickRoot)) {
   const rel = relative(sidekickRoot, abs);
@@ -286,10 +314,14 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   await putSource(token, daPath, daBody, 'text/html');
   await triggerPreview(token, daPath);
 
-  const gitPath = join(ROOT, daPath);
-  mkdirSync(dirname(gitPath), { recursive: true });
-  writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment, previewOptions));
-  console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview page)`);
+  if (SITE === 'masterclass-demo') {
+    const gitPath = join(ROOT, daPath);
+    mkdirSync(dirname(gitPath), { recursive: true });
+    writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment, previewOptions));
+    console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview page)`);
+  } else {
+    console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'})`);
+  }
 }
 
 // 3. DA site config — library tab pointing at index sheets
@@ -298,4 +330,4 @@ const config = buildDaConfig(existing);
 await saveConfig(token, config, Boolean(existing));
 console.log('  ✓ DA config (library tab → blocks.json + templates.json)');
 
-console.log('\nDone. Hard-refresh Author: https://da.live/edit#/znikolovski/masterclass-demo/index');
+console.log(`\nDone. Hard-refresh Author: https://da.live/edit#/${ORG}/${SITE}/index`);

@@ -1,0 +1,39 @@
+version: 1
+indices:
+  default:
+    include:
+      - '/**'
+    exclude:
+      - '/drafts/**'
+    target: /query-index.json
+    properties:
+      lastModified:
+        select: none
+        value: parseTimestamp(headers["last-modified"], "ddd, DD MMM YYYY hh:mm:ss GMT")
+      title:
+        select: head meta[property="og:title"]
+        value: attribute(el, "content")
+      description:
+        select: head meta[property="og:description"]
+        value: attribute(el, "content")
+      image:
+        select: main picture img
+        value: attribute(el, "src")
+  blog:
+    include:
+      - '/blog/**'
+      - '/drafts/blog/**'
+    target: /blog-index.json
+    properties:
+      lastModified:
+        select: none
+        value: parseTimestamp(headers["last-modified"], "ddd, DD MMM YYYY hh:mm:ss GMT")
+      title:
+        select: main h1
+        value: textContent(el)
+      description:
+        select: main h1 + p
+        value: characters(textContent(el), 0, 200)
+      image:
+        select: main picture img
+        value: attribute(el, "src")

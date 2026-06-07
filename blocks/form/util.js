@@ -120,6 +120,9 @@ export function createButton(fd) {
   button.textContent = fd?.label?.visible === false ? '' : fd?.label?.value;
   button.type = fd.buttonType || 'button';
   button.classList.add('button');
+  if (fd.buttonType === 'submit' || fd.Type === 'submit') {
+    button.classList.add('primary');
+  }
   button.id = fd.id;
   button.name = fd.name;
   if (fd?.label?.visible === false) {

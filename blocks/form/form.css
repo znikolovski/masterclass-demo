@@ -3,9 +3,9 @@
     --label-color: #666;
     --border-color: #818a91;
     --form-error-color: #ff5f3f;
-    --button-primary-color: #5F8DDA;
+    --button-primary-color: var(--text-color, #0f1a14);
     --button-secondary-color: #666;
-    --button-primary-hover-color: #035fe6;
+    --button-primary-hover-color: var(--text-color, #0f1a14);
     --form-font-size-m: 22px;
     --form-font-size-s: 18px;
     --form-font-size-xs: 16px;
@@ -97,10 +97,6 @@ main .form-container {
 
 main .form {
     background-color: var(--form-background-color);
-}
-
-main .form > div:not(:first-child) {
-    display: none;
 }
 
 main .form form {
@@ -801,4 +797,41 @@ main div.form-wrapper {
 /* Expand height for multi-select dropdowns (array types) */
 main .form form select[multiple] {
     height: calc(42px + 50px);
+}
+
+/* Hide authoring cells (embedded JSON / .json link); decorated forms flatten in form.js */
+main .form.block > div:first-child {
+    display: none;
+}
+
+main .form > div:not(:first-child):has(pre, a[href$=".json"]) {
+    display: none;
+}
+
+/* Submit matches site primary button (styles.css) */
+main .form button.button.primary {
+    color: #fff;
+    background-color: var(--text-color);
+    border: 2px solid var(--text-color);
+    border-radius: 9999px;
+    padding: 12px 32px;
+    font-family: var(--heading-font-family);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    line-height: 1.25;
+    box-shadow: 3px 3px 0 0 var(--accent-color);
+    width: 100%;
+}
+
+main .form button.button.primary:hover {
+    background-color: var(--text-color);
+    box-shadow: 5px 5px 0 0 var(--accent-color);
+    transform: translate(-2px, -2px);
+}
+
+@media (width >= 600px) {
+    main .form button.button.primary {
+        width: unset;
+    }
 }

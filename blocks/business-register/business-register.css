@@ -1,0 +1,64 @@
+.business-register {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px;
+  border: 1px solid var(--light-color);
+  border-radius: 8px;
+  background: var(--background-color);
+}
+
+.business-register-header h2 {
+  margin: 0 0 8px;
+}
+
+.business-register-header p {
+  margin: 0 0 24px;
+  color: var(--dark-color);
+}
+
+.business-register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.business-register-grid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (width >= 600px) {
+  .business-register-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .business-register-grid label:first-child,
+  .business-register-grid label:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}
+
+.business-register-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--body-font-size-s);
+  font-weight: 600;
+}
+
+.business-register-grid input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--dark-color);
+  border-radius: 4px;
+}
+
+.business-register-error {
+  color: #b42318;
+  margin: 0;
+  font-size: var(--body-font-size-s);
+}
+
+.business-register-form button {
+  align-self: flex-start;
+}

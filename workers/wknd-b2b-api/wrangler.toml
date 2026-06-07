@@ -1,0 +1,11 @@
+name = "wknd-b2b-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[[kv_namespaces]]
+binding = "WKND_B2B_DATA"
+id = "00000000000000000000000000000000"
+preview_id = "00000000000000000000000000000000"
+
+[vars]
+ALLOWED_ORIGINS = "https://main--wknd-business--znikolovski.aem.page,https://main--wknd-business--znikolovski.aem.live,http://localhost:3000"

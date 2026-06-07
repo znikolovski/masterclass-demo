@@ -13,7 +13,7 @@ on:
       hits:
         description: Page hits to simulate
         required: false
-        default: '10000'
+        default: '2500'
       concurrency:
         description: Parallel browser workers (1-8)
         required: false
@@ -21,7 +21,7 @@ on:
 
 env:
   LIVE_BASE: https://main--masterclass-demo--znikolovski.aem.live
-  HITS: ${{ github.event.inputs.hits || '10000' }}
+  HITS: ${{ github.event.inputs.hits || '2500' }}
   CONCURRENCY: ${{ github.event.inputs.concurrency || '6' }}
 
 jobs:

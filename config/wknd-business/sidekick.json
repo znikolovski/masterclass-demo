@@ -1,0 +1,24 @@
+{
+  "project": "WKND Business",
+  "plugins": [
+    {
+      "id": "library",
+      "title": "Library",
+      "environments": ["edit"],
+      "url": "https://main--wknd-business--znikolovski.aem.page/tools/sidekick/library.html"
+    },
+    {
+      "id": "aem-assets",
+      "title": "AEM Assets",
+      "environments": ["edit"],
+      "url": "https://main--wknd-business--znikolovski.aem.page/tools/aem-assets/aem-assets.html",
+      "passConfig": true
+    },
+    {
+      "id": "fragment-picker",
+      "title": "Fragments",
+      "environments": ["edit"],
+      "url": "https://main--wknd-business--znikolovski.aem.page/tools/fragment-picker/fragment-picker.html"
+    }
+  ]
+}

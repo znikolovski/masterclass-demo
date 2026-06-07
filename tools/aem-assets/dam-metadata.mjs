@@ -111,11 +111,14 @@ export async function waitForAsset(authorUrl, apiPath, headers, maxAttempts = 40
  * @param {object} data
  */
 function extractUrnFromAssetJson(data) {
-  return data?.properties?.['repo:assetId']
+  const repo = data?.properties?.['repo:assetId']
     || data?.['repo:assetId']
     || data?.entities?.[0]?.properties?.['repo:assetId']
-    || data?.entities?.[0]?.['repo:assetId']
-    || null;
+    || data?.entities?.[0]?.['repo:assetId'];
+  if (repo) return repo;
+  const uuid = data?.['jcr:uuid'];
+  if (typeof uuid === 'string' && uuid) return `urn:aaid:aem:${uuid}`;
+  return null;
 }
 
 /**
@@ -131,6 +134,13 @@ export async function resolveAssetId(authorUrl, damFolder, fileName, headers) {
   const res = await fetch(`${authorUrl}/api/assets/${apiPath}.json`, { headers });
   if (res.ok) {
     const data = await res.json();
+    const urn = extractUrnFromAssetJson(data);
+    if (urn) return urn;
+  }
+
+  const slingRes = await fetch(`${authorUrl}${damPath}.1.json`, { headers });
+  if (slingRes.ok) {
+    const data = await slingRes.json();
     const urn = extractUrnFromAssetJson(data);
     if (urn) return urn;
   }

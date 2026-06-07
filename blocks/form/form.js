@@ -634,5 +634,7 @@ export default async function decorate(block) {
       applyAdventurePrefillToDom(form, adventureKind, resolveAdventureContext());
     }
     container.replaceWith(form);
+    // Authoring markup keeps <form> in a hidden sibling div (form.css); flatten for display.
+    block.replaceChildren(form);
   }
 }

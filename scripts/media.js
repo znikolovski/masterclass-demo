@@ -12,7 +12,11 @@ const DM_HOST_PATTERNS = [
   /adobedc\.net$/i,
 ];
 
-const DM_PATH_PATTERNS = [/\/is\/image\//i, /\/is\/content\//i];
+const DM_PATH_PATTERNS = [
+  /\/adobe\/assets\/urn:aaid:aem:/i,
+  /\/is\/image\//i,
+  /\/is\/content\//i,
+];
 
 const DEFAULT_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 2000 },
@@ -80,9 +84,15 @@ export function extractAssetId(src) {
  */
 function buildDynamicMediaUrl(baseSrc, width, format = 'webp') {
   const url = new URL(baseSrc, window.location.href);
-  url.searchParams.set('wid', String(width));
-  url.searchParams.set('qlt', '85');
-  url.searchParams.set('fmt', format);
+  if (url.pathname.includes('/adobe/assets/')) {
+    url.searchParams.set('width', String(width));
+    if (format === 'webp') url.searchParams.set('format', 'webp');
+    else url.searchParams.delete('format');
+  } else {
+    url.searchParams.set('wid', String(width));
+    url.searchParams.set('qlt', '85');
+    url.searchParams.set('fmt', format);
+  }
   return url.toString();
 }
 

@@ -1,0 +1,56 @@
+.business-login {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 48px;
+  border-radius: 8px;
+  background: var(--light-color);
+}
+
+.business-login-authenticated {
+  text-align: center;
+}
+
+.business-login-header h2 {
+  margin: 0 0 8px;
+}
+
+.business-login-header p {
+  margin: 0 0 24px;
+  color: var(--dark-color);
+}
+
+.business-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.business-login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--body-font-size-s);
+  font-weight: 600;
+}
+
+.business-login-form input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--dark-color);
+  border-radius: 4px;
+}
+
+.business-login-error {
+  color: #b42318;
+  margin: 0;
+  font-size: var(--body-font-size-s);
+}
+
+.business-login-register {
+  margin: 0;
+  font-size: var(--body-font-size-s);
+}
+
+.business-login-form button {
+  align-self: flex-start;
+}

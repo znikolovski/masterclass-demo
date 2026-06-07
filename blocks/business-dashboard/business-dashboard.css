@@ -1,0 +1,162 @@
+.business-dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.business-dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (width >= 900px) {
+  .business-dashboard-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.business-dashboard-header h2 {
+  margin: 0 0 4px;
+}
+
+.business-dashboard-company {
+  margin: 0;
+  color: var(--dark-color);
+}
+
+.business-dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.business-dashboard-tabs {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  border-bottom: 1px solid #e8e2d8;
+  margin-bottom: 24px;
+}
+
+.business-dashboard-tab {
+  flex: 0 0 max-content;
+  margin: 0;
+  border: none;
+  border-bottom: 4px solid transparent;
+  border-radius: 0;
+  padding: 8px 24px 8px 0;
+  background: transparent;
+  color: rgb(200 194 184);
+  font-family: var(--heading-font-family);
+  font-size: var(--body-font-size-s);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.business-dashboard-tab[aria-selected='true'] {
+  color: var(--text-color);
+  border-bottom-color: var(--accent-color);
+}
+
+.business-dashboard-grid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (width >= 600px) {
+  .business-dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .business-dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.business-dashboard-card {
+  border: 1px solid #e8e2d8;
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--background-color);
+}
+
+.business-dashboard-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.business-dashboard-card h3 {
+  margin: 0;
+  font-size: var(--body-font-size-m);
+}
+
+.business-dashboard-badge {
+  font-size: var(--body-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.business-dashboard-badge-pending {
+  background: #fff4e5;
+  color: #9a6700;
+}
+
+.business-dashboard-badge-current {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.business-dashboard-badge-archived {
+  background: #f3f3f3;
+  color: #5c5c5c;
+}
+
+.business-dashboard-meta {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.business-dashboard-meta div {
+  display: flex;
+  gap: 8px;
+  font-size: var(--body-font-size-xs);
+}
+
+.business-dashboard-meta dt {
+  font-weight: 700;
+  min-width: 110px;
+}
+
+.business-dashboard-meta dd {
+  margin: 0;
+}
+
+.business-dashboard-notes {
+  margin: 12px 0 0;
+  font-size: var(--body-font-size-s);
+  color: var(--dark-color);
+}
+
+.business-dashboard-empty,
+.business-dashboard-signed-out,
+.business-dashboard-error {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.business-dashboard-signed-out p,
+.business-dashboard-error p {
+  margin: 0 0 16px;
+}

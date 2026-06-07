@@ -9,12 +9,14 @@
  * Usage:
  *   npm run migrate:replace-da -- --dry-run
  *   npm run migrate:replace-da -- --preview
+ *   npm run migrate:replace-da -- --preview --publish
  *   npm run migrate:replace-da -- --include-drafts
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isLegacyScene7Url, isOpenApiDeliveryUrl } from './dam-delivery.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '../..');
@@ -24,6 +26,7 @@ const MANIFEST_PATH = join(__dirname, 'output/migration-manifest.json');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const PREVIEW = process.argv.includes('--preview');
+const PUBLISH = process.argv.includes('--publish');
 const INCLUDE_DRAFTS = process.argv.includes('--include-drafts');
 const INCLUDE_LIBRARY = process.argv.includes('--include-library');
 
@@ -95,7 +98,7 @@ function buildReplacements(manifest) {
   const stemToDelivery = new Map();
 
   manifest.items.forEach((item) => {
-    if (!item.deliveryUrl) return;
+    if (!item.deliveryUrl || !isOpenApiDeliveryUrl(item.deliveryUrl)) return;
 
     const file = escapeRegex(item.fileName);
     addRule(
@@ -264,18 +267,54 @@ function collectUnmatchedImageUrls(html) {
 }
 
 /**
+ * DA file path → admin.hlx.page path (no .html).
  * @param {string} file
  */
-async function previewPage(file) {
-  const path = file === 'index.html' ? '/' : `/${file.replace(/\.html$/, '')}`;
+function pagePathFromFile(file) {
+  const stem = file.replace(/\.html$/, '');
+  if (stem === 'index') return '/';
+  return `/${stem}`;
+}
+
+/**
+ * Trigger preview ingestion (required after DA source PUT).
+ * @param {string} token
+ * @param {string} file
+ */
+async function previewPage(token, file) {
+  const path = pagePathFromFile(file);
+  const adminPath = path === '/' ? '/' : path;
+  const res = await fetch(
+    `https://admin.hlx.page/preview/${ORG}/${SITE}/main${adminPath}`,
+    { method: 'POST', headers: { Authorization: `Bearer ${token}` } },
+  );
   const base = `https://${ORG}--${SITE}.aem.page`;
   const url = path === '/' ? `${base}/` : `${base}${path}`;
-  const token = getToken();
-  await fetch(`https://admin.hlx.page/status/${ORG}/${SITE}/main${path === '/' ? '/' : path}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  console.log(`  preview: ${url}`);
+  if (!res.ok) {
+    console.warn(`  preview failed ${file}: ${res.status} ${(await res.text()).slice(0, 120)}`);
+    return;
+  }
+  console.log(`  previewed: ${url}`);
+}
+
+/**
+ * @param {string} token
+ * @param {string} file
+ */
+async function publishPage(token, file) {
+  const path = pagePathFromFile(file);
+  const adminPath = path === '/' ? '/' : path;
+  const res = await fetch(
+    `https://admin.hlx.page/live/${ORG}/${SITE}/main${adminPath}`,
+    { method: 'POST', headers: { Authorization: `Bearer ${token}` } },
+  );
+  const base = `https://${ORG}--${SITE}.aem.live`;
+  const url = path === '/' ? `${base}/` : `${base}${path}`;
+  if (!res.ok) {
+    console.warn(`  publish failed ${file}: ${res.status} ${(await res.text()).slice(0, 120)}`);
+    return;
+  }
+  console.log(`  published: ${url}`);
 }
 
 async function main() {
@@ -286,10 +325,22 @@ async function main() {
   }
 
   const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
-  const withDelivery = manifest.items.filter((i) => i.deliveryUrl);
+  const withDelivery = manifest.items.filter((i) => isOpenApiDeliveryUrl(i.deliveryUrl));
+  const legacyOnly = manifest.items.filter(
+    (i) => i.deliveryUrl && isLegacyScene7Url(i.deliveryUrl),
+  ).length;
   if (!withDelivery.length) {
-    console.error('No deliveryUrl entries in manifest. Run migrate:resolve-delivery first.');
+    console.error('No Open API deliveryUrl entries in manifest.');
+    if (legacyOnly) {
+      console.error(`  ${legacyOnly} assets still have legacy Scene7 URLs.`);
+      console.error('  Run: npm run migrate:resolve-delivery -- --upgrade-legacy');
+    } else {
+      console.error('  Run migrate:resolve-delivery first.');
+    }
     process.exit(1);
+  }
+  if (legacyOnly) {
+    console.warn(`Skipping ${legacyOnly} legacy Scene7 URLs (use --upgrade-legacy on resolve-delivery).`);
   }
 
   const rules = buildReplacements(manifest);
@@ -329,7 +380,11 @@ async function main() {
 
       if (PREVIEW) {
         // eslint-disable-next-line no-await-in-loop
-        await previewPage(file);
+        await previewPage(token, file);
+      }
+      if (PUBLISH) {
+        // eslint-disable-next-line no-await-in-loop
+        await publishPage(token, file);
       }
     } catch (err) {
       console.warn(`${file}: ${err.message}`);
@@ -356,8 +411,14 @@ async function main() {
   }
 
   if (!DRY_RUN && updated > 0 && !PREVIEW) {
-    console.log('\nRun with --preview to refresh aem.page after changes.');
+    console.log('\nRun with --preview to ingest DA changes (admin.hlx.page/preview).');
   }
+  if (!DRY_RUN && updated > 0 && PREVIEW && !PUBLISH) {
+    console.log('\nPreview updated. Run with --publish to push the same pages to aem.live.');
+  }
+  console.log('\nNote: img src URLs are sideloaded to ./media_<hash> at preview (Media Bus).');
+  console.log('Scene7 URLs in HTML after delivery are expected — bytes may still come from DAM.');
+  console.log('For live DM CDN URLs at runtime, use Asset Selector copyMode: reference (Approach B).');
 }
 
 main().catch((err) => {

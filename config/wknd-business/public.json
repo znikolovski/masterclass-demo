@@ -1,0 +1,13 @@
+{
+  "paths": {
+    "mappings": [
+      "/content/forms/af/wknd-business/:/forms/",
+      "/content/dam/formsanddocuments/wknd-business/:/forms/"
+    ],
+    "includes": [
+      "/content/forms/af/wknd-business/",
+      "/content/dam/formsanddocuments/wknd-business/",
+      "/content/dam/"
+    ]
+  }
+}
