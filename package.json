@@ -31,7 +31,8 @@
     "b2b:library": "DA_SITE=wknd-business node tools/sidekick/setup-da-library.mjs",
     "b2b:forms": "node tools/scripts/create-wknd-forms.mjs --push-da --preview",
     "site:auth:remove": "node tools/scripts/remove-site-auth.mjs",
-    "forms:diagnose": "node tools/scripts/diagnose-form-delivery.mjs"
+    "forms:diagnose": "node tools/scripts/diagnose-form-delivery.mjs",
+    "metadata:patch": "node tools/scripts/patch-analytics-metadata.mjs --preview --publish"
   },
   "repository": {
     "type": "git",

@@ -29,6 +29,12 @@ const SLUG_MAP = {
   'wild-swimming-guide': { b2c: 'Wild swimming', b2b: 'Water' },
   'wild-swimming': { b2c: 'Wild swimming', b2b: 'Water' },
   'norway-kayaking': { b2c: 'Norway kayaking', b2b: 'Water' },
+  'kayaking-norway': { b2c: 'Norway kayaking', b2b: 'Water' },
+  'winter-mountaineering': { b2c: 'Other', b2b: 'Winter' },
+  'desert-survival-guide': { b2c: 'Other', b2b: 'Custom' },
+  'mountain-photography': { b2c: 'Other', b2b: 'Custom' },
+  'ultralight-backpacking': { b2c: 'Other', b2b: 'Trekking' },
+  'surfing-costa-rica': { b2c: 'Other', b2b: 'Water' },
 };
 
 const CATEGORY_TO_B2B = {
@@ -42,6 +48,17 @@ const CATEGORY_TO_B2B = {
   'general-outdoor': 'Custom',
 };
 
+/** Fallback B2C select value when only adventureCategory metadata is set. */
+const CATEGORY_TO_B2C = {
+  climbing: 'Yosemite',
+  trekking: 'Patagonia',
+  cycling: 'Alpine cycling',
+  water: 'Norway kayaking',
+  'winter-alpine': 'Other',
+  desert: 'Other',
+  photography: 'Other',
+};
+
 /**
  * @param {string} name
  * @param {Document} [doc]
@@ -49,6 +66,10 @@ const CATEGORY_TO_B2B = {
 export function getPageMetadataValue(name, doc = document) {
   const fromHead = getMetadata(name, doc);
   if (fromHead) return fromHead;
+  const headMeta = [...doc.head.querySelectorAll('meta[name]')].find(
+    (m) => m.getAttribute('name')?.toLowerCase() === name.toLowerCase(),
+  );
+  if (headMeta?.content?.trim()) return headMeta.content.trim();
   const block = doc.querySelector('main .metadata');
   if (!block) return '';
   const row = [...block.children].find((child) => {
@@ -121,7 +142,7 @@ export function resolveAdventureContext(doc = document) {
   const category = getPageMetadataValue('adventureCategory', doc);
   if (category && CATEGORY_TO_B2B[category]) {
     return {
-      b2cValue: '',
+      b2cValue: CATEGORY_TO_B2C[category] || '',
       b2bValue: CATEGORY_TO_B2B[category],
       source: 'metadata:adventureCategory',
     };

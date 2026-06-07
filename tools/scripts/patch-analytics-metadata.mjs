@@ -1,13 +1,19 @@
 #!/usr/bin/env node
+/* eslint-disable import/extensions, no-restricted-syntax, no-await-in-loop, no-continue */
 /**
- * Add adventureCategory and journeyStage to key pages in Document Authoring.
- * Prerequisites: valid DA token in .hlx/.da-token.json (run `aem login` or da-auth).
- * Usage: node tools/scripts/patch-analytics-metadata.mjs [--dry-run] [--preview]
+ * Add adventureInterest, adventureCategory, and journeyStage to pages in DA.
+ * Usage: node tools/scripts/patch-analytics-metadata.mjs [--dry-run] [--preview] [--publish]
  */
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  BLOG_ANALYTICS, PAGE_ANALYTICS, fieldsForPath,
+} from './lib/adventure-page-metadata.mjs';
+import {
+  getDaToken, putSource, triggerPreview, triggerPublish,
+} from './lib/da-source.mjs';
 
 const ORG = 'znikolovski';
 const SITE = 'masterclass-demo';
@@ -15,52 +21,13 @@ const BRANCH = 'main';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const DRY_RUN = process.argv.includes('--dry-run');
 const PREVIEW = process.argv.includes('--preview');
+const PUBLISH = process.argv.includes('--publish');
 
-/** @type {Record<string, { adventureCategory: string, journeyStage: string, template?: string }>} */
-const PAGE_ANALYTICS = {
-  '/': { adventureCategory: 'general-outdoor', journeyStage: 'inspiration', template: 'homepage' },
-  '/about': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
-  '/adventures': { adventureCategory: 'general-outdoor', journeyStage: 'discovery', template: 'landing-page' },
-  '/destinations': { adventureCategory: 'general-outdoor', journeyStage: 'discovery', template: 'landing-page' },
-  '/expeditions': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/gear': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/faq': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/basecamp': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/field-notes': { adventureCategory: 'photography', journeyStage: 'inspiration', template: 'landing-page' },
-  '/community': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
-  '/sustainability': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
-};
-
-/** @type {Record<string, { adventureCategory: string, journeyStage: string }>} */
-const BLOG_ANALYTICS = {
-  'yosemite-rock-climbing': { adventureCategory: 'climbing', journeyStage: 'inspiration' },
-  'patagonia-trek': { adventureCategory: 'trekking', journeyStage: 'inspiration' },
-  'wild-swimming-guide': { adventureCategory: 'water', journeyStage: 'inspiration' },
-  'alpine-cycling': { adventureCategory: 'cycling', journeyStage: 'inspiration' },
-  'kayaking-norway': { adventureCategory: 'water', journeyStage: 'inspiration' },
-  'winter-mountaineering': { adventureCategory: 'winter-alpine', journeyStage: 'inspiration' },
-  'desert-survival-guide': { adventureCategory: 'desert', journeyStage: 'inspiration' },
-  'mountain-photography': { adventureCategory: 'photography', journeyStage: 'inspiration' },
-  'ultralight-backpacking': { adventureCategory: 'trekking', journeyStage: 'inspiration' },
-  'surfing-costa-rica': { adventureCategory: 'water', journeyStage: 'inspiration' },
-};
-
-function getToken() {
-  const paths = [
-    join(ROOT, '.hlx/.da-token.json'),
-    `${process.env.HOME}/.aem/da-token.json`,
-  ];
-  for (const p of paths) {
-    try {
-      const raw = JSON.parse(readFileSync(p, 'utf8'));
-      const token = raw.access_token || raw.imsToken;
-      const expires = raw.expires_at || (raw.imsTokenExpiry && raw.imsTokenExpiry * 1000);
-      if (token && (!expires || expires > Date.now() + 60_000)) return token;
-    } catch {
-      /* continue */
-    }
-  }
-  return null;
+/**
+ * @param {string} key
+ */
+function escapeRegex(key) {
+  return key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
@@ -69,30 +36,27 @@ function getToken() {
  * @param {string} value
  */
 function upsertDivMetadataRow(html, key, value) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = escapeRegex(key);
   const rowRegex = new RegExp(
-    `<div>\\s*<div>${escaped}<\\/div>\\s*<div>[\\s\\S]*?<\\/div>\\s*<\\/div>`,
+    `<div>\\s*<div>(?:<p>)?\\s*${escaped}\\s*(?:<\\/p>)?\\s*<\\/div>\\s*<div>[\\s\\S]*?<\\/div>\\s*<\\/div>`,
     'i',
   );
-  const newRow = `    <div>
-      <div>${key}</div>
-      <div>${value}</div>
-    </div>`;
+  const newRow = `<div><div><p>${key}</p></div><div><p>${value}</p></div></div>`;
 
   if (html.includes('class="metadata"')) {
     if (rowRegex.test(html)) {
       return html.replace(rowRegex, newRow);
     }
     return html.replace(
-      /(<div class="metadata">[\s\S]*?)(\n\s*<\/div>\s*\n\s*<\/div>)/,
-      `$1\n${newRow}$2`,
+      /(<div class="metadata">)/i,
+      `$1\n    ${newRow}`,
     );
   }
 
   const section = `
 <div>
   <div class="metadata">
-${newRow}
+    ${newRow}
   </div>
 </div>`;
   return `${html.trim()}\n${section}`;
@@ -104,7 +68,7 @@ ${newRow}
  * @param {string} value
  */
 function upsertTableMetadataRow(html, key, value) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = escapeRegex(key);
   const rowRegex = new RegExp(
     `<tr><td>${escaped}<\\/td><td>[\\s\\S]*?<\\/td><\\/tr>`,
     'i',
@@ -142,11 +106,6 @@ function patchMetadata(html, fields) {
   return out;
 }
 
-function daPath(path) {
-  const normalized = path === '/' ? 'index' : path.replace(/^\//, '');
-  return `${normalized}.html`;
-}
-
 function listBlogPaths() {
   const dir = join(ROOT, 'tools/importer/reports/blog');
   try {
@@ -158,27 +117,9 @@ function listBlogPaths() {
   }
 }
 
-function buildPageList() {
-  const pages = Object.keys(PAGE_ANALYTICS);
-  const blogs = listBlogPaths();
-  return [...pages, ...blogs];
-}
-
-function fieldsForPath(path) {
-  if (path.startsWith('/blog/')) {
-    const slug = path.split('/').pop();
-    const blog = BLOG_ANALYTICS[slug] || { adventureCategory: 'general-outdoor', journeyStage: 'inspiration' };
-    return {
-      adventureCategory: blog.adventureCategory,
-      journeyStage: blog.journeyStage,
-      template: 'blog-article',
-    };
-  }
-  return PAGE_ANALYTICS[path] || {};
-}
-
 async function getSource(token, path) {
-  const url = `https://admin.da.live/source/${ORG}/${SITE}/${daPath(path)}`;
+  const normalized = path === '/' ? 'index' : path.replace(/^\//, '');
+  const url = `https://admin.da.live/source/${ORG}/${SITE}/${normalized}.html`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -186,42 +127,18 @@ async function getSource(token, path) {
   return res.text();
 }
 
-async function putSource(token, path, body) {
-  const form = new FormData();
-  const file = daPath(path);
-  form.append('data', new Blob([body], { type: 'text/html' }), basename(file));
-  const url = `https://admin.da.live/source/${ORG}/${SITE}/${file}`;
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { Authorization: `Bearer ${token}` },
-    body: form,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`PUT ${path} → ${res.status}: ${text.slice(0, 200)}`);
-  }
-}
-
-async function triggerPreview(token, path) {
-  const normalized = path === '/' ? '' : path;
-  const url = `https://admin.hlx.page/preview/${ORG}/${SITE}/${BRANCH}${normalized}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    console.warn(`  ! preview ${path} → ${res.status}`);
-  }
-}
-
-const token = getToken();
+const token = getDaToken(ROOT);
 if (!token) {
-  console.error('No valid DA token. Run: aem login (or complete da-auth in browser).');
+  console.error('No valid DA token. Run: npx github:adobe-rnd/da-auth-helper token');
   process.exit(1);
 }
 
-const paths = buildPageList();
-console.log(`${DRY_RUN ? 'Dry run' : 'Patching'} analytics metadata on ${paths.length} pages…\n`);
+const paths = [
+  ...Object.keys(PAGE_ANALYTICS),
+  ...listBlogPaths(),
+];
+
+console.log(`${DRY_RUN ? 'Dry run' : 'Patching'} adventure metadata on ${paths.length} pages…\n`);
 
 let updated = 0;
 for (const path of paths) {
@@ -233,13 +150,14 @@ for (const path of paths) {
     continue;
   }
   if (DRY_RUN) {
-    console.log(`  ~ ${path} → ${fields.adventureCategory} / ${fields.journeyStage}`);
+    console.log(`  ~ ${path} → ${fields.adventureInterest || '—'} / ${fields.adventureCategory} / ${fields.journeyStage}`);
     continue;
   }
-  await putSource(token, path, after);
-  if (PREVIEW) await triggerPreview(token, path);
-  console.log(`  ✓ ${path} → ${fields.adventureCategory} / ${fields.journeyStage}`);
+  await putSource(token, ORG, SITE, path, after);
+  if (PREVIEW) await triggerPreview(token, ORG, SITE, BRANCH, path);
+  if (PUBLISH) await triggerPublish(token, ORG, SITE, BRANCH, path);
+  console.log(`  ✓ ${path} → interest=${fields.adventureInterest || '—'} category=${fields.adventureCategory}`);
   updated += 1;
 }
 
-console.log(`\nDone. ${updated} page(s) updated.${PREVIEW ? ' Preview triggered.' : ''}`);
+console.log(`\nDone. ${updated} page(s) updated.`);
