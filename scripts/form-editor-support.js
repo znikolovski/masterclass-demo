@@ -17,7 +17,12 @@
  * Adobe permits you to use and modify this file solely in accordance with
  * the terms of the Adobe license agreement accompanying it.
  ************************************************************************ */
-import decorate, { generateFormRendition, fetchForm } from '../blocks/form/form.js';
+import decorate, {
+  enrichStubFormDef,
+  decodeFormResourceId,
+  generateFormRendition,
+  fetchForm,
+} from '../blocks/form/form.js';
 import { loadCSS } from './aem.js';
 import { handleAccordionNavigation } from '../blocks/form/components/accordion/accordion.js';
 import { createButton as createRepeatButton } from '../blocks/form/components/repeat/repeat.js';
@@ -194,6 +199,15 @@ export function annotateFormForEditing(formEl, formDefinition) {
       block.setAttribute('data-aue-filter', 'form');
     }
     formEl.classList.add('edit-mode');
+    const guidePath = formDefinition?.properties?.['fd:path'];
+    if (guidePath) {
+      formEl.setAttribute('data-aue-resource', `urn:aemconnection:${guidePath}`);
+      formEl.setAttribute('data-aue-model', 'form');
+      formEl.setAttribute('data-aue-type', 'container');
+      formEl.setAttribute('data-aue-behavior', 'component');
+      formEl.setAttribute('data-aue-filter', 'form');
+      formEl.setAttribute('data-aue-label', formDefinition?.title || 'Form');
+    }
   }
   const formFieldMap = {};
   annotateItems(formEl.childNodes, formDefinition, formFieldMap);
@@ -257,34 +271,29 @@ async function mapAemPathToEdsPath(aemPath) {
     .replace('/content/dam/formsanddocuments/', '/forms/');
 }
 
-function decodeFormId(rawId) {
-  if (!rawId || typeof rawId !== 'string') return null;
+function getStubFormDef(block) {
+  const codeEl = block?.querySelector('pre code');
+  if (!codeEl?.textContent) return null;
   try {
-    const decoded = atob(rawId);
-    if (decoded.startsWith('/content/')) return decoded;
+    return enrichStubFormDef(JSON.parse(codeEl.textContent.trim()));
   } catch (error) {
-    // not base64 — fall through
+    // eslint-disable-next-line no-console
+    console.warn('Unable to parse form stub:', error);
+    return null;
   }
-  return rawId.startsWith('/content/') ? rawId : null;
 }
 
 async function resolveFormModelPath(form, block) {
   if (form.dataset.formpath) return form.dataset.formpath;
 
-  const codeEl = block?.querySelector('pre code');
-  if (codeEl?.textContent) {
-    try {
-      const stub = JSON.parse(codeEl.textContent.trim());
-      const aemPath = decodeFormId(stub.id);
-      if (aemPath) {
-        const edsPath = await mapAemPathToEdsPath(aemPath);
-        form.dataset.formpath = edsPath;
-        return edsPath;
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Unable to resolve form path from block stub:', error);
-    }
+  const stubDef = getStubFormDef(block);
+  const aemPath = stubDef?.properties?.['fd:path'] || decodeFormResourceId(form.dataset.id);
+  if (aemPath) {
+    const edsPath = await mapAemPathToEdsPath(
+      aemPath.replace(/\/jcr:content\/guideContainer$/, ''),
+    );
+    form.dataset.formpath = edsPath;
+    return edsPath;
   }
   return null;
 }
@@ -304,12 +313,15 @@ export async function renderFormBlock(form, editMode) {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn('Failed to fetch form model json:', error);
-      try {
-        formDef = await fetchForm(document.location.pathname);
-      } catch (fallbackError) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to fetch fallback form definition:', fallbackError);
-        return null;
+      formDef = getStubFormDef(block);
+      if (!formDef) {
+        try {
+          formDef = await fetchForm(document.location.pathname);
+        } catch (fallbackError) {
+          // eslint-disable-next-line no-console
+          console.error('Failed to fetch fallback form definition:', fallbackError);
+          return null;
+        }
       }
     }
 
@@ -446,9 +458,12 @@ export function attachEventListners(main) {
   const bootstrapFormBlocks = () => {
     const blocks = document.querySelectorAll('.block[data-aue-model="form"], .block.form');
     blocks.forEach((block) => {
-      if (block.querySelector('form') || !block.querySelector('pre code')) return;
+      if (block.querySelector('form')) return;
+      const stubDef = getStubFormDef(block);
+      if (!stubDef) return;
       const wrapper = block.querySelector(':scope > div') || block;
       const form = document.createElement('form');
+      if (stubDef.id) form.dataset.id = stubDef.id;
       wrapper.appendChild(form);
     });
   };
