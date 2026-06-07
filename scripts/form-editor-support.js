@@ -233,14 +233,73 @@ export function handleEditorSelect(event) {
   }
 }
 
+async function mapAemPathToEdsPath(aemPath) {
+  if (!aemPath?.startsWith('/content/')) return aemPath;
+  try {
+    const paths = await fetch(`${window.hlx.codeBasePath}/paths.json`).then((r) => r.json());
+    const mappings = paths?.mappings || [];
+    const match = mappings
+      .map((entry) => entry.split(':'))
+      .filter(([from]) => from)
+      .sort((a, b) => b[0].length - a[0].length)
+      .find(([from]) => aemPath.startsWith(from.replace(/\/$/, '')));
+    if (match) {
+      const [from, to] = match;
+      return aemPath.replace(from.replace(/\/$/, ''), to.replace(/\/$/, ''));
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load paths.json for form path mapping:', error);
+  }
+  return aemPath
+    .replace('/content/forms/af/', '/forms/')
+    .replace('/content/forms/', '/forms/')
+    .replace('/content/dam/formsanddocuments/', '/forms/');
+}
+
+function decodeFormId(rawId) {
+  if (!rawId || typeof rawId !== 'string') return null;
+  try {
+    const decoded = atob(rawId);
+    if (decoded.startsWith('/content/')) return decoded;
+  } catch (error) {
+    // not base64 — fall through
+  }
+  return rawId.startsWith('/content/') ? rawId : null;
+}
+
+async function resolveFormModelPath(form, block) {
+  if (form.dataset.formpath) return form.dataset.formpath;
+
+  const codeEl = block?.querySelector('pre code');
+  if (codeEl?.textContent) {
+    try {
+      const stub = JSON.parse(codeEl.textContent.trim());
+      const aemPath = decodeFormId(stub.id);
+      if (aemPath) {
+        const edsPath = await mapAemPathToEdsPath(aemPath);
+        form.dataset.formpath = edsPath;
+        return edsPath;
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Unable to resolve form path from block stub:', error);
+    }
+  }
+  return null;
+}
+
 export async function renderFormBlock(form, editMode) {
   const block = form.closest('.block[data-aue-resource]');
   if ((editMode && !block.classList.contains('edit-mode')) || !editMode) {
     block.classList.toggle('edit-mode', editMode);
     const div = form.parentElement;
     let formDef;
+    const formModelPath = await resolveFormModelPath(form, block);
     try {
-      const formDefResp = await fetch(`${form.dataset.formpath}.model.json`);
+      if (!formModelPath) throw new Error('Missing form model path');
+      const formDefResp = await fetch(`${formModelPath}.model.json`);
+      if (!formDefResp.ok) throw new Error(`model.json ${formDefResp.status}`);
       formDef = await formDefResp.json();
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -384,8 +443,19 @@ export function attachEventListners(main) {
     });
   });
 
+  const bootstrapFormBlocks = () => {
+    const blocks = document.querySelectorAll('.block[data-aue-model="form"], .block.form');
+    blocks.forEach((block) => {
+      if (block.querySelector('form') || !block.querySelector('pre code')) return;
+      const wrapper = block.querySelector(':scope > div') || block;
+      const form = document.createElement('form');
+      wrapper.appendChild(form);
+    });
+  };
+
   const ueEditModeHandler = () => {
     window.currentMode = 'edit';
+    bootstrapFormBlocks();
     const forms = document.querySelectorAll('form');
     annotateFormsForEditing(forms);
   };
