@@ -1,0 +1,15 @@
+{
+  "mappings": [
+    "/content/forms/af/masterclass-demo/:/forms/",
+    "/content/dam/formsanddocuments/masterclass-demo/:/forms/",
+    "/content/forms/af/wknd-business/:/forms/",
+    "/content/dam/formsanddocuments/wknd-business/:/forms/"
+  ],
+  "includes": [
+    "/content/forms/af/masterclass-demo/",
+    "/content/dam/formsanddocuments/masterclass-demo/",
+    "/content/forms/af/wknd-business/",
+    "/content/dam/formsanddocuments/wknd-business/",
+    "/content/dam/"
+  ]
+}
