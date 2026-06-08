@@ -178,6 +178,7 @@ function applyImageAttributes(node, attrs = {}) {
   if (attrs.height) img.setAttribute('height', attrs.height);
   if (attrs.loading) img.setAttribute('loading', attrs.loading);
   if (attrs.sizes) img.setAttribute('sizes', attrs.sizes);
+  if (attrs.loading === 'eager') img.setAttribute('fetchpriority', 'high');
 }
 
 /**
@@ -256,21 +257,24 @@ export function createResponsivePicture(
 /**
  * Upgrade authored pictures after block decoration (Media Bus + DM + external).
  * @param {ParentNode} root
- * @param {{ eagerSelector?: string }} [options]
+ * @param {{ eagerSelector?: string, eagerAll?: boolean }} [options]
  */
 export function optimizePictures(root, options = {}) {
-  const { eagerSelector = HERO_SELECTOR } = options;
+  const { eagerSelector = HERO_SELECTOR, eagerAll = false } = options;
   root.querySelectorAll('picture > img[src]').forEach((img) => {
     if (img.dataset.mediaOptimized === 'true') return;
 
     const picture = img.closest('picture');
     if (!picture) return;
 
-    const { breakpoints, sizes, eager } = getPictureConfig(img, eagerSelector);
+    const config = getPictureConfig(img, eagerSelector);
+    const { breakpoints, sizes } = config;
+    const eager = eagerAll || config.eager;
+    const loading = eager ? 'eager' : (img.getAttribute('loading') || undefined);
     const attrs = {
       width: img.getAttribute('width') || undefined,
       height: img.getAttribute('height') || undefined,
-      loading: eager ? 'eager' : (img.getAttribute('loading') || undefined),
+      loading,
       sizes,
     };
     picture.replaceWith(createResponsivePicture(

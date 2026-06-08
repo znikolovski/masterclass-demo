@@ -16,6 +16,10 @@
   color: var(--background-color);
 }
 
+.hero h1.hero-heading-pending {
+  visibility: hidden;
+}
+
 .hero picture {
   position: absolute;
   z-index: -1;

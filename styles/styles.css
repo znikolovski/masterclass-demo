@@ -1,15 +1,4 @@
-@import url('brand.css');
-
-@media (width >= 900px) {
-  :root {
-    --heading-font-size-xxl: 56px;
-    --heading-font-size-xl: 40px;
-    --heading-font-size-l: 24px;
-    --heading-font-size-m: 20px;
-    --heading-font-size-s: 18px;
-    --heading-font-size-xs: 14px;
-  }
-}
+/* LCP-critical global styles — tokens in brand.css (parallel head link, not @import) */
 
 body {
   display: none;
@@ -71,19 +60,6 @@ blockquote {
   margin-bottom: 0.25em;
 }
 
-code,
-pre {
-  font-size: var(--body-font-size-s);
-}
-
-pre {
-  padding: 16px;
-  border-radius: 8px;
-  background-color: var(--light-color);
-  overflow-x: auto;
-  white-space: pre;
-}
-
 main > div {
   margin: 40px 16px;
 }
@@ -95,114 +71,10 @@ button {
   font: inherit;
 }
 
-/* links */
 a:any-link {
   color: var(--link-color);
   text-decoration: none;
   overflow-wrap: break-word;
-}
-
-a:hover {
-  color: var(--link-hover-color);
-}
-
-/* buttons */
-p.button-wrapper {
-  margin: 12px 0;
-}
-
-a.button:any-link,
-button.button {
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 100%;
-  margin: 0;
-  border: 2px solid var(--accent-color);
-  border-radius: 9999px;
-  padding: 12px 32px;
-  font-family: var(--heading-font-family);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  line-height: 1.25;
-  text-decoration: none;
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-
-a.button:hover,
-a.button:focus-visible,
-button.button:hover,
-button.button:focus-visible {
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-  transform: translate(-2px, -2px);
-}
-
-a.button:active,
-button.button:active {
-  box-shadow: 1px 1px 0 0 var(--accent-color);
-  transform: translate(0);
-}
-
-a.button[aria-disabled="true"],
-button.button:disabled {
-  cursor: not-allowed;
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-a.button.primary,
-button.button.primary {
-  background-color: var(--text-color);
-  border-color: var(--text-color);
-  color: #fff;
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-}
-
-a.button.primary:hover,
-a.button.primary:focus-visible,
-button.button.primary:hover,
-button.button.primary:focus-visible {
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-  transform: translate(-2px, -2px);
-}
-
-a.button.secondary,
-button.button.secondary {
-  border-color: var(--text-color);
-  background-color: transparent;
-  color: var(--text-color);
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-}
-
-a.button.secondary:hover,
-a.button.secondary:focus-visible,
-button.button.secondary:hover,
-button.button.secondary:focus-visible {
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-  transform: translate(-2px, -2px);
-}
-
-a.button.accent,
-button.button.accent {
-  border-color: var(--accent-color);
-  background-color: var(--accent-color);
-  color: var(--background-color);
-  box-shadow: 3px 3px 0 0 var(--text-color);
-}
-
-a.button.accent:hover,
-a.button.accent:focus-visible,
-button.button.accent:hover,
-button.button.accent:focus-visible {
-  box-shadow: 5px 5px 0 0 var(--text-color);
-  transform: translate(-2px, -2px);
 }
 
 main img {
@@ -220,106 +92,6 @@ main img {
 .icon img {
   height: 100%;
   width: 100%;
-}
-
-/* button groups */
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-/* shared base for all button types */
-.accent-button,
-.button-group .button,
-.button-group .button-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid transparent;
-  border-radius: 9999px;
-  padding: 12px 32px;
-  font-family: var(--heading-font-family);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  line-height: 1;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-
-/* .button — dark filled, orange shadow */
-.button-group .button {
-  background-color: var(--text-color);
-  border-color: var(--text-color);
-  color: #fff;
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-}
-
-.button-group .button:hover {
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-  transform: translate(-2px, -2px);
-}
-
-.button-group .button:active {
-  box-shadow: 1px 1px 0 0 var(--accent-color);
-  transform: translate(0);
-}
-
-/* .accent-button — orange filled, dark shadow */
-.accent-button {
-  background-color: var(--accent-color);
-  border-color: var(--accent-color);
-  color: var(--text-color);
-  box-shadow: 3px 3px 0 0 var(--text-color);
-}
-
-.accent-button:hover {
-  box-shadow: 5px 5px 0 0 var(--text-color);
-  transform: translate(-2px, -2px);
-}
-
-.accent-button:active {
-  box-shadow: 1px 1px 0 0 var(--text-color);
-  transform: translate(0);
-}
-
-/* .button-ghost — transparent, dark border, orange shadow */
-.button-group .button-ghost {
-  background-color: transparent;
-  border-color: var(--text-color);
-  color: var(--text-color);
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-}
-
-.button-group .button-ghost:hover {
-  background-color: var(--text-color);
-  border-color: var(--text-color);
-  color: #fff;
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-  transform: translate(-2px, -2px);
-}
-
-.button-group .button-ghost:active {
-  box-shadow: 1px 1px 0 0 var(--accent-color);
-  transform: translate(0);
-}
-
-@media (width < 768px) {
-  .button-group {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .accent-button,
-  .button-group .button,
-  .button-group .button-ghost {
-    width: 100%;
-    justify-content: center;
-  }
 }
 
 /* sections */
@@ -349,134 +121,6 @@ main > .section:first-of-type {
   }
 }
 
-/* section metadata */
-main .section.dark,
-main .section.inverse {
-  background-color: var(--dark-color);
-  color: #fff;
-  margin: 0;
-  padding: 80px 0;
-}
-
-main .section.narrow > div {
-  max-width: 800px;
-}
-
-main .section.inverse.narrow > .default-content-wrapper {
-  text-align: center;
-}
-
-main .section.inverse a:any-link {
-  color: #fff;
-}
-
-main .section.inverse h2 {
-  color: #fff;
-}
-
-/* Inverse section: heading + link side by side */
-main .section.inverse .default-content-wrapper:first-child {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-main .section.inverse .default-content-wrapper a {
-  font-family: var(--heading-font-family);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-main .section.inverse .default-content-wrapper > p:first-child {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--heading-font-family);
-  font-size: 10.4px;
-  font-weight: 600;
-  letter-spacing: 0.52px;
-  line-height: 1;
-  color: #fff;
-  background-color: var(--accent-color);
-  padding: 5px 8px 3px;
-  border-radius: 9999px;
-  margin: 0 0 16px;
-}
-
-/* Inverse section: .button = white filled */
-main .section.inverse .button-group .button {
-  background-color: #fff;
-  border-color: #fff;
-  color: var(--text-color);
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-}
-
-/* Inverse section: .button-ghost = transparent, white border */
-main .section.inverse .button-group .button-ghost {
-  background-color: transparent;
-  border-color: rgb(255 255 255 / 50%);
-  color: #fff;
-  box-shadow: 3px 3px 0 0 var(--accent-color);
-}
-
-main .section.accent .button-group {
-  justify-content: center;
-}
-
-/* Accent section: .button = dark filled, white shadow */
-main .section.accent .button-group .button {
-  background-color: var(--text-color);
-  border-color: var(--text-color);
-  color: #fff;
-  box-shadow: 3px 3px 0 0 #fff;
-}
-
-/* Accent section: .button-ghost = transparent, dark border, white shadow */
-main .section.accent .button-group .button-ghost {
-  background-color: transparent;
-  border-color: var(--text-color);
-  color: var(--text-color);
-  box-shadow: 3px 3px 0 0 #fff;
-}
-
-/* Section hover states (after all base states) */
-main .section.inverse .button-group .button:hover {
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-}
-
-main .section.inverse .button-group .button-ghost:hover {
-  background-color: #fff;
-  border-color: #fff;
-  color: var(--text-color);
-  box-shadow: 5px 5px 0 0 var(--accent-color);
-}
-
-main .section.accent .button-group .button:hover {
-  box-shadow: 5px 5px 0 0 #fff;
-}
-
-main .section.accent .button-group .button-ghost:hover {
-  box-shadow: 5px 5px 0 0 #fff;
-}
-
-main .section.secondary {
-  background-color: var(--light-color);
-  margin: 0;
-  padding: 80px 0;
-}
-
-main .section.accent {
-  background-color: var(--accent-color);
-  color: var(--text-color);
-  margin: 0;
-  padding: 80px 0;
-  text-align: center;
-}
-
 main .section.hero-adventure-container {
   max-width: 100%;
   padding-inline: 0;
@@ -487,46 +131,36 @@ main .section.hero-adventure-container > div {
   padding-inline: 0;
 }
 
-main .section.hero-adventure-container:has(+ .section.accent) {
-  padding-bottom: 0;
-}
-
-main .section.hero-adventure-container + .section.accent {
-  padding-block: 60px;
-}
-
-main .section.accent a.button:any-link {
-  border-color: var(--text-color);
-  background-color: var(--text-color);
-  color: #fff;
-}
-
-main .section.light,
-main .section.highlight {
-  background-color: var(--light-color);
+/* Landing pages (e.g. /expeditions) — accent shell eager for FCP */
+main > .section.accent {
+  background-color: var(--accent-color);
+  color: var(--text-color);
   margin: 0;
   padding: 80px 0;
+  text-align: center;
 }
 
-/* Above-fold fragment placeholder until async content replaces the block */
-main > .section:first-of-type .fragment {
-  min-height: 280px;
+/* Above-fold fragment — reserve layout height (homepage CLS) */
+main > .section:first-of-type .fragment,
+main > .section:first-of-type .columns-featured-wrapper {
+  min-height: 600px;
 }
 
 @media (width >= 900px) {
-  main > .section:first-of-type .fragment {
-    min-height: 320px;
+  main > .section:first-of-type .fragment,
+  main > .section:first-of-type .columns-featured-wrapper {
+    min-height: 360px;
   }
 }
 
-/* Adobe Target: hide zone until offer injection + decoration; reserve layout */
+/* Target zone — must be eager on personalized pages */
 main .section.target:not(.target-ready) {
   visibility: hidden;
   min-height: 260px;
 }
 
 @media (width >= 900px) {
-  main .section.target:not(.target-ready) {
+  main > .section.target:not(.target-ready) {
     min-height: 420px;
   }
 }
