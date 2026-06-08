@@ -409,6 +409,19 @@ function isDynamicOptionsHost(hostname) {
     || hostname.endsWith('aem.page');
 }
 
+function resolveDynamicSelectOptionsPath(option) {
+  if (!option || typeof option !== 'string') return null;
+  if (option.startsWith('/')) return option;
+  if (!option.startsWith('https://')) return null;
+  try {
+    const optionsUrl = new URL(option);
+    if (!isDynamicOptionsHost(optionsUrl.hostname)) return null;
+    return `${optionsUrl.pathname}${optionsUrl.search}`;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchDynamicSelectOptions(pathname) {
   const base = (window.hlx?.codeBasePath || '').replace(/\/$/, '');
   const paths = [`${base}${pathname}`];
@@ -472,11 +485,11 @@ export function createDropdownUsingEnum(fd, wrapper) {
   const options = fd?.enum || [];
   const optionNames = fd?.enumNames ?? options;
 
-  if (options.length === 1 && options[0]?.startsWith('https://')) {
-    const optionsUrl = new URL(options[0]);
-    if (isDynamicOptionsHost(optionsUrl.hostname)) {
+  if (options.length === 1) {
+    const pathname = resolveDynamicSelectOptionsPath(options[0]);
+    if (pathname) {
       wrapper.dataset.enumLoad = 'pending';
-      return fetchDynamicSelectOptions(`${optionsUrl.pathname}${optionsUrl.search}`)
+      return fetchDynamicSelectOptions(pathname)
         .then((json) => {
           populateSelectOptionsFromJson(json, addOption);
           if (ph && optionSelected === false) {

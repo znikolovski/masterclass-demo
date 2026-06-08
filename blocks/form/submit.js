@@ -1,3 +1,9 @@
+import {
+  pushFormSubmitAttempt,
+  pushFormSubmitError,
+  pushFormSubmitSuccess,
+  pushFormValidationError,
+} from '../../scripts/form-analytics.js';
 import { DEFAULT_THANK_YOU_MESSAGE, getSubmitBaseUrl } from './constant.js';
 
 export function submitSuccess(e, form) {
@@ -19,6 +25,7 @@ export function submitSuccess(e, form) {
     }
     form.reset();
   }
+  pushFormSubmitSuccess(form);
   form.setAttribute('data-submitting', 'false');
   form.querySelector('button[type="submit"]').disabled = false;
 }
@@ -34,6 +41,8 @@ export function submitFailure(e, form) {
   errorMessage.innerHTML = msg || 'Some error occured while submitting the form'; // TODO: translation
   form.prepend(errorMessage);
   errorMessage.scrollIntoView({ behavior: 'smooth' });
+  const reason = e?.data?.error || e?.message || 'submit-failed';
+  pushFormSubmitError(form, reason);
   form.setAttribute('data-submitting', 'false');
   form.querySelector('button[type="submit"]').disabled = false;
 }
@@ -139,6 +148,7 @@ async function submitDocBasedForm(form, captcha) {
 
 export async function handleSubmit(e, form, captcha) {
   e.preventDefault();
+  pushFormSubmitAttempt(form);
 
   const valid = form.checkValidity();
   if (valid) {
@@ -155,6 +165,7 @@ export async function handleSubmit(e, form, captcha) {
     }
   } else {
     const firstInvalidEl = form.querySelector(':invalid:not(fieldset)');
+    pushFormValidationError(form, firstInvalidEl?.name || firstInvalidEl?.id || '');
     if (firstInvalidEl) {
       firstInvalidEl.focus();
       firstInvalidEl.scrollIntoView({ behavior: 'smooth' });

@@ -757,6 +757,11 @@ Launch rules read ACDL only — avoids brittle DOM scraping.
 | event4 | Video Complete | YouTube block |
 | event5 | FAQ Expand | Accordion |
 | event6 | Tab Select | tabs-activity |
+| event7 | Asset Impression | Asset analytics — see [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md) |
+| event8 | Asset Click | Asset analytics |
+| event9–15 | Form funnel | Form impression → success — see [FORM-ANALYTICS-PLAN.md](./FORM-ANALYTICS-PLAN.md) |
+| eVar7 | Form ID | `form.formSlug` |
+| prop8 | Form step | `form.step` (field name) |
 
 Map via `data.__adobe.analytics.events` in Launch ([data object mapping](https://experienceleague.adobe.com/en/docs/analytics/implementation/aep-edge/data-var-mapping)).
 

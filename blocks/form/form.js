@@ -6,6 +6,7 @@ import {
   resolveAdventureContext,
   waitForSelectEnumLoad,
 } from '../../scripts/form-context.js';
+import { initFormAnalytics } from '../../scripts/form-analytics.js';
 import transferRepeatableDOM, { insertAddButton, insertRemoveButton } from './components/repeat/repeat.js';
 import { getFormSubmitUrl } from '../../scripts/forms-api.js';
 import { emailPattern, getSubmitBaseUrl, SUBMISSION_SERVICE } from './constant.js';
@@ -641,6 +642,7 @@ export default async function decorate(block) {
       }
       applyAdventurePrefillToDom(form, adventureKind, resolveAdventureContext());
     }
+    initFormAnalytics(form, formSlug);
     container.replaceWith(form);
     // Authoring markup keeps <form> in a hidden sibling div (form.css); flatten for display.
     block.replaceChildren(form);
