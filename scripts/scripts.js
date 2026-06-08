@@ -20,6 +20,7 @@ import {
   getTargetZones,
   initTargetDelivery,
   markTargetZone,
+  refreshTargetZones,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
 import { optimizePictures } from './media.js';
@@ -428,6 +429,10 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+
+  if (main && isPersonalizationEnabled(doc)) {
+    await refreshTargetZones(main);
+  }
 
   if (main) {
     optimizePictures(main, { eagerSelector: '.hero-adventure, .carousel-hero, .hero' });

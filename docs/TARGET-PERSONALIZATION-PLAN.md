@@ -45,13 +45,32 @@ Official references:
 
 ---
 
+## Official guidance (DA + AEM EDS)
+
+These rules come from Adobe docs — our implementation follows them.
+
+| Source | What it says | How we implement it |
+|--------|----------------|---------------------|
+| [Send to Adobe Target (DA)](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target) | Offers are **undecorated** HTML from `<main>` (semantic block tables, no `.block` class). | `target-delivery.js` runs `decorateBlock` + `loadBlock` after injection. |
+| [Send to Adobe Target — Delivery](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target#delivery) | Sample flow: **inject offer → decorate as usual** (`loadTarget()` then `loadArea()`). | `refreshTargetZones()` after lazy `loadSections()`; MutationObserver for eager-phase swaps. |
+| [Send to Adobe Target — Delivery](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target#delivery) | Prefer **target zones as direct children of `<main>`** for predictable decoration. | Recommend a dedicated section under `main` with `targetlocation` on the section — not nested inside article body. |
+| [Send to Adobe Target — Delivery](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target#delivery) | Deliver **HTML offers**, not fragment URLs (no client-side fetch chaining). | Send to Target exports immutable HTML offers from DA. |
+| [Target integration (EDS)](https://www.aem.live/developer/target-integration) | Web SDK applies modifications **after** blocks decorate; use **MutationObserver** when Target changes the DOM. | Martech `onDecoratedElement` + `initTargetDelivery()` observer. |
+| [Martech integration (EDS)](https://www.aem.live/developer/martech-integration) | Page metadata **`Target: on`** enables personalization; disable auto global mbox when using explicit zones. | `adobetarget` / `target` metadata + explicit `[data-targetlocation]` selectors. |
+
+**Why offers look “broken” before decoration:** DA exports raw EDS markup like `div.columns-featured > div > div` (no `columns-featured-2-cols`, no `-wrapper`, no block CSS). That is expected. The live site must run the same block JS/CSS pipeline after Target injects it.
+
+**Martech vs Author Kit sample:** The legacy at.js sample injects *before* any decoration. The Web SDK martech plugin injects *after* the first decorated section (to limit flicker). Both are valid; with DA offers you **must** re-decorate injected subtrees — that is what `target-delivery.js` does.
+
+---
+
 ## Performance rules (non-negotiable)
 
 From DA delivery guidance and this project's martech setup:
 
 1. **Opt in per page** — Page metadata `Adobe Target` = **On** only on pages with live activities. All other pages skip eager personalization (protects LCP).
 2. **HTML offers, not fragment URLs** — Export full section HTML to Target. Do not deliver `/fragments/...` links and fetch client-side (chaining kills performance).
-3. **Zones under `main`** — Set **Target location** in section metadata. EDS renders `data-targetlocation` on the section (e.g. a `marquee-ticker-container` section). Activities target `[data-targetlocation="wknd-marquee"]`.
+3. **Zones under `main`** — Prefer a **dedicated section that is a direct child of `<main>`** with **Target location** set on that section (`data-targetlocation` on the `.section`). Avoid nesting the zone inside article body content; nested zones still work but need extra decoration passes and may inherit wrong section container classes.
 4. **Web SDK via martech, not at.js** — Self-hosted `alloy` in eager phase when `target: on`; analytics deferred to lazy phase.
 5. **Preconnect** — `head.html` uses `preconnect` to `edge.adobedc.net`. Do not add `<link rel="preload" as="script">` for martech: CSP `strict-dynamic` + nonce blocks script preloads; martech loads via dynamic `import()` from nonce-bearing `scripts.js`.
 6. **Consent** — `updateUserConsent({ personalize: true })` only when CMP allows (preview hosts auto-consent for QA).
@@ -136,15 +155,18 @@ Requires `/.da/adobe-target` credentials and `da-auth` token in `.hlx/.da-token.
 
 ### Step 3 — Place a Target zone on the page
 
-On the page to personalize (e.g. `/`):
+On the page to personalize (e.g. `/blog/patagonia-trek`):
 
-1. Add a **section** with default content (e.g. marquee-ticker, fragment, hero).
-2. Add **Section metadata** to that section:
-   - **Style**: e.g. `marquee-ticker-container` (optional layout class)
-   - **Target location**: e.g. `wknd-marquee` → renders as `data-targetlocation="wknd-marquee"` on the section
-3. Page metadata → **Adobe Target**: **On** (only while testing/live).
+1. Add a **dedicated section** (ideally a **direct child of `<main>`**, per [DA delivery guidance](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target#delivery)).
+2. Put **default/control content** in that section (e.g. marquee-ticker, or leave minimal placeholder).
+3. Add **Section metadata** on that section:
+   - **Style**: optional layout class (e.g. `columns-featured-container`)
+   - **Target location**: e.g. `cta-mbox` → `data-targetlocation="cta-mbox"` on the section
+4. Page metadata → **Adobe Target**: **On** (only while testing/live).
 
-`applySectionMetadata` in [`scripts/scripts.js`](../scripts/scripts.js) maps the `targetlocation` metadata key to `data-targetlocation` on the section and adds class `target`.
+`applySectionMetadata` in [`scripts/scripts.js`](../scripts/scripts.js) maps `targetlocation` → `data-targetlocation` and adds class `target`.
+
+**Avoid:** placing `targetlocation` on a wrapper **inside** another section’s body (e.g. mid-article). Target still injects, but decoration is harder and container classes may attach to the wrong parent section.
 
 ### Step 4 — Create Target activity
 
@@ -178,7 +200,7 @@ In [Adobe Target](https://experience.adobe.com/target):
 | File | Role |
 |------|------|
 | [`scripts/scripts.js`](../scripts/scripts.js) | Eager martech when `target: on`; zone decoration |
-| [`scripts/target-delivery.js`](../scripts/target-delivery.js) | Re-decorate sections after Target injection |
+| [`scripts/target-delivery.js`](../scripts/target-delivery.js) | Post-injection EDS decoration (`decorateBlock`/`loadBlock`, `refreshTargetZones`) |
 | [`scripts/target-analytics.js`](../scripts/target-analytics.js) | ACDL `target` context + `targetZoneReady` |
 | [`scripts/scripts.js`](../scripts/scripts.js) `applySectionMetadata` | Maps `targetlocation` → `data-targetlocation` |
 | [`blocks/section-metadata/section-metadata.js`](../blocks/section-metadata/section-metadata.js) | Block decoration path for `targetlocation` |
@@ -256,7 +278,7 @@ EW agent: confirm preview → Library → Send to Adobe Target → section metad
 |---------|-----|
 | Default content only, no swap | Page metadata Target not **On**; activity inactive; wrong selector |
 | Martech never loads / no `interact` call | Head meta is `adobetarget` (DA default) but code only checked `target` — runtime accepts `target`, `adobetarget`, and `adobe-target` |
-| Unstyled injected HTML | Send to Target exports **decorated** preview HTML (`data-block-status="loaded"`); runtime must load block CSS after injection without re-running block JS — see `loadInjectedBlock` in `target-delivery.js` |
+| Unstyled injected HTML | Expected for DA offers (undecorated export). Confirm `refreshTargetZones` ran after `loadSections`; check nested zone block is found; prefer zone as direct child of `main` |
 | Flicker / slow LCP | Turn Target **Off** on pages without activities; reduce offer weight |
 | Extension can't load config | Fix `/.da/adobe-target` sheet |
 | Offer update ignored | Use **Update offer** in EW; don't edit HTML inside Target |
