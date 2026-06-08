@@ -94,13 +94,17 @@ function buildAutoBlocks(main) {
       // eslint-disable-next-line import/no-cycle
       import('../blocks/fragment/fragment.js').then(({ loadFragment, resolveFragmentPath }) => {
         fragments.forEach(async (fragment) => {
+          const wrapper = fragment.closest('.fragment') || fragment.parentElement;
           try {
+            if (wrapper) wrapper.classList.add('fragment-loading');
             const path = resolveFragmentPath(fragment.getAttribute('href') || fragment.href);
             const frag = path ? await loadFragment(path) : null;
             if (frag) fragment.parentElement.replaceWith(...frag.children);
           } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Fragment loading failed', error);
+          } finally {
+            if (wrapper) wrapper.classList.remove('fragment-loading');
           }
         });
       });
@@ -296,6 +300,18 @@ function applyTemplateAndTheme(doc = document) {
   if (theme) addClasses(document.body, theme);
 }
 
+/**
+ * @param {Document} doc Document
+ * @returns {boolean}
+ */
+function isBlogArticlePage(doc = document) {
+  const template = getPageMetadataValue('template', doc);
+  return document.body.classList.contains('blog-article')
+    || template === 'blog-article'
+    || window.location.pathname.includes('/blog/')
+    || window.location.pathname.includes('/templates/blog-article/');
+}
+
 /** Page metadata keys that opt in to Adobe Target (DA publishes `adobetarget` in head). */
 const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
 
@@ -379,6 +395,10 @@ async function loadEager(doc) {
   document.documentElement.lang = 'en';
   applyTemplateAndTheme(doc);
 
+  if (isBlogArticlePage(doc)) {
+    await loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
+  }
+
   const needsEagerMartech = isMartechConfigured() && isPersonalizationEnabled(doc);
   const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
@@ -406,13 +426,14 @@ async function loadEager(doc) {
     } else {
       await loadFirstSection;
     }
+
+    if (firstSection) {
+      optimizePictures(firstSection, { eagerSelector: '.hero-adventure, .carousel-hero, .hero' });
+    }
   }
 
   try {
-    /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
-    if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
-      loadFonts();
-    }
+    await loadFonts();
   } catch (e) {
     // do nothing
   }
@@ -465,15 +486,6 @@ async function loadLazy(doc) {
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  const template = getPageMetadataValue('template', doc);
-  const isBlogArticle = document.body.classList.contains('blog-article')
-    || template === 'blog-article'
-    || window.location.pathname.includes('/blog/')
-    || window.location.pathname.includes('/templates/blog-article/');
-  if (isBlogArticle) {
-    loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
-  }
-  loadFonts();
 
   const loadQuickEdit = async (...args) => {
     // eslint-disable-next-line import/no-cycle

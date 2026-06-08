@@ -28,16 +28,6 @@ main a:any-link:hover {
   color: var(--accent-color);
 }
 
-/* Improve overall page spacing */
-main > .section {
-  margin: 0;
-  padding: 80px 0;
-}
-
-main > .section:first-of-type {
-  padding-top: 0;
-}
-
 /* Dark section (footer-like CTA areas) */
 main > .section.dark {
   background-color: var(--dark-color);
@@ -75,13 +65,3 @@ main li {
   line-height: 1.6;
 }
 
-/* Responsive adjustments */
-@media (width >= 900px) {
-  main > .section {
-    padding: 100px 0;
-  }
-
-  main > .section > div {
-    max-width: 1200px;
-  }
-}
