@@ -272,6 +272,30 @@
             "value": "carousel-blog-container"
           }
         ]
+      },
+      {
+        "component": "select",
+        "name": "target-zone",
+        "label": "Target zone",
+        "valueType": "string",
+        "description": "Marks this section as an Adobe Target injection point (adds class target). Pair with Target location ID.",
+        "options": [
+          {
+            "name": "Off",
+            "value": ""
+          },
+          {
+            "name": "On",
+            "value": "on"
+          }
+        ]
+      },
+      {
+        "component": "text",
+        "name": "target-id",
+        "label": "Target location ID",
+        "valueType": "string",
+        "description": "Stable CSS selector for Target activities (e.g. hero-mbox). Becomes the section id attribute."
       }
     ]
   },

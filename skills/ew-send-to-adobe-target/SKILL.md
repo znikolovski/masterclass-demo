@@ -117,7 +117,25 @@ If the author also uses classic Document Authoring, the same flow exists under *
 - Never paste credentials into chat
 - Offers in Target are immutable; update/delete from DA or the extension, not by editing HTML inside Target
 
+## After export — delivery handoff
+
+Export is only step 1. Tell the author what happens next (you cannot run Target MCP from EW):
+
+1. **Page zone** — On the target page, open **Section metadata** on the section to personalize:
+   - **Target zone**: On
+   - **Target location ID**: e.g. `hero-mbox` (stable; used in Target CSS selector)
+2. **Page metadata** — Set **Adobe Target** = **On** only while an activity is live on that page.
+3. **Default content** — Keep a fragment block in the zone as control/fallback content.
+4. **Target activity** — Human or **Claude with Target MCP** creates the activity (selector `#hero-mbox`, assign exported offers). Full plan: [docs/TARGET-PERSONALIZATION-PLAN.md](../../../docs/TARGET-PERSONALIZATION-PLAN.md).
+5. **Claude skill** — `adobe-target-personalization` for activity/audience setup when the author leaves EW.
+
+**Performance reminders for authors:**
+
+- Export **HTML offers**, not links to `/fragments/...` in Target.
+- One zone per personalized region; avoid whole-page Target unless necessary.
+- Turn **Adobe Target** page metadata **Off** when the test ends.
+
 ## Out of scope unless asked
 
-- **Delivery** of Target offers on the live site (at.js, alloy, mboxes) — see [Fragments](https://www.aem.live/docs/fragments) and the DA doc delivery section
+- **Creating Target activities** — Claude + Target MCP or Target UI (see plan above)
 - **Fragment inclusion** on pages — use the Fragment block / Fragment Picker, not this skill

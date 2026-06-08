@@ -102,6 +102,9 @@ export function buildPageContext(doc, getMetadataValue) {
       || deriveAdventureCategory(pathname),
     journeyStage: getMetadataValue('journeyStage', doc)
       || deriveJourneyStage(pathname, siteSection),
+    targetEnabled: ['on', 'true', 'yes'].includes(
+      (getMetadataValue('target', doc) || '').toLowerCase(),
+    ) ? 'yes' : 'no',
   };
 }
 
@@ -156,6 +159,7 @@ export function mapPageToAnalytics(content) {
   if (page.journeyStage) s.prop3 = page.journeyStage;
   if (page.theme) s.prop2 = page.theme;
   if (page.siteSection) s.prop4 = page.siteSection;
+  if (page.targetEnabled === 'yes') s.prop9 = 'target-on';
 
   s.prop1 = page.environment || getAnalyticsEnvironment();
 

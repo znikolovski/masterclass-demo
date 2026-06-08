@@ -15,6 +15,8 @@ import {
 } from './aem.js';
 import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext } from './analytics-page.js';
+import { decorateTargetInjections, initTargetDelivery } from './target-delivery.js';
+import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
 import { optimizePictures } from './media.js';
 import {
   WEB_SDK_CONFIG,
@@ -378,7 +380,11 @@ async function loadEager(doc) {
 
     if (martechPromise) {
       await Promise.all([
-        martechPromise.then(() => getMartechModule().then((m) => m.martechEager())),
+        martechPromise.then(() => getMartechModule().then(async (m) => {
+          await m.martechEager();
+          await decorateTargetInjections(main);
+          initTargetDelivery(main);
+        })),
         loadFirstSection,
       ]);
     } else {
@@ -427,6 +433,10 @@ async function loadLazy(doc) {
     await martechLoadedPromise;
     if (isAnalyticsEnabled(doc)) {
       pushAnalyticsPageContext(doc, getPageMetadataValue);
+    }
+    if (isPersonalizationEnabled(doc)) {
+      pushTargetPageContext(doc, getPageMetadataValue);
+      if (main) initTargetAnalytics(main);
     }
     await getMartechModule().then((m) => m.martechLazy());
   }
