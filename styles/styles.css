@@ -502,3 +502,18 @@ main .section.highlight {
   margin: 0;
   padding: 80px 0;
 }
+
+/* Adobe Target: hide zone until offer injection + decoration; reserve desktop layout */
+main .section.target:not(.target-ready) {
+  visibility: hidden;
+}
+
+@media (width >= 900px) {
+  main .section.target:not(.target-ready) {
+    min-height: 420px;
+  }
+}
+
+main .section.target.target-ready {
+  visibility: visible;
+}

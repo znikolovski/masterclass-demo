@@ -213,6 +213,9 @@ let refreshFrame = null;
 /** @type {boolean} */
 let martechListenerBound = false;
 
+/** Fail-open if proposition fetch or decoration stalls (martech default timeout is 1s). */
+const TARGET_REVEAL_TIMEOUT_MS = 2500;
+
 /**
  * @param {MutationRecord[]} mutations
  */
@@ -225,6 +228,17 @@ function invalidateZonesAfterInjection(mutations) {
       ? target
       : target.closest('[data-targetlocation]');
     if (zone) zone.classList.remove('target-ready');
+  });
+}
+
+/**
+ * Reveal target sections when decoration cannot complete (pairs with styles.css visibility rule).
+ * @param {Element} main
+ */
+function revealPendingTargetZones(main) {
+  getTargetZones(main).forEach((zone) => {
+    const section = zone.classList.contains('section') ? zone : zone.closest('.section');
+    (section || zone).classList.add('target-ready');
   });
 }
 
@@ -273,4 +287,6 @@ export function initTargetDelivery(main) {
   });
 
   scheduleTargetRefresh(main);
+
+  window.setTimeout(() => revealPendingTargetZones(main), TARGET_REVEAL_TIMEOUT_MS);
 }
