@@ -18,10 +18,23 @@ const DM_PATH_PATTERNS = [
   /\/is\/content\//i,
 ];
 
-const DEFAULT_BREAKPOINTS = [
-  { media: '(min-width: 900px)', width: 2000 },
+const HERO_BREAKPOINTS = [
+  { media: '(min-width: 900px)', width: 1200 },
   { width: 750 },
 ];
+
+const CARD_BREAKPOINTS = [
+  { media: '(min-width: 900px)', width: 900 },
+  { width: 600 },
+];
+
+const DEFAULT_BREAKPOINTS = [
+  { media: '(min-width: 900px)', width: 900 },
+  { width: 600 },
+];
+
+const HERO_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
+const CARD_SELECTOR = '.activity-card-image, .cards, .columns-featured, .columns-gallery';
 
 /**
  * @param {URL} url
@@ -155,10 +168,49 @@ function annotatePicture(picture, src) {
 }
 
 /**
+ * @param {HTMLImageElement|HTMLPictureElement} node
+ * @param {{ width?: string, height?: string, loading?: string, sizes?: string }} attrs
+ */
+function applyImageAttributes(node, attrs = {}) {
+  const img = node.tagName === 'IMG' ? node : node.querySelector('img');
+  if (!img) return;
+  if (attrs.width) img.setAttribute('width', attrs.width);
+  if (attrs.height) img.setAttribute('height', attrs.height);
+  if (attrs.loading) img.setAttribute('loading', attrs.loading);
+  if (attrs.sizes) img.setAttribute('sizes', attrs.sizes);
+}
+
+/**
+ * @param {HTMLImageElement} img
+ * @param {string} [eagerSelector]
+ * @returns {{ breakpoints: { media?: string, width: number }[], sizes: string, eager: boolean }}
+ */
+function getPictureConfig(img, eagerSelector) {
+  const inHero = img.closest(HERO_SELECTOR);
+  const eager = Boolean(inHero) || Boolean(eagerSelector && img.closest(eagerSelector));
+  if (inHero) {
+    return { breakpoints: HERO_BREAKPOINTS, sizes: '100vw', eager: true };
+  }
+  if (img.closest(CARD_SELECTOR)) {
+    return {
+      breakpoints: CARD_BREAKPOINTS,
+      sizes: '(min-width: 900px) 33vw, 100vw',
+      eager,
+    };
+  }
+  return {
+    breakpoints: DEFAULT_BREAKPOINTS,
+    sizes: '(min-width: 900px) 50vw, 100vw',
+    eager,
+  };
+}
+
+/**
  * @param {string} src
  * @param {string} [alt]
  * @param {boolean} [eager]
  * @param {{ media?: string, width: number|string }[]} [breakpoints]
+ * @param {{ width?: string, height?: string, loading?: string, sizes?: string }} [attrs]
  * @returns {HTMLPictureElement|HTMLImageElement}
  */
 export function createResponsivePicture(
@@ -166,14 +218,17 @@ export function createResponsivePicture(
   alt = '',
   eager = false,
   breakpoints = DEFAULT_BREAKPOINTS,
+  attrs = {},
 ) {
   const sourceType = getMediaSourceType(src);
+  const loading = attrs.loading || (eager ? 'eager' : 'lazy');
 
   if (sourceType === 'external') {
     const img = document.createElement('img');
     img.src = src;
     img.alt = alt;
-    img.loading = eager ? 'eager' : 'lazy';
+    img.loading = loading;
+    applyImageAttributes(img, attrs);
     annotateAssetMetadata(img, src);
     return img;
   }
@@ -194,6 +249,7 @@ export function createResponsivePicture(
   }
 
   annotatePicture(picture, src);
+  applyImageAttributes(picture, { ...attrs, loading });
   return picture;
 }
 
@@ -203,14 +259,26 @@ export function createResponsivePicture(
  * @param {{ eagerSelector?: string }} [options]
  */
 export function optimizePictures(root, options = {}) {
-  const { eagerSelector } = options;
+  const { eagerSelector = HERO_SELECTOR } = options;
   root.querySelectorAll('picture > img[src]').forEach((img) => {
     if (img.dataset.mediaOptimized === 'true') return;
 
     const picture = img.closest('picture');
     if (!picture) return;
 
-    const eager = Boolean(eagerSelector && img.closest(eagerSelector));
-    picture.replaceWith(createResponsivePicture(img.src, img.alt || '', eager));
+    const { breakpoints, sizes, eager } = getPictureConfig(img, eagerSelector);
+    const attrs = {
+      width: img.getAttribute('width') || undefined,
+      height: img.getAttribute('height') || undefined,
+      loading: eager ? 'eager' : (img.getAttribute('loading') || undefined),
+      sizes,
+    };
+    picture.replaceWith(createResponsivePicture(
+      img.src,
+      img.alt || '',
+      eager,
+      breakpoints,
+      attrs,
+    ));
   });
 }
