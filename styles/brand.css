@@ -1,4 +1,6 @@
-/* Design tokens — duplicated in styles.css (inlined for LCP; do not @import here). */
+/* Default design tokens — single source of truth (see docs/B2B-DESIGN-VALIDATION.md).
+   Loaded via parallel <link> in head.html (not @import).
+   Repoless site overrides: styles/brands/{site}.css */
 
 :root {
   --heading-font-family: "Syncopate", sans-serif;
@@ -22,4 +24,15 @@
   --space-3xl: 80px;
   --section-padding: 80px;
   --nav-height: 64px;
+}
+
+@media (width >= 900px) {
+  :root {
+    --heading-font-size-xxl: 56px;
+    --heading-font-size-xl: 40px;
+    --heading-font-size-l: 24px;
+    --heading-font-size-m: 20px;
+    --heading-font-size-s: 18px;
+    --heading-font-size-xs: 14px;
+  }
 }

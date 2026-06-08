@@ -344,6 +344,43 @@ function getPageMetadataValue(name, doc = document) {
   return cells[1]?.textContent.trim() || '';
 }
 
+/** Repoless sites with a styles/brands/{site}.css override file */
+const SITE_BRAND_OVERRIDES = new Set(['masterclass-demo', 'wknd-business']);
+
+/**
+ * Site slug from AEM preview/live hostname ({branch}--{site}--{org}.aem.page).
+ * @param {Document} [doc]
+ * @returns {string}
+ */
+function getRepolessSiteSlug(doc = document) {
+  const override = new URLSearchParams(window.location.search).get('site');
+  if (override) return toClassName(override) || override;
+
+  const brandMeta = getPageMetadataValue('brand', doc);
+  if (brandMeta) return toClassName(brandMeta) || brandMeta;
+
+  const { hostname } = window.location;
+  if (hostname.endsWith('.aem.page') || hostname.endsWith('.aem.live')) {
+    const parts = hostname.replace(/\.aem\.(page|live)$/, '').split('--');
+    if (parts.length >= 3) return parts[parts.length - 2];
+  }
+  return 'masterclass-demo';
+}
+
+/**
+ * Load repoless site brand overrides before first paint (token overrides only).
+ * @param {string} site
+ */
+async function loadSiteBrandCss(site) {
+  if (!SITE_BRAND_OVERRIDES.has(site)) return;
+  const href = `${window.hlx.codeBasePath}/styles/brands/${site}.css`;
+  try {
+    await loadCSS(href);
+  } catch {
+    // optional per-site brand file
+  }
+}
+
 /**
  * Applies template/theme body classes from head meta or metadata block.
  * @param {Document} doc Document to read metadata from
@@ -461,6 +498,7 @@ async function loadEager(doc) {
   }
 
   const fontPromise = loadFonts().catch(() => {});
+  const siteBrandPromise = loadSiteBrandCss(getRepolessSiteSlug(doc));
 
   const needsEagerMartech = isMartechConfigured() && isPersonalizationEnabled(doc);
   const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
@@ -469,6 +507,7 @@ async function loadEager(doc) {
     const heroCssPromise = loadHeroBlockCss(main);
     decorateMain(main);
     applyTemplateAndTheme(doc);
+    await Promise.all([heroCssPromise, siteBrandPromise]);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
     if (firstSection) preloadLcpHeroImage(firstSection);
@@ -488,7 +527,6 @@ async function loadEager(doc) {
     if (martechPromise) {
       await Promise.all([
         fontPromise,
-        heroCssPromise,
         martechPromise.then(() => getMartechModule().then(async (m) => {
           await m.martechEager();
           await decorateTargetInjections(main);
@@ -497,7 +535,7 @@ async function loadEager(doc) {
         loadFirstSection,
       ]);
     } else {
-      await Promise.all([fontPromise, heroCssPromise, loadFirstSection]);
+      await Promise.all([fontPromise, loadFirstSection]);
     }
   }
 }

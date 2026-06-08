@@ -1,39 +1,4 @@
-/* LCP-critical global styles — tokens inlined (no @import chain) */
-
-:root {
-  --heading-font-family: "Syncopate", sans-serif;
-  --body-font-family: "Instrument Sans", sans-serif;
-  --background-color: #fff;
-  --text-color: #0f1a14;
-  --link-color: #0f1a14;
-  --link-hover-color: #e8651a;
-  --accent-color: #e8651a;
-  --light-color: #f4f2ef;
-  --dark-color: #0f1a14;
-  --heading-font-size-xxl: 56px;
-  --heading-font-size-xl: 40px;
-  --heading-font-size-l: 24px;
-  --heading-font-size-m: 20px;
-  --heading-font-size-s: 18px;
-  --heading-font-size-xs: 14px;
-  --body-font-size-m: 20px;
-  --body-font-size-s: 18px;
-  --body-font-size-xs: 14px;
-  --space-3xl: 80px;
-  --section-padding: 80px;
-  --nav-height: 64px;
-}
-
-@media (width >= 900px) {
-  :root {
-    --heading-font-size-xxl: 56px;
-    --heading-font-size-xl: 40px;
-    --heading-font-size-l: 24px;
-    --heading-font-size-m: 20px;
-    --heading-font-size-s: 18px;
-    --heading-font-size-xs: 14px;
-  }
-}
+/* LCP-critical global styles — tokens in brand.css (parallel head link, not @import) */
 
 body {
   display: none;

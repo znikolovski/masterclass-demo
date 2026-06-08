@@ -1,0 +1,8 @@
+/* WKND Business (wknd-business repoless site) — override brand.css tokens only.
+   Keep layout/CLS rules in styles.css; colors and fonts only here. */
+
+/* Currently aligned with brand.css — uncomment to diverge:
+:root {
+  --accent-color: #e8651a;
+}
+*/
