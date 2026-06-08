@@ -256,7 +256,7 @@ EW agent: confirm preview → Library → Send to Adobe Target → section metad
 |---------|-----|
 | Default content only, no swap | Page metadata Target not **On**; activity inactive; wrong selector |
 | Martech never loads / no `interact` call | Head meta is `adobetarget` (DA default) but code only checked `target` — runtime accepts `target`, `adobetarget`, and `adobe-target` |
-| Unstyled injected HTML | Wait for code sync; `target-delivery.js` should run — check console errors |
+| Unstyled injected HTML | Send to Target exports **decorated** preview HTML (`data-block-status="loaded"`); runtime must load block CSS after injection without re-running block JS — see `loadInjectedBlock` in `target-delivery.js` |
 | Flicker / slow LCP | Turn Target **Off** on pages without activities; reduce offer weight |
 | Extension can't load config | Fix `/.da/adobe-target` sheet |
 | Offer update ignored | Use **Update offer** in EW; don't edit HTML inside Target |
