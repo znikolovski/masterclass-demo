@@ -8,7 +8,7 @@ Runtime delivery uses the [aem-martech](https://github.com/adobe-rnd/aem-martech
 2. **Launch** — Property with ACDL enabled; Web SDK extension instance name `alloy` (do not embed a second full SDK on the page).
 3. **Config** — Edit [`scripts/martech-config.js`](../scripts/martech-config.js) with `datastreamId`, `orgId`, and Launch embed URL(s).
 4. **DA Target API** (authoring only) — Sheet `adobe-target` under `/.da` (not in git). See [Send to Adobe Target](https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target).
-5. **Target activities** — Create activities in Target UI that reference HTML offers exported from Experience Workspace; QA with page metadata **target: on**.
+5. **Target activities** — Create activities in Target UI (or Claude + Target MCP) that reference HTML offers exported from Experience Workspace; QA with page metadata **target: on**. See [TARGET-PERSONALIZATION-PLAN.md](./TARGET-PERSONALIZATION-PLAN.md).
 
 ## Authoring (per page)
 
@@ -34,6 +34,25 @@ npm run simulate:traffic:daily
 ```
 
 Each run fetches `query-index.json` from production first so new pages are included, then drives ~10k page hits with clustered virtual visitors (returning ECIDs via `tools/scripts/output/visitor-pool`).
+
+After each page load the simulator also:
+
+- Scrolls the page to trigger **asset impressions** and clicks a sample of images (`event7` / `event8` when Launch rules exist)
+- Walks **form funnels** on pages with forms (`/adventures`, fragments, etc.): impression → start → field steps → submit, validation error, or abandon (`event9`–`event15`)
+
+**Before running:** confirm AEM Code Sync has deployed the latest `main` (form + asset analytics JS) and that Launch rules from [FORM-ANALYTICS-PLAN.md](./FORM-ANALYTICS-PLAN.md) and [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md) are published — otherwise hits are page views only.
+
+Quick validation (no browser):
+
+```bash
+npm run simulate:traffic:dry -- --hits=10
+```
+
+Page-views only (skip engagement):
+
+```bash
+node tools/scripts/simulate-live-audience-traffic.mjs --skip-engagement --hits=100
+```
 
 ## Validation
 

@@ -88,7 +88,17 @@ export const AUDIENCE_PROFILES = {
       ['/adventures', '/destinations'],
       ['/destinations', '/adventures', '/blog/patagonia-trek'],
       ['/adventures', '/blog/surfing-costa-rica'],
+      ['/blog/patagonia-trek', '/adventures'],
       ['/destinations'],
+    ],
+  },
+  formExplorers: {
+    label: 'WKND - Form Explorers',
+    journeys: [
+      ['/adventures'],
+      ['/blog/patagonia-trek', '/adventures'],
+      ['/blog/yosemite-rock-climbing', '/adventures'],
+      ['/adventures', '/blog/kayaking-norway'],
     ],
   },
   plannersPrep: {

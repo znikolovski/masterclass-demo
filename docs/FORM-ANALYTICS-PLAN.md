@@ -133,6 +133,23 @@ Break down fallout by **Form ID** (`eVar7`) to compare `wknd-adventure-interest`
 
 Slug is taken from embedded sheet `formSlug`, link href, or `/api/forms/{slug}` action URL.
 
+## Demo traffic
+
+The live audience simulator (`tools/scripts/simulate-live-audience-traffic.mjs`) walks form funnels on pages that include a form block (notably `/adventures` and blog pages with the adventure-interest fragment). Outcomes are mixed for realistic fallout:
+
+| Simulated outcome | Share (approx.) | ACDL events |
+|-------------------|-----------------|-------------|
+| Impression only | 32% | `formImpression` |
+| Abandon after 1 field | 26% | `formImpression`, `formStart`, `formStepComplete` |
+| Validation error | 14% | through `formValidationError` |
+| Submit success | 28% | through `formSubmitSuccess` |
+
+Run after code sync + Launch publish:
+
+```bash
+npm run simulate:traffic:daily
+```
+
 ## Checklist
 
 - [ ] Admin: label event9–event15, eVar7, prop8 on `ags050wknd`

@@ -6,6 +6,8 @@
  * reuses the same ECID across multiple visits (returning visitors).
  * Each session uses a standard Chrome/Safari/Firefox User-Agent (Playwright device
  * presets) so Analytics Browser is not "None" / bot-flagged.
+ * After each page load, scrolls for asset impressions/clicks and simulates form
+ * funnel steps (start, field complete, submit, validation errors, abandon).
  *
  * Each run randomizes audience mix at startup. Re-run over several days with the
  * same --visitor-pool-dir for cross-day returning visitors.
@@ -43,6 +45,12 @@ import {
   savePoolManifest,
   visitorStoragePath,
 } from './lib/traffic-visitors.mjs';
+import {
+  createEngagementTotals,
+  engagementRng,
+  mergeEngagementStats,
+  simulatePageEngagement,
+} from './lib/traffic-page-engagement.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -50,7 +58,7 @@ const DEFAULT_BASE = 'https://main--masterclass-demo--znikolovski.aem.live';
 const DEFAULT_HITS = 10000;
 const DEFAULT_CONCURRENCY = 4;
 const ANALYTICS_WAIT_MS = 3500;
-const BETWEEN_SESSIONS_MS = [300, 1200];
+const BETWEEN_SESSIONS_MS = [500, 1800];
 const RETURNING_SESSIONS_MS = [8000, 45000];
 
 /** @param {string[]} argv */
@@ -66,9 +74,11 @@ function parseArgs(argv) {
     visitorPoolDir: null,
     persistVisitors: true,
     fromIndex: true,
+    skipEngagement: false,
   };
   argv.forEach((arg) => {
     if (arg === '--dry-run') opts.dryRun = true;
+    else if (arg === '--skip-engagement') opts.skipEngagement = true;
     else if (arg === '--no-index') opts.fromIndex = false;
     else if (arg === '--from-index') opts.fromIndex = true;
     else if (arg === '--no-persist-visitors') opts.persistVisitors = false;
@@ -117,7 +127,9 @@ async function waitForAnalytics(page) {
  * @param {{ profileId: string, paths: string[], visitorId: string }} task
  * @param {string|null} poolDir
  * @param {boolean} persistVisitors
- * @param {(profileId: string, path: string, visitorId: string) => void} onHit
+ * @param {number} seed
+ * @param {boolean} skipEngagement
+ * @param {(profileId: string, path: string, visitorId: string, stats?: object, opts?: { supplemental?: boolean }) => void} onHit
  * @param {(profileId: string, path: string, visitorId: string, err: Error) => void} onError
  */
 async function runSession(
@@ -127,6 +139,8 @@ async function runSession(
   task,
   poolDir,
   persistVisitors,
+  seed,
+  skipEngagement,
   onHit,
   onError,
 ) {
@@ -142,17 +156,48 @@ async function runSession(
 
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
+  let sessionFormEngaged = false;
 
   for (const path of task.paths) {
     const url = `${origin}${path.startsWith('/') ? path : `/${path}`}`;
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await waitForAnalytics(page);
-      onHit(task.profileId, path, task.visitorId);
+      let engagementStats = null;
+      if (skipEngagement) {
+        await waitForAnalytics(page);
+      } else {
+        const rng = engagementRng(task.visitorId, path, seed);
+        engagementStats = await simulatePageEngagement(page, rng, {
+          visitorId: task.visitorId,
+          path,
+          seed,
+        });
+        if (engagementStats?.formOutcome && engagementStats.formOutcome !== 'none') {
+          sessionFormEngaged = true;
+        }
+      }
+      onHit(task.profileId, path, task.visitorId, engagementStats);
     } catch (err) {
       onError(task.profileId, path, task.visitorId, err);
     }
     await page.waitForTimeout(200 + Math.floor(Math.random() * 400));
+  }
+
+  if (!skipEngagement && !sessionFormEngaged) {
+    const boostRng = engagementRng(task.visitorId, 'form-boost', seed);
+    if (boostRng() < 0.42) {
+      try {
+        await page.goto(`${origin}/adventures`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        const boostStats = await simulatePageEngagement(
+          page,
+          boostRng,
+          { visitorId: task.visitorId, path: '/adventures', seed },
+        );
+        onHit(task.profileId, '/adventures', task.visitorId, boostStats, { supplemental: true });
+      } catch (err) {
+        onError(task.profileId, '/adventures', task.visitorId, err);
+      }
+    }
   }
 
   if (persistVisitors && storagePath) {
@@ -171,7 +216,9 @@ async function runSession(
  * @param {string|null} poolDir
  * @param {boolean} persistVisitors
  * @param {number} concurrency
- * @param {(profileId: string, path: string, visitorId: string) => void} onHit
+ * @param {number} seed
+ * @param {boolean} skipEngagement
+ * @param {(profileId: string, path: string, visitorId: string, stats?: object, opts?: { supplemental?: boolean }) => void} onHit
  * @param {(profileId: string, path: string, visitorId: string, err: Error) => void} onError
  */
 async function runScheduledTraffic(
@@ -182,6 +229,8 @@ async function runScheduledTraffic(
   poolDir,
   persistVisitors,
   concurrency,
+  seed,
+  skipEngagement,
   onHit,
   onError,
 ) {
@@ -202,6 +251,8 @@ async function runScheduledTraffic(
         task,
         poolDir,
         persistVisitors,
+        seed,
+        skipEngagement,
         onHit,
         onError,
       );
@@ -332,6 +383,7 @@ async function main() {
     console.log(`  Cross-day return sessions: ${crossDayReturning}`);
   }
   console.log(`  Concurrency:    ${opts.concurrency}`);
+  console.log(`  Engagement:     ${opts.skipEngagement ? 'off (page views only)' : 'on (assets + forms)'}`);
   console.log(`  Seed:           ${seed}`);
 
   let devicesMap = null;
@@ -387,10 +439,12 @@ async function main() {
 
   let hitsDone = 0;
   let errors = 0;
+  const engagementTotals = createEngagementTotals();
   const started = Date.now();
 
-  const onHit = () => {
-    hitsDone += 1;
+  const onHit = (profileId, path, visitorId, engagementStats, hitOpts = {}) => {
+    if (!hitOpts.supplemental) hitsDone += 1;
+    if (engagementStats) mergeEngagementStats(engagementTotals, engagementStats);
     if (hitsDone % 100 === 0 || hitsDone === opts.hits) {
       const elapsed = (Date.now() - started) / 1000;
       const rate = hitsDone / elapsed;
@@ -417,6 +471,8 @@ async function main() {
     poolDir,
     opts.persistVisitors,
     opts.concurrency,
+    seed,
+    opts.skipEngagement,
     onHit,
     onError,
   );
@@ -435,6 +491,8 @@ async function main() {
     finishedAt: new Date().toISOString(),
     hitsCompleted: hitsDone,
     errors,
+    engagement: engagementTotals,
+    skipEngagement: opts.skipEngagement,
     durationSec: Math.round((Date.now() - started) / 1000),
   };
   const summaryPath = join(opts.outDir, `traffic-run-${seed}.json`);
@@ -443,6 +501,13 @@ async function main() {
   console.log('\nDone.');
   console.log(`  Hits:     ${hitsDone}/${opts.hits}`);
   console.log(`  Errors:   ${errors}`);
+  if (!opts.skipEngagement) {
+    console.log(`  Assets:   ${engagementTotals.assetClicks} clicks (${engagementTotals.assetCandidates} candidates)`);
+    console.log(`  Forms:    ${engagementTotals.formPages} pages with forms`);
+    Object.entries(engagementTotals.formOutcomes).forEach(([outcome, count]) => {
+      console.log(`    ${outcome}: ${count}`);
+    });
+  }
   console.log(`  Duration: ${summary.durationSec}s`);
   console.log(`  Summary:  ${summaryPath}`);
 }
