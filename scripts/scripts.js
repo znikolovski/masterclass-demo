@@ -36,6 +36,45 @@ const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instru
 
 const HERO_HEADING_FONT = 'Syncopate';
 
+const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
+
+/**
+ * Eager-load hero block CSS so above-fold layout is stable before block decoration.
+ * @param {Element} main
+ */
+async function loadHeroBlockCss(main) {
+  const codeBase = window.hlx.codeBasePath;
+  if (main.querySelector('.hero-adventure, .carousel-hero')) {
+    await loadCSS(`${codeBase}/blocks/hero-adventure/hero-adventure.css`);
+  } else if (main.querySelector('.hero')) {
+    await loadCSS(`${codeBase}/blocks/hero/hero.css`);
+  }
+}
+
+/**
+ * Preload the LCP hero image so the browser starts fetch before first paint.
+ * @param {Element} section
+ */
+function preloadLcpHeroImage(section) {
+  const img = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img, picture img`);
+  if (!img) return;
+  const href = img.currentSrc || img.getAttribute('src');
+  if (!href) return;
+  const preloaded = [...document.querySelectorAll('link[rel="preload"][as="image"]')]
+    .some((link) => link.href === href);
+  if (preloaded) return;
+
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = href;
+  const srcset = img.getAttribute('srcset');
+  if (srcset) link.setAttribute('imagesrcset', srcset);
+  const sizes = img.getAttribute('sizes');
+  if (sizes) link.setAttribute('imagesizes', sizes);
+  document.head.appendChild(link);
+}
+
 /**
  * Hide hero H1 until Syncopate is active to prevent font-swap layout shift.
  * @param {Element} section
@@ -427,14 +466,16 @@ async function loadEager(doc) {
   const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
   if (main) {
+    const heroCssPromise = loadHeroBlockCss(main);
     decorateMain(main);
     applyTemplateAndTheme(doc);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
+    if (firstSection) preloadLcpHeroImage(firstSection);
     const loadFirstSection = firstSection
       ? loadSection(firstSection, async (section) => {
         optimizePictures(section, {
-          eagerSelector: '.hero-adventure, .carousel-hero, .hero',
+          eagerSelector: HERO_BLOCK_SELECTOR,
           eagerAll: true,
         });
         if (!document.body.classList.contains('quick-edit')) {
@@ -447,6 +488,7 @@ async function loadEager(doc) {
     if (martechPromise) {
       await Promise.all([
         fontPromise,
+        heroCssPromise,
         martechPromise.then(() => getMartechModule().then(async (m) => {
           await m.martechEager();
           await decorateTargetInjections(main);
@@ -455,7 +497,7 @@ async function loadEager(doc) {
         loadFirstSection,
       ]);
     } else {
-      await Promise.all([fontPromise, loadFirstSection]);
+      await Promise.all([fontPromise, heroCssPromise, loadFirstSection]);
     }
   }
 }
@@ -465,6 +507,8 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
+  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+
   if (!martechLoadedPromise && isMartechConfigured()) {
     loadMartech(doc);
   }
@@ -479,7 +523,7 @@ async function loadLazy(doc) {
   }
 
   if (main) {
-    optimizePictures(main, { eagerSelector: '.hero-adventure, .carousel-hero, .hero' });
+    optimizePictures(main, { eagerSelector: HERO_BLOCK_SELECTOR });
     if (isAnalyticsEnabled(doc)) {
       initAssetAnalytics(main);
     }
@@ -505,8 +549,6 @@ async function loadLazy(doc) {
       await refreshTargetZones(main);
     }
   }
-
-  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
 
   const loadQuickEdit = async (...args) => {
     // eslint-disable-next-line import/no-cycle

@@ -1,3 +1,5 @@
+/* Design tokens — duplicated in styles.css (inlined for LCP; do not @import here). */
+
 :root {
   --heading-font-family: "Syncopate", sans-serif;
   --body-font-family: "Instrument Sans", sans-serif;
