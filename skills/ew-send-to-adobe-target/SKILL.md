@@ -122,11 +122,11 @@ If the author also uses classic Document Authoring, the same flow exists under *
 Export is only step 1. Tell the author what happens next (you cannot run Target MCP from EW):
 
 1. **Page zone** — On the target page, open **Section metadata** on the section to personalize:
-   - **Target zone**: On
-   - **Target location ID**: e.g. `hero-mbox` (stable; used in Target CSS selector)
+   - **Target location**: e.g. `wknd-marquee` (renders as `data-targetlocation` on the section)
+   - **Style** (optional): e.g. `marquee-ticker-container` for layout
 2. **Page metadata** — Set **Adobe Target** = **On** only while an activity is live on that page.
 3. **Default content** — Keep a fragment block in the zone as control/fallback content.
-4. **Target activity** — Human or **Claude with Target MCP** creates the activity (selector `#hero-mbox`, assign exported offers). Full plan: [docs/TARGET-PERSONALIZATION-PLAN.md](../../../docs/TARGET-PERSONALIZATION-PLAN.md).
+4. **Target activity** — Human or **Claude with Target MCP** creates the activity (selector `[data-targetlocation="wknd-marquee"]`, assign exported offers). Full plan: [docs/TARGET-PERSONALIZATION-PLAN.md](../../../docs/TARGET-PERSONALIZATION-PLAN.md).
 5. **Claude skill** — `adobe-target-personalization` for activity/audience setup when the author leaves EW.
 
 **Performance reminders for authors:**

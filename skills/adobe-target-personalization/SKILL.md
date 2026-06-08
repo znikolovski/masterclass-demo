@@ -32,9 +32,9 @@ Orchestrate **delivery and experimentation** on WKND Adventures EDS. Authors exp
 ## Architecture (short)
 
 1. Fragments → **Send to Adobe Target** → immutable HTML offers
-2. Page section: **Target zone** + **Target location ID** (e.g. `hero-mbox`)
+2. Page section: **Target location** metadata → `data-targetlocation` (e.g. `wknd-marquee`)
 3. Page metadata: **Adobe Target = On** (opt-in, eager martech)
-4. Target activity: CSS selector `#hero-mbox`, assign offers to experiences
+4. Target activity: CSS selector `[data-targetlocation="…"]`, assign offers to experiences
 5. EDS re-decorates injected HTML via `target-delivery.js`
 
 ## When to use
@@ -49,7 +49,7 @@ Orchestrate **delivery and experimentation** on WKND Adventures EDS. Authors exp
 
 ```
 - [ ] Offers exported from EW (or npm run target:send) — HTML, not fragment URLs
-- [ ] Page has section metadata: target-zone=on, target-id=<id>
+- [ ] Page section has data-targetlocation (via section metadata targetlocation)
 - [ ] Page metadata target=on for test pages only
 - [ ] Datastream + Launch configured (martech-config.js)
 - [ ] Target property: page-load mbox disabled if using explicit zones
@@ -69,11 +69,11 @@ If offer missing → tell author to export via EW skill `ew-send-to-adobe-target
 
 ### 2. Confirm delivery selector
 
-Read page structure or ask author for **Target location ID**.
+Read page structure or ask author for **Target location** (`data-targetlocation` value).
 
 | Section metadata | DOM |
 |------------------|-----|
-| target-id: `hero-mbox` | `#hero-mbox` or `main > .section.target#hero-mbox` |
+| targetlocation: `wknd-marquee` | `[data-targetlocation="wknd-marquee"]` or `.marquee-ticker-container[data-targetlocation="wknd-marquee"]` |
 
 ### 3. Create / update activity
 
@@ -111,7 +111,7 @@ Return summary:
 ## Activity: <name>
 - ID: <id>
 - URL: <page path>
-- Selector: #<target-id>
+- Selector: [data-targetlocation="<location>"]
 - Offers: control + variants
 - Audience: <name>
 - Preview: <link>

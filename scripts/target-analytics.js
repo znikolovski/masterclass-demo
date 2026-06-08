@@ -1,8 +1,9 @@
 /**
  * Target personalization context for ACDL / Launch.
- * Does not replace Target reporting — supplements page context for Workspace QA.
  * @see docs/TARGET-PERSONALIZATION-PLAN.md
  */
+
+import { getTargetZones } from './target-delivery.js';
 
 /**
  * @returns {boolean}
@@ -27,8 +28,8 @@ export function pushTargetPageContext(doc, getMetadataValue) {
   window.adobeDataLayer.push({
     target: {
       enabled,
-      zones: [...document.querySelectorAll('main .target, main > .section.target')].map((el) => ({
-        id: el.id || '',
+      zones: getTargetZones(document.querySelector('main')).map((el) => ({
+        location: el.dataset.targetlocation || '',
         path: window.location.pathname,
       })),
     },
@@ -45,20 +46,21 @@ export function initTargetAnalytics(main) {
     window.adobeDataLayer.push({
       event: 'targetZoneReady',
       target: {
-        zoneId: zone.id || zone.dataset.targetId || '',
+        location: zone.dataset.targetlocation || '',
         path: window.location.pathname,
       },
     });
   };
 
-  main.querySelectorAll('.target, .section.target').forEach((zone) => {
+  getTargetZones(main).forEach((zone) => {
     if (zone.dataset.targetAnalyticsReady) return;
     zone.dataset.targetAnalyticsReady = 'true';
     reportZone(zone);
   });
 
   const observer = new MutationObserver(() => {
-    main.querySelectorAll('.target:not([data-target-analytics-ready]), .section.target:not([data-target-analytics-ready])')
+    getTargetZones(main)
+      .filter((zone) => !zone.dataset.targetAnalyticsReady)
       .forEach((zone) => {
         zone.dataset.targetAnalyticsReady = 'true';
         reportZone(zone);

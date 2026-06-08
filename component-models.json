@@ -270,32 +270,19 @@
           {
             "name": "Carousel blog intro",
             "value": "carousel-blog-container"
-          }
-        ]
-      },
-      {
-        "component": "select",
-        "name": "target-zone",
-        "label": "Target zone",
-        "valueType": "string",
-        "description": "Marks this section as an Adobe Target injection point (adds class target). Pair with Target location ID.",
-        "options": [
-          {
-            "name": "Off",
-            "value": ""
           },
           {
-            "name": "On",
-            "value": "on"
+            "name": "Marquee ticker container",
+            "value": "marquee-ticker-container"
           }
         ]
       },
       {
         "component": "text",
-        "name": "target-id",
-        "label": "Target location ID",
+        "name": "targetlocation",
+        "label": "Target location",
         "valueType": "string",
-        "description": "Stable CSS selector for Target activities (e.g. hero-mbox). Becomes the section id attribute."
+        "description": "Adobe Target mbox location. Rendered as data-targetlocation on the section (e.g. wknd-marquee). Use selector [data-targetlocation=\"value\"] in Target activities."
       }
     ]
   },

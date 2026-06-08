@@ -1,4 +1,4 @@
-import { applyTargetZoneMetadata } from '../../scripts/target-delivery.js';
+import { markTargetZone } from '../../scripts/target-delivery.js';
 
 export default function decorate(block) {
   const section = block.closest('.section');
@@ -10,8 +10,9 @@ export default function decorate(block) {
     if (key === 'style' && value) {
       section.classList.add(...value.split(',').map((s) => s.trim()));
     }
-    if (key === 'target-zone' || key === 'target-id') {
-      applyTargetZoneMetadata(section, key, key === 'target-id' ? rawValue : value);
+    if (key === 'targetlocation' && rawValue) {
+      section.dataset.targetlocation = rawValue;
+      markTargetZone(section);
     }
   });
   const wrapper = block.closest('.section-metadata-wrapper') || block.parentElement;

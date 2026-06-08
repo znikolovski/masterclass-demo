@@ -51,9 +51,9 @@ From DA delivery guidance and this project's martech setup:
 
 1. **Opt in per page** — Page metadata `Adobe Target` = **On** only on pages with live activities. All other pages skip eager personalization (protects LCP).
 2. **HTML offers, not fragment URLs** — Export full section HTML to Target. Do not deliver `/fragments/...` links and fetch client-side (chaining kills performance).
-3. **Zones under `main`** — Mark sections with **Target zone** + **Target location ID** in section metadata. Activities target `#hero-mbox` (or `main .section.target#hero-mbox`).
+3. **Zones under `main`** — Set **Target location** in section metadata. EDS renders `data-targetlocation` on the section (e.g. a `marquee-ticker-container` section). Activities target `[data-targetlocation="wknd-marquee"]`.
 4. **Web SDK via martech, not at.js** — Self-hosted `alloy` in eager phase when `target: on`; analytics deferred to lazy phase.
-5. **Preload** — `head.html` preloads martech + `preconnect` to `edge.adobedc.net`.
+5. **Preconnect** — `head.html` uses `preconnect` to `edge.adobedc.net`. Do not add `<link rel="preload" as="script">` for martech: CSP `strict-dynamic` + nonce blocks script preloads; martech loads via dynamic `import()` from nonce-bearing `scripts.js`.
 6. **Consent** — `updateUserConsent({ personalize: true })` only when CMP allows (preview hosts auto-consent for QA).
 7. **PSI gate** — Run PageSpeed on experiment pages before promoting activities to production traffic.
 
@@ -138,25 +138,27 @@ Requires `/.da/adobe-target` credentials and `da-auth` token in `.hlx/.da-token.
 
 On the page to personalize (e.g. `/`):
 
-1. Add a **section** with default content (fragment block → `hero-default`).
+1. Add a **section** with default content (e.g. marquee-ticker, fragment, hero).
 2. Add **Section metadata** to that section:
-   - **Target zone**: On
-   - **Target location ID**: `hero-mbox`
+   - **Style**: e.g. `marquee-ticker-container` (optional layout class)
+   - **Target location**: e.g. `wknd-marquee` → renders as `data-targetlocation="wknd-marquee"` on the section
 3. Page metadata → **Adobe Target**: **On** (only while testing/live).
+
+`applySectionMetadata` in [`scripts/scripts.js`](../scripts/scripts.js) maps the `targetlocation` metadata key to `data-targetlocation` on the section and adds class `target`.
 
 ### Step 4 — Create Target activity
 
 In [Adobe Target](https://experience.adobe.com/target):
 
 1. **Activities → Create** → A/B Test or Experience Targeting.
-2. **Location**: CSS selector `#hero-mbox` (or `main > .section.target#hero-mbox`).
+2. **Location**: CSS selector `[data-targetlocation="wknd-marquee"]` (or `.marquee-ticker-container[data-targetlocation="wknd-marquee"]` for specificity).
 3. **Experiences**: assign exported HTML offers (control = default, variants = climbing/trekking).
 4. **Audiences**: use Analytics segments from Tier 4 archetypes (see [ANALYTICS-LAUNCH-PLAN.md](./ANALYTICS-LAUNCH-PLAN.md)).
 5. QA on preview: `https://main--masterclass-demo--znikolovski.aem.page/?at_preview_token=...`
 
 ### Step 5 — Validate
 
-- [ ] Zone has class `target` and id `hero-mbox` in DOM
+- [ ] Section has `data-targetlocation` and class `target` in DOM
 - [ ] Injected blocks decorate (images, carousels work)
 - [ ] No layout shift beyond martech timeout (1s default)
 - [ ] Target reporting shows impressions
@@ -178,9 +180,10 @@ In [Adobe Target](https://experience.adobe.com/target):
 | [`scripts/scripts.js`](../scripts/scripts.js) | Eager martech when `target: on`; zone decoration |
 | [`scripts/target-delivery.js`](../scripts/target-delivery.js) | Re-decorate sections after Target injection |
 | [`scripts/target-analytics.js`](../scripts/target-analytics.js) | ACDL `target` context + `targetZoneReady` |
-| [`blocks/section-metadata/section-metadata.js`](../blocks/section-metadata/section-metadata.js) | Applies `target` class + section `id` |
+| [`scripts/scripts.js`](../scripts/scripts.js) `applySectionMetadata` | Maps `targetlocation` → `data-targetlocation` |
+| [`blocks/section-metadata/section-metadata.js`](../blocks/section-metadata/section-metadata.js) | Block decoration path for `targetlocation` |
 | [`tools/adobe-target/`](../tools/adobe-target/) | EW extension + CLI |
-| [`component-models.json`](../component-models.json) | Page `target` + section Target zone fields |
+| [`component-models.json`](../component-models.json) | Page `target` + section `targetlocation` field |
 
 ---
 
@@ -205,12 +208,12 @@ Use skill: [`.claude/skills/adobe-target-personalization/SKILL.md`](../.claude/s
 
 **Typical prompt:**
 
-> Create an A/B test on the homepage hero for Climbing vs Trekking seekers. We already exported offers `WKND Hero — Climbing` and `WKND Hero — Default`. Page has zone `#hero-mbox` and `target: on`.
+> Create an A/B test on the homepage marquee for Climbing vs Trekking seekers. Offers exported. Section has `data-targetlocation="wknd-marquee"` and `target: on`.
 
 **Agent checklist:**
 
 1. Confirm offers exist in Target (MCP list offers / search by name).
-2. Confirm page preview URL and zone selector `#hero-mbox`.
+2. Confirm page preview URL and zone selector `[data-targetlocation="…"]`.
 3. Create or update activity via MCP (location, experiences, audience from Tier 4).
 4. Return preview QA URL with `at_preview_token` instructions.
 5. Remind author to set page metadata **Adobe Target = On**.
@@ -243,7 +246,7 @@ Use skill: [`skills/ew-send-to-adobe-target/SKILL.md`](../skills/ew-send-to-adob
 
 > I need to personalize the homepage hero for climbing visitors. Walk me through exporting my `/fragments/hero-climbing` fragment and setting up the page zone.
 
-EW agent: confirm preview → Library → Send to Adobe Target → section metadata `target-zone` / `target-id` → page metadata Target On → hand off activity creation to Target UI or Claude.
+EW agent: confirm preview → Library → Send to Adobe Target → section metadata `targetlocation` → page metadata Target On → hand off activity creation to Target UI or Claude.
 
 ---
 

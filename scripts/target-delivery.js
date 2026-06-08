@@ -1,19 +1,31 @@
 /**
  * Post-injection decoration for Adobe Target HTML offers on EDS pages.
- * Target replaces zone markup before blocks are decorated; this reloads those sections.
+ * Zones are marked with section metadata `targetlocation` → data-targetlocation.
  * @see docs/TARGET-PERSONALIZATION-PLAN.md
  */
 
 import { loadSection } from './aem.js';
 
-const TARGET_ID_PATTERN = /^[a-z0-9][a-z0-9_-]*$/i;
+/** @returns {string} */
+export function getTargetZoneSelector() {
+  return '[data-targetlocation]';
+}
 
 /**
- * @param {string} id
- * @returns {boolean}
+ * @param {Element} section
  */
-function isSafeTargetId(id) {
-  return typeof id === 'string' && TARGET_ID_PATTERN.test(id);
+export function markTargetZone(section) {
+  if (!section?.dataset?.targetlocation) return;
+  section.classList.add('target');
+}
+
+/**
+ * @param {Element} main
+ * @returns {Element[]}
+ */
+export function getTargetZones(main) {
+  if (!main) return [];
+  return [...main.querySelectorAll(getTargetZoneSelector())];
 }
 
 /**
@@ -23,15 +35,12 @@ function isSafeTargetId(id) {
 export async function decorateTargetInjections(main) {
   if (!main) return;
 
-  const pending = [
-    ...main.querySelectorAll('.section.target:not([data-section-status="loaded"])'),
-    ...main.querySelectorAll('.target .section:not([data-section-status="loaded"])'),
-  ];
+  const pending = getTargetZones(main).filter(
+    (section) => section.dataset.sectionStatus !== 'loaded',
+  );
 
-  const unique = [...new Set(pending)];
-  if (!unique.length) return;
-
-  await Promise.all(unique.map((section) => loadSection(section)));
+  if (!pending.length) return;
+  await Promise.all(pending.map((section) => loadSection(section)));
 }
 
 /** @type {MutationObserver|null} */
@@ -51,8 +60,8 @@ export function initTargetDelivery(main) {
     const relevant = mutations.some((mutation) => {
       const { target } = mutation;
       if (!(target instanceof Element)) return false;
-      return target.classList?.contains('target')
-        || target.closest?.('.target')
+      return target.dataset?.targetlocation
+        || target.closest?.('[data-targetlocation]')
         || (mutation.type === 'childList' && target.closest('main'));
     });
     if (relevant) refresh();
@@ -62,29 +71,8 @@ export function initTargetDelivery(main) {
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ['id', 'class'],
+    attributeFilter: ['data-targetlocation', 'class'],
   });
 
   refresh();
-}
-
-/**
- * Applies Target zone markers from section-metadata rows.
- * @param {Element} section
- * @param {string} key
- * @param {string} value
- */
-export function applyTargetZoneMetadata(section, key, value) {
-  if (!section || !value) return;
-
-  if (key === 'target-zone' && (value === 'on' || value === 'true' || value === 'yes')) {
-    section.classList.add('target');
-    section.dataset.targetZone = 'true';
-    return;
-  }
-
-  if (key === 'target-id' && isSafeTargetId(value)) {
-    section.id = value;
-    section.dataset.targetId = value;
-  }
 }

@@ -189,6 +189,9 @@ function applySectionMetadata(section, sectionMeta) {
       section.dataset[toCamelCase(key)] = meta[key];
     }
   });
+  if (meta.targetlocation) {
+    section.classList.add('target');
+  }
   const wrapper = sectionMeta.closest('.section-metadata-wrapper') || sectionMeta.parentElement;
   if (wrapper && wrapper !== section) wrapper.remove();
   else sectionMeta.remove();
