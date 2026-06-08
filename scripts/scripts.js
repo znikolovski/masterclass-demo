@@ -15,7 +15,12 @@ import {
 } from './aem.js';
 import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext } from './analytics-page.js';
-import { decorateTargetInjections, initTargetDelivery } from './target-delivery.js';
+import {
+  decorateTargetInjections,
+  getTargetZones,
+  initTargetDelivery,
+  markTargetZone,
+} from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
 import { optimizePictures } from './media.js';
 import {
@@ -189,7 +194,7 @@ function applySectionMetadata(section, sectionMeta) {
       section.dataset[toCamelCase(key)] = meta[key];
     }
   });
-  if (meta.targetlocation) {
+  if (meta.targetlocation || meta['target-location']) {
     section.classList.add('target');
   }
   const wrapper = sectionMeta.closest('.section-metadata-wrapper') || sectionMeta.parentElement;
@@ -247,6 +252,7 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateButtonGroups(main);
+  getTargetZones(main).forEach(markTargetZone);
 }
 
 /**
@@ -287,6 +293,9 @@ function applyTemplateAndTheme(doc = document) {
   if (theme) addClasses(document.body, theme);
 }
 
+/** Page metadata keys that opt in to Adobe Target (DA publishes `adobetarget` in head). */
+const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
+
 /**
  * @param {string} name Metadata key
  * @param {Document} doc Document
@@ -324,7 +333,8 @@ function isConsentGiven() {
  * @returns {boolean}
  */
 function isPersonalizationEnabled(doc = document) {
-  return isPageMetadataOn('target', doc) && isConsentGiven();
+  const enabled = TARGET_METADATA_KEYS.some((key) => isPageMetadataOn(key, doc));
+  return enabled && isConsentGiven();
 }
 
 /** @type {Promise<void>|null} */

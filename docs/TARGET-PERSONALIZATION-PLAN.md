@@ -255,6 +255,7 @@ EW agent: confirm preview → Library → Send to Adobe Target → section metad
 | Symptom | Fix |
 |---------|-----|
 | Default content only, no swap | Page metadata Target not **On**; activity inactive; wrong selector |
+| Martech never loads / no `interact` call | Head meta is `adobetarget` (DA default) but code only checked `target` — runtime accepts `target`, `adobetarget`, and `adobe-target` |
 | Unstyled injected HTML | Wait for code sync; `target-delivery.js` should run — check console errors |
 | Flicker / slow LCP | Turn Target **Off** on pages without activities; reduce offer weight |
 | Extension can't load config | Fix `/.da/adobe-target` sheet |

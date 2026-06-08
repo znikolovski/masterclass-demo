@@ -4,7 +4,7 @@
  * @see docs/TARGET-PERSONALIZATION-PLAN.md
  */
 
-import { loadSection } from './aem.js';
+import { decorateBlock, loadBlock, loadSection } from './aem.js';
 
 /** @returns {string} */
 export function getTargetZoneSelector() {
@@ -29,6 +29,31 @@ export function getTargetZones(main) {
 }
 
 /**
+ * @param {Element} zone
+ * @returns {Promise<void>}
+ */
+async function decorateTargetZone(zone) {
+  markTargetZone(zone);
+
+  zone.querySelectorAll(':scope > div').forEach((child) => {
+    if (!child.classList.contains('block') && child.classList.length) {
+      decorateBlock(child);
+    }
+  });
+
+  if (zone.classList.contains('section')) {
+    await loadSection(zone);
+    zone.classList.add('target-ready');
+    return;
+  }
+
+  const blocks = [...zone.querySelectorAll(':scope div.block')];
+  await Promise.all(blocks.map((block) => loadBlock(block)));
+  zone.closest('.section')?.classList.add('target-ready');
+  zone.classList.add('target-ready');
+}
+
+/**
  * @param {Element} main
  * @returns {Promise<void>}
  */
@@ -36,11 +61,11 @@ export async function decorateTargetInjections(main) {
   if (!main) return;
 
   const pending = getTargetZones(main).filter(
-    (section) => section.dataset.sectionStatus !== 'loaded',
+    (zone) => !zone.classList.contains('target-ready'),
   );
 
   if (!pending.length) return;
-  await Promise.all(pending.map((section) => loadSection(section)));
+  await Promise.all(pending.map((zone) => decorateTargetZone(zone)));
 }
 
 /** @type {MutationObserver|null} */

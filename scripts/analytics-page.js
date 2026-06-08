@@ -103,7 +103,11 @@ export function buildPageContext(doc, getMetadataValue) {
     journeyStage: getMetadataValue('journeyStage', doc)
       || deriveJourneyStage(pathname, siteSection),
     targetEnabled: ['on', 'true', 'yes'].includes(
-      (getMetadataValue('target', doc) || '').toLowerCase(),
+      (
+        getMetadataValue('target', doc)
+        || getMetadataValue('adobetarget', doc)
+        || getMetadataValue('adobe-target', doc)
+      ).toLowerCase(),
     ) ? 'yes' : 'no',
   };
 }
