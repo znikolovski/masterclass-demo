@@ -426,6 +426,9 @@ async function applyPropositions(instanceName) {
         propositions = propositions.filter((p) => p.id !== item.id);
       }
     });
+    window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
+      detail: { propositions: appliedPropositions },
+    }));
   });
   return renderDecisionResponse;
 }

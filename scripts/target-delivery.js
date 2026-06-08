@@ -5,10 +5,6 @@
  * `.block` / `data-block-status`). After Web SDK injects an offer, this module
  * runs the normal EDS block pipeline (decorateBlock → loadBlock) on that subtree.
  *
- * Martech applies propositions after initial section decoration (aem.live pattern);
- * this re-decoration step satisfies DA delivery guidance to "decorate as usual"
- * once offer HTML is in the DOM. Use a MutationObserver to catch async injections.
- *
  * @see https://docs.da.live/administrators/guides/prepare-menu/send-to-adobe-target
  * @see https://www.aem.live/developer/target-integration
  * @see docs/TARGET-PERSONALIZATION-PLAN.md
@@ -19,7 +15,6 @@ import {
   decorateIcons,
   loadBlock,
   loadCSS,
-  loadSection,
 } from './aem.js';
 
 /** @returns {string} */
@@ -36,12 +31,32 @@ export function markTargetZone(section) {
 }
 
 /**
+ * Prefer outermost zone per location (section over nested wrapper).
  * @param {Element} main
  * @returns {Element[]}
  */
 export function getTargetZones(main) {
   if (!main) return [];
-  return [...main.querySelectorAll(getTargetZoneSelector())];
+  const zones = [...main.querySelectorAll(getTargetZoneSelector())];
+  return zones.filter((zone) => !zone.parentElement?.closest('[data-targetlocation]'));
+}
+
+/**
+ * Hoist nested data-targetlocation onto the parent .section (DA zone guidance).
+ * @param {Element} main
+ */
+export function hoistTargetLocationToSection(main) {
+  if (!main) return;
+  main.querySelectorAll('.section [data-targetlocation]').forEach((inner) => {
+    const section = inner.closest('.section');
+    if (!section || inner === section) return;
+    if (!section.dataset.targetlocation) {
+      section.dataset.targetlocation = inner.dataset.targetlocation;
+      markTargetZone(section);
+    }
+    inner.removeAttribute('data-targetlocation');
+    inner.removeAttribute('data-targetzone');
+  });
 }
 
 /**
@@ -62,13 +77,13 @@ function isLayoutClassName(name) {
     || name === 'block'
     || name === 'default-content-wrapper'
     || name === 'target'
+    || name === 'section-metadata'
     || name.endsWith('-wrapper')
     || name.endsWith('-container')
     || name.endsWith('-track');
 }
 
 /**
- * EDS block roots are divs whose first class is the block name (often nested in bare wrappers).
  * @param {Element} el
  * @returns {boolean}
  */
@@ -78,10 +93,9 @@ function isBlockRootCandidate(el) {
 
   const name = el.classList[0];
   if (!name || isLayoutClassName(name)) return false;
-  if (el.classList.contains(name) && [...el.children].every((child) => child.tagName === 'DIV')) {
-    return true;
-  }
-  return false;
+  return el.classList.contains(name)
+    && [...el.children].length > 0
+    && [...el.children].every((child) => child.tagName === 'DIV');
 }
 
 /**
@@ -115,17 +129,14 @@ function ensureBlockLayoutClasses(block) {
 }
 
 /**
- * Target often injects raw EDS markup inside an extra unclassed wrapper div.
  * @param {Element} zone
  * @returns {Element[]}
  */
 function collectZoneBlocks(zone) {
-  const candidates = [...zone.querySelectorAll(':scope div[class]')].filter(isBlockRootCandidate);
-  const roots = candidates.filter(
+  const candidates = [...zone.querySelectorAll('div[class]')].filter(isBlockRootCandidate);
+  return candidates.filter(
     (el) => !candidates.some((other) => other !== el && other.contains(el)),
   );
-  if (roots.length) return roots;
-  return [...zone.querySelectorAll(':scope div.block')];
 }
 
 /**
@@ -155,18 +166,16 @@ async function loadInjectedBlock(block) {
 async function decorateTargetZone(zone) {
   markTargetZone(zone);
 
-  if (zone.classList.contains('section')) {
-    await loadSection(zone);
-    zone.classList.add('target-ready');
-    return;
-  }
-
   const blocks = collectZoneBlocks(zone);
   if (!blocks.length) return;
 
   await Promise.all(blocks.map((block) => loadInjectedBlock(block)));
   decorateIcons(zone);
-  zone.closest('.section')?.classList.add('target-ready');
+
+  const blockName = getBlockName(blocks[0]);
+  const section = zone.classList.contains('section') ? zone : zone.closest('.section');
+  if (section && blockName) section.classList.add(`${blockName}-container`);
+
   zone.classList.add('target-ready');
 }
 
@@ -186,7 +195,6 @@ export async function decorateTargetInjections(main) {
 }
 
 /**
- * Re-run decoration on all Target zones (e.g. after lazy-phase section load).
  * @param {Element} main
  * @returns {Promise<void>}
  */
@@ -201,6 +209,9 @@ let targetObserver = null;
 
 /** @type {number|null} */
 let refreshFrame = null;
+
+/** @type {boolean} */
+let martechListenerBound = false;
 
 /**
  * @param {MutationRecord[]} mutations
@@ -220,16 +231,26 @@ function invalidateZonesAfterInjection(mutations) {
 /**
  * @param {Element} main
  */
+function scheduleTargetRefresh(main) {
+  if (refreshFrame) cancelAnimationFrame(refreshFrame);
+  refreshFrame = requestAnimationFrame(() => {
+    refreshFrame = null;
+    refreshTargetZones(main).catch(() => {});
+  });
+}
+
+/**
+ * @param {Element} main
+ */
 export function initTargetDelivery(main) {
   if (!main || targetObserver) return;
 
-  const refresh = () => {
-    if (refreshFrame) cancelAnimationFrame(refreshFrame);
-    refreshFrame = requestAnimationFrame(() => {
-      refreshFrame = null;
-      decorateTargetInjections(main).catch(() => {});
+  if (!martechListenerBound) {
+    document.addEventListener('martech:propositions-applied', () => {
+      scheduleTargetRefresh(main);
     });
-  };
+    martechListenerBound = true;
+  }
 
   targetObserver = new MutationObserver((mutations) => {
     invalidateZonesAfterInjection(mutations);
@@ -241,7 +262,7 @@ export function initTargetDelivery(main) {
         || target.closest?.('[data-targetlocation]')
         || (mutation.type === 'childList' && target.closest('main'));
     });
-    if (relevant) refresh();
+    if (relevant) scheduleTargetRefresh(main);
   });
 
   targetObserver.observe(main, {
@@ -251,5 +272,5 @@ export function initTargetDelivery(main) {
     attributeFilter: ['data-targetlocation', 'class'],
   });
 
-  refresh();
+  scheduleTargetRefresh(main);
 }

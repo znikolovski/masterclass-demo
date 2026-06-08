@@ -18,6 +18,7 @@ import { pushAnalyticsPageContext } from './analytics-page.js';
 import {
   decorateTargetInjections,
   getTargetZones,
+  hoistTargetLocationToSection,
   initTargetDelivery,
   markTargetZone,
   refreshTargetZones,
@@ -252,6 +253,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  hoistTargetLocationToSection(main);
   decorateButtonGroups(main);
   getTargetZones(main).forEach(markTargetZone);
 }
@@ -457,6 +459,9 @@ async function loadLazy(doc) {
       if (main) initTargetAnalytics(main);
     }
     await getMartechModule().then((m) => m.martechLazy());
+    if (main && isPersonalizationEnabled(doc)) {
+      await refreshTargetZones(main);
+    }
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
