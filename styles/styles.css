@@ -508,14 +508,16 @@ main .section.highlight {
   padding: 80px 0;
 }
 
-/* Above-fold fragment placeholder until async content replaces the block */
-main > .section:first-of-type .fragment {
-  min-height: 280px;
+/* Above-fold fragment / columns-featured — reserve full mobile layout height */
+main > .section:first-of-type .fragment,
+main > .section:first-of-type .columns-featured-wrapper {
+  min-height: 600px;
 }
 
 @media (width >= 900px) {
-  main > .section:first-of-type .fragment {
-    min-height: 320px;
+  main > .section:first-of-type .fragment,
+  main > .section:first-of-type .columns-featured-wrapper {
+    min-height: 360px;
   }
 }
 

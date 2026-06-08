@@ -18,6 +18,7 @@
 .columns-featured > div > div:first-child {
   overflow: hidden;
   border-radius: 20px;
+  aspect-ratio: 16 / 9;
 }
 
 .columns-featured > div > div:first-child picture {
