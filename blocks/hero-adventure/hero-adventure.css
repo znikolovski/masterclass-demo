@@ -80,7 +80,11 @@
   margin: 0 0 16px;
 }
 
-/* Heading cell */
+/* Heading cell — reserve line box before Syncopate paints (prevents H1 CLS) */
+.hero-adventure > div:last-child > div:has(> h1) {
+  min-height: calc(var(--heading-font-size-xxl) * 1.1 * 4 + 40px);
+}
+
 .hero-adventure h1 {
   font-size: var(--heading-font-size-xxl);
   font-weight: 700;
@@ -92,11 +96,8 @@
   max-width: 52rem;
 }
 
-/* Reserve mobile line count before Syncopate loads to prevent hero CLS */
-@media (width < 900px) {
-  .hero-adventure h1 {
-    min-height: 4.5em;
-  }
+.hero-adventure h1.hero-heading-pending {
+  visibility: hidden;
 }
 
 /* Description cell */

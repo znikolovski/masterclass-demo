@@ -31,8 +31,30 @@ import {
   getLaunchUrls,
 } from './martech-config.js';
 
-/** Loaded after LCP — see https://www.aem.live/developer/keeping-it-100 */
-const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap';
+/** Instrument Sans (body) + Syncopate (headings); Syncopate woff2 preloaded in head.html */
+const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@700&display=swap';
+
+const HERO_HEADING_FONT = 'Syncopate';
+
+/**
+ * Hide hero H1 until Syncopate is active to prevent font-swap layout shift.
+ * @param {Element} section
+ */
+async function waitForHeroHeadingFont(section) {
+  const h1 = section.querySelector('.hero-adventure h1, .hero h1');
+  if (!h1) return;
+
+  h1.classList.add('hero-heading-pending');
+  try {
+    const size = window.getComputedStyle(h1).fontSize || '56px';
+    await Promise.race([
+      document.fonts.load(`700 ${size} ${HERO_HEADING_FONT}`),
+      new Promise((resolve) => { setTimeout(resolve, 2000); }),
+    ]);
+  } finally {
+    h1.classList.remove('hero-heading-pending');
+  }
+}
 
 /** @type {Promise<typeof import('../plugins/martech/src/index.js')>|null} */
 let martechModulePromise = null;
@@ -416,13 +438,8 @@ async function loadEager(doc) {
           eagerAll: true,
         });
         if (!document.body.classList.contains('quick-edit')) {
-          await Promise.all([
-            waitForFirstImage(section),
-            Promise.race([
-              document.fonts.ready,
-              new Promise((resolve) => { setTimeout(resolve, 800); }),
-            ]),
-          ]);
+          await waitForHeroHeadingFont(section);
+          await waitForFirstImage(section);
         }
       })
       : Promise.resolve();
