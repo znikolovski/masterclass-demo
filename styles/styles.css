@@ -131,6 +131,15 @@ main .section.hero-adventure-container > div {
   padding-inline: 0;
 }
 
+/* Landing pages (e.g. /expeditions) — accent shell eager for FCP */
+main > .section.accent {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 80px 0;
+  text-align: center;
+}
+
 /* Above-fold fragment — reserve layout height (homepage CLS) */
 main > .section:first-of-type .fragment,
 main > .section:first-of-type .columns-featured-wrapper {

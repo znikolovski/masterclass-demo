@@ -178,6 +178,7 @@ function applyImageAttributes(node, attrs = {}) {
   if (attrs.height) img.setAttribute('height', attrs.height);
   if (attrs.loading) img.setAttribute('loading', attrs.loading);
   if (attrs.sizes) img.setAttribute('sizes', attrs.sizes);
+  if (attrs.loading === 'eager') img.setAttribute('fetchpriority', 'high');
 }
 
 /**
@@ -269,10 +270,11 @@ export function optimizePictures(root, options = {}) {
     const config = getPictureConfig(img, eagerSelector);
     const { breakpoints, sizes } = config;
     const eager = eagerAll || config.eager;
+    const loading = eager ? 'eager' : (img.getAttribute('loading') || undefined);
     const attrs = {
       width: img.getAttribute('width') || undefined,
       height: img.getAttribute('height') || undefined,
-      loading: eager ? 'eager' : (img.getAttribute('loading') || undefined),
+      loading,
       sizes,
     };
     picture.replaceWith(createResponsivePicture(

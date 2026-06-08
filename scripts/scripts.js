@@ -52,6 +52,51 @@ async function loadHeroBlockCss(main) {
 }
 
 /**
+ * @param {string} href
+ * @returns {boolean}
+ */
+function hasImagePreload(href) {
+  return [...document.querySelectorAll('link[rel="preload"][as="image"]')]
+    .some((link) => link.href === href);
+}
+
+/**
+ * Preload LCP candidate from og:image (mobile webp) before module JS runs.
+ * @param {Document} doc
+ */
+function preloadOgImage(doc = document) {
+  const og = getMetadata('og:image', doc);
+  if (!og) return;
+  try {
+    const url = new URL(og, doc.baseURI || window.location.href);
+    const base = `${url.origin}${url.pathname}`;
+    const mobile = `${base}?width=750&format=webply&optimize=medium`;
+    if (hasImagePreload(mobile)) return;
+    const desktop = `${base}?width=1200&format=webply&optimize=medium`;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = mobile;
+    link.setAttribute('imagesrcset', `${desktop} 1200w, ${mobile} 750w`);
+    link.setAttribute('imagesizes', '100vw');
+    document.head.appendChild(link);
+  } catch {
+    // ignore invalid og:image
+  }
+}
+
+/**
+ * Start hero image fetch immediately — authored markup uses loading="lazy".
+ * @param {ParentNode} root
+ */
+function primeLcpImage(root) {
+  const img = root.querySelector(`${HERO_BLOCK_SELECTOR} picture img, .section:first-of-type picture img`);
+  if (!img) return;
+  img.setAttribute('loading', 'eager');
+  img.setAttribute('fetchpriority', 'high');
+}
+
+/**
  * Preload the LCP hero image so the browser starts fetch before first paint.
  * @param {Element} section
  */
@@ -59,10 +104,7 @@ function preloadLcpHeroImage(section) {
   const img = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img, picture img`);
   if (!img) return;
   const href = img.currentSrc || img.getAttribute('src');
-  if (!href) return;
-  const preloaded = [...document.querySelectorAll('link[rel="preload"][as="image"]')]
-    .some((link) => link.href === href);
-  if (preloaded) return;
+  if (!href || hasImagePreload(href)) return;
 
   const link = document.createElement('link');
   link.rel = 'preload';
@@ -344,8 +386,8 @@ function getPageMetadataValue(name, doc = document) {
   return cells[1]?.textContent.trim() || '';
 }
 
-/** Repoless sites with a styles/brands/{site}.css override file */
-const SITE_BRAND_OVERRIDES = new Set(['masterclass-demo', 'wknd-business']);
+/** Repoless sites with token overrides in styles/brands/{site}.css */
+const SITE_BRAND_OVERRIDES = new Set(['wknd-business']);
 
 /**
  * Site slug from AEM preview/live hostname ({branch}--{site}--{org}.aem.page).
@@ -491,6 +533,7 @@ async function loadMartech(doc = document) {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  preloadOgImage(doc);
   applyTemplateAndTheme(doc);
 
   if (isBlogArticlePage(doc)) {
@@ -498,16 +541,17 @@ async function loadEager(doc) {
   }
 
   const fontPromise = loadFonts().catch(() => {});
-  const siteBrandPromise = loadSiteBrandCss(getRepolessSiteSlug(doc));
+  loadSiteBrandCss(getRepolessSiteSlug(doc));
 
   const needsEagerMartech = isMartechConfigured() && isPersonalizationEnabled(doc);
   const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
   if (main) {
-    const heroCssPromise = loadHeroBlockCss(main);
+    primeLcpImage(main);
+    loadHeroBlockCss(main);
     decorateMain(main);
     applyTemplateAndTheme(doc);
-    await Promise.all([heroCssPromise, siteBrandPromise]);
+    primeLcpImage(main);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
     if (firstSection) preloadLcpHeroImage(firstSection);
@@ -517,9 +561,10 @@ async function loadEager(doc) {
           eagerSelector: HERO_BLOCK_SELECTOR,
           eagerAll: true,
         });
+        primeLcpImage(section);
         if (!document.body.classList.contains('quick-edit')) {
-          await waitForHeroHeadingFont(section);
           await waitForFirstImage(section);
+          waitForHeroHeadingFont(section);
         }
       })
       : Promise.resolve();
