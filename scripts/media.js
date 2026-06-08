@@ -256,17 +256,19 @@ export function createResponsivePicture(
 /**
  * Upgrade authored pictures after block decoration (Media Bus + DM + external).
  * @param {ParentNode} root
- * @param {{ eagerSelector?: string }} [options]
+ * @param {{ eagerSelector?: string, eagerAll?: boolean }} [options]
  */
 export function optimizePictures(root, options = {}) {
-  const { eagerSelector = HERO_SELECTOR } = options;
+  const { eagerSelector = HERO_SELECTOR, eagerAll = false } = options;
   root.querySelectorAll('picture > img[src]').forEach((img) => {
     if (img.dataset.mediaOptimized === 'true') return;
 
     const picture = img.closest('picture');
     if (!picture) return;
 
-    const { breakpoints, sizes, eager } = getPictureConfig(img, eagerSelector);
+    const config = getPictureConfig(img, eagerSelector);
+    const { breakpoints, sizes } = config;
+    const eager = eagerAll || config.eager;
     const attrs = {
       width: img.getAttribute('width') || undefined,
       height: img.getAttribute('height') || undefined,

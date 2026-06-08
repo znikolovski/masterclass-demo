@@ -92,6 +92,13 @@
   max-width: 52rem;
 }
 
+/* Reserve mobile line count before Syncopate loads to prevent hero CLS */
+@media (width < 900px) {
+  .hero-adventure h1 {
+    min-height: 4.5em;
+  }
+}
+
 /* Description cell */
 .hero-adventure > div:last-child > div:nth-child(3) p {
   font-size: var(--body-font-size-m);

@@ -399,6 +399,8 @@ async function loadEager(doc) {
     await loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
   }
 
+  const fontPromise = loadFonts().catch(() => {});
+
   const needsEagerMartech = isMartechConfigured() && isPersonalizationEnabled(doc);
   const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
@@ -408,14 +410,26 @@ async function loadEager(doc) {
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
     const loadFirstSection = firstSection
-      ? loadSection(firstSection, (section) => {
-        if (document.body.classList.contains('quick-edit')) return Promise.resolve();
-        return waitForFirstImage(section);
+      ? loadSection(firstSection, async (section) => {
+        optimizePictures(section, {
+          eagerSelector: '.hero-adventure, .carousel-hero, .hero',
+          eagerAll: true,
+        });
+        if (!document.body.classList.contains('quick-edit')) {
+          await Promise.all([
+            waitForFirstImage(section),
+            Promise.race([
+              document.fonts.ready,
+              new Promise((resolve) => { setTimeout(resolve, 800); }),
+            ]),
+          ]);
+        }
       })
       : Promise.resolve();
 
     if (martechPromise) {
       await Promise.all([
+        fontPromise,
         martechPromise.then(() => getMartechModule().then(async (m) => {
           await m.martechEager();
           await decorateTargetInjections(main);
@@ -424,18 +438,8 @@ async function loadEager(doc) {
         loadFirstSection,
       ]);
     } else {
-      await loadFirstSection;
+      await Promise.all([fontPromise, loadFirstSection]);
     }
-
-    if (firstSection) {
-      optimizePictures(firstSection, { eagerSelector: '.hero-adventure, .carousel-hero, .hero' });
-    }
-  }
-
-  try {
-    await loadFonts();
-  } catch (e) {
-    // do nothing
   }
 }
 
