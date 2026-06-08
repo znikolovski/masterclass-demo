@@ -54,8 +54,8 @@
       "Min": "",
       "Max": "",
       "Value": "",
-      "Options": "https://www.aem.live/blog-index.json",
-      "OptionNames": "https://www.aem.live/blog-index.json",
+      "Options": "/query-index.json",
+      "OptionNames": "/query-index.json",
       "Fieldset": "",
       "Repeatable": ""
     },

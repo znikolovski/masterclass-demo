@@ -585,6 +585,7 @@ export default async function decorate(block) {
   let form;
   if (formDef) {
     const formHref = container?.href || pathname || '';
+    const formSlug = formDef?.formSlug || '';
     prefillAdventureInterestForm(formDef, formHref);
 
     const submitProps = formDef?.properties?.['fd:submit'];
@@ -633,7 +634,7 @@ export default async function decorate(block) {
     if (source === 'aem' && formDef.properties && formDef.properties['fd:path']) {
       form.dataset.formpath = formDef.properties['fd:path'];
     }
-    const adventureKind = getAdventureFormKind(formHref);
+    const adventureKind = getAdventureFormKind(formHref, formSlug);
     if (adventureKind) {
       if (adventureKind === 'b2c-interest') {
         await waitForSelectEnumLoad(form, 'adventure');

@@ -31,16 +31,18 @@ function stripAdventureFormSections(html) {
   let out = trimDaHtml(html);
   // Orphan content saved after </body> or </html>
   out = out.replace(/<\/body>[\s\S]*$/i, '</body>');
-  // In-main blocks: heading through trailing form wrappers before </main>
+  // Section div: heading + intro + form block OR flattened <p>Form</p> + pre/code
   out = out.replace(
-    /<h2>Register your interest<\/h2>[\s\S]*?(?=<\/main>)/i,
+    /<div>\s*<h2[^>]*>Register your interest<\/h2>[\s\S]*?<\/div>/gi,
     '',
   );
-  // Split heading + form block saved as separate sibling divs after </body>
+  // Legacy: heading through end of main without wrapping div
   out = out.replace(
-    /<div>\s*<h2>Register your interest<\/h2>[\s\S]*?<\/div>\s*<div>\s*<div class="form">[\s\S]*?<\/div>\s*<\/div>/gi,
+    /<h2[^>]*>Register your interest<\/h2>[\s\S]*?(?=<\/main>)/i,
     '',
   );
+  // Empty trailing section left after strip
+  out = out.replace(/<div>\s*<\/div>\s*(?=<\/main>)/i, '');
   return out;
 }
 

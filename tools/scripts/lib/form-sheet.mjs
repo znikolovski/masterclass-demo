@@ -1,5 +1,5 @@
-/** Blog index URL — form block fetches pathname on the current site origin. */
-export const BLOG_ARTICLES_OPTIONS_URL = 'https://www.aem.live/blog-index.json';
+/** Site-relative index — resolved on the page origin (not www.aem.live). */
+export const BLOG_ARTICLES_OPTIONS_URL = '/query-index.json';
 
 /**
  * Build document-based adaptive form sheet JSON for EDS form block.

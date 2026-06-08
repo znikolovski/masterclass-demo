@@ -167,11 +167,16 @@ export function resolveAdventureContext(doc = document) {
 
 /**
  * @param {string} [href]
+ * @param {string} [formSlug]
  */
-export function getAdventureFormKind(href = '') {
-  const path = href.toLowerCase();
-  if (path.includes('wknd-adventure-interest-b2b')) return 'b2b-interest';
-  if (path.includes('wknd-adventure-interest')) return 'b2c-interest';
+export function getAdventureFormKind(href = '', formSlug = '') {
+  const candidates = [href, formSlug].filter(Boolean).map((s) => s.toLowerCase());
+  if (candidates.some((path) => path.includes('wknd-adventure-interest-b2b'))) {
+    return 'b2b-interest';
+  }
+  if (candidates.some((path) => path.includes('wknd-adventure-interest'))) {
+    return 'b2c-interest';
+  }
   return null;
 }
 
@@ -301,7 +306,7 @@ export function waitForSelectEnumLoad(form, fieldName, timeoutMs = 8000) {
  */
 export function prefillAdventureInterestForm(formDef, formHref = '') {
   if (document.documentElement.classList.contains('adobe-ue-edit')) return;
-  const kind = getAdventureFormKind(formHref);
+  const kind = getAdventureFormKind(formHref, formDef?.formSlug || '');
   if (!kind) return;
   const context = resolveAdventureContext();
   if (formDef?.data) {
