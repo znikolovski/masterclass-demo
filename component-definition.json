@@ -165,6 +165,52 @@
           }
         },
         {
+          "title": "Adventure Quiz",
+          "id": "adventure-quiz",
+          "filter": "adventure-quiz",
+          "plugins": {
+            "da": {
+              "name": "adventure-quiz",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Adventure Quiz Question",
+          "id": "adventure-quiz-question",
+          "model": "adventure-quiz-question",
+          "plugins": {
+            "da": {
+              "name": "adventure-quiz-question",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "question",
+                  "selector": "div:nth-child(1)"
+                },
+                {
+                  "name": "options",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Quiz Results",
+          "id": "quiz-results",
+          "filter": "quiz-results",
+          "plugins": {
+            "da": {
+              "name": "quiz-results",
+              "rows": 1,
+              "columns": 1
+            }
+          }
+        },
+        {
           "title": "Carousel",
           "id": "carousel",
           "model": "carousel-blog",

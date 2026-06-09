@@ -34,12 +34,16 @@
     { "block": "fragment", "frame": "block / fragment", "hifiNodeId": "16:2", "note": "Hi-fi component pending; links to Blocks — Hi-Fi page" },
     { "block": "section-metadata", "frame": "block / section-metadata", "hifiNodeId": "16:2", "note": "Hi-fi component pending; links to Blocks — Hi-Fi page" },
     { "block": "header", "frame": "block / header", "hifiNodeId": "37:2" },
-    { "block": "footer", "frame": "block / footer", "hifiNodeId": "50:2" }
+    { "block": "footer", "frame": "block / footer", "hifiNodeId": "50:2" },
+    { "block": "adventure-quiz", "frame": "block / adventure-quiz", "hifiNodeId": "96:2", "note": "Mobile 375px; desktop variant 97:2; selected state 97:25" },
+    { "block": "quiz-results", "frame": "block / quiz-results", "hifiNodeId": "97:297", "note": "Uses find-your-adventure-results template hero + cards pattern" }
   ],
   "templates": [
     { "template": "landing-page", "hifiNodeId": "43:2" },
     { "template": "blog-article", "hifiNodeId": "44:230" },
-    { "template": "field-notes", "hifiNodeId": "43:65" }
+    { "template": "field-notes", "hifiNodeId": "43:65" },
+    { "template": "find-your-adventure", "hifiNodeId": "97:295" },
+    { "template": "find-your-adventure-results", "hifiNodeId": "97:297" }
   ],
   "nodeUrlPattern": "https://www.figma.com/design/6cx6VFkggGJqijhoROnYDE?node-id={NODE_ID_WITH_DASH}"
 }

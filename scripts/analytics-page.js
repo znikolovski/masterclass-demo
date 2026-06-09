@@ -5,7 +5,7 @@
 
 const JOURNEY_STAGE_SEGMENTS = {
   inspiration: ['blog', 'field-notes'],
-  discovery: ['adventures', 'destinations'],
+  discovery: ['adventures', 'destinations', 'find-your-adventure'],
   planning: ['expeditions', 'gear', 'faq', 'basecamp'],
   community: ['community', 'sustainability', 'about'],
 };

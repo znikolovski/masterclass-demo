@@ -25,6 +25,16 @@ export const PAGE_ANALYTICS = {
   '/field-notes': { adventureCategory: 'photography', journeyStage: 'inspiration', template: 'landing-page' },
   '/community': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
   '/sustainability': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
+  '/find-your-adventure': {
+    adventureCategory: 'general-outdoor',
+    journeyStage: 'discovery',
+    template: 'landing-page',
+  },
+  '/find-your-adventure/results': {
+    adventureCategory: 'general-outdoor',
+    journeyStage: 'discovery',
+    template: 'landing-page',
+  },
 };
 
 /**

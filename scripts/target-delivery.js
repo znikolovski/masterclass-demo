@@ -22,12 +22,30 @@ export function getTargetZoneSelector() {
   return '[data-targetlocation]';
 }
 
+const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
+
+/**
+ * Whether page metadata opts in to Adobe Target delivery.
+ * @returns {boolean}
+ */
+function isTargetPersonalizationEnabled() {
+  if (typeof document === 'undefined') return false;
+  return TARGET_METADATA_KEYS.some((key) => {
+    const meta = document.querySelector(`meta[name="${key}"]`);
+    const value = meta?.content?.trim().toLowerCase() || '';
+    return value === 'on' || value === 'true' || value === 'yes';
+  });
+}
+
 /**
  * @param {Element} section
  */
 export function markTargetZone(section) {
   if (!section?.dataset?.targetlocation) return;
   section.classList.add('target');
+  if (!isTargetPersonalizationEnabled()) {
+    section.classList.add('target-ready');
+  }
 }
 
 /**

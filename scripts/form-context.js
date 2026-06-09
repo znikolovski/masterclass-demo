@@ -115,6 +115,28 @@ function matchOptionValue(raw, options) {
  * @returns {AdventureContext}
  */
 export function resolveAdventureContext(doc = document) {
+  const win = doc.defaultView;
+  if (win?.location?.search) {
+    const params = new URLSearchParams(win.location.search);
+    const interest = params.get('adventureInterest');
+    if (interest) {
+      return {
+        b2cValue: interest.trim(),
+        b2bValue: matchOptionValue(interest, B2B_OPTIONS)
+          || CATEGORY_TO_B2B[interest.toLowerCase()] || '',
+        source: 'query:adventureInterest',
+      };
+    }
+    const quizType = params.get('quizType');
+    if (quizType && CATEGORY_TO_B2B[quizType.toLowerCase()]) {
+      return {
+        b2cValue: '',
+        b2bValue: CATEGORY_TO_B2B[quizType.toLowerCase()],
+        source: 'query:quizType',
+      };
+    }
+  }
+
   const blogPath = getBlogArticlePath(doc);
   if (blogPath) {
     const slug = blogPath.split('/').pop() || '';
