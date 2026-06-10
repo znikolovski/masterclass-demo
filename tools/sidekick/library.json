@@ -2,6 +2,16 @@
   "blocks": {
     "data": [
       {
+        "name": "Adventure Quiz",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-quiz/adventure-quiz.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-quiz/adventure-quiz.html"
+      },
+      {
+        "name": "Quiz Results",
+        "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/quiz-results/quiz-results.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/quiz-results/quiz-results.html"
+      },
+      {
         "name": "Accordion FAQ",
         "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/accordion-faq/accordion-faq.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/accordion-faq/accordion-faq.html"

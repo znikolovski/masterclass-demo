@@ -308,6 +308,8 @@ for (const file of ['library/blocks.json', 'library/templates.json']) {
 
 // 2a. Sync repo block previews referenced by library (form, B2B blocks, etc.)
 const repoBlockPreviews = [
+  'blocks/adventure-quiz/adventure-quiz.html',
+  'blocks/quiz-results/quiz-results.html',
   'blocks/form/form.html',
   'blocks/embed-adaptive-form/embed-adaptive-form.html',
   'blocks/business-register/business-register.html',

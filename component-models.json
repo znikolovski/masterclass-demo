@@ -347,6 +347,36 @@
     ]
   },
   {
+    "id": "adventure-quiz-question",
+    "fields": [
+      {
+        "component": "text",
+        "name": "question",
+        "label": "Question",
+        "valueType": "string"
+      },
+      {
+        "component": "richtext",
+        "name": "options",
+        "label": "Answer options",
+        "valueType": "string",
+        "description": "Each option row: image + label. Scoring weights are code-defined."
+      }
+    ]
+  },
+  {
+    "id": "quiz-results",
+    "fields": [
+      {
+        "component": "text",
+        "name": "placeholder",
+        "label": "Placeholder",
+        "valueType": "string",
+        "description": "Results render from URL ?type= param; placeholder is replaced at runtime."
+      }
+    ]
+  },
+  {
     "id": "carousel-blog",
     "fields": [
       {

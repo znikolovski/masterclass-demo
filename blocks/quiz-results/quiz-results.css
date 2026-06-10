@@ -1,0 +1,126 @@
+.quiz-results {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.quiz-results-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 45vh;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-bottom: 40px;
+}
+
+.quiz-results-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.quiz-results-hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.quiz-results-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 20%) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.quiz-results-hero-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  padding: 48px 24px;
+  max-width: 720px;
+}
+
+.quiz-results-tag {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: var(--body-font-size-s, 0.875rem);
+}
+
+.quiz-results-hero-content h1 {
+  margin: 0 0 16px;
+  color: #fff;
+}
+
+.quiz-results-blurb {
+  margin: 0;
+  font-size: var(--body-font-size-l, 1.125rem);
+  line-height: 1.5;
+}
+
+.quiz-results-experiences h2 {
+  margin-bottom: 24px;
+}
+
+.quiz-results-experiences ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  gap: 24px;
+}
+
+.quiz-results-experiences li {
+  border: 1px solid #dadada;
+  background: var(--background-color, #fff);
+}
+
+.quiz-results-card-image img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.quiz-results-card-body {
+  margin: 16px;
+}
+
+.quiz-results-card-category {
+  margin: 0 0 8px;
+  font-size: var(--body-font-size-s, 0.875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgb(0 0 0 / 55%);
+}
+
+.quiz-results-card-body h3 {
+  margin: 0 0 8px;
+}
+
+.quiz-results-cta {
+  margin-top: 48px;
+  padding: 32px 24px;
+  background: rgb(0 0 0 / 4%);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.quiz-results-cta .button {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 24px;
+  background: var(--link-color, #1473e6);
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+@media (width >= 900px) {
+  .quiz-results-hero-content {
+    padding: 64px 48px;
+  }
+}
