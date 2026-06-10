@@ -7,6 +7,10 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding-bottom: 0;
+}
+
+.adventure-quiz-shell.has-actions {
   padding-bottom: 88px;
 }
 
@@ -91,7 +95,7 @@
 }
 
 .adventure-quiz-actions {
-  display: flex;
+  display: none;
   justify-content: space-between;
   gap: 16px;
   position: fixed;
@@ -105,6 +109,10 @@
   background: var(--background-color, #fff);
   border-top: 1px solid rgb(0 0 0 / 8%);
   box-shadow: 0 -8px 24px rgb(0 0 0 / 6%);
+}
+
+.adventure-quiz-actions.is-visible {
+  display: flex;
 }
 
 .adventure-quiz-actions button {

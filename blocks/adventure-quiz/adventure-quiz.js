@@ -90,8 +90,16 @@ function renderQuiz(block, questions) {
   const progressBar = shell.querySelector('.adventure-quiz-progress-bar');
   const stepLabel = shell.querySelector('.adventure-quiz-step-label');
   const questionWrap = shell.querySelector('.adventure-quiz-question');
+  const actionsWrap = shell.querySelector('.adventure-quiz-actions');
   const backBtn = shell.querySelector('.adventure-quiz-back');
   const nextBtn = shell.querySelector('.adventure-quiz-next');
+
+  const updateActionsVisibility = () => {
+    const hasSelection = Boolean(selections[step]);
+    actionsWrap.classList.toggle('is-visible', hasSelection);
+    shell.classList.toggle('has-actions', hasSelection);
+    nextBtn.disabled = !hasSelection;
+  };
 
   const updateProgress = () => {
     const pct = ((step + 1) / total) * 100;
@@ -143,7 +151,7 @@ function renderQuiz(block, questions) {
         });
         btn.classList.add('is-selected');
         btn.setAttribute('aria-checked', 'true');
-        nextBtn.disabled = false;
+        updateActionsVisibility();
       });
 
       btn.addEventListener('keydown', (event) => {
@@ -163,7 +171,7 @@ function renderQuiz(block, questions) {
 
     questionWrap.append(grid);
     updateProgress();
-    nextBtn.disabled = !selections[step];
+    updateActionsVisibility();
     const selected = grid.querySelector('.is-selected');
     if (selected) selected.focus();
     else grid.querySelector('.adventure-quiz-option')?.focus();
