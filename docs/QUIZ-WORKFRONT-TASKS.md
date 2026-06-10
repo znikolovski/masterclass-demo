@@ -66,4 +66,4 @@ Activity on `[data-targetlocation="quiz-result"]` with URL param `type=` audienc
 **Title:** WKND Quiz — Add entry CTAs and results conversion section  
 **Priority:** Medium
 
-Homepage + `/adventures` promo to quiz. Optional results `columns-featured` CTA. Dev also injects "Find Your Type" on `/` and `/adventures` via [`scripts/quiz-entry.js`](../scripts/quiz-entry.js).
+Homepage + `/adventures` promo to quiz (author in Experience Workspace — not injected by code). Optional results `columns-featured` CTA.
