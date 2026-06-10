@@ -71,9 +71,20 @@ function getBlockName(block) {
  * @param {string} name
  * @returns {boolean}
  */
+/** Block names that may appear in DA/Target exports with non-table row markup. */
+const KNOWN_BLOCK_ROOTS = new Set([
+  'columns-featured',
+  'fragment',
+  'form',
+  'hero-adventure',
+  'columns',
+  'cards',
+]);
+
 function isLayoutClassName(name) {
   return !name
     || name === 'section'
+    || name === 'narrow'
     || name === 'block'
     || name === 'default-content-wrapper'
     || name === 'target'
@@ -93,6 +104,7 @@ function isBlockRootCandidate(el) {
 
   const name = el.classList[0];
   if (!name || isLayoutClassName(name)) return false;
+  if (KNOWN_BLOCK_ROOTS.has(name) && el.classList.contains(name)) return true;
   return el.classList.contains(name)
     && [...el.children].length > 0
     && [...el.children].every((child) => child.tagName === 'DIV');
@@ -102,7 +114,14 @@ function isBlockRootCandidate(el) {
  * @param {Element} block
  * @returns {boolean}
  */
+function isUnresolvedFragmentPlaceholder(block) {
+  const name = getBlockName(block);
+  if (name !== 'fragment') return false;
+  return Boolean(block.querySelector('a[href*="/fragments/"]'));
+}
+
 function isPreDecoratedBlock(block) {
+  if (isUnresolvedFragmentPlaceholder(block)) return false;
   if (block.dataset.blockStatus === 'loaded') return true;
   const name = getBlockName(block);
   if (!name) return false;
@@ -139,8 +158,9 @@ function ensureBlockLayoutClasses(block) {
   const parentHasOtherWrapper = [...parent.classList].some(
     (cls) => isBlockWrapperClassName(cls) && cls !== wrapperClass,
   );
+  const parentIsSection = parent.classList.contains('section');
 
-  if (parentHasOtherWrapper) {
+  if (parentIsSection || parentHasOtherWrapper) {
     const dedicatedWrapper = document.createElement('div');
     dedicatedWrapper.classList.add(wrapperClass);
     parent.insertBefore(dedicatedWrapper, block);
@@ -159,8 +179,10 @@ function ensureBlockLayoutClasses(block) {
  */
 function collectZoneBlocks(zone) {
   const candidates = [...zone.querySelectorAll('div[class]')].filter(isBlockRootCandidate);
+  // Prefer innermost blocks so layout shells (e.g. section style "narrow") are not
+  // treated as the only block when real blocks are nested inside.
   return candidates.filter(
-    (el) => !candidates.some((other) => other !== el && other.contains(el)),
+    (el) => !candidates.some((other) => other !== el && el.contains(other)),
   );
 }
 
