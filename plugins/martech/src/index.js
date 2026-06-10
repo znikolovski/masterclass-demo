@@ -59,6 +59,7 @@ export const DEFAULT_CONFIG = {
 let config;
 let alloyConfig;
 let isAlloyConfigured = false;
+let isDataLayerConfigured = false;
 const pendingAlloyCommands = [];
 const pendingDatalayerEvents = [];
 
@@ -100,9 +101,17 @@ function promiseWithTimeout(promise, timeout = 1000) {
  * @throws a decorated error that can be intercepted by RUM handlers.
  */
 function handleRejectedPromise(error) {
-  const [, file, line] = error.stack.split('\n')[1].trim().split(' ')[1].match(/(.*):(\d+):(\d+)/);
-  error.sourceURL = file;
-  error.line = line;
+  try {
+    const stackLine = error?.stack?.split('\n')?.[1]?.trim();
+    const match = stackLine?.split(' ')?.[1]?.match(/(.*):(\d+):(\d+)/);
+    if (match) {
+      const [, file, line] = match;
+      error.sourceURL = file;
+      error.line = line;
+    }
+  } catch {
+    // Ignore stack decoration failures; still rethrow the original error.
+  }
   throw error;
 }
 
@@ -203,6 +212,7 @@ export async function sendAnalyticsEvent(xdmData, dataMapping = {}, configOverri
  * @returns a promise that the library was loaded and configured
  */
 async function loadAndConfigureAlloy(instanceName, webSDKConfig) {
+  if (isAlloyConfigured) return;
   await import('./alloy.min.js');
   try {
     await window[instanceName]('configure', webSDKConfig);
@@ -271,6 +281,7 @@ export function pushEventToDataLayer(event, xdm, data, configOverrides) {
  * @returns the ACDL instance
  */
 async function loadAndConfigureDataLayer() {
+  if (isDataLayerConfigured) return;
   await import('./acdl.min.js');
   if (config.analytics) {
     if (config.dataLayerInstanceName !== 'adobeDataLayer') {
@@ -317,6 +328,7 @@ async function loadAndConfigureDataLayer() {
       blocks: { [el.id]: data },
     });
   });
+  isDataLayerConfigured = true;
 }
 
 /**
