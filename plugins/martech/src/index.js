@@ -60,8 +60,21 @@ let config;
 let alloyConfig;
 let isAlloyConfigured = false;
 let isDataLayerConfigured = false;
+/** @type {Promise<void>|null} */
+let alloyConfigurePromise = null;
+let martechEagerDone = false;
+let martechLazyDone = false;
 const pendingAlloyCommands = [];
 const pendingDatalayerEvents = [];
+
+/**
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isAlloyAlreadyConfiguredError(err) {
+  const msg = String(err?.message || err || '');
+  return msg.includes('already been configured');
+}
 
 /**
  * Triggers the callback when the page is actually activated,
@@ -213,15 +226,26 @@ export async function sendAnalyticsEvent(xdmData, dataMapping = {}, configOverri
  */
 async function loadAndConfigureAlloy(instanceName, webSDKConfig) {
   if (isAlloyConfigured) return;
-  await import('./alloy.min.js');
-  try {
-    await window[instanceName]('configure', webSDKConfig);
+  if (alloyConfigurePromise) return alloyConfigurePromise;
+
+  alloyConfigurePromise = (async () => {
+    await import('./alloy.min.js');
+    try {
+      await window[instanceName]('configure', webSDKConfig);
+    } catch (err) {
+      if (!isAlloyAlreadyConfiguredError(err)) {
+        alloyConfigurePromise = null;
+        handleRejectedPromise(new Error(err));
+        return;
+      }
+      // Alloy may already be configured by Launch or a prior loadPage (e.g. EW quick-edit).
+    }
     isAlloyConfigured = true;
     pendingAlloyCommands.forEach((fn) => fn());
     pendingDatalayerEvents.forEach((args) => sendAnalyticsEvent(...args));
-  } catch (err) {
-    handleRejectedPromise(new Error(err));
-  }
+  })();
+
+  return alloyConfigurePromise;
 }
 
 /**
@@ -607,6 +631,9 @@ export async function applyPersonalization(viewName) {
  * @returns a promise that the eager logic was executed
  */
 export async function martechEager() {
+  if (martechEagerDone) return;
+  martechEagerDone = true;
+
   if (config.personalization && config.performanceOptimized) {
     // eslint-disable-next-line no-console
     console.assert(config.alloyInstanceName && window[config.alloyInstanceName], 'Martech needs to be initialized before the `martechEager` method is called');
@@ -648,6 +675,8 @@ export async function martechEager() {
  * @returns a promise that the lazy logic was executed
  */
 export async function martechLazy() {
+  if (martechLazyDone) return;
+
   if (config.dataLayer) {
     await loadAndConfigureDataLayer({});
   }
@@ -673,6 +702,8 @@ export async function martechLazy() {
       });
     }
   }
+
+  martechLazyDone = true;
 }
 
 /**
