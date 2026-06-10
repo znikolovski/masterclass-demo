@@ -132,17 +132,21 @@ function isPreDecoratedBlock(block) {
 }
 
 /**
- * @param {string} className
+ * @param {Element} parent
+ * @param {string} wrapperClass
+ * @param {Element} block
  * @returns {boolean}
  */
-function isBlockWrapperClassName(className) {
-  return Boolean(className) && className.endsWith('-wrapper');
+function parentIsExclusiveBlockWrapper(parent, wrapperClass, block) {
+  return parent.classList.contains(wrapperClass)
+    && parent.childElementCount === 1
+    && parent.firstElementChild === block;
 }
 
 /**
- * Ensure each injected block gets its own wrapper. Pre-decorated Target offers
- * often place sibling blocks under one parent; stacking wrapper classes on that
- * parent (e.g. columns-featured-wrapper + fragment-wrapper) breaks max-width.
+ * Ensure each injected block gets its own wrapper element. Target offers often
+ * place sibling blocks under one layout shell; decorateBlock() would otherwise
+ * stack *-wrapper classes on that shared parent and break max-width.
  * @param {Element} block
  */
 function ensureBlockLayoutClasses(block) {
@@ -155,18 +159,11 @@ function ensureBlockLayoutClasses(block) {
   const parent = block.parentElement;
   if (!parent) return;
 
-  const parentHasOtherWrapper = [...parent.classList].some(
-    (cls) => isBlockWrapperClassName(cls) && cls !== wrapperClass,
-  );
-  const parentIsSection = parent.classList.contains('section');
-
-  if (parentIsSection || parentHasOtherWrapper) {
+  if (!parentIsExclusiveBlockWrapper(parent, wrapperClass, block)) {
     const dedicatedWrapper = document.createElement('div');
     dedicatedWrapper.classList.add(wrapperClass);
     parent.insertBefore(dedicatedWrapper, block);
     dedicatedWrapper.append(block);
-  } else if (!parent.classList.contains(wrapperClass)) {
-    parent.classList.add(wrapperClass);
   }
 
   const section = block.closest('.section');
@@ -194,8 +191,9 @@ async function loadInjectedBlock(block) {
   const blockName = getBlockName(block);
   if (!blockName) return;
 
+  ensureBlockLayoutClasses(block);
+
   if (isPreDecoratedBlock(block)) {
-    ensureBlockLayoutClasses(block);
     await loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`);
     block.dataset.blockStatus = 'loaded';
     return;
