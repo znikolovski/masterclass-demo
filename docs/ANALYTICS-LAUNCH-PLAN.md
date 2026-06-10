@@ -760,7 +760,15 @@ Launch rules read ACDL only — avoids brittle DOM scraping.
 | event7 | Asset Impression | Asset analytics — see [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md) |
 | event8 | Asset Click | Asset analytics |
 | event9–15 | Form funnel | Form impression → success — see [FORM-ANALYTICS-PLAN.md](./FORM-ANALYTICS-PLAN.md) |
+| event16 | Quiz Start | `quizStart` — see [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md) |
+| event17 | Quiz Step Complete | `quizStepComplete` |
+| event18 | Quiz Complete | `quizComplete` |
+| event19 | Quiz Result View | `quizResultView` |
+| event20 | Quiz Experience Click | `quizExperienceClick` |
+| eVar6 | Quiz Adventurer Type | `quiz.adventurerType` (asset hits use same slot — [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md)) |
 | eVar7 | Form ID | `form.formSlug` |
+| prop6 | Quiz Step | `quiz.step` (asset hits use same slot for Asset URL) |
+| prop7 | Quiz Step Index | `quiz.stepIndex` (asset hits use same slot for Asset Source) |
 | prop8 | Form step | `form.step` (field name) |
 
 Map via `data.__adobe.analytics.events` in Launch ([data object mapping](https://experienceleague.adobe.com/en/docs/analytics/implementation/aep-edge/data-var-mapping)).

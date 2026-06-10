@@ -61,7 +61,7 @@ async function putSource(token, daPath, body, mime = 'application/json') {
 }
 
 async function triggerPreview(token, daPath) {
-  const pagePath = daPath.replace(/\.html$/, '');
+  const pagePath = daPath.replace(/\.html$/, '').replace(/^\//, '');
   const res = await fetch(`https://admin.hlx.page/preview/${ORG}/${SITE}/main/${pagePath}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
@@ -303,7 +303,9 @@ for (const file of ['library/blocks.json', 'library/templates.json']) {
     body = body.replaceAll(`znikolovski/masterclass-demo`, `znikolovski/${SITE}`);
   }
   await putSource(token, file, body);
-  console.log(`  ✓ ${file}`);
+  // EW block library reads this sheet from the preview host; PUT alone does not refresh it.
+  await triggerPreview(token, file);
+  console.log(`  ✓ ${file} (DA source + preview publish)`);
 }
 
 // 2a. Sync repo block previews referenced by library (form, B2B blocks, etc.)
