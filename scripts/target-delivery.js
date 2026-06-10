@@ -171,6 +171,23 @@ function ensureBlockLayoutClasses(block) {
 }
 
 /**
+ * Hoist block content out of section style shells (e.g. narrow) so featured bands
+ * can use full-bleed wrappers and fragment intro copy is not capped with the form.
+ * @param {Element} zone
+ */
+function unwrapTargetLayoutShells(zone) {
+  const section = zone.classList.contains('section') ? zone : zone.closest('.section');
+  if (!section) return;
+
+  section.querySelectorAll(':scope > .narrow').forEach((shell) => {
+    while (shell.firstElementChild) {
+      section.insertBefore(shell.firstElementChild, shell);
+    }
+    shell.remove();
+  });
+}
+
+/**
  * @param {Element} zone
  * @returns {Element[]}
  */
@@ -210,6 +227,7 @@ async function loadInjectedBlock(block) {
  */
 async function decorateTargetZone(zone) {
   markTargetZone(zone);
+  unwrapTargetLayoutShells(zone);
 
   const blocks = collectZoneBlocks(zone);
   if (!blocks.length) return;

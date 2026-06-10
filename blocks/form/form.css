@@ -779,8 +779,13 @@ main div.form-wrapper {
     box-shadow: 0 4px 24px rgb(0 0 0 / 8%);
 }
 
-/* Target zones — constrain injected form card width only */
-main .section.target .form-wrapper {
+/* Target zones — constrain only the form card, not fragment intro copy */
+main .section.target > .fragment-wrapper {
+    max-width: 100% !important;
+    padding-inline: 0;
+}
+
+main .section.target .fragment-wrapper .form-wrapper {
     max-width: 1200px;
     margin-inline: auto;
 }
