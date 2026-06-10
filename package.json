@@ -34,7 +34,9 @@
     "b2b:forms": "node tools/scripts/create-wknd-forms.mjs --push-da --preview",
     "site:auth:remove": "node tools/scripts/remove-site-auth.mjs",
     "forms:diagnose": "node tools/scripts/diagnose-form-delivery.mjs",
-    "metadata:patch": "node tools/scripts/patch-analytics-metadata.mjs --preview --publish"
+    "metadata:patch": "node tools/scripts/patch-analytics-metadata.mjs --preview --publish",
+    "analytics:segments:export": "node tools/scripts/publish-wknd-segments.mjs --dry-run --export",
+    "analytics:segments:publish": "node tools/scripts/publish-wknd-segments.mjs --apply"
   },
   "repository": {
     "type": "git",

@@ -107,6 +107,49 @@ function renderExperiences(block, result) {
 }
 
 /**
+ * EW-authored results (featured match + cards) must not be replaced by JS fallback.
+ * @param {Element} block
+ * @returns {boolean}
+ */
+function hasAuthoredResults(block) {
+  const text = (block.textContent || '').trim().toLowerCase();
+  const isPlaceholder = text.includes('results load from your quiz outcome')
+    && block.querySelectorAll(':scope > div').length <= 1;
+  if (isPlaceholder) return false;
+  return Boolean(
+    block.querySelector(':scope h2')
+    || block.querySelector(':scope a[href]')
+    || block.querySelectorAll(':scope > div').length > 1,
+  );
+}
+
+/**
+ * @param {Element} block
+ * @param {import('../adventure-quiz/quiz-data.js').QuizResult} result
+ */
+function enhanceAuthoredResults(block, result) {
+  block.classList.add('quiz-results-authored');
+  block.dataset.resultCategory = result.resultCategory;
+  block.dataset.adventurerType = result.adventurerType;
+
+  block.querySelectorAll(':scope > div > div a[href]').forEach((link) => {
+    link.addEventListener('click', async () => {
+      try {
+        const mod = await import('../../scripts/quiz-analytics.js');
+        mod.pushQuizEvent('quizExperienceClick', {
+          quizId: 'find-your-adventure',
+          resultCategory: result.resultCategory,
+          adventurerType: result.adventurerType,
+          experiencePath: link.getAttribute('href') || '',
+        });
+      } catch {
+        // optional
+      }
+    });
+  });
+}
+
+/**
  * @param {Element} block
  * @param {import('../adventure-quiz/quiz-data.js').QuizResult} result
  */
@@ -129,6 +172,13 @@ function renderCta(block, result) {
 export default async function decorate(block) {
   const category = getResultCategoryFromUrl();
   const result = getQuizResult(category);
+
+  if (hasAuthoredResults(block)) {
+    enhanceAuthoredResults(block, result);
+    await trackResultView(result);
+    return;
+  }
+
   block.replaceChildren();
   block.dataset.resultCategory = result.resultCategory;
   block.dataset.adventurerType = result.adventurerType;
