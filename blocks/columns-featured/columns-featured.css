@@ -4,22 +4,6 @@
   padding: 80px 24px !important;
 }
 
-/* Target zones: keep nested fragment forms within content width when wrappers collapse */
-main .section.target .fragment-wrapper,
-main .section.target > .fragment.block {
-  max-width: 1200px;
-  margin-inline: auto;
-  padding-inline: 24px;
-}
-
-main .section.target .columns-featured-wrapper.fragment-wrapper,
-main .section.target .columns-featured-wrapper:has(.fragment.block),
-main .section.target > .columns-featured-wrapper + .fragment-wrapper,
-main .section.target > .columns-featured-wrapper + .fragment.block {
-  max-width: 1200px !important;
-  margin-inline: auto;
-}
-
 .columns-featured {
   max-width: 1200px;
   margin: 0 auto;
