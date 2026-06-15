@@ -208,6 +208,82 @@ record(
   errorLines.slice(0, 3).join(' | ') || 'none',
 );
 
+// --- Quiz ACDL (local draft) ---
+const localBase = 'http://localhost:3000';
+cli(['goto', `${localBase}/drafts/find-your-adventure`]);
+await waitMartech();
+const quizStart = evalPage(`
+  await new Promise((r) => setTimeout(r, 2000));
+  const lenBefore = (window.adobeDataLayer || []).length;
+  const opt = document.querySelector('.adventure-quiz-option');
+  if (!opt) return JSON.stringify({ error: 'no quiz option' });
+  opt.click();
+  await new Promise((r) => setTimeout(r, 500));
+  const dl = window.adobeDataLayer || [];
+  const events = dl.slice(lenBefore).filter((x) => x.event === 'quizStart' || x.event === 'quizStepComplete');
+  const state = window.adobeDataLayer?.getState?.('quiz');
+  return JSON.stringify({ events, quizState: state });
+`);
+const quizStartOk = Array.isArray(quizStart?.events)
+  && quizStart.events.some((e) => e.event === 'quizStart')
+  && quizStart?.quizState?.quizId;
+record('quizStart ACDL + quiz state', quizStartOk, quizStart);
+
+// --- Asset impression (homepage scroll) ---
+cli(['goto', `${BASE}/`]);
+await waitMartech();
+const assetResult = evalPage(`
+  await new Promise((r) => setTimeout(r, 1500));
+  const img = document.querySelector('main img');
+  if (!img) return JSON.stringify({ error: 'no main image' });
+  img.scrollIntoView({ block: 'center' });
+  await new Promise((r) => setTimeout(r, 2000));
+  const state = window.adobeDataLayer?.getState?.('asset');
+  const dl = window.adobeDataLayer || [];
+  const impressions = dl.filter((x) => x.event === 'assetImpression');
+  return JSON.stringify({ assetState: state, impressionCount: impressions.length });
+`);
+record(
+  'assetImpression / asset state',
+  Boolean(assetResult?.assetState?.assetId) || (assetResult?.impressionCount > 0),
+  assetResult,
+);
+
+// --- CTA click ACDL ---
+cli(['goto', `${BASE}/`]);
+await waitMartech();
+const ctaResult = evalPage(`
+  await new Promise((r) => setTimeout(r, 1500));
+  const cta = document.querySelector('main a.button, main a.button-ghost, main .button-container a');
+  if (!cta) return JSON.stringify({ error: 'no CTA link' });
+  const lenBefore = (window.adobeDataLayer || []).length;
+  cta.click();
+  await new Promise((r) => setTimeout(r, 800));
+  const dl = window.adobeDataLayer || [];
+  const items = dl.slice(lenBefore).filter((x) => x.event === 'ctaClick');
+  return JSON.stringify(items[0] || { error: 'no ctaClick event' });
+`);
+record(
+  'ctaClick event',
+  ctaResult?.event === 'ctaClick' && Boolean(ctaResult?.interaction?.label),
+  ctaResult,
+);
+
+// --- 404 pageError (local 404.html) ---
+cli(['goto', `${localBase}/this-path-does-not-exist-404-test`]);
+await waitMartech();
+const errorResult = evalPage(`
+  const dl = window.adobeDataLayer || [];
+  const pageError = dl.filter((x) => x.event === 'pageError');
+  const page = window.adobeDataLayer?.getState?.('page');
+  return JSON.stringify({ pageError: pageError[pageError.length - 1], pageState: page });
+`);
+record(
+  'pageError + errorUrl on 404',
+  errorResult?.pageState?.pageType === 'error' && Boolean(errorResult?.pageState?.errorUrl),
+  errorResult,
+);
+
 closeAll();
 
 const failed = results.filter((r) => !r.pass);

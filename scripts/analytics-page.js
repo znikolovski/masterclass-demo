@@ -140,6 +140,23 @@ export function pushAnalyticsPageContext(doc, getMetadataValue) {
 }
 
 /**
+ * Push 404 / error page context for Launch Pages Not Found mapping.
+ * Call after {@link pushAnalyticsPageContext} on error pages.
+ */
+export function pushErrorPageContext() {
+  if (typeof window === 'undefined' || !window.isErrorPage || !window.adobeDataLayer) return;
+  const errorUrl = window.location.pathname + window.location.search;
+  window.adobeDataLayer.push({
+    event: 'pageError',
+    page: {
+      pageType: 'error',
+      errorUrl,
+      pageName: document.title || 'Page not found',
+    },
+  });
+}
+
+/**
  * Maps ACDL page state to legacy Analytics variables on each Web SDK hit.
  * @param {Object} content Web SDK onBeforeEventSend payload
  * @returns {boolean}

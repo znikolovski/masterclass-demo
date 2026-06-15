@@ -28,7 +28,7 @@ Reuse these slots (rename descriptions in **Admin → Report suites → Edit set
 |------|--------------|-------------|
 | eVar5 | Page Template | Metadata `template` |
 | eVar1 | Internal Campaign | `cid` / promo id |
-| eVar2 | Internal Search Terms | Reserved or retire |
+| eVar2 | Internal Search Terms | **Quiz Result Category** on quiz hits (`quiz.resultCategory`) — see [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md) |
 | eVar3 | Custom Conversion 3 | Content type (`homepage`, `blog-article`, …) |
 | eVar4 | Custom Conversion 4 | **Adventure category** (climbing, trekking, water, winter, …) — see [Phase 4](#phase-4--audience-segments-ags050wknd) |
 | prop1 | Custom Insight 1 | Environment (`preview` / `live` / `local`) |
@@ -462,9 +462,11 @@ Use **Custom Code only** for interaction rules — do not use the individual att
 
 | Step | What to enter |
 |------|----------------|
-| **Event → CSS selector** | `main a.button, main .button-container a, main .hero-adventure a` |
+| **Event → CSS selector** | `main a.button, main a.button-ghost, main .button-container a, main .hero-adventure a, main .quiz-results-cta a` |
 | **Event → Delay navigation** | Off (buttons may not navigate) |
 | **Conditions** | None |
+
+**Preferred (site pushes `ctaClick`):** Use ACDL rule instead — see [Recipe 4d-1b](#recipe-4d-1b--eds---cta-click-acdl) after `scripts/scripts.js` `bindCtaAnalytics` is deployed.
 
 **Action 1 — Update variable → Custom Code:**
 
@@ -472,15 +474,42 @@ Use **Custom Code only** for interaction rules — do not use the individual att
 content.__adobe = content.__adobe || {};
 content.__adobe.analytics = content.__adobe.analytics || {};
 const s = content.__adobe.analytics;
+const clickText = typeof _satellite !== 'undefined'
+  ? (_satellite.getVar('EDS - Click Text (fallback)') || '')
+  : '';
 s.events = 'event1';
-s.linkName = '%EDS - Click Text (fallback)%';
+s.linkName = clickText;
 s.linkType = 'o';
-s.prop5 = 'cta';
+s.prop5 = clickText || 'cta';
 ```
 
 **Action 2 — Send event:** Type = **Link click** · Data object = **`EDS - Analytics Variable`**
 
 **Admin:** rename Custom Event 1 → **CTA Click**
+
+---
+
+##### Recipe 4d-1b — `EDS - CTA Click` (ACDL)
+
+| Step | What to enter |
+|------|----------------|
+| **Event** | Adobe Client Data Layer · **Listen to specific event** · `ctaClick` · Scope **All** |
+| **Data elements** | `EDS - Interaction Label`, `EDS - Interaction Detail` — storage **Page view** |
+
+**Action 1 — Custom Code:**
+
+```js
+content.__adobe = content.__adobe || {};
+content.__adobe.analytics = content.__adobe.analytics || {};
+const s = content.__adobe.analytics;
+const interaction = window.adobeDataLayer?.getState?.('interaction') || {};
+s.events = 'event1';
+s.linkName = interaction.label || '';
+s.linkType = 'o';
+s.prop5 = interaction.label || interaction.detail || 'cta';
+```
+
+**Action 2 — Send event:** Link click · **`EDS - Analytics Variable`**
 
 ---
 
@@ -638,10 +667,11 @@ Shared Custom Code body (adjust `s.events`):
 content.__adobe = content.__adobe || {};
 content.__adobe.analytics = content.__adobe.analytics || {};
 const s = content.__adobe.analytics;
+const interaction = window.adobeDataLayer?.getState?.('interaction') || {};
 s.events = 'event3'; // or event4
-s.linkName = '%EDS - Interaction Label%';
+s.linkName = interaction.label || '';
 s.linkType = 'o';
-s.prop5 = 'youtube-video';
+s.prop5 = interaction.block || interaction.detail || 'youtube-video';
 ```
 
 ---
@@ -653,11 +683,29 @@ Replace **Core → Click** with **Adobe Client Data Layer** event:
 1. **Events → Add**
 2. **Extension:** `Adobe Client Data Layer`
 3. **Event type:** `Listen to a specific event pushed to the Data Layer` (wording may vary)
-4. **Event name:** exact string, e.g. `ctaClick`, `carouselChange`
+4. **Event name:** exact string, e.g. `ctaClick`, `carouselChange`, `faqExpand`, `tabSelect`
 5. **Scope:** `All` (default)
-6. Keep the same **Update variable** Custom Code and **Send event** actions; swap `%EDS - Click Text (fallback)%` for `%EDS - Interaction Label%` where noted
+6. **Data elements:** `interaction.label`, `interaction.block`, `interaction.detail` — type **Data Layer Computed State**, storage **Page view** ([§3 paths](#acdl-data-elements-primary))
+7. **Custom Code** — read `interaction` from `adobeDataLayer.getState('interaction')`; do **not** use `%EDS - Interaction Label%` literals in Web SDK Custom Code
 
-Create ACDL data elements first: `interaction.label`, `interaction.block`, `interaction.detail` ([§3 paths](#acdl-data-elements-primary)).
+Example (carousel — event2):
+
+```js
+content.__adobe = content.__adobe || {};
+content.__adobe.analytics = content.__adobe.analytics || {};
+const s = content.__adobe.analytics;
+const interaction = window.adobeDataLayer?.getState?.('interaction') || {};
+s.events = 'event2';
+s.linkName = interaction.label || 'carousel-change';
+s.linkType = 'o';
+s.prop5 = interaction.detail || interaction.block || '';
+```
+
+8. **Send event:** Link click · **`EDS - Analytics Variable`**
+
+**404 / Pages Not Found:** Rule on ACDL event `pageError` (or condition `page.pageType` equals `error`). Map `page.errorUrl` from `adobeDataLayer.getState('page').errorUrl` to the report suite **Pages Not Found** dimension (admin-configured prop/eVar).
+
+**CID (`eVar1`):** Create Core **Query String Parameter** data element `EDS - CID` → parameter `cid`, storage **Visit**. On first page-view supplemental rule (or `onBeforeEventSend` already maps `?cid=` in code): `s.eVar1 = _satellite.getVar('EDS - CID') || ''`.
 
 ---
 
@@ -667,10 +715,16 @@ Create ACDL data elements first: `interaction.label`, `interaction.block`, `inte
 |---------|-----|
 | “No variable type data elements” on Update variable | Select **`EDS - Analytics Variable`** in the **top** dropdown of the action |
 | Rule never fires | Wait **≥ 5 s** after page load; confirm library published to **Development**; confirm embed URL in [martech-config.js](../scripts/martech-config.js) |
-| `%EDS - Click Text%` empty in hits | Data element must use **`event.element`**; rule must include **Core Click** event (not DOM Ready) |
+| `%EDS - …%` literal strings in Analytics hits | Web SDK **Custom Code** does not auto-resolve `%Data Element%` tokens — use `_satellite.getVar('EDS - …')` or `adobeDataLayer.getState('quiz'|'asset'|'form'|'interaction')`. See [QUIZ](./QUIZ-ANALYTICS-PLAN.md), [ASSET](./ASSET-ANALYTICS-PLAN.md), [FORM](./FORM-ANALYTICS-PLAN.md) plans. |
+| ACDL data element empty when rule fires | Set **Storage duration** to **Page view** (not **None**) on every **Data Layer Computed State** element (`EDS - Interaction Detail`, `EDS - Asset ID`, quiz/form elements, etc.) |
+| `%EDS - Click Text%` empty in hits | Data element must use **`event.element`**; rule must include **Core Click** event (not DOM Ready) — or switch to **ACDL `ctaClick`** rule (4d-1b) |
+| `prop5` shows `%EDS - Interaction Block%` | Fix storage scope (**Page view**) and Custom Code — read `interaction.detail` from `getState('interaction')` |
 | Outbound rule fires on internal links | Add the three **does not contain** conditions in 4d-2 |
 | Link click fires but no Analytics event | Check **Send event** action is **second** and Data object = **`EDS - Analytics Variable`** |
-| Double hits on one click | Only one rule should match; narrow CSS selectors; split CTA vs outbound (4d-1 vs 4d-2) |
+| Double hits on one click | Only one rule should match; narrow CSS selectors; split CTA vs outbound (4d-1 vs 4d-2); disable Core Click CTA when ACDL `ctaClick` is live |
+| Quiz complete (event19) missing | Confirm quiz rules use ACDL events; code awaits analytics flush before redirect — see [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md) |
+| 404 URL not captured | Code pushes `pageError` + `page.errorUrl` — add Launch rule on `page.pageType === error` or ACDL `pageError` |
+| `eVar1` (CID) empty on page load | Add **Query String Parameter** data element `cid`; map on supplemental page-view rule with **Visit** expiration |
 
 ##### Rules to skip
 
@@ -760,16 +814,17 @@ Launch rules read ACDL only — avoids brittle DOM scraping.
 | event7 | Asset Impression | Asset analytics — see [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md) |
 | event8 | Asset Click | Asset analytics |
 | event9–15 | Form funnel | Form impression → success — see [FORM-ANALYTICS-PLAN.md](./FORM-ANALYTICS-PLAN.md) |
-| event16 | Quiz Start | `quizStart` — see [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md) |
-| event17 | Quiz Step Complete | `quizStepComplete` |
-| event18 | Quiz Complete | `quizComplete` |
-| event19 | Quiz Result View | `quizResultView` |
-| event20 | Quiz Experience Click | `quizExperienceClick` |
-| eVar6 | Quiz Adventurer Type | `quiz.adventurerType` (asset hits use same slot — [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md)) |
+| event17 | Quiz Start | `quizStart` — see [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md) |
+| event18 | Quiz Step Complete | `quizStepComplete` |
+| event19 | Quiz Complete | `quizComplete` |
+| event20 | Quiz Result View | `quizResultView` |
+| event21 | Quiz Experience Click | `quizExperienceClick` |
+| eVar2 | Quiz Result Category | `quiz.resultCategory` (quiz hits only) |
 | eVar7 | Form ID | `form.formSlug` |
-| prop6 | Quiz Step | `quiz.step` (asset hits use same slot for Asset URL) |
-| prop7 | Quiz Step Index | `quiz.stepIndex` (asset hits use same slot for Asset Source) |
+| eVar8 | Quiz Adventurer Type | `quiz.adventurerType` |
 | prop8 | Form step | `form.step` (field name) |
+| prop10 | Quiz Step | `quiz.step` |
+| prop11 | Quiz Step Index | `quiz.stepIndex` |
 
 Map via `data.__adobe.analytics.events` in Launch ([data object mapping](https://experienceleague.adobe.com/en/docs/analytics/implementation/aep-edge/data-var-mapping)).
 
@@ -1341,6 +1396,56 @@ Add these as **Metrics** in **Archetype** or **Journey progression** panels once
 - [ ] Tier 2 / Tier 4 segments searchable in picker ([troubleshooting](#workspace-segment-picker-troubleshooting))
 - [ ] Date range covers live traffic period
 - [ ] **Share** / **Save** project
+
+---
+
+## Tagging audit remediation (June 2026)
+
+**Operational runbook:** [ANALYTICS-LAUNCH-RUNBOOK.md](./ANALYTICS-LAUNCH-RUNBOOK.md) (step-by-step Launch UI instructions, Custom Code, DA unpublish links, QA checklist).
+
+Root causes from the WKND tagging audit on `ags050wknd`:
+
+1. **ACDL data elements** set to storage **None** instead of **Page view** — interaction/quiz/asset/form values empty when rules fire.
+2. **Web SDK Custom Code** sent literal `%EDS - …%` strings — use `adobeDataLayer.getState()` or `_satellite.getVar()` (see [troubleshooting](#troubleshooting-in-the-launch-ui)).
+3. **Code gaps** — quiz redirect before beacon flush (fixed in `adventure-quiz.js`), missing `ctaClick` / 404 ACDL (fixed in `scripts.js` / `analytics-page.js`).
+
+### Launch publish order
+
+1. Set **Page view** storage on all ACDL computed-state data elements.
+2. Replace Custom Code in quiz ([QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md)), asset ([ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md)), form ([FORM-ANALYTICS-PLAN.md](./FORM-ANALYTICS-PLAN.md)), and interaction rules.
+3. Verify quiz rules **event17–21**; enable events 18–21 in Report Suite Admin if needed.
+4. Expand CTA Core Click selector or enable **ACDL `ctaClick`** rule (4d-1b).
+5. Add **404** rule on `pageError` / `page.pageType === error` → map `page.errorUrl`.
+6. Add **Query String Parameter** data element `cid` for supplemental `eVar1` mapping.
+7. Publish **Development** → validate on `*.aem.page` with Debugger → publish **Production** for `*.aem.live`.
+
+### Content cleanup — unpublish placeholder pages
+
+Unpublish from **live** (authors need `publish` or `admin` role on `admin.hlx.page`):
+
+| Path | Signal |
+|------|--------|
+| `/blog/food-safari-melbourne` | `Article Title Goes Here` |
+| `/blog/test` | `Article Title — WKND Adventures` |
+| `/templates/blog-article/blog-article` | Template library preview |
+| `/forms/wknd-adventure-interest` | Test form |
+| `/fragments/wknd-adventure-interest` | Test fragment |
+
+Blog template placeholders in repo updated to **Replace with article headline**. Apply `theme` metadata: `node tools/scripts/patch-analytics-metadata.mjs --preview` (requires DA token).
+
+### Post-fix QA
+
+| Test | Pass criteria |
+|------|----------------|
+| Quiz funnel | event17 → event18 (×4) → event19 → event20; eVar2 + eVar8 populated |
+| CTA | event1 + resolved prop5 (not `%EDS - …%`) |
+| Asset | eVar6 = real path |
+| Form | prop8 changes per field |
+| CID | `?cid=` → eVar1 persists visit |
+| 404 | `page.errorUrl` in ACDL; Pages Not Found in AA |
+| Segments | `WKND - Quiz Completer` > 0; `WKND - Direct Loyal Audience` > 0 for repeat visits |
+
+Repo ACDL smoke test: `node tools/scripts/test-analytics-acdl.mjs`. Launch validation: Experience Cloud Debugger on preview before promoting Production library.
 
 ---
 

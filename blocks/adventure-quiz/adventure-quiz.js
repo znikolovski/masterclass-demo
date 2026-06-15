@@ -2,6 +2,7 @@ import { createResponsivePicture } from '../../scripts/media.js';
 import {
   OPTION_WEIGHTS,
   QUIZ_ID,
+  getQuizResult,
   getResultsPath,
   normalizeOptionKey,
   scoreQuizResult,
@@ -22,12 +23,13 @@ function buildOptionPicture(src, alt) {
  * @param {Element} block
  * @returns {Promise<void>}
  */
-async function trackQuizEvent(eventName, payload = {}) {
+async function trackQuizEvent(eventName, payload = {}, options = {}) {
   try {
     const mod = await import('../../scripts/quiz-analytics.js');
-    mod.pushQuizEvent(eventName, payload);
+    return mod.pushQuizEvent(eventName, payload, options);
   } catch {
     // analytics optional during local dev
+    return undefined;
   }
 }
 
@@ -179,9 +181,11 @@ function renderQuiz(block, questions) {
 
   const completeQuiz = async () => {
     const resultCategory = scoreQuizResult(selections);
+    const result = getQuizResult(resultCategory);
     const payload = {
       quizId: QUIZ_ID,
       resultCategory,
+      adventurerType: result.adventurerType,
       selections,
       stepIndex: step + 1,
       step: `q${step + 1}-complete`,
@@ -195,7 +199,7 @@ function renderQuiz(block, questions) {
     } catch {
       // ignore storage errors
     }
-    await trackQuizEvent('quizComplete', payload);
+    await trackQuizEvent('quizComplete', payload, { awaitFlush: true });
     const url = new URL(getResultsPath(), window.location.origin);
     url.searchParams.set('type', resultCategory);
     window.location.href = url.toString();

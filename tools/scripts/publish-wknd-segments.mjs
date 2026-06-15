@@ -10,7 +10,8 @@
  * Environment variables:
  *   AA_CLIENT_ID          Adobe OAuth client ID (same as x-api-key)
  *   AA_CLIENT_SECRET      Adobe OAuth client secret
- *   AA_GLOBAL_COMPANY_ID  Global company ID (login company adobeae7 — use findCompanies)
+ *   AA_GLOBAL_COMPANY_ID  Global company ID — default resolved via discovery/me (WKND: adobeae7)
+ *   AA_LOGIN_COMPANY      Preferred login company when auto-resolving (default: adobeae7)
  *   AA_REPORT_SUITE_ID    Default: ags050wknd
  *   AA_IMS_URL            Default: https://ims-na1.adobelogin.com/ims/token/v3
  *
@@ -95,6 +96,44 @@ async function getAccessToken() {
   const data = await resp.json();
   if (!data.access_token) throw new Error('IMS response missing access_token');
   return { token: data.access_token, clientId };
+}
+
+/**
+ * Resolve global company ID from env or Analytics Discovery API.
+ * @param {string} token
+ * @param {string} clientId
+ */
+async function resolveGlobalCompanyId(token, clientId) {
+  if (process.env.AA_GLOBAL_COMPANY_ID?.trim()) {
+    return process.env.AA_GLOBAL_COMPANY_ID.trim();
+  }
+
+  const preferred = (process.env.AA_LOGIN_COMPANY || 'adobeae7').trim();
+  const resp = await fetch('https://analytics.adobe.io/discovery/me', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'x-api-key': clientId,
+      Accept: 'application/json',
+    },
+  });
+  if (!resp.ok) {
+    throw new Error(
+      `Missing env AA_GLOBAL_COMPANY_ID and discovery/me failed (${resp.status}). `
+      + 'Set AA_GLOBAL_COMPANY_ID=adobeae7 for WKND (login company Adobe AGS050).',
+    );
+  }
+  const data = await resp.json();
+  const companies = (data.imsOrgs || []).flatMap((org) => org.companies || []);
+  if (!companies.length) {
+    throw new Error('discovery/me returned no companies — set AA_GLOBAL_COMPANY_ID manually.');
+  }
+
+  const match = companies.find((c) => c.globalCompanyId === preferred)
+    || companies.find((c) => c.companyName?.toLowerCase().includes('ags050'))
+    || companies[0];
+
+  console.log(`  Resolved AA_GLOBAL_COMPANY_ID=${match.globalCompanyId} (${match.companyName})`);
+  return match.globalCompanyId;
 }
 
 /**
@@ -199,9 +238,9 @@ async function main() {
     return;
   }
 
-  const companyId = requireEnv('AA_GLOBAL_COMPANY_ID');
-  const rsid = process.env.AA_REPORT_SUITE_ID || RSID;
   const { token, clientId } = await getAccessToken();
+  const companyId = await resolveGlobalCompanyId(token, clientId);
+  const rsid = process.env.AA_REPORT_SUITE_ID || RSID;
 
   if (opts.listExisting) {
     const existing = await listSegments(token, clientId, companyId, rsid);

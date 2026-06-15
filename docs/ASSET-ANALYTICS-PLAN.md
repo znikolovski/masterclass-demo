@@ -262,11 +262,12 @@ adobeDataLayer.push({ event: 'assetImpression', asset: { assetId, assetUrl, … 
 content.__adobe = content.__adobe || {};
 content.__adobe.analytics = content.__adobe.analytics || {};
 const s = content.__adobe.analytics;
+const asset = window.adobeDataLayer?.getState?.('asset') || {};
 s.events = 'event7';
-s.eVar6 = '%EDS - Asset ID%';
-s.prop6 = '%EDS - Asset URL%';
-s.prop7 = '%EDS - Asset Source%';
-s.linkName = '%EDS - Asset ID%';
+s.eVar6 = asset.assetId || '';
+s.prop6 = asset.assetUrl || '';
+s.prop7 = asset.assetSource || '';
+s.linkName = asset.assetId || '';
 s.linkType = 'o';
 ```
 
@@ -288,6 +289,7 @@ Same as impression, except:
 |---------|-----|
 | Rule never fires | Wait ≥5 s after load (Launch loads in delayed phase); confirm ACDL extension object name is `adobeDataLayer` |
 | Wrong extension selected | **Core → Click** will not see `assetImpression` — switch to **Adobe Client Data Layer** |
+| `%EDS - Asset ID%` in hits (literal string) | Web SDK Custom Code does not resolve `%DE%` tokens — use `adobeDataLayer.getState('asset')` (see Custom Code above). Set data element storage to **Page view**. |
 | `%EDS - Asset ID%` empty | Scroll image ≥50% into view; check `adobeDataLayer.getState('asset')` in console |
 | event7 not in Real-Time | Confirm Admin renamed Custom Event 7 → **Asset Impression** on `ags050wknd` |
 
@@ -317,7 +319,7 @@ Edge Delivery **viewmedia** checkpoint (via RUM) also records visible media URLs
 - [ ] Run `npm run inventory:images`; migrate legacy `wknd-adventures.com` URLs
 - [ ] Authors re-insert DM assets on high-traffic pages
 - [ ] Launch rules for `assetImpression` / `assetClick` published
-- [ ] Admin: label eVar6, prop6, prop7, event7, event8 in `ags050wknd` (leave eVar2 as Internal Search Terms)
+- [ ] Admin: label eVar6, prop6, prop7, event7, event8 in `ags050wknd` (eVar2 is Quiz Result Category on quiz hits — see [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md))
 - [ ] Workspace dashboard: Top Assets table
 - [ ] Validate in Real-Time: trigger impression (scroll to image) and click
 

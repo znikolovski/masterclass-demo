@@ -84,10 +84,11 @@ Use the same pattern as [ASSET-ANALYTICS-PLAN.md](./ASSET-ANALYTICS-PLAN.md):
 content.__adobe = content.__adobe || {};
 content.__adobe.analytics = content.__adobe.analytics || {};
 const s = content.__adobe.analytics;
+const form = window.adobeDataLayer?.getState?.('form') || {};
 s.events = 'event11'; // change per rule: event9 … event15
-s.eVar7 = '%EDS - Form Slug%';
-s.prop8 = '%EDS - Form Step%';
-s.linkName = '%EDS - Form Slug%';
+s.eVar7 = form.formSlug || '';
+s.prop8 = form.step || '';
+s.linkName = form.formSlug || '';
 s.linkType = 'o';
 ```
 
@@ -103,7 +104,7 @@ s.linkType = 'o';
 | `EDS - Form Validation Error` | `formValidationError` | `event14` |
 | `EDS - Form Submit Error` | `formSubmitError` | `event15` |
 
-For validation errors, also set `s.prop8 = '%EDS - Form Error Field%';` in the Custom Code block.
+For validation errors, also set `s.prop8 = form.errorField || '';` in the Custom Code block (read `form` from `adobeDataLayer.getState('form')` as above).
 
 ## Workspace — form fallout
 

@@ -18,6 +18,7 @@ const D = {
   prop9: 'variables/prop9',
   marketingChannel: 'variables/marketingchannel',
   campaign: 'variables/campaign',
+  visitNumber: 'variables/visitnumber',
 };
 
 /** Quiz result categories — keep in sync with blocks/adventure-quiz/quiz-data.js */
@@ -91,6 +92,15 @@ function visitsGt(num, description) {
     },
     num,
     description: description || `Visits greater than ${num}`,
+  };
+}
+
+function visitNumberGt(num, description) {
+  return {
+    func: 'gt',
+    val: attr(D.visitNumber),
+    num,
+    description: description || `Visit number greater than ${num}`,
   };
 }
 
@@ -467,12 +477,12 @@ export const WKND_SEGMENTS = [
   ),
   visitSegment(
     'WKND - Direct Loyal Audience',
-    'Direct entry from a returning visitor.',
+    'Direct entry from a returning visitor (visit number > 1).',
     andPreds([
       containsDim(D.marketingChannel, 'Direct', 'Marketing channel direct'),
-      visitsGt(1, 'More than one visit in visitor history'),
+      visitNumberGt(1, 'Returning visitor (visit number > 1)'),
     ]),
-    [D.marketingChannel, 'metrics/visits'],
+    [D.marketingChannel, D.visitNumber],
   ),
   visitSegment(
     'WKND - Campaign-Driven Visit',
@@ -524,7 +534,7 @@ export const WKND_SEGMENTS = [
   // Quiz funnel — see docs/QUIZ-ANALYTICS-PLAN.md
   visitSegment(
     'WKND - Quiz Page Visitor',
-    'Visit includes find-your-adventure quiz page (URL fallback until event16 Launch rule is live).',
+    'Visit includes find-your-adventure quiz page (URL fallback until event17 Launch rule is live).',
     andPreds([
       containsDim(D.page, '/find-your-adventure', 'Page contains quiz path'),
       withoutPred(containsDim(D.page, '/find-your-adventure/results', 'Exclude results page')),
@@ -533,29 +543,29 @@ export const WKND_SEGMENTS = [
   ),
   visitSegment(
     'WKND - Quiz Results Visitor',
-    'Visit includes quiz results page (URL fallback until event19 Launch rule is live).',
+    'Visit includes quiz results page (URL fallback until event20 Launch rule is live).',
     containsDim(D.page, '/find-your-adventure/results', 'Page contains quiz results path'),
     [D.page],
   ),
   visitSegment(
     'WKND - Quiz Starter',
-    'Visit includes find-your-adventure quiz start (event16).',
-    eventExists(16, 'Quiz Start event16'),
-    ['metrics/event16'],
+    'Visit includes find-your-adventure quiz start (event17).',
+    eventExists(17, 'Quiz Start event17'),
+    ['metrics/event17'],
   ),
   visitSegment(
     'WKND - Quiz Completer',
-    'Visit includes quiz completion (event18).',
-    eventExists(18, 'Quiz Complete event18'),
-    ['metrics/event18'],
+    'Visit includes quiz completion (event19).',
+    eventExists(19, 'Quiz Complete event19'),
+    ['metrics/event19'],
   ),
   ...QUIZ_RESULT_CATEGORIES.map(({ id, label }) => visitSegment(
     `WKND - Quiz Result: ${label}`,
-    `Completed find-your-adventure quiz with result category ${id} (event18 + eVar2).`,
+    `Completed find-your-adventure quiz with result category ${id} (event19 + eVar2).`,
     andPreds([
-      eventExists(18, 'Quiz Complete event18'),
+      eventExists(19, 'Quiz Complete event19'),
       streqDim(D.evar2, id, `eVar2 equals ${id}`),
     ]),
-    [D.evar2, 'metrics/event18'],
+    [D.evar2, 'metrics/event19'],
   )),
 ];

@@ -6,6 +6,9 @@
 
 const BLOCK_NAME = 'adventure-quiz';
 
+/** Time for ACDL + Launch rules to process before navigation unload. */
+const ANALYTICS_FLUSH_MS = 450;
+
 /**
  * @returns {boolean}
  */
@@ -35,9 +38,11 @@ function buildQuizContext(payload = {}) {
 /**
  * @param {string} eventName
  * @param {object} [payload]
+ * @param {{ awaitFlush?: boolean }} [options]
+ * @returns {Promise<void>|void}
  */
-export function pushQuizEvent(eventName, payload = {}) {
-  if (!isTrackingEnabled() || !eventName) return;
+export function pushQuizEvent(eventName, payload = {}, options = {}) {
+  if (!isTrackingEnabled() || !eventName) return options.awaitFlush ? Promise.resolve() : undefined;
 
   const quiz = buildQuizContext(payload);
   window.adobeDataLayer.push({
@@ -48,5 +53,11 @@ export function pushQuizEvent(eventName, payload = {}) {
       block: BLOCK_NAME,
       detail: quiz.step || quiz.resultCategory || quiz.answerId || '',
     },
+  });
+
+  if (!options.awaitFlush) return undefined;
+
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ANALYTICS_FLUSH_MS);
   });
 }

@@ -14,7 +14,7 @@ import {
   toCamelCase,
 } from './aem.js';
 import { initAssetAnalytics } from './asset-analytics.js';
-import { pushAnalyticsPageContext } from './analytics-page.js';
+import { pushAnalyticsPageContext, pushErrorPageContext } from './analytics-page.js';
 import {
   decorateTargetInjections,
   getTargetZones,
@@ -276,6 +276,28 @@ function decorateButtons(main) {
       a.classList.add('secondary');
       em.replaceWith(a);
     }
+  });
+}
+
+/**
+ * Push ctaClick ACDL events for decorated buttons (Launch ACDL rule → event1).
+ * @param {HTMLElement} main
+ */
+function bindCtaAnalytics(main) {
+  if (!main || main.dataset.ctaAnalyticsBound === 'true') return;
+  main.dataset.ctaAnalyticsBound = 'true';
+  main.addEventListener('click', (event) => {
+    const link = event.target.closest(
+      'a.button, a.button-ghost, a.button.primary, a.button.secondary, .button-container a, .hero-adventure a, .quiz-results-cta a',
+    );
+    if (!link || !main.contains(link)) return;
+    import('./analytics-acdl.js').then((mod) => {
+      mod.pushInteractionEvent('ctaClick', {
+        label: (link.textContent || '').trim(),
+        block: link.closest('[class*="block"]')?.classList?.item(0) || 'cta',
+        detail: link.getAttribute('href') || '',
+      });
+    }).catch(() => {});
   });
 }
 
@@ -609,6 +631,7 @@ async function loadLazy(doc) {
     optimizePictures(main, { eagerSelector: HERO_BLOCK_SELECTOR });
     if (isAnalyticsEnabled(doc)) {
       initAssetAnalytics(main);
+      bindCtaAnalytics(main);
     }
   }
 
@@ -622,6 +645,9 @@ async function loadLazy(doc) {
     await martechLoadedPromise;
     if (isAnalyticsEnabled(doc)) {
       pushAnalyticsPageContext(doc, getPageMetadataValue);
+      if (window.isErrorPage) {
+        pushErrorPageContext();
+      }
     }
     if (isPersonalizationEnabled(doc)) {
       pushTargetPageContext(doc, getPageMetadataValue);

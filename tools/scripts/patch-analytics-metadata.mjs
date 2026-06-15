@@ -12,7 +12,7 @@ import {
   BLOG_ANALYTICS, PAGE_ANALYTICS, fieldsForPath,
 } from './lib/adventure-page-metadata.mjs';
 import {
-  getDaToken, putSource, triggerPreview, triggerPublish,
+  getDaToken, getSource, putSource, triggerPreview, triggerPublish,
 } from './lib/da-source.mjs';
 
 const ORG = 'znikolovski';
@@ -117,16 +117,6 @@ function listBlogPaths() {
   }
 }
 
-async function getSource(token, path) {
-  const normalized = path === '/' ? 'index' : path.replace(/^\//, '');
-  const url = `https://admin.da.live/source/${ORG}/${SITE}/${normalized}.html`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
-  return res.text();
-}
-
 const token = getDaToken(ROOT);
 if (!token) {
   console.error('No valid DA token. Run: npx github:adobe-rnd/da-auth-helper token');
@@ -141,9 +131,15 @@ const paths = [
 console.log(`${DRY_RUN ? 'Dry run' : 'Patching'} adventure metadata on ${paths.length} pages…\n`);
 
 let updated = 0;
+let skipped = 0;
 for (const path of paths) {
   const fields = fieldsForPath(path);
-  const before = await getSource(token, path);
+  const before = await getSource(token, ORG, SITE, path);
+  if (before == null) {
+    console.log(`  ! ${path} (not in DA — skipped)`);
+    skipped += 1;
+    continue;
+  }
   const after = patchMetadata(before, fields);
   if (before === after) {
     console.log(`  − ${path} (unchanged)`);
@@ -160,4 +156,4 @@ for (const path of paths) {
   updated += 1;
 }
 
-console.log(`\nDone. ${updated} page(s) updated.`);
+console.log(`\nDone. ${updated} page(s) updated, ${skipped} skipped (not in DA).`);

@@ -10,30 +10,33 @@
  * @property {string} adventureCategory
  * @property {string} journeyStage
  * @property {string} [template]
+ * @property {string} [theme]
  */
 
 /** @type {Record<string, PageMeta>} */
 export const PAGE_ANALYTICS = {
-  '/': { adventureCategory: 'general-outdoor', journeyStage: 'inspiration', template: 'homepage' },
-  '/about': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
-  '/adventures': { adventureCategory: 'general-outdoor', journeyStage: 'discovery', template: 'landing-page' },
-  '/destinations': { adventureCategory: 'general-outdoor', journeyStage: 'discovery', template: 'landing-page' },
-  '/expeditions': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/gear': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/faq': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/basecamp': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page' },
-  '/field-notes': { adventureCategory: 'photography', journeyStage: 'inspiration', template: 'landing-page' },
-  '/community': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
-  '/sustainability': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page' },
+  '/': { adventureCategory: 'general-outdoor', journeyStage: 'inspiration', template: 'homepage', theme: 'magazine' },
+  '/about': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page', theme: 'editorial' },
+  '/adventures': { adventureCategory: 'general-outdoor', journeyStage: 'discovery', template: 'landing-page', theme: 'discovery' },
+  '/destinations': { adventureCategory: 'general-outdoor', journeyStage: 'discovery', template: 'landing-page', theme: 'discovery' },
+  '/expeditions': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page', theme: 'planning' },
+  '/gear': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page', theme: 'planning' },
+  '/faq': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page', theme: 'support' },
+  '/basecamp': { adventureCategory: 'general-outdoor', journeyStage: 'planning', template: 'landing-page', theme: 'planning' },
+  '/field-notes': { adventureCategory: 'photography', journeyStage: 'inspiration', template: 'landing-page', theme: 'photography' },
+  '/community': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page', theme: 'community' },
+  '/sustainability': { adventureCategory: 'general-outdoor', journeyStage: 'community', template: 'page', theme: 'community' },
   '/find-your-adventure': {
     adventureCategory: 'general-outdoor',
     journeyStage: 'discovery',
     template: 'landing-page',
+    theme: 'quiz',
   },
   '/find-your-adventure/results': {
     adventureCategory: 'general-outdoor',
     journeyStage: 'discovery',
     template: 'landing-page',
+    theme: 'quiz-results',
   },
 };
 
@@ -46,11 +49,13 @@ export const BLOG_ANALYTICS = {
     adventureInterest: 'Patagonia trek',
     adventureCategory: 'trekking',
     journeyStage: 'inspiration',
+    theme: 'storytelling',
   },
   'yosemite-rock-climbing': {
     adventureInterest: 'Yosemite climbing',
     adventureCategory: 'climbing',
     journeyStage: 'inspiration',
+    theme: 'storytelling',
   },
   'wild-swimming-guide': {
     adventureInterest: 'Wild swimming',
@@ -107,7 +112,12 @@ export function fieldsForPath(path) {
     return {
       ...blog,
       template: 'blog-article',
+      theme: blog.theme || 'storytelling',
     };
   }
-  return PAGE_ANALYTICS[path] || {};
+  const page = PAGE_ANALYTICS[path] || {};
+  return {
+    ...page,
+    theme: page.theme || '',
+  };
 }
