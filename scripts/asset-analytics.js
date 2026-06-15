@@ -10,6 +10,18 @@ const IMPRESSION_EVENT = 'assetImpression';
 const CLICK_EVENT = 'assetClick';
 
 /**
+ * DAM / Media Bus images only — skip author avatars and broken placeholders.
+ * @param {HTMLImageElement} img
+ * @returns {boolean}
+ */
+function isTrackableImage(img) {
+  if (!img || img.closest('.hero-byline-avatar')) return false;
+  const src = img.currentSrc || img.src || '';
+  if (!src || src.startsWith('about:') || src.startsWith('data:')) return false;
+  return true;
+}
+
+/**
  * @param {HTMLImageElement} img
  * @returns {object} assetId, assetUrl, assetName, assetSource, block
  */
@@ -34,6 +46,7 @@ export function getAssetContext(img) {
  */
 export function pushAssetEvent(eventName, img) {
   if (typeof window === 'undefined' || !window.adobeDataLayer || !eventName || !img) return;
+  if (!isTrackableImage(img)) return;
 
   const asset = getAssetContext(img);
   window.adobeDataLayer.push({
@@ -69,6 +82,7 @@ export function initAssetAnalytics(root) {
   }, { threshold: IMPRESSION_RATIO });
 
   root.querySelectorAll('img[src]').forEach((img) => {
+    if (!isTrackableImage(img)) return;
     observer.observe(img);
     img.addEventListener('click', () => {
       pushAssetEvent(CLICK_EVENT, img);

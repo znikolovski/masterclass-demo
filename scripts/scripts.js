@@ -630,7 +630,6 @@ async function loadLazy(doc) {
   if (main) {
     optimizePictures(main, { eagerSelector: HERO_BLOCK_SELECTOR });
     if (isAnalyticsEnabled(doc)) {
-      initAssetAnalytics(main);
       bindCtaAnalytics(main);
     }
   }
@@ -694,7 +693,13 @@ async function loadLazy(doc) {
 function loadDelayed() {
   window.setTimeout(() => {
     if (martechLoadedPromise) {
-      martechLoadedPromise.then(() => getMartechModule().then((m) => m.martechDelayed()));
+      martechLoadedPromise.then(() => getMartechModule().then(async (m) => {
+        await m.martechDelayed();
+        const main = document.querySelector('main');
+        if (main && isAnalyticsEnabled(document)) {
+          initAssetAnalytics(main);
+        }
+      }));
     }
     // eslint-disable-next-line import/no-cycle
     import('./delayed.js');

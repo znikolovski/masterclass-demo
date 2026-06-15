@@ -200,6 +200,8 @@ const errorLines = (consoleOut.stdout || '').split('\n').filter((l) => {
   if (!l.includes('[ERROR]')) return false;
   if (l.includes('404') || l.includes('nav.plain') || l.includes('footer.plain')) return false;
   if (l.includes('Content Security Policy') && l.includes('martech')) return false;
+  if (l.includes('compute-pressure') && l.includes('youtube')) return false;
+  if (l.includes('Permissions policy violation') && l.includes('youtube')) return false;
   return true;
 });
 record(
@@ -214,19 +216,29 @@ cli(['goto', `${localBase}/drafts/find-your-adventure`]);
 await waitMartech();
 const quizStart = evalPage(`
   await new Promise((r) => setTimeout(r, 2000));
-  const lenBefore = (window.adobeDataLayer || []).length;
-  const opt = document.querySelector('.adventure-quiz-option');
-  if (!opt) return JSON.stringify({ error: 'no quiz option' });
-  opt.click();
-  await new Promise((r) => setTimeout(r, 500));
   const dl = window.adobeDataLayer || [];
-  const events = dl.slice(lenBefore).filter((x) => x.event === 'quizStart' || x.event === 'quizStepComplete');
-  const state = window.adobeDataLayer?.getState?.('quiz');
-  return JSON.stringify({ events, quizState: state });
+  const startEvents = dl.filter((x) => x.event === 'quizStart');
+  const quizState = window.adobeDataLayer?.getState?.('quiz');
+  const opt = document.querySelector('.adventure-quiz-option');
+  if (!opt) return JSON.stringify({ error: 'no quiz option', startEvents, quizState });
+  opt.click();
+  await new Promise((r) => setTimeout(r, 300));
+  const nextBtn = document.querySelector('.adventure-quiz-next');
+  if (!nextBtn || nextBtn.disabled) {
+    return JSON.stringify({ error: 'next disabled after option select', startEvents, quizState });
+  }
+  const lenBefore = dl.length;
+  nextBtn.click();
+  await new Promise((r) => setTimeout(r, 500));
+  const stepEvents = (window.adobeDataLayer || []).slice(lenBefore).filter((x) => x.event === 'quizStepComplete');
+  const quizStateAfter = window.adobeDataLayer?.getState?.('quiz');
+  return JSON.stringify({ startEvents, stepEvents, quizState: quizStateAfter });
 `);
-const quizStartOk = Array.isArray(quizStart?.events)
-  && quizStart.events.some((e) => e.event === 'quizStart')
-  && quizStart?.quizState?.quizId;
+const quizStartOk = Array.isArray(quizStart?.startEvents)
+  && quizStart.startEvents.some((e) => e.event === 'quizStart')
+  && quizStart?.quizState?.quizId
+  && Array.isArray(quizStart?.stepEvents)
+  && quizStart.stepEvents.some((e) => e.event === 'quizStepComplete' && e.quiz?.answerId);
 record('quizStart ACDL + quiz state', quizStartOk, quizStart);
 
 // --- Asset impression (homepage scroll) ---
@@ -257,8 +269,9 @@ const ctaResult = evalPage(`
   const cta = document.querySelector('main a.button, main a.button-ghost, main .button-container a');
   if (!cta) return JSON.stringify({ error: 'no CTA link' });
   const lenBefore = (window.adobeDataLayer || []).length;
+  cta.addEventListener('click', (e) => e.preventDefault(), { once: true, capture: true });
   cta.click();
-  await new Promise((r) => setTimeout(r, 800));
+  await new Promise((r) => setTimeout(r, 1200));
   const dl = window.adobeDataLayer || [];
   const items = dl.slice(lenBefore).filter((x) => x.event === 'ctaClick');
   return JSON.stringify(items[0] || { error: 'no ctaClick event' });
