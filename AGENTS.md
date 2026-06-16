@@ -209,6 +209,10 @@ For requirements and acceptance criteria, start with [analyze-and-plan](.agents/
 - [prototype](.agents/skills/prototype/SKILL.md) — Render a proposed redesign of a page on the current website as a self-contained static HTML file, then iter...
 - [uplift](.agents/skills/uplift/SKILL.md) — One-shot brand-faithful presales redesign of a website page. The user provides only the URL; everything els...
 
+#### Experience Workspace and Sidekick
+
+- [ew-block-library](skills/ew-block-library/SKILL.md) — Register new or updated EDS blocks in the EW block library and Sidekick with fully styled preview shells (library-preview.js, blocks.json, library.json, regen/setup commands). Use when creating blocks for the library or fixing unstyled previews.
+
 #### Martech and personalization
 
 - [adobe-target-personalization](skills/adobe-target-personalization/SKILL.md) — End-to-end Adobe Target personalization for AEM Edge Delivery Services using fragment HTML offers, martech ...
