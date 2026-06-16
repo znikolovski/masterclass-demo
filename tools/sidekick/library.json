@@ -1,5 +1,16 @@
 {
+  ":type": "multi-sheet",
+  ":names": [
+    "blocks"
+  ],
   "blocks": {
+    ":type": "sheet",
+    "columns": [
+      "name",
+      "path",
+      "value"
+    ],
+    "total": 27,
     "data": [
       {
         "name": "Adventure Facts",
@@ -120,26 +131,19 @@
         "name": "Embed Adaptive Form",
         "path": "/blocks/embed-adaptive-form/embed-adaptive-form.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html"
-      }
-    ]
-  },
-  "templates": {
-    "data": [
+      },
       {
         "name": "Blog Article",
-        "key": "Blog Article",
         "path": "/templates/blog-article/blog-article.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html"
       },
       {
         "name": "Field Notes",
-        "key": "Field Notes",
         "path": "/templates/field-notes/field-notes.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html"
       },
       {
         "name": "Landing Page",
-        "key": "Landing Page",
         "path": "/templates/landing-page/landing-page.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html"
       }

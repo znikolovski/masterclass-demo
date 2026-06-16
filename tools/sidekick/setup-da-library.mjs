@@ -275,9 +275,21 @@ function syncSidekickLibrary(root, site = SITE) {
       value: rewrite(row.value),
     }));
   }
+  // Sidekick loader (Gc in index.js) expects either top-level `data` (sheet) or
+  // `:type: multi-sheet` with `:names` — not `{ blocks: { data } }` alone.
+  const allEntries = [
+    ...blocksData,
+    ...templatesData.map(({ name, path, value }) => ({ name, path, value })),
+  ];
   const payload = {
-    blocks: { data: blocksData },
-    templates: { data: templatesData },
+    ':type': 'multi-sheet',
+    ':names': ['blocks'],
+    blocks: {
+      ':type': 'sheet',
+      columns: ['name', 'path', 'value'],
+      total: allEntries.length,
+      data: allEntries,
+    },
   };
   writeFileSync(
     join(root, 'tools/sidekick/library.json'),
@@ -292,16 +304,18 @@ function normalizeLibrarySheets(root) {
   const templates = JSON.parse(readFileSync(templatesPath, 'utf8'));
   templates.columns = ['key', 'value', 'path'];
   templates.data = templates.data.map(({ key, value, path }) => {
-    const url = path || value;
-    return { key, value: value || url, path: path || url };
+    const contentUrl = path || value;
+    const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(contentUrl)}`;
+    return { key, value: value || contentUrl, path: previewUrl };
   });
   writeFileSync(templatesPath, `${JSON.stringify(templates, null, 2)}\n`);
 
   const blocks = JSON.parse(readFileSync(blocksPath, 'utf8'));
   blocks.columns = ['name', 'path', 'value'];
   blocks.data = blocks.data.map(({ name, path, value }) => {
-    const url = path || value;
-    return { name, path: url, value: value || url };
+    const contentUrl = path || value;
+    const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(contentUrl)}`;
+    return { name, path: previewUrl, value: contentUrl };
   });
   writeFileSync(blocksPath, `${JSON.stringify(blocks, null, 2)}\n`);
 }

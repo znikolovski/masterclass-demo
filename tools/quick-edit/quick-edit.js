@@ -9,6 +9,7 @@ const importMap = {
 };
 
 function addImportmap() {
+  if (document.querySelector('script[type="importmap"]')) return;
   const importmapEl = document.createElement('script');
   importmapEl.type = 'importmap';
   importmapEl.textContent = JSON.stringify(importMap);

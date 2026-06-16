@@ -5,7 +5,7 @@
       "id": "library",
       "title": "Library",
       "environments": ["edit"],
-      "url": "https://main--masterclass-demo--znikolovski.aem.page/tools/sidekick/library.html"
+      "url": "https://main--masterclass-demo--znikolovski.aem.page/tools/sidekick/library.html?base=/tools/sidekick/library.json"
     },
     {
       "id": "aem-assets",

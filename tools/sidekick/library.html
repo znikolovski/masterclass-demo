@@ -26,16 +26,11 @@
     <title>Sidekick Library</title>
   </head>
   <body>
+    <sidekick-library></sidekick-library>
     <script
       type="module"
       src="https://www.aem.live/tools/sidekick/library/index.js"
     ></script>
-    <script>
-      const library = document.createElement('sidekick-library');
-      library.config = {
-        base: '/tools/sidekick/library.json',
-      };
-      document.body.prepend(library);
-    </script>
+    <script type="module" src="/tools/sidekick/library-init.js"></script>
   </body>
 </html>
