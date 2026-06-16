@@ -8,11 +8,3 @@ library.config = library.config || {
 if (!library.isConnected) {
   document.body.prepend(library);
 }
-
-// Upstream Sidekick blocks.js listens for e.details.path (typo); event uses e.detail.path.
-document.addEventListener('PreviewBlock', (event) => {
-  const path = event.detail?.path;
-  if (!path) return;
-  window.open(path, '_blockpreview');
-  event.stopImmediatePropagation();
-}, true);
