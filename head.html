@@ -41,15 +41,49 @@
 <script nonce="aem">
 (function (doc) {
   /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
-  function buildHeroLcpUrls(content, baseUri) {
-    var imgUrl = new URL(content, baseUri || window.location.href);
-    var path = imgUrl.origin + imgUrl.pathname;
-    var mobile = 750;
-    var desktop = 1600;
-    var low = 'low';
-    var mobileWebp = path + '?width=' + mobile + '&format=webply&optimize=' + low;
+  var HERO_LCP_MAX = 1600;
+  var HERO_LCP_MIN = 900;
+  function isDynamicMediaUrl(url) {
+    return /\/adobe\/assets\/|\/is\/(image|content)\//.test(url.pathname)
+      || /\.adobeaemcloud\.com$|scene7\.com$|adobedc\.net$/i.test(url.hostname);
+  }
+  function getHeroLcpWidth() {
+    var vw = window.innerWidth || 412;
+    var dpr = window.devicePixelRatio || 1;
+    var needed = Math.ceil(vw * dpr);
+    return Math.min(HERO_LCP_MAX, Math.max(HERO_LCP_MIN, needed));
+  }
+  function getHeroBaseSrc(src, baseUri) {
+    var url = new URL(src, baseUri || window.location.href);
+    if (isDynamicMediaUrl(url)) {
+      if (url.pathname.indexOf('/adobe/assets/') !== -1) {
+        ['width', 'format', 'height', 'preferwebp'].forEach(function (p) { url.searchParams.delete(p); });
+      } else {
+        ['wid', 'qlt', 'fmt', 'hei', 't'].forEach(function (p) { url.searchParams.delete(p); });
+      }
+    } else {
+      ['width', 'format', 'optimize', 'height'].forEach(function (p) { url.searchParams.delete(p); });
+    }
+    return url.toString();
+  }
+  function buildHeroLcpUrl(src, baseUri) {
+    var base = getHeroBaseSrc(src, baseUri);
+    var url = new URL(base, baseUri || window.location.href);
+    var width = getHeroLcpWidth();
+    if (isDynamicMediaUrl(url)) {
+      if (url.pathname.indexOf('/adobe/assets/') !== -1) {
+        url.searchParams.set('width', String(width));
+        url.searchParams.set('format', 'webp');
+        return { preloadHref: url.toString(), heroBaseSrc: base };
+      }
+      url.searchParams.set('wid', String(width));
+      url.searchParams.set('qlt', '85');
+      url.searchParams.set('fmt', 'webp');
+      return { preloadHref: url.toString(), heroBaseSrc: base };
+    }
     return {
-      preloadHref: mobileWebp,
+      preloadHref: url.origin + url.pathname + '?width=' + width + '&format=webply&optimize=medium',
+      heroBaseSrc: base,
     };
   }
   function upgradeHeroImg(img) {
@@ -59,11 +93,13 @@
       if (picture) {
         picture.querySelectorAll('source').forEach(function (source) { source.remove(); });
       }
-      var urls = buildHeroLcpUrls(img.getAttribute('src') || img.src, doc.baseURI);
+      var urls = buildHeroLcpUrl(img.getAttribute('src') || img.src, doc.baseURI);
       img.dataset.lcpPrimed = 'true';
       img.dataset.mediaOptimized = 'true';
+      img.dataset.heroBaseSrc = urls.heroBaseSrc;
       img.setAttribute('loading', 'eager');
       img.setAttribute('fetchpriority', 'high');
+      img.setAttribute('sizes', '100vw');
       img.src = urls.preloadHref;
       if (doc.body) doc.body.classList.add('appear');
     } catch (e) {
@@ -85,7 +121,7 @@
   var og = doc.querySelector('meta[property="og:image"]');
   if (og && og.content) {
     try {
-      var urls = buildHeroLcpUrls(og.content, doc.baseURI);
+      var urls = buildHeroLcpUrl(og.content, doc.baseURI);
       var preloadImg = doc.createElement('link');
       preloadImg.rel = 'preload';
       preloadImg.as = 'image';

@@ -20,11 +20,15 @@ const DM_PATH_PATTERNS = [
 
 const HERO_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 1600 },
-  { width: 750 },
+  { width: 1200 },
 ];
 
 /** Breakpoints for hero-adventure background (must stay in sync with head.html preload). */
 export const HERO_ADVENTURE_BREAKPOINTS = HERO_BREAKPOINTS;
+
+/** Cap LCP preload width; display tier can go higher via post-LCP srcset. */
+export const HERO_LCP_MAX_WIDTH = 1600;
+export const HERO_LCP_MIN_WIDTH = 900;
 
 const CARD_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 900 },
@@ -258,27 +262,123 @@ export function createResponsivePicture(
 }
 
 /**
+ * Viewport-aware hero width for LCP (covers device pixel ratio, capped for perf).
+ * @param {number} [viewportWidth]
+ * @param {number} [dpr]
+ * @returns {number}
+ */
+export function getHeroLcpWidth(viewportWidth, dpr) {
+  const vw = viewportWidth ?? (typeof window !== 'undefined' ? window.innerWidth : 412);
+  const pixelRatio = dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio : 1) ?? 1;
+  const needed = Math.ceil(vw * pixelRatio);
+  return Math.min(HERO_LCP_MAX_WIDTH, Math.max(HERO_LCP_MIN_WIDTH, needed));
+}
+
+/**
+ * Strip delivery transforms so hero URLs are built from a stable asset base.
+ * @param {string} src
+ * @param {string} [base]
+ * @returns {string}
+ */
+export function getHeroBaseSrc(src, base = window.location.href) {
+  const url = new URL(src, base);
+  const sourceType = getMediaSourceType(src);
+  if (sourceType === 'dynamic-media') {
+    if (url.pathname.includes('/adobe/assets/')) {
+      ['width', 'format', 'height', 'preferwebp'].forEach((p) => url.searchParams.delete(p));
+    } else {
+      ['wid', 'qlt', 'fmt', 'hei', 't'].forEach((p) => url.searchParams.delete(p));
+    }
+  } else {
+    ['width', 'format', 'optimize', 'height'].forEach((p) => url.searchParams.delete(p));
+  }
+  return url.toString();
+}
+
+/**
+ * Build a hero image URL for Media Bus or Dynamic Media.
+ * @param {string} src
+ * @param {number} width
+ * @param {{ base?: string, optimize?: 'low'|'medium'|'high', sourceType?: string,
+ *   qlt?: number }} [options]
+ * @returns {string}
+ */
+export function buildHeroMediaUrl(src, width, options = {}) {
+  const base = options.base || window.location.href;
+  const sourceType = options.sourceType ?? getMediaSourceType(src);
+  const url = new URL(src, base);
+
+  if (sourceType === 'dynamic-media') {
+    if (url.pathname.includes('/adobe/assets/')) {
+      url.searchParams.set('width', String(width));
+      url.searchParams.set('format', 'webp');
+      return url.toString();
+    }
+    url.searchParams.set('wid', String(width));
+    url.searchParams.set('qlt', String(options.qlt ?? 85));
+    url.searchParams.set('fmt', 'webp');
+    return url.toString();
+  }
+
+  const quality = options.optimize ?? 'medium';
+  const { origin, pathname } = url;
+  return `${origin}${pathname}?width=${width}&format=webply&optimize=${quality}`;
+}
+
+/**
  * Build hero-adventure LCP preload URLs (aligned with createHeroAdventurePicture output).
  * @param {string} src Image URL (absolute or relative)
  * @param {string} [base] Base URL for relative src
  * @returns {{ breakpoints: typeof HERO_ADVENTURE_BREAKPOINTS, sizes: string,
- *   preloadHref: string, imagesrcset: string, imagesizes: string }}
+ *   preloadHref: string, heroBaseSrc: string, imagesrcset: string, imagesizes: string }}
  */
 export function buildHeroAdventureLcpUrls(src, base = window.location.href) {
-  const url = new URL(src, base);
-  const { origin, pathname } = url;
+  const heroBaseSrc = getHeroBaseSrc(src, base);
+  const lcpWidth = getHeroLcpWidth();
   const mobileWidth = HERO_ADVENTURE_BREAKPOINTS[HERO_ADVENTURE_BREAKPOINTS.length - 1].width;
   const desktopWidth = HERO_ADVENTURE_BREAKPOINTS[0].width;
-  const optimize = 'low';
-  const mobileWebp = `${origin}${pathname}?width=${mobileWidth}&format=webply&optimize=${optimize}`;
-  const desktopWebp = `${origin}${pathname}?width=${desktopWidth}&format=webply&optimize=${optimize}`;
+  const preloadHref = buildHeroMediaUrl(heroBaseSrc, lcpWidth, { base, optimize: 'medium' });
+  const mobileWebp = buildHeroMediaUrl(heroBaseSrc, mobileWidth, { base, optimize: 'medium' });
+  const desktopWebp = buildHeroMediaUrl(heroBaseSrc, desktopWidth, { base, optimize: 'medium' });
   return {
     breakpoints: HERO_ADVENTURE_BREAKPOINTS,
     sizes: '100vw',
-    preloadHref: mobileWebp,
+    preloadHref,
+    heroBaseSrc,
     imagesrcset: `${desktopWebp} ${desktopWidth}w, ${mobileWebp} ${mobileWidth}w`,
     imagesizes: '100vw',
   };
+}
+
+/**
+ * After LCP, add responsive high-quality sources without replacing the painted img node.
+ * @param {HTMLImageElement} img
+ */
+export function enrichHeroPictureAfterLcp(img) {
+  if (!img || img.dataset.heroDisplayUpgraded === 'true') return;
+
+  const picture = img.closest('picture');
+  if (!picture) return;
+
+  const baseSrc = img.dataset.heroBaseSrc || getHeroBaseSrc(img.src);
+  img.dataset.heroBaseSrc = baseSrc;
+  const sourceType = getMediaSourceType(baseSrc);
+
+  picture.querySelectorAll('source').forEach((source) => source.remove());
+
+  HERO_ADVENTURE_BREAKPOINTS.forEach((br) => {
+    const webp = document.createElement('source');
+    if (br.media) webp.setAttribute('media', br.media);
+    webp.setAttribute('type', 'image/webp');
+    webp.setAttribute(
+      'srcset',
+      buildHeroMediaUrl(baseSrc, br.width, { optimize: 'high', sourceType, qlt: 90 }),
+    );
+    picture.insertBefore(webp, img);
+  });
+
+  img.setAttribute('sizes', '100vw');
+  img.dataset.heroDisplayUpgraded = 'true';
 }
 
 /**
@@ -305,7 +405,7 @@ export function applyPictureOptimizeLevel(picture, level) {
 }
 
 /**
- * Responsive hero background picture with eager LCP hints and low optimize tier.
+ * Responsive hero background picture with eager LCP hints.
  * @param {string} src
  * @param {string} [alt]
  * @returns {HTMLPictureElement|HTMLImageElement}
@@ -317,9 +417,14 @@ export function createHeroAdventurePicture(src, alt = '') {
     sizes: lcp.sizes,
   });
   if (picture.tagName === 'PICTURE') {
-    applyPictureOptimizeLevel(picture, 'low');
+    if (getMediaSourceType(src) === 'media-bus') {
+      applyPictureOptimizeLevel(picture, 'medium');
+    }
     const img = picture.querySelector('img');
-    if (img) img.setAttribute('fetchpriority', 'high');
+    if (img) {
+      img.setAttribute('fetchpriority', 'high');
+      img.dataset.heroBaseSrc = lcp.heroBaseSrc;
+    }
   }
   return picture;
 }

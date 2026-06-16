@@ -24,7 +24,7 @@ import {
   refreshTargetZones,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
-import { optimizePictures, buildHeroAdventureLcpUrls } from './media.js';
+import { optimizePictures, buildHeroAdventureLcpUrls, enrichHeroPictureAfterLcp } from './media.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
@@ -98,11 +98,13 @@ function primeLcpImage(root) {
   const picture = img.closest('picture');
   picture?.querySelectorAll('source').forEach((source) => source.remove());
   try {
-    const { preloadHref } = buildHeroAdventureLcpUrls(img.src);
+    const { preloadHref, heroBaseSrc } = buildHeroAdventureLcpUrls(img.src);
     img.dataset.lcpPrimed = 'true';
     img.dataset.mediaOptimized = 'true';
+    img.dataset.heroBaseSrc = heroBaseSrc;
     img.setAttribute('loading', 'eager');
     img.setAttribute('fetchpriority', 'high');
+    img.setAttribute('sizes', '100vw');
     img.src = preloadHref;
   } catch {
     img.dataset.lcpPrimed = 'true';
@@ -159,6 +161,50 @@ async function waitForHeroHeadingFont(section) {
     ]);
   } finally {
     h1.classList.remove('hero-heading-pending');
+  }
+}
+
+/**
+ * Upgrade hero to full responsive quality after LCP (does not replace the painted img).
+ * @param {Element} section
+ */
+function scheduleHeroDisplayUpgrade(section) {
+  const img = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img`);
+  if (!img || img.dataset.heroDisplayUpgraded === 'true') return;
+
+  const run = () => enrichHeroPictureAfterLcp(img);
+
+  const schedule = () => {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(run, { timeout: 2500 });
+    } else {
+      setTimeout(run, 0);
+    }
+  };
+
+  if (typeof PerformanceObserver === 'undefined') {
+    schedule();
+    return;
+  }
+
+  let ran = false;
+  const exec = () => {
+    if (ran) return;
+    ran = true;
+    schedule();
+  };
+
+  try {
+    const po = new PerformanceObserver((list) => {
+      if (list.getEntries().length) {
+        po.disconnect();
+        exec();
+      }
+    });
+    po.observe({ type: 'largest-contentful-paint', buffered: true });
+    setTimeout(exec, 4000);
+  } catch {
+    schedule();
   }
 }
 
@@ -664,6 +710,7 @@ async function loadEager(doc) {
         if (!document.body.classList.contains('quick-edit')) {
           await waitForFirstImage(section);
           waitForHeroHeadingFont(section);
+          scheduleHeroDisplayUpgrade(section);
         }
       })
       : Promise.resolve();
