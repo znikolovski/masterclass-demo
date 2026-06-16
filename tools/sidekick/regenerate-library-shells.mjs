@@ -16,6 +16,41 @@ import { wrapLibraryPreviewPage } from './wrap-library-preview.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const sidekickRoot = join(ROOT, 'tools/sidekick');
 
+/** Blocks authored in-repo (not tools/sidekick snippets) that still need library shells. */
+const REPO_BLOCK_PREVIEWS = [
+  'blocks/form/form.html',
+  'blocks/adventure-quiz/adventure-quiz.html',
+  'blocks/quiz-results/quiz-results.html',
+  'blocks/embed-adaptive-form/embed-adaptive-form.html',
+  'blocks/business-register/business-register.html',
+  'blocks/business-login/business-login.html',
+  'blocks/business-dashboard/business-dashboard.html',
+];
+
+function isFullPreviewDocument(html) {
+  return /<!DOCTYPE html>/i.test(html) || /<html[\s>]/i.test(html);
+}
+
+function extractLibraryFragment(html) {
+  const mainMatch = html.match(/<main>([\s\S]*)<\/main>/i);
+  if (mainMatch) return mainMatch[1].trim();
+  if (isFullPreviewDocument(html)) return null;
+  return html.trim();
+}
+
+function writePreviewShell(daPath, fragment) {
+  const label = basename(daPath, '.html').replace(/-/g, ' ');
+  const title = `${label.charAt(0).toUpperCase()}${label.slice(1)} — Library preview`;
+  const blockName = basename(daPath, '.html');
+  const gitPath = join(ROOT, daPath);
+  mkdirSync(dirname(gitPath), { recursive: true });
+  writeFileSync(
+    gitPath,
+    wrapLibraryPreviewPage(title, fragment, { blockName }),
+  );
+  writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
+}
+
 function walkPlainHtml(dir, acc = []) {
   for (const entry of readdirSync(dir)) {
     const abs = join(dir, entry);
@@ -48,6 +83,29 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
   count += 1;
   console.log(`  ✓ ${daPath}`);
+}
+
+for (const rel of REPO_BLOCK_PREVIEWS) {
+  const abs = join(ROOT, rel);
+  if (!existsSync(abs)) continue;
+  const raw = readFileSync(abs, 'utf8');
+  const plainPath = `${abs}.plain.html`;
+
+  if (isFullPreviewDocument(raw)) {
+    if (!existsSync(plainPath)) {
+      const fragment = extractLibraryFragment(raw);
+      if (fragment) {
+        writeFileSync(plainPath, `${fragment.trim()}\n`);
+        count += 1;
+        console.log(`  ✓ ${rel}.plain.html (from shell)`);
+      }
+    }
+    continue;
+  }
+
+  writePreviewShell(rel, raw.trim());
+  count += 1;
+  console.log(`  ✓ ${rel} (repo fragment)`);
 }
 
 console.log(`\nRegenerated ${count} preview shell(s).`);

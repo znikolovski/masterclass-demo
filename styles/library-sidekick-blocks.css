@@ -160,7 +160,9 @@ body.sidekick-library .embed-adaptive-form.sidekick-library > div {
 /* Form blocks */
 body.sidekick-library .form.sidekick-library > div,
 body.sidekick-library .business-register.sidekick-library > div,
-body.sidekick-library .business-login.sidekick-library > div {
+body.sidekick-library .business-login.sidekick-library > div,
+body.sidekick-library .business-dashboard.sidekick-library > div,
+body.sidekick-library .embed-adaptive-form.sidekick-library > div {
   max-width: 480px;
   margin: 0 auto;
   padding: 16px;
