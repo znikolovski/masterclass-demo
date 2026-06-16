@@ -1,10 +1,10 @@
 /**
- * EW Sidekick renders library previews in srcdoc iframes (null origin).
- * Module scripts from the code bus cannot load (no CORS on static .js).
- * These rules style undecorated authoring markup when body/block have .sidekick-library.
+ * Library preview fallbacks for undecorated authoring markup.
+ * Matches code-bus shells (body.library-preview) and Sidekick srcdoc (body.sidekick-library).
  */
 
 /* Cards */
+body.library-preview .cards,
 body.sidekick-library .cards.sidekick-library {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -13,6 +13,7 @@ body.sidekick-library .cards.sidekick-library {
   margin: 0 auto;
 }
 
+body.library-preview .cards > div,
 body.sidekick-library .cards.sidekick-library > div {
   display: flex;
   flex-direction: column;
@@ -21,6 +22,8 @@ body.sidekick-library .cards.sidekick-library > div {
   overflow: hidden;
 }
 
+body.library-preview .cards picture,
+body.library-preview .cards img,
 body.sidekick-library .cards.sidekick-library picture,
 body.sidekick-library .cards.sidekick-library img {
   display: block;
@@ -29,19 +32,23 @@ body.sidekick-library .cards.sidekick-library img {
   object-fit: cover;
 }
 
+body.library-preview .cards > div > div:last-child,
 body.sidekick-library .cards.sidekick-library > div > div:last-child {
   padding: 16px;
 }
 
+body.library-preview .cards h3,
 body.sidekick-library .cards.sidekick-library h3 {
   margin: 0 0 8px;
 }
 
+body.library-preview .cards p,
 body.sidekick-library .cards.sidekick-library p {
   margin: 0;
 }
 
 /* Columns */
+body.library-preview .columns > div,
 body.sidekick-library .columns.sidekick-library > div {
   display: grid;
   grid-template-columns: 1fr;
@@ -51,12 +58,14 @@ body.sidekick-library .columns.sidekick-library > div {
 }
 
 @media (width >= 900px) {
+  body.library-preview .columns > div,
   body.sidekick-library .columns.sidekick-library > div {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 /* Hero adventure */
+body.library-preview .hero-adventure,
 body.sidekick-library .hero-adventure.sidekick-library {
   display: grid;
   gap: 24px;
@@ -64,6 +73,8 @@ body.sidekick-library .hero-adventure.sidekick-library {
   margin: 0 auto;
 }
 
+body.library-preview .hero-adventure picture,
+body.library-preview .hero-adventure img,
 body.sidekick-library .hero-adventure.sidekick-library picture,
 body.sidekick-library .hero-adventure.sidekick-library img {
   display: block;
@@ -73,22 +84,26 @@ body.sidekick-library .hero-adventure.sidekick-library img {
   border-radius: 12px;
 }
 
+body.library-preview .hero-adventure h1,
 body.sidekick-library .hero-adventure.sidekick-library h1 {
   margin: 0 0 12px;
 }
 
 /* Accordion FAQ (static preview — items expanded) */
+body.library-preview .accordion-faq > div,
 body.sidekick-library .accordion-faq.sidekick-library > div {
   border-bottom: 1px solid rgb(0 0 0 / 10%);
   padding: 16px 0;
 }
 
+body.library-preview .accordion-faq > div > div:first-child,
 body.sidekick-library .accordion-faq.sidekick-library > div > div:first-child {
   font-weight: 600;
   margin-bottom: 8px;
 }
 
 /* Teaser */
+body.library-preview .teaser > div,
 body.sidekick-library .teaser.sidekick-library > div {
   display: grid;
   gap: 24px;
@@ -97,12 +112,15 @@ body.sidekick-library .teaser.sidekick-library > div {
 }
 
 @media (width >= 900px) {
+  body.library-preview .teaser > div,
   body.sidekick-library .teaser.sidekick-library > div {
     grid-template-columns: 1fr 1fr;
     align-items: center;
   }
 }
 
+body.library-preview .teaser picture,
+body.library-preview .teaser img,
 body.sidekick-library .teaser.sidekick-library picture,
 body.sidekick-library .teaser.sidekick-library img {
   display: block;
@@ -112,6 +130,9 @@ body.sidekick-library .teaser.sidekick-library img {
 }
 
 /* Carousel / tabs — horizontal scroll hint */
+body.library-preview .carousel-blog > div,
+body.library-preview .carousel-hero > div,
+body.library-preview .tabs-activity > div,
 body.sidekick-library .carousel-blog.sidekick-library > div,
 body.sidekick-library .carousel-hero.sidekick-library > div,
 body.sidekick-library .tabs-activity.sidekick-library > div {
@@ -121,6 +142,9 @@ body.sidekick-library .tabs-activity.sidekick-library > div {
   padding-bottom: 8px;
 }
 
+body.library-preview .carousel-blog > div > div,
+body.library-preview .carousel-hero > div > div,
+body.library-preview .tabs-activity > div > div,
 body.sidekick-library .carousel-blog.sidekick-library > div > div,
 body.sidekick-library .carousel-hero.sidekick-library > div > div,
 body.sidekick-library .tabs-activity.sidekick-library > div > div {
@@ -130,6 +154,8 @@ body.sidekick-library .tabs-activity.sidekick-library > div > div {
   padding: 12px;
 }
 
+body.library-preview .carousel-blog img,
+body.library-preview .carousel-hero img,
 body.sidekick-library .carousel-blog.sidekick-library img,
 body.sidekick-library .carousel-hero.sidekick-library img {
   width: 100%;
@@ -139,6 +165,7 @@ body.sidekick-library .carousel-hero.sidekick-library img {
 }
 
 /* Marquee ticker */
+body.library-preview .marquee-ticker,
 body.sidekick-library .marquee-ticker.sidekick-library {
   display: flex;
   flex-wrap: wrap;
@@ -148,6 +175,8 @@ body.sidekick-library .marquee-ticker.sidekick-library {
 }
 
 /* YouTube / embed placeholders */
+body.library-preview .youtube-video > div,
+body.library-preview .embed-adaptive-form > div,
 body.sidekick-library .youtube-video.sidekick-library > div,
 body.sidekick-library .embed-adaptive-form.sidekick-library > div {
   padding: 24px;
@@ -158,6 +187,10 @@ body.sidekick-library .embed-adaptive-form.sidekick-library > div {
 }
 
 /* Form blocks */
+body.library-preview .form > div,
+body.library-preview .business-register > div,
+body.library-preview .business-login > div,
+body.library-preview .business-dashboard > div,
 body.sidekick-library .form.sidekick-library > div,
 body.sidekick-library .business-register.sidekick-library > div,
 body.sidekick-library .business-login.sidekick-library > div,
@@ -170,6 +203,9 @@ body.sidekick-library .embed-adaptive-form.sidekick-library > div {
   border-radius: 8px;
 }
 
+body.library-preview .form input,
+body.library-preview .form textarea,
+body.library-preview .form select,
 body.sidekick-library .form.sidekick-library input,
 body.sidekick-library .form.sidekick-library textarea,
 body.sidekick-library .form.sidekick-library select {

@@ -479,9 +479,47 @@ function isBlogArticlePage(doc = document) {
  * @param {Document} doc
  * @returns {boolean}
  */
+function isLibraryPreviewShell(doc = document) {
+  return (doc.body.classList.contains('library-preview')
+    || doc.body.classList.contains('sidekick-library'))
+    && window.location.pathname.endsWith('.html');
+}
+
+/**
+ * DA library block documents served from the content bus at /blocks/{name}/{name}.
+ * @returns {string|null} block name
+ */
+function getLibraryBlockDocument() {
+  const match = window.location.pathname.match(/^\/blocks\/([^/]+)\/([^/]+)\/?$/);
+  if (!match || match[1] !== match[2]) return null;
+  return match[1];
+}
+
+/**
+ * @param {Document} doc
+ * @returns {boolean}
+ */
 function isLibraryPreview(doc = document) {
-  return doc.body.classList.contains('library-preview')
-    || doc.body.classList.contains('sidekick-library');
+  return isLibraryPreviewShell(doc) || Boolean(getLibraryBlockDocument());
+}
+
+/**
+ * EW block library previews on the content bus need library CSS even before decorate().
+ * @param {Document} doc
+ */
+async function bootstrapLibraryBlockDocument(doc) {
+  const blockName = getLibraryBlockDocument();
+  if (!blockName) return;
+  const base = window.hlx?.codeBasePath || '';
+  doc.body.classList.add('library-preview', 'sidekick-library', 'appear');
+  doc.querySelector('header')?.remove();
+  doc.querySelector('footer')?.remove();
+  await Promise.all([
+    loadCSS(`${base}/styles/library-preview.css`),
+    loadCSS(`${base}/styles/library-sidekick-blocks.css`),
+    loadCSS(`${base}/blocks/${blockName}/${blockName}.css`),
+  ]);
+  doc.querySelector('main')?.querySelector(`.${blockName}`)?.classList.add('sidekick-library');
 }
 
 /** Page metadata keys that opt in to Adobe Target (DA publishes `adobetarget` in head). */
@@ -565,6 +603,7 @@ async function loadMartech(doc = document) {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  await bootstrapLibraryBlockDocument(doc);
   preloadOgImage(doc);
   applyTemplateAndTheme(doc);
 
@@ -624,7 +663,7 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
-  if (!isLibraryPreview(doc)) {
+  if (!isLibraryPreviewShell(doc)) {
     loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   }
 

@@ -12,9 +12,15 @@
  * @param {{ bodyClasses?: string[], stylesheets?: string[], blockName?: string, blockNames?: string[] }} [options]
  */
 export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
-  const body = sectionHtml.trim();
+  let body = sectionHtml.trim();
+  if (options.blockName) {
+    body = body.replace(
+      `class="${options.blockName}"`,
+      `class="${options.blockName} sidekick-library"`,
+    );
+  }
   const indented = body.split('\n').map((line) => `    ${line}`).join('\n');
-  const bodyClasses = ['library-preview', ...(options.bodyClasses || [])].filter(Boolean).join(' ');
+  const bodyClasses = ['library-preview', 'sidekick-library', ...(options.bodyClasses || [])].filter(Boolean).join(' ');
   const extraStyles = (options.stylesheets || [])
     .map((href) => `    <link rel="stylesheet" href="${href}">`)
     .join('\n');

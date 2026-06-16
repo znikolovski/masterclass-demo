@@ -24,6 +24,8 @@ body.sidekick-library main > div > div {
 }
 
 body.sidekick-library header,
-body.sidekick-library footer {
+body.sidekick-library footer,
+body.library-preview header,
+body.library-preview footer {
   display: none;
 }
