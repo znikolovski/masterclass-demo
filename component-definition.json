@@ -93,6 +93,58 @@
           }
         },
         {
+          "title": "Adventure Facts",
+          "id": "adventure-facts",
+          "filter": "adventure-facts",
+          "plugins": {
+            "da": {
+              "name": "adventure-facts",
+              "rows": 1,
+              "columns": 2
+            }
+          }
+        },
+        {
+          "title": "Adventure Facts Item",
+          "id": "adventure-facts-item",
+          "model": "adventure-facts-item",
+          "plugins": {
+            "da": {
+              "name": "adventure-facts-item",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "label",
+                  "selector": "div:nth-child(1)"
+                },
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(2)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "title": "Adventure Facts Header",
+          "id": "adventure-facts-header",
+          "model": "adventure-facts-header",
+          "plugins": {
+            "da": {
+              "name": "adventure-facts-header",
+              "rows": 1,
+              "columns": 1,
+              "fields": [
+                {
+                  "name": "text",
+                  "selector": "div:nth-child(1)"
+                }
+              ]
+            }
+          }
+        },
+        {
           "title": "Cards",
           "id": "cards",
           "filter": "cards",

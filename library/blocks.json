@@ -5,10 +5,15 @@
     "path",
     "value"
   ],
-  "total": 24,
+  "total": 25,
   "offset": 0,
   "limit": 24,
   "data": [
+    {
+      "name": "Adventure Facts",
+      "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-facts/adventure-facts.html",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-facts/adventure-facts.html"
+    },
     {
       "name": "Adventure Quiz",
       "path": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-quiz/adventure-quiz.html",

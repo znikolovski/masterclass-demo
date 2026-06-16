@@ -306,6 +306,38 @@
     ]
   },
   {
+    "id": "adventure-facts-header",
+    "fields": [
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Section title and intro",
+        "valueType": "string",
+        "description": "Use an h2 for the title and an optional intro paragraph beneath it."
+      }
+    ]
+  },
+  {
+    "id": "adventure-facts-item",
+    "fields": [
+      {
+        "component": "text",
+        "name": "label",
+        "label": "Fact label",
+        "valueType": "string",
+        "required": true
+      },
+      {
+        "component": "richtext",
+        "name": "text",
+        "label": "Fact bullets",
+        "valueType": "string",
+        "required": true,
+        "description": "Prefer a bullet list (ul/li). Multiple paragraphs are converted to bullets automatically."
+      }
+    ]
+  },
+  {
     "id": "card",
     "fields": [
       {

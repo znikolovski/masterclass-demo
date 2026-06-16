@@ -11,6 +11,7 @@
       "text",
       "image",
       "accordion-faq",
+      "adventure-facts",
       "cards",
       "cards-steps",
       "adventure-quiz",
@@ -40,6 +41,13 @@
     "id": "accordion-faq",
     "components": [
       "accordion-faq-item"
+    ]
+  },
+  {
+    "id": "adventure-facts",
+    "components": [
+      "adventure-facts-header",
+      "adventure-facts-item"
     ]
   },
   {

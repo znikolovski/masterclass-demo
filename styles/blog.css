@@ -119,6 +119,19 @@ main > .section.secondary > .default-content-wrapper {
   margin-right: auto;
 }
 
+/* Useful information block — full width within secondary sections */
+main > .section.secondary .adventure-facts {
+  width: 100%;
+}
+
+main > .section.secondary:has(.adventure-facts) {
+  padding: 48px 0;
+}
+
+main > .section.secondary:has(.adventure-facts) > .default-content-wrapper {
+  display: block;
+}
+
 main > .section.secondary h3 {
   font-size: 20px;
   margin-top: 0;
