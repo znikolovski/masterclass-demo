@@ -61,7 +61,7 @@ async function loadHeroBlockCss(main) {
  */
 function hasImagePreload(href) {
   return [...document.querySelectorAll('link[rel="preload"][as="image"]')]
-    .some((link) => link.href === href || link.getAttribute('imagesrcset'));
+    .some((link) => link.href === href);
 }
 
 /**
@@ -72,7 +72,7 @@ function preloadOgImage(doc = document) {
   const og = getMetadata('og:image', doc);
   if (!og) return;
   try {
-    const { preloadHref, imagesrcset, imagesizes } = buildHeroAdventureLcpUrls(
+    const { preloadHref } = buildHeroAdventureLcpUrls(
       og,
       doc.baseURI || window.location.href,
     );
@@ -82,8 +82,6 @@ function preloadOgImage(doc = document) {
     link.as = 'image';
     link.href = preloadHref;
     link.setAttribute('fetchpriority', 'high');
-    link.setAttribute('imagesrcset', imagesrcset);
-    link.setAttribute('imagesizes', imagesizes);
     document.head.appendChild(link);
   } catch {
     // ignore invalid og:image
@@ -97,6 +95,8 @@ function preloadOgImage(doc = document) {
 function primeLcpImage(root) {
   const img = root.querySelector(`${HERO_BLOCK_SELECTOR} picture img, .section:first-of-type picture img`);
   if (!img || img.dataset.lcpPrimed) return;
+  const picture = img.closest('picture');
+  picture?.querySelectorAll('source').forEach((source) => source.remove());
   try {
     const { preloadHref } = buildHeroAdventureLcpUrls(img.src);
     img.dataset.lcpPrimed = 'true';
@@ -119,15 +119,13 @@ function preloadLcpHeroImage(section) {
   const img = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img, picture img`);
   if (!img?.src) return;
   try {
-    const { preloadHref, imagesrcset, imagesizes } = buildHeroAdventureLcpUrls(img.src);
+    const { preloadHref } = buildHeroAdventureLcpUrls(img.src);
     if (hasImagePreload(preloadHref)) return;
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
     link.href = preloadHref;
     link.setAttribute('fetchpriority', 'high');
-    link.setAttribute('imagesrcset', imagesrcset);
-    link.setAttribute('imagesizes', imagesizes);
     document.head.appendChild(link);
   } catch {
     const href = img.currentSrc || img.getAttribute('src');
@@ -631,6 +629,7 @@ async function loadMartech(doc = document) {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  doc.body?.classList.add('appear');
   await bootstrapLibraryBlockDocument(doc);
   preloadOgImage(doc);
   applyTemplateAndTheme(doc);
@@ -639,7 +638,6 @@ async function loadEager(doc) {
     await loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
   }
 
-  loadFonts().catch(() => {});
   loadSiteBrandCss(getRepolessSiteSlug(doc));
 
   const needsEagerMartech = isMartechConfigured()
@@ -693,6 +691,8 @@ async function loadLazy(doc) {
   if (!isLibraryPreviewShell(doc)) {
     loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   }
+
+  loadFonts().catch(() => {});
 
   if (!martechLoadedPromise && isMartechConfigured() && !isLibraryPreview(doc)) {
     loadMartech(doc);

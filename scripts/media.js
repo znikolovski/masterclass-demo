@@ -20,7 +20,7 @@ const DM_PATH_PATTERNS = [
 
 const HERO_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 1600 },
-  { width: 412 },
+  { width: 750 },
 ];
 
 /** Breakpoints for hero-adventure background (must stay in sync with head.html preload). */

@@ -44,30 +44,33 @@
   function buildHeroLcpUrls(content, baseUri) {
     var imgUrl = new URL(content, baseUri || window.location.href);
     var path = imgUrl.origin + imgUrl.pathname;
-    var mobile = 412;
+    var mobile = 750;
     var desktop = 1600;
     var low = 'low';
     var mobileWebp = path + '?width=' + mobile + '&format=webply&optimize=' + low;
-    var desktopWebp = path + '?width=' + desktop + '&format=webply&optimize=' + low;
     return {
       preloadHref: mobileWebp,
-      imagesrcset: desktopWebp + ' ' + desktop + 'w, ' + mobileWebp + ' ' + mobile + 'w',
-      imagesizes: '100vw',
     };
   }
   function upgradeHeroImg(img) {
     if (!img || img.dataset.lcpPrimed) return true;
     try {
+      var picture = img.closest('picture');
+      if (picture) {
+        picture.querySelectorAll('source').forEach(function (source) { source.remove(); });
+      }
       var urls = buildHeroLcpUrls(img.getAttribute('src') || img.src, doc.baseURI);
       img.dataset.lcpPrimed = 'true';
       img.dataset.mediaOptimized = 'true';
       img.setAttribute('loading', 'eager');
       img.setAttribute('fetchpriority', 'high');
       img.src = urls.preloadHref;
+      if (doc.body) doc.body.classList.add('appear');
     } catch (e) {
       img.dataset.lcpPrimed = 'true';
       img.setAttribute('loading', 'eager');
       img.setAttribute('fetchpriority', 'high');
+      if (doc.body) doc.body.classList.add('appear');
     }
     return true;
   }
@@ -88,13 +91,7 @@
       preloadImg.as = 'image';
       preloadImg.href = urls.preloadHref;
       preloadImg.setAttribute('fetchpriority', 'high');
-      preloadImg.setAttribute('imagesrcset', urls.imagesrcset);
-      preloadImg.setAttribute('imagesizes', urls.imagesizes);
       doc.head.appendChild(preloadImg);
-      var heroStyle = doc.createElement('link');
-      heroStyle.rel = 'stylesheet';
-      heroStyle.href = '/blocks/hero-adventure/hero-adventure.css';
-      doc.head.appendChild(heroStyle);
     } catch (e) { /* ignore invalid og:image */ }
   }
   if (!watchHeroImg()) {
@@ -105,6 +102,7 @@
     doc.addEventListener('DOMContentLoaded', function () {
       obs.disconnect();
       watchHeroImg();
+      if (doc.body) doc.body.classList.add('appear');
     }, { once: true });
   }
 })(document);
@@ -117,4 +115,3 @@
 <link rel="preconnect" href="https://edge.adobedc.net"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/syncopate/v24/pe0pMIuPIYBCpEV5eFdKvtKqCv5vS1U.woff2"/>
