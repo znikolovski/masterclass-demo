@@ -7,7 +7,7 @@ This project uses the **Configuration Service** (API mode) instead of distribute
 | `helix-query.yaml` in Git | `config/query.yaml` → pushed to admin API |
 | `tools/sidekick/config.json` | `config/sidekick.json` → pushed to admin API |
 | `robots.txt` in Git | `config/robots.txt` → pushed to admin API |
-| (none) | `config/headers.json` → CORS for `/scripts/**` and `/blocks/**/*.js` (EW Sidekick library previews) |
+| (none) | `config/headers.json` → optional CORS for library preview HTML shells (`/blocks/**/*.html`) |
 | Implicit org/repo = site | `config/repoless.site.json` → explicit code + DA content |
 
 ## Site identity
@@ -42,7 +42,9 @@ Edit files under `config/` before running `--apply`. The migration script POSTs/
 - `/config/znikolovski/sites/masterclass-demo.json` — code + content source
 - `/config/znikolovski/sites/masterclass-demo/content/query.yaml` — search index
 - `/config/znikolovski/sites/masterclass-demo/sidekick.json` — Sidekick plugins
-- `/config/znikolovski/sites/masterclass-demo/headers.json` — custom HTTP headers (library preview CORS)
+- `/config/znikolovski/sites/masterclass-demo/headers.json` — custom HTTP headers (library preview HTML shells)
+
+EW Sidekick library previews use CSS-only styling in `styles/library-sidekick-blocks.css` because Config Service headers do not apply to static code-bus `.js` files (module scripts cannot load in srcdoc iframes).
 - `/config/znikolovski/sites/masterclass-demo/robots.txt`
 
 ## Spawning additional repoless sites (same codebase)

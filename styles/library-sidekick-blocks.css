@@ -1,0 +1,176 @@
+/**
+ * EW Sidekick renders library previews in srcdoc iframes (null origin).
+ * Module scripts from the code bus cannot load (no CORS on static .js).
+ * These rules style undecorated authoring markup when body/block have .sidekick-library.
+ */
+
+/* Cards */
+body.sidekick-library .cards.sidekick-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+body.sidekick-library .cards.sidekick-library > div {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dadada;
+  background: var(--background-color, #fff);
+  overflow: hidden;
+}
+
+body.sidekick-library .cards.sidekick-library picture,
+body.sidekick-library .cards.sidekick-library img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+body.sidekick-library .cards.sidekick-library > div > div:last-child {
+  padding: 16px;
+}
+
+body.sidekick-library .cards.sidekick-library h3 {
+  margin: 0 0 8px;
+}
+
+body.sidekick-library .cards.sidekick-library p {
+  margin: 0;
+}
+
+/* Columns */
+body.sidekick-library .columns.sidekick-library > div {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (width >= 900px) {
+  body.sidekick-library .columns.sidekick-library > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Hero adventure */
+body.sidekick-library .hero-adventure.sidekick-library {
+  display: grid;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+body.sidekick-library .hero-adventure.sidekick-library picture,
+body.sidekick-library .hero-adventure.sidekick-library img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+body.sidekick-library .hero-adventure.sidekick-library h1 {
+  margin: 0 0 12px;
+}
+
+/* Accordion FAQ (static preview — items expanded) */
+body.sidekick-library .accordion-faq.sidekick-library > div {
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+  padding: 16px 0;
+}
+
+body.sidekick-library .accordion-faq.sidekick-library > div > div:first-child {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Teaser */
+body.sidekick-library .teaser.sidekick-library > div {
+  display: grid;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (width >= 900px) {
+  body.sidekick-library .teaser.sidekick-library > div {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+}
+
+body.sidekick-library .teaser.sidekick-library picture,
+body.sidekick-library .teaser.sidekick-library img {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* Carousel / tabs — horizontal scroll hint */
+body.sidekick-library .carousel-blog.sidekick-library > div,
+body.sidekick-library .carousel-hero.sidekick-library > div,
+body.sidekick-library .tabs-activity.sidekick-library > div {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+body.sidekick-library .carousel-blog.sidekick-library > div > div,
+body.sidekick-library .carousel-hero.sidekick-library > div > div,
+body.sidekick-library .tabs-activity.sidekick-library > div > div {
+  flex: 0 0 min(280px, 80vw);
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+body.sidekick-library .carousel-blog.sidekick-library img,
+body.sidekick-library .carousel-hero.sidekick-library img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Marquee ticker */
+body.sidekick-library .marquee-ticker.sidekick-library {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 12px 0;
+  font-weight: 600;
+}
+
+/* YouTube / embed placeholders */
+body.sidekick-library .youtube-video.sidekick-library > div,
+body.sidekick-library .embed-adaptive-form.sidekick-library > div {
+  padding: 24px;
+  border: 1px dashed rgb(0 0 0 / 20%);
+  border-radius: 8px;
+  text-align: center;
+  color: rgb(0 0 0 / 55%);
+}
+
+/* Form blocks */
+body.sidekick-library .form.sidekick-library > div,
+body.sidekick-library .business-register.sidekick-library > div,
+body.sidekick-library .business-login.sidekick-library > div {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 8px;
+}
+
+body.sidekick-library .form.sidekick-library input,
+body.sidekick-library .form.sidekick-library textarea,
+body.sidekick-library .form.sidekick-library select {
+  width: 100%;
+  margin-bottom: 12px;
+}

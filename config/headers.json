@@ -1,17 +1,11 @@
 {
-  "/scripts/**": [
+  "/blocks/**/*.html": [
     {
       "key": "access-control-allow-origin",
       "value": "*"
     }
   ],
-  "/blocks/**/*.js": [
-    {
-      "key": "access-control-allow-origin",
-      "value": "*"
-    }
-  ],
-  "/tools/**/*.js": [
+  "/templates/**/*.html": [
     {
       "key": "access-control-allow-origin",
       "value": "*"
