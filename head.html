@@ -41,29 +41,36 @@
 <script nonce="aem">
 (function (doc) {
   /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
-  function heroFileExt(pathname) {
-    var parts = pathname.split('.');
-    return parts.length > 1 ? parts.pop() : 'jpg';
-  }
   function buildHeroLcpUrls(content, baseUri) {
     var imgUrl = new URL(content, baseUri || window.location.href);
     var path = imgUrl.origin + imgUrl.pathname;
-    var ext = heroFileExt(imgUrl.pathname);
-    var mobile = 480;
+    var mobile = 412;
     var desktop = 1600;
     var low = 'low';
+    var mobileWebp = path + '?width=' + mobile + '&format=webply&optimize=' + low;
+    var desktopWebp = path + '?width=' + desktop + '&format=webply&optimize=' + low;
     return {
-      preloadHref: path + '?width=' + mobile + '&format=' + ext + '&optimize=' + low,
-      imagesrcset: path + '?width=' + desktop + '&format=webply&optimize=' + low + ' ' + desktop + 'w, '
-        + path + '?width=' + mobile + '&format=webply&optimize=' + low + ' ' + mobile + 'w',
+      preloadHref: mobileWebp,
+      imagesrcset: desktopWebp + ' ' + desktop + 'w, ' + mobileWebp + ' ' + mobile + 'w',
       imagesizes: '100vw',
     };
   }
-  function primeHeroLcpImage() {
-    var img = doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
-    if (!img) return;
+  function primeHeroLcpImage(img) {
+    if (!img || img.dataset.lcpPrimed) return;
+    img.dataset.lcpPrimed = 'true';
     img.setAttribute('loading', 'eager');
     img.setAttribute('fetchpriority', 'high');
+  }
+  function findHeroImg() {
+    return doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
+  }
+  function watchHeroImg() {
+    var img = findHeroImg();
+    if (img) {
+      primeHeroLcpImage(img);
+      return true;
+    }
+    return false;
   }
   var og = doc.querySelector('meta[property="og:image"]');
   if (og && og.content) {
@@ -73,19 +80,27 @@
       preloadImg.rel = 'preload';
       preloadImg.as = 'image';
       preloadImg.href = urls.preloadHref;
+      preloadImg.setAttribute('fetchpriority', 'high');
       preloadImg.setAttribute('imagesrcset', urls.imagesrcset);
       preloadImg.setAttribute('imagesizes', urls.imagesizes);
       doc.head.appendChild(preloadImg);
       var heroStyle = doc.createElement('link');
       heroStyle.rel = 'stylesheet';
       heroStyle.href = '/blocks/hero-adventure/hero-adventure.css';
+      heroStyle.media = 'print';
+      heroStyle.onload = function () { this.media = 'all'; };
       doc.head.appendChild(heroStyle);
     } catch (e) { /* ignore invalid og:image */ }
   }
-  if (doc.readyState === 'loading') {
-    doc.addEventListener('DOMContentLoaded', primeHeroLcpImage);
-  } else {
-    primeHeroLcpImage();
+  if (!watchHeroImg()) {
+    var obs = new MutationObserver(function () {
+      if (watchHeroImg()) obs.disconnect();
+    });
+    obs.observe(doc.documentElement, { childList: true, subtree: true });
+    doc.addEventListener('DOMContentLoaded', function () {
+      obs.disconnect();
+      watchHeroImg();
+    }, { once: true });
   }
 })(document);
 </script>

@@ -45,7 +45,11 @@ const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
 async function loadHeroBlockCss(main) {
   const codeBase = window.hlx.codeBasePath;
   if (main.querySelector('.hero-adventure, .carousel-hero')) {
-    await loadCSS(`${codeBase}/blocks/hero-adventure/hero-adventure.css`);
+    const href = `${codeBase}/blocks/hero-adventure/hero-adventure.css`;
+    if (document.querySelector(`link[rel="stylesheet"][href="${href}"], link[rel="stylesheet"][href="/blocks/hero-adventure/hero-adventure.css"]`)) {
+      return;
+    }
+    await loadCSS(href);
   } else if (main.querySelector('.hero')) {
     await loadCSS(`${codeBase}/blocks/hero/hero.css`);
   }
@@ -57,7 +61,7 @@ async function loadHeroBlockCss(main) {
  */
 function hasImagePreload(href) {
   return [...document.querySelectorAll('link[rel="preload"][as="image"]')]
-    .some((link) => link.href === href);
+    .some((link) => link.href === href || link.getAttribute('imagesrcset'));
 }
 
 /**
@@ -77,6 +81,7 @@ function preloadOgImage(doc = document) {
     link.rel = 'preload';
     link.as = 'image';
     link.href = preloadHref;
+    link.setAttribute('fetchpriority', 'high');
     link.setAttribute('imagesrcset', imagesrcset);
     link.setAttribute('imagesizes', imagesizes);
     document.head.appendChild(link);
@@ -86,12 +91,13 @@ function preloadOgImage(doc = document) {
 }
 
 /**
- * Start hero image fetch immediately — authored markup uses loading="lazy".
+ * Start hero image fetch immediately — delivery HTML injects loading="lazy" on images.
  * @param {ParentNode} root
  */
 function primeLcpImage(root) {
   const img = root.querySelector(`${HERO_BLOCK_SELECTOR} picture img, .section:first-of-type picture img`);
-  if (!img) return;
+  if (!img || img.dataset.lcpPrimed) return;
+  img.dataset.lcpPrimed = 'true';
   img.setAttribute('loading', 'eager');
   img.setAttribute('fetchpriority', 'high');
 }
@@ -110,6 +116,7 @@ function preloadLcpHeroImage(section) {
     link.rel = 'preload';
     link.as = 'image';
     link.href = preloadHref;
+    link.setAttribute('fetchpriority', 'high');
     link.setAttribute('imagesrcset', imagesrcset);
     link.setAttribute('imagesizes', imagesizes);
     document.head.appendChild(link);
@@ -623,7 +630,7 @@ async function loadEager(doc) {
     await loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
   }
 
-  const fontPromise = loadFonts().catch(() => {});
+  loadFonts().catch(() => {});
   loadSiteBrandCss(getRepolessSiteSlug(doc));
 
   const needsEagerMartech = isMartechConfigured()
@@ -656,7 +663,6 @@ async function loadEager(doc) {
 
     if (martechPromise) {
       await Promise.all([
-        fontPromise,
         martechPromise.then(() => getMartechModule().then(async (m) => {
           await m.martechEager();
           await decorateTargetInjections(main);
@@ -665,7 +671,7 @@ async function loadEager(doc) {
         loadFirstSection,
       ]);
     } else {
-      await Promise.all([fontPromise, loadFirstSection]);
+      await loadFirstSection;
     }
   }
 }

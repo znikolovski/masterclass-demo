@@ -20,7 +20,7 @@ const DM_PATH_PATTERNS = [
 
 const HERO_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 1600 },
-  { width: 480 },
+  { width: 412 },
 ];
 
 /** Breakpoints for hero-adventure background (must stay in sync with head.html preload). */
@@ -261,22 +261,21 @@ export function createResponsivePicture(
  * Build hero-adventure LCP preload URLs (aligned with createHeroAdventurePicture output).
  * @param {string} src Image URL (absolute or relative)
  * @param {string} [base] Base URL for relative src
- * @returns {{ breakpoints: typeof HERO_ADVENTURE_BREAKPOINTS, sizes: string, preloadHref: string, imagesrcset: string, imagesizes: string }}
+ * @returns {{ breakpoints: typeof HERO_ADVENTURE_BREAKPOINTS, sizes: string,
+ *   preloadHref: string, imagesrcset: string, imagesizes: string }}
  */
 export function buildHeroAdventureLcpUrls(src, base = window.location.href) {
   const url = new URL(src, base);
   const { origin, pathname } = url;
-  const ext = pathname.split('.').pop() || 'jpg';
   const mobileWidth = HERO_ADVENTURE_BREAKPOINTS[HERO_ADVENTURE_BREAKPOINTS.length - 1].width;
   const desktopWidth = HERO_ADVENTURE_BREAKPOINTS[0].width;
   const optimize = 'low';
-  const mobileImg = `${origin}${pathname}?width=${mobileWidth}&format=${ext}&optimize=${optimize}`;
   const mobileWebp = `${origin}${pathname}?width=${mobileWidth}&format=webply&optimize=${optimize}`;
   const desktopWebp = `${origin}${pathname}?width=${desktopWidth}&format=webply&optimize=${optimize}`;
   return {
     breakpoints: HERO_ADVENTURE_BREAKPOINTS,
     sizes: '100vw',
-    preloadHref: mobileImg,
+    preloadHref: mobileWebp,
     imagesrcset: `${desktopWebp} ${desktopWidth}w, ${mobileWebp} ${mobileWidth}w`,
     imagesizes: '100vw',
   };
