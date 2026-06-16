@@ -99,7 +99,6 @@ function renderQuiz(block, questions) {
   const updateActionsVisibility = () => {
     const hasSelection = Boolean(selections[step]);
     actionsWrap.classList.toggle('is-visible', hasSelection);
-    shell.classList.toggle('has-actions', hasSelection);
     nextBtn.disabled = !hasSelection;
   };
 
