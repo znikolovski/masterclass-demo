@@ -297,6 +297,11 @@ function syncSidekickLibrary(root, site = SITE) {
   );
 }
 
+function toContentDaUrl(anyUrl) {
+  const rel = toSidekickPreviewPath(anyUrl);
+  return `${CONTENT_BASE}${rel}`;
+}
+
 function normalizeLibrarySheets(root) {
   const templatesPath = join(root, 'library/templates.json');
   const blocksPath = join(root, 'library/blocks.json');
@@ -304,18 +309,17 @@ function normalizeLibrarySheets(root) {
   const templates = JSON.parse(readFileSync(templatesPath, 'utf8'));
   templates.columns = ['key', 'value', 'path'];
   templates.data = templates.data.map(({ key, value, path }) => {
-    const contentUrl = path || value;
-    const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(contentUrl)}`;
-    return { key, value: value || contentUrl, path: previewUrl };
+    const contentUrl = toContentDaUrl(path || value);
+    const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(path || value)}`;
+    return { key, value: contentUrl, path: previewUrl };
   });
   writeFileSync(templatesPath, `${JSON.stringify(templates, null, 2)}\n`);
 
   const blocks = JSON.parse(readFileSync(blocksPath, 'utf8'));
   blocks.columns = ['name', 'path', 'value'];
   blocks.data = blocks.data.map(({ name, path, value }) => {
-    const contentUrl = path || value;
-    const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(contentUrl)}`;
-    return { name, path: previewUrl, value: contentUrl };
+    const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(path || value)}`;
+    return { name, path: previewUrl, value: toContentDaUrl(path || value) };
   });
   writeFileSync(blocksPath, `${JSON.stringify(blocks, null, 2)}\n`);
 }
