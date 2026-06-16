@@ -131,6 +131,68 @@ main .section.hero-adventure-container > div {
   padding-inline: 0;
 }
 
+/* LCP-critical hero shell — full styling in blocks/hero-adventure/hero-adventure.css (async) */
+.hero-adventure-wrapper {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.hero-adventure {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 55vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.hero-adventure > div:first-child {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-adventure > div:first-child > div,
+.hero-adventure > div:first-child picture {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-adventure > div:first-child img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-adventure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgb(0 0 0 / 45%) 0%, rgb(0 0 0 / 15%) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-adventure > div:last-child {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #fff;
+}
+
+@media (width >= 900px) {
+  .hero-adventure {
+    min-height: 65vh;
+  }
+
+  .hero-adventure > div:last-child {
+    padding: 64px 32px;
+  }
+}
+
 /* Landing pages (e.g. /expeditions) — accent shell eager for FCP */
 main > .section.accent {
   background-color: var(--accent-color);
