@@ -55,21 +55,28 @@
       imagesizes: '100vw',
     };
   }
-  function primeHeroLcpImage(img) {
-    if (!img || img.dataset.lcpPrimed) return;
-    img.dataset.lcpPrimed = 'true';
-    img.setAttribute('loading', 'eager');
-    img.setAttribute('fetchpriority', 'high');
+  function upgradeHeroImg(img) {
+    if (!img || img.dataset.lcpPrimed) return true;
+    try {
+      var urls = buildHeroLcpUrls(img.getAttribute('src') || img.src, doc.baseURI);
+      img.dataset.lcpPrimed = 'true';
+      img.dataset.mediaOptimized = 'true';
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('fetchpriority', 'high');
+      img.src = urls.preloadHref;
+    } catch (e) {
+      img.dataset.lcpPrimed = 'true';
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('fetchpriority', 'high');
+    }
+    return true;
   }
   function findHeroImg() {
     return doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
   }
   function watchHeroImg() {
     var img = findHeroImg();
-    if (img) {
-      primeHeroLcpImage(img);
-      return true;
-    }
+    if (img) return upgradeHeroImg(img);
     return false;
   }
   var og = doc.querySelector('meta[property="og:image"]');
@@ -87,8 +94,6 @@
       var heroStyle = doc.createElement('link');
       heroStyle.rel = 'stylesheet';
       heroStyle.href = '/blocks/hero-adventure/hero-adventure.css';
-      heroStyle.media = 'print';
-      heroStyle.onload = function () { this.media = 'all'; };
       doc.head.appendChild(heroStyle);
     } catch (e) { /* ignore invalid og:image */ }
   }

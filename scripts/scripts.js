@@ -97,9 +97,18 @@ function preloadOgImage(doc = document) {
 function primeLcpImage(root) {
   const img = root.querySelector(`${HERO_BLOCK_SELECTOR} picture img, .section:first-of-type picture img`);
   if (!img || img.dataset.lcpPrimed) return;
-  img.dataset.lcpPrimed = 'true';
-  img.setAttribute('loading', 'eager');
-  img.setAttribute('fetchpriority', 'high');
+  try {
+    const { preloadHref } = buildHeroAdventureLcpUrls(img.src);
+    img.dataset.lcpPrimed = 'true';
+    img.dataset.mediaOptimized = 'true';
+    img.setAttribute('loading', 'eager');
+    img.setAttribute('fetchpriority', 'high');
+    img.src = preloadHref;
+  } catch {
+    img.dataset.lcpPrimed = 'true';
+    img.setAttribute('loading', 'eager');
+    img.setAttribute('fetchpriority', 'high');
+  }
 }
 
 /**
@@ -640,7 +649,7 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     primeLcpImage(main);
-    loadHeroBlockCss(main);
+    await loadHeroBlockCss(main);
     decorateMain(main);
     applyTemplateAndTheme(doc);
     primeLcpImage(main);

@@ -8,6 +8,9 @@ function optimizeHeroBackground(block) {
   const picture = block.querySelector(':scope > div:first-child picture');
   const img = picture?.querySelector('img');
   if (!img?.src) return;
+  if (img.dataset.lcpPrimed === 'true' || img.dataset.mediaOptimized === 'true') {
+    return;
+  }
   picture.replaceWith(createHeroAdventurePicture(img.src, img.alt || ''));
 }
 
