@@ -381,7 +381,7 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   await triggerPreview(token, daPath);
 
   const plainDaPath = `${daPath}.plain.html`;
-  await putSource(token, plainDaPath, daBody, 'text/html');
+  await putSource(token, plainDaPath, fragment, 'text/html');
   await triggerPreview(token, plainDaPath);
 
   if (SITE === 'masterclass-demo') {

@@ -369,6 +369,19 @@ async function pushPublicConfig(opts, token) {
   return upsertConfig(opts, token, 'public (path mapping)', path, body);
 }
 
+/**
+ * CORS headers for code-bus JS so EW Sidekick srcdoc iframes can load module scripts.
+ * @param {ReturnType<typeof parseArgs>} opts
+ * @param {string} token
+ */
+async function pushHeadersConfig(opts, token) {
+  const filePath = resolveConfigPath(opts, 'headers.json');
+  if (!existsSync(filePath)) return null;
+  const path = `/config/${opts.org}/sites/${opts.site}/headers.json`;
+  const body = JSON.parse(readConfigFile(filePath));
+  return upsertConfig(opts, token, 'headers (CORS)', path, body);
+}
+
 function removeLegacyRepoConfig() {
   const legacyFiles = [
     join(ROOT, 'helix-query.yaml'),
@@ -456,6 +469,7 @@ Then:
 
   await pushSiteConfig(opts, token || '');
   await pushPublicConfig(opts, token || '');
+  await pushHeadersConfig(opts, token || '');
   await pushTextConfig(opts, token || '', 'query index', '/content/query.yaml', 'query.yaml', 'text/yaml');
   await pushSidekickConfig(opts, token || '');
   await pushTextConfig(opts, token || '', 'robots.txt', '/robots.txt', 'robots.txt', 'text/plain');

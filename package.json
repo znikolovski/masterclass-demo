@@ -29,6 +29,7 @@
     "b2b:seed-b2c-form": "node tools/scripts/seed-b2c-adventure-form.mjs --preview",
     "b2b:migrate-config": "node tools/scripts/migrate-to-repoless-config.mjs --apply --site=wknd-business --content-url=https://content.da.live/znikolovski/wknd-business/ --config-dir=config/wknd-business",
     "library:setup": "node tools/sidekick/setup-da-library.mjs",
+    "library:regen-shells": "node tools/sidekick/regenerate-library-shells.mjs",
     "target:send": "node tools/adobe-target/send-to-target.mjs",
     "b2b:library": "DA_SITE=wknd-business node tools/sidekick/setup-da-library.mjs",
     "b2b:forms": "node tools/scripts/create-wknd-forms.mjs --push-da --preview",
