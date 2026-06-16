@@ -1,5 +1,11 @@
 /* Scoped styles for git-hosted library block/template preview pages */
 
+/* Sidekick srcdoc iframes never run scripts.js, so body.appear is never added. */
+body.library-preview,
+body.sidekick-library {
+  display: block;
+}
+
 body.library-preview main > .section,
 body.sidekick-library main > .section,
 body.library-preview main > div,
