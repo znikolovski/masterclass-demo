@@ -229,15 +229,37 @@ function buildDaConfig(existing) {
   );
 }
 
+/**
+ * Sidekick fetches `{origin}{path}.plain.html` for markup and `{origin}{path}` as the
+ * styled shell. Paths must be site-relative preview URLs like `/blocks/cards/cards.html`,
+ * not content.da.live URLs (those resolve to `/org/site/blocks/...` and break previews).
+ * @param {string} daPath
+ * @returns {string}
+ */
+function toSidekickPreviewPath(daPath) {
+  if (!daPath) return daPath;
+  const pathname = daPath.includes('://') ? new URL(daPath).pathname : daPath;
+  const match = pathname.match(/\/((?:blocks|templates)\/[^/]+\/[^/.]+)\.html$/);
+  if (match) return `/${match[1]}.html`;
+  if (pathname.match(/\/(blocks|templates)\//)) {
+    return pathname.endsWith('.html') ? pathname : `${pathname}.html`;
+  }
+  return pathname;
+}
+
 /** EW Sidekick library panel reads /tools/sidekick/library.json (not library/blocks.json). */
 function syncSidekickLibrary(root, site = SITE) {
   const blocks = JSON.parse(readFileSync(join(root, 'library/blocks.json'), 'utf8'));
   const templates = JSON.parse(readFileSync(join(root, 'library/templates.json'), 'utf8'));
-  let blocksData = blocks.data.map(({ name, path, value }) => ({ name, path, value }));
+  let blocksData = blocks.data.map(({ name, path, value }) => ({
+    name,
+    path: toSidekickPreviewPath(path || value),
+    value: value || path,
+  }));
   let templatesData = templates.data.map(({ key, path, value }) => ({
     name: key,
     key,
-    path: path || value,
+    path: toSidekickPreviewPath(path || value),
     value: value || path,
   }));
   if (site !== 'masterclass-demo') {
@@ -350,17 +372,29 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
 
   const isTemplate = daPath.startsWith('templates/');
   const daBody = isTemplate ? wrapDaTemplate(fragment) : fragment;
+  const blockName = !isTemplate ? basename(daPath, '.html') : undefined;
+  const previewOptionsWithBlock = blockName
+    ? { ...previewOptions, blockName }
+    : previewOptions;
 
   await putSource(token, daPath, daBody, 'text/html');
   await triggerPreview(token, daPath);
 
+  const plainDaPath = `${daPath}.plain.html`;
+  await putSource(token, plainDaPath, daBody, 'text/html');
+  await triggerPreview(token, plainDaPath);
+
   if (SITE === 'masterclass-demo') {
     const gitPath = join(ROOT, daPath);
     mkdirSync(dirname(gitPath), { recursive: true });
-    writeFileSync(gitPath, wrapLibraryPreviewPage(title, fragment, previewOptions));
-    console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview page)`);
+    writeFileSync(
+      gitPath,
+      wrapLibraryPreviewPage(title, fragment, previewOptionsWithBlock),
+    );
+    writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
+    console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview shell + .plain.html)`);
   } else {
-    console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'})`);
+    console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + .plain.html)`);
   }
 }
 

@@ -1,12 +1,15 @@
 /**
  * Wraps a library snippet (section divs) in a full HTML document for code-bus preview.
- * DA library documents stay as fragments; only git copies use this wrapper.
+ * DA library documents stay as fragments; git copies use this wrapper for EW Sidekick.
+ *
+ * Sidekick loads `{path}.plain.html` for block markup and `{path}` as the styled shell.
+ * Use paths like `/blocks/{name}/{name}.html` in tools/sidekick/library.json.
  */
 
 /**
  * @param {string} title Page title
  * @param {string} sectionHtml Section divs (library fragment)
- * @param {{ bodyClasses?: string[], stylesheets?: string[] }} [options]
+ * @param {{ bodyClasses?: string[], stylesheets?: string[], blockName?: string, blockNames?: string[] }} [options]
  */
 export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
   const body = sectionHtml.trim();
@@ -14,6 +17,13 @@ export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
   const bodyClasses = ['library-preview', ...(options.bodyClasses || [])].filter(Boolean).join(' ');
   const extraStyles = (options.stylesheets || [])
     .map((href) => `    <link rel="stylesheet" href="${href}">`)
+    .join('\n');
+  const blockNames = [
+    ...(options.blockNames || []),
+    ...(options.blockName ? [options.blockName] : []),
+  ].filter(Boolean);
+  const blockStyles = blockNames
+    .map((name) => `    <link rel="stylesheet" href="/blocks/${name}/${name}.css">`)
     .join('\n');
 
   return `<!DOCTYPE html>
@@ -26,10 +36,10 @@ export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
-    <script src="/scripts/aem.js" type="module"></script>
-    <script src="/scripts/scripts.js" type="module"></script>
     <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/lazy-styles.css">
     <link rel="stylesheet" href="/styles/library-preview.css">
+${blockStyles}
 ${extraStyles}
   </head>
   <body class="${bodyClasses}">
@@ -38,6 +48,8 @@ ${extraStyles}
 ${indented}
     </main>
     <footer></footer>
+    <script src="/scripts/aem.js" type="module"></script>
+    <script src="/scripts/scripts.js" type="module"></script>
   </body>
 </html>
 `;

@@ -172,3 +172,56 @@
     border-bottom: none;
   }
 }
+
+/* Sidekick library previews use srcdoc iframes — style authoring markup when JS is blocked */
+body.sidekick-library .adventure-facts.sidekick-library {
+  padding: 20px 20px 8px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgb(0 0 0 / 8%);
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:first-child h2 {
+  font-size: var(--heading-font-size-m);
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:first-child p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgb(122 138 128);
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:not(:first-child) {
+  display: grid;
+  grid-template-columns: minmax(120px, 38%) 1fr;
+  gap: 8px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+  align-items: start;
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:not(:first-child) > div:first-child {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:not(:first-child) ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:not(:first-child) li {
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 0 0 6px;
+  color: rgb(60 72 65);
+}
+
+body.sidekick-library .adventure-facts.sidekick-library > div:not(:first-child) li:last-child {
+  padding-bottom: 0;
+}

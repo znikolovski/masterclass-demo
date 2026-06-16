@@ -474,6 +474,16 @@ function isBlogArticlePage(doc = document) {
     || window.location.pathname.includes('/templates/blog-article/');
 }
 
+/**
+ * Git-hosted block/template shells used by the EW Sidekick library iframe.
+ * @param {Document} doc
+ * @returns {boolean}
+ */
+function isLibraryPreview(doc = document) {
+  return doc.body.classList.contains('library-preview')
+    || doc.body.classList.contains('sidekick-library');
+}
+
 /** Page metadata keys that opt in to Adobe Target (DA publishes `adobetarget` in head). */
 const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
 
@@ -565,7 +575,9 @@ async function loadEager(doc) {
   const fontPromise = loadFonts().catch(() => {});
   loadSiteBrandCss(getRepolessSiteSlug(doc));
 
-  const needsEagerMartech = isMartechConfigured() && isPersonalizationEnabled(doc);
+  const needsEagerMartech = isMartechConfigured()
+    && isPersonalizationEnabled(doc)
+    && !isLibraryPreview(doc);
   const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
   if (main) {
@@ -612,24 +624,28 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
-  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  if (!isLibraryPreview(doc)) {
+    loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  }
 
-  if (!martechLoadedPromise && isMartechConfigured()) {
+  if (!martechLoadedPromise && isMartechConfigured() && !isLibraryPreview(doc)) {
     loadMartech(doc);
   }
 
-  loadHeader(doc.querySelector('header'));
+  if (!isLibraryPreview(doc)) {
+    loadHeader(doc.querySelector('header'));
+  }
 
   const main = doc.querySelector('main');
   await loadSections(main);
 
-  if (main && isPersonalizationEnabled(doc)) {
+  if (main && isPersonalizationEnabled(doc) && !isLibraryPreview(doc)) {
     await refreshTargetZones(main);
   }
 
   if (main) {
     optimizePictures(main, { eagerSelector: HERO_BLOCK_SELECTOR });
-    if (isAnalyticsEnabled(doc)) {
+    if (isAnalyticsEnabled(doc) && !isLibraryPreview(doc)) {
       bindCtaAnalytics(main);
     }
   }
@@ -638,9 +654,11 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadFooter(doc.querySelector('footer'));
+  if (!isLibraryPreview(doc)) {
+    loadFooter(doc.querySelector('footer'));
+  }
 
-  if (martechLoadedPromise) {
+  if (martechLoadedPromise && !isLibraryPreview(doc)) {
     await martechLoadedPromise;
     if (isAnalyticsEnabled(doc)) {
       pushAnalyticsPageContext(doc, getPageMetadataValue);
