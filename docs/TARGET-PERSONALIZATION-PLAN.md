@@ -215,7 +215,7 @@ In [Adobe Target](https://experience.adobe.com/target):
 |--------|--------|
 | `page.targetEnabled` | `yes` when page metadata Target = On |
 | `prop9` | `target-on` on Web SDK hits for QA filters |
-| `event: targetZoneReady` | Fires when a zone is present (do not map to event16 — reserved for Quiz Start per [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md)) |
+| `event: targetZoneReady` | Fires when a zone is present (do not map to event17 — reserved for Quiz Start per [QUIZ-ANALYTICS-PLAN.md](./QUIZ-ANALYTICS-PLAN.md)) |
 | Target impressions | Primary reporting in **Target** + Analytics for Target |
 
 Segment **WKND - Target Test Audience** (Analytics): visitors on pages with Target enabled — see [ANALYTICS-LAUNCH-PLAN.md](./ANALYTICS-LAUNCH-PLAN.md) Tier 6.

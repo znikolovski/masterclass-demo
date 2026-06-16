@@ -1,12 +1,14 @@
 /**
  * Audience journey profiles aligned with WKND Analytics segments (Phase 4).
  * Each journey is an ordered path list on one visit (prop3 / eVar4 derive from paths).
+ * bounceRate: share of multi-page sessions that exit after the landing page (Analytics bounce).
  */
 
-/** @type {Record<string, { label: string, journeys: string[][] }>} */
+/** @type {Record<string, { label: string, bounceRate: number, journeys: string[][] }>} */
 export const AUDIENCE_PROFILES = {
   climbingSeekers: {
     label: 'WKND - Climbing Seekers',
+    bounceRate: 0.30,
     journeys: [
       ['/blog/yosemite-rock-climbing', '/expeditions', '/gear'],
       ['/adventures', '/blog/yosemite-rock-climbing', '/faq'],
@@ -16,6 +18,7 @@ export const AUDIENCE_PROFILES = {
   },
   trekkingHiking: {
     label: 'WKND - Trekking & Hiking',
+    bounceRate: 0.32,
     journeys: [
       ['/blog/patagonia-trek', '/expeditions', '/gear'],
       ['/blog/ultralight-backpacking', '/basecamp', '/faq'],
@@ -25,6 +28,7 @@ export const AUDIENCE_PROFILES = {
   },
   winterAlpine: {
     label: 'WKND - Winter & Alpine',
+    bounceRate: 0.30,
     journeys: [
       ['/blog/winter-mountaineering', '/gear', '/expeditions'],
       ['/adventures', '/blog/winter-mountaineering'],
@@ -33,6 +37,7 @@ export const AUDIENCE_PROFILES = {
   },
   cyclingAdventurers: {
     label: 'WKND - Cycling Adventurers',
+    bounceRate: 0.33,
     journeys: [
       ['/blog/alpine-cycling', '/gear', '/expeditions'],
       ['/adventures', '/blog/alpine-cycling'],
@@ -41,6 +46,7 @@ export const AUDIENCE_PROFILES = {
   },
   waterAdventurers: {
     label: 'WKND - Water Adventurers',
+    bounceRate: 0.34,
     journeys: [
       ['/blog/kayaking-norway', '/destinations', '/expeditions'],
       ['/blog/surfing-costa-rica', '/blog/wild-swimming-guide'],
@@ -50,6 +56,7 @@ export const AUDIENCE_PROFILES = {
   },
   desertExplorers: {
     label: 'WKND - Desert Explorers',
+    bounceRate: 0.36,
     journeys: [
       ['/blog/desert-survival-guide', '/gear', '/basecamp'],
       ['/adventures', '/blog/desert-survival-guide'],
@@ -58,6 +65,7 @@ export const AUDIENCE_PROFILES = {
   },
   photographyStory: {
     label: 'WKND - Photography & Story',
+    bounceRate: 0.35,
     journeys: [
       ['/blog/mountain-photography', '/field-notes'],
       ['/field-notes', '/blog/mountain-photography'],
@@ -66,6 +74,7 @@ export const AUDIENCE_PROFILES = {
   },
   broadOutdoorBrowse: {
     label: 'WKND - Broad Outdoor Browse',
+    bounceRate: 0.52,
     journeys: [
       ['/', '/adventures'],
       ['/adventures', '/'],
@@ -75,6 +84,7 @@ export const AUDIENCE_PROFILES = {
   },
   inspirationReaders: {
     label: 'WKND - Inspiration Readers',
+    bounceRate: 0.38,
     journeys: [
       ['/', '/blog/mountain-photography', '/field-notes'],
       ['/field-notes', '/blog/wild-swimming-guide'],
@@ -84,6 +94,7 @@ export const AUDIENCE_PROFILES = {
   },
   discoveryBrowsers: {
     label: 'WKND - Discovery Browsers',
+    bounceRate: 0.42,
     journeys: [
       ['/adventures', '/destinations'],
       ['/destinations', '/adventures', '/blog/patagonia-trek'],
@@ -94,6 +105,7 @@ export const AUDIENCE_PROFILES = {
   },
   formExplorers: {
     label: 'WKND - Form Explorers',
+    bounceRate: 0.18,
     journeys: [
       ['/adventures'],
       ['/blog/patagonia-trek', '/adventures'],
@@ -103,6 +115,7 @@ export const AUDIENCE_PROFILES = {
   },
   plannersPrep: {
     label: 'WKND - Planners & Prep',
+    bounceRate: 0.22,
     journeys: [
       ['/expeditions', '/gear', '/faq'],
       ['/gear', '/basecamp', '/faq'],
@@ -112,6 +125,7 @@ export const AUDIENCE_PROFILES = {
   },
   communityValues: {
     label: 'WKND - Community & Values',
+    bounceRate: 0.40,
     journeys: [
       ['/community', '/sustainability'],
       ['/about', '/community'],
@@ -121,6 +135,7 @@ export const AUDIENCE_PROFILES = {
   },
   inspiredToPlanning: {
     label: 'WKND - Inspired → Planning',
+    bounceRate: 0.20,
     journeys: [
       ['/blog/mountain-photography', '/field-notes', '/expeditions', '/gear'],
       ['/', '/blog/wild-swimming-guide', '/faq', '/gear'],
@@ -129,6 +144,7 @@ export const AUDIENCE_PROFILES = {
   },
   climberReadyToBook: {
     label: 'WKND - Climber Ready to Book',
+    bounceRate: 0.15,
     journeys: [
       ['/blog/yosemite-rock-climbing', '/expeditions', '/gear', '/faq'],
       ['/adventures', '/blog/yosemite-rock-climbing', '/basecamp', '/gear'],
@@ -136,6 +152,7 @@ export const AUDIENCE_PROFILES = {
   },
   weekendBrowser: {
     label: 'WKND - Weekend Browser',
+    bounceRate: 0.48,
     journeys: [
       ['/', '/adventures', '/blog/mountain-photography'],
       ['/adventures', '/field-notes', '/blog/surfing-costa-rica'],
@@ -144,6 +161,7 @@ export const AUDIENCE_PROFILES = {
   },
   destinationResearchers: {
     label: 'WKND - Destination Researchers',
+    bounceRate: 0.28,
     journeys: [
       ['/destinations', '/expeditions'],
       ['/destinations', '/blog/kayaking-norway', '/expeditions'],

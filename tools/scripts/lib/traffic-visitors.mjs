@@ -8,6 +8,9 @@ import { join } from 'node:path';
 import { AUDIENCE_PROFILES, PROFILE_IDS } from './audience-traffic-profiles.mjs';
 
 const AVG_PAGES_PER_VISIT = 2.8;
+export const DEFAULT_BOUNCE_RATE = 0.35;
+/** Extra early-exit rate for sessions that keep a multi-page journey in the schedule. */
+export const MID_SESSION_BOUNCE_FACTOR = 0.28;
 
 /**
  * @param {number} seed
@@ -88,10 +91,72 @@ export function buildVisitsPerVisitorCounts(visitCount, visitorCount, rng) {
 }
 
 /**
+ * @param {{ profileId: string, paths: string[] }} visit
+ * @param {{ bounceRate?: number }} profile
+ * @param {() => number} rng
+ */
+export function applySessionBounce(visit, profile, rng) {
+  const bounceRate = profile.bounceRate ?? DEFAULT_BOUNCE_RATE;
+
+  if (visit.paths.length === 1) {
+    return { ...visit, isBounce: true, exitAfterFirstPage: false };
+  }
+
+  if (rng() < bounceRate) {
+    return {
+      ...visit,
+      paths: [visit.paths[0]],
+      isBounce: true,
+      exitAfterFirstPage: false,
+    };
+  }
+
+  if (rng() < bounceRate * MID_SESSION_BOUNCE_FACTOR) {
+    return { ...visit, isBounce: false, exitAfterFirstPage: true };
+  }
+
+  return { ...visit, isBounce: false, exitAfterFirstPage: false };
+}
+
+/**
+ * @param {{ profileId: string, paths: string[], isBounce?: boolean, exitAfterFirstPage?: boolean }[]} scheduled
+ */
+export function summarizeBounceStats(scheduled) {
+  const bounceSessions = scheduled.filter((s) => s.isBounce || s.exitAfterFirstPage).length;
+  const singlePageSessions = scheduled.filter((s) => s.paths.length === 1).length;
+  const earlyExitSessions = scheduled.filter((s) => s.exitAfterFirstPage).length;
+  const byProfile = {};
+
+  scheduled.forEach(({ profileId, isBounce, exitAfterFirstPage }) => {
+    if (!byProfile[profileId]) {
+      byProfile[profileId] = { sessions: 0, bounces: 0 };
+    }
+    byProfile[profileId].sessions += 1;
+    if (isBounce || exitAfterFirstPage) byProfile[profileId].bounces += 1;
+  });
+
+  return {
+    bounceSessions,
+    bounceRate: Math.round((bounceSessions / scheduled.length) * 1000) / 10,
+    singlePageSessions,
+    earlyExitSessions,
+    byProfile: Object.fromEntries(
+      Object.entries(byProfile).map(([id, stats]) => [
+        id,
+        {
+          ...stats,
+          bounceRate: Math.round((stats.bounces / stats.sessions) * 1000) / 10,
+        },
+      ]),
+    ),
+  };
+}
+
+/**
  * @param {number} hits
  * @param {Record<string, number>} mix
  * @param {() => number} rng
- * @param {Record<string, { label: string, journeys: string[][] }>} profiles
+ * @param {Record<string, { label: string, bounceRate?: number, journeys: string[][] }>} profiles
  * @returns {{ profileId: string, paths: string[] }[]}
  */
 export function buildVisitDefinitions(hits, mix, rng, profiles = AUDIENCE_PROFILES) {
@@ -255,8 +320,13 @@ export function buildTrafficSchedule({
   const profileIds = Object.keys(profiles);
   const mix = randomizeAudienceMix(rng, profileIds);
   const visitDefs = buildVisitDefinitions(hits, mix, rng, profiles);
+  const bouncedVisits = visitDefs.map((visit) => applySessionBounce(
+    visit,
+    profiles[visit.profileId],
+    rng,
+  ));
   const visitorCount = resolveVisitorCount(hits, visitors);
-  const scheduled = assignVisitorsToVisits(visitDefs, visitorCount, rng);
+  const scheduled = assignVisitorsToVisits(bouncedVisits, visitorCount, rng);
   const mixReport = profileIds.map((id) => ({
     id,
     label: profiles[id].label,
@@ -268,6 +338,7 @@ export function buildTrafficSchedule({
     mixReport,
     scheduled,
     visitorStats: summarizeVisitorStats(scheduled),
+    bounceStats: summarizeBounceStats(scheduled),
     visitorCount,
     visitorPoolDir: null,
   };

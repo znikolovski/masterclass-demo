@@ -12,7 +12,23 @@ export const DEFAULT_ENGAGEMENT_OPTS = {
   postEngagementMs: 2000,
 };
 
+export const BOUNCE_ENGAGEMENT_OPTS = {
+  lazySectionsMs: 350,
+  martechSettleMs: 1600,
+  postEngagementMs: 300,
+};
+
 const ANALYTICS_URL_PATTERNS = [/edge\.adobedc\.net/, /adobedc\.net/, /\/ee\//, /interact/, /collect\?/];
+
+/**
+ * Playwright throws when page.evaluate runs across a navigation (e.g. clicking a linked image).
+ * @param {unknown} err
+ */
+export function isNavigationContextError(err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /execution context was destroyed/i.test(msg)
+    || /target (page|closed)/i.test(msg);
+}
 
 /**
  * @param {string} text
@@ -109,45 +125,55 @@ async function fillIfPresent(form, name, value) {
  */
 export async function simulateAssetEngagement(page, rng) {
   const clickProb = 0.12 + rng() * 0.18;
-  return page.evaluate(async ({ probability }) => {
-    const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-    const main = document.querySelector('main');
-    if (!main) return { scrolled: false, candidateImages: 0, clicks: 0 };
+  const empty = { scrolled: false, candidateImages: 0, clicks: 0 };
 
-    const maxScroll = Math.max(document.body.scrollHeight, main.scrollHeight);
-    const step = Math.max(240, Math.floor(maxScroll / 8));
-    const scrollStops = [];
-    for (let y = 0; y <= maxScroll; y += step) scrollStops.push(y);
-    await scrollStops.reduce(
-      (chain, y) => chain.then(() => {
-        window.scrollTo(0, y);
-        return sleep(180);
-      }),
-      Promise.resolve(),
-    );
+  try {
+    return await page.evaluate(async ({ probability }) => {
+      const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+      const main = document.querySelector('main');
+      if (!main) return { scrolled: false, candidateImages: 0, clicks: 0 };
 
-    const imgs = [...main.querySelectorAll('img[src]')].filter((img) => {
-      const rect = img.getBoundingClientRect();
-      return rect.width > 40 && rect.height > 40;
-    });
+      const maxScroll = Math.max(document.body.scrollHeight, main.scrollHeight);
+      const step = Math.max(240, Math.floor(maxScroll / 8));
+      const scrollStops = [];
+      for (let y = 0; y <= maxScroll; y += step) scrollStops.push(y);
+      await scrollStops.reduce(
+        (chain, y) => chain.then(() => {
+          window.scrollTo(0, y);
+          return sleep(180);
+        }),
+        Promise.resolve(),
+      );
 
-    const clickTargets = imgs.slice(0, 12).filter(() => Math.random() < probability);
-    await clickTargets.reduce(
-      (chain, img) => chain.then(() => {
-        img.scrollIntoView({ block: 'center' });
-        return sleep(120).then(() => {
-          img.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        });
-      }),
-      Promise.resolve(),
-    );
+      const imgs = [...main.querySelectorAll('img[src]')].filter((img) => {
+        if (img.closest('a[href]')) return false;
+        const rect = img.getBoundingClientRect();
+        return rect.width > 40 && rect.height > 40;
+      });
 
-    return {
-      scrolled: true,
-      candidateImages: imgs.length,
-      clicks: clickTargets.length,
-    };
-  }, { probability: clickProb });
+      const clickTargets = imgs.slice(0, 12).filter(() => Math.random() < probability);
+      await clickTargets.reduce(
+        (chain, img) => chain.then(() => {
+          img.scrollIntoView({ block: 'center' });
+          return sleep(120).then(() => {
+            img.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          });
+        }),
+        Promise.resolve(),
+      );
+
+      return {
+        scrolled: true,
+        candidateImages: imgs.length,
+        clicks: clickTargets.length,
+      };
+    }, { probability: clickProb });
+  } catch (err) {
+    if (isNavigationContextError(err)) {
+      return { ...empty, scrolled: true, navigatedAway: true };
+    }
+    throw err;
+  }
 }
 
 /**
@@ -230,6 +256,29 @@ export async function simulateFormEngagement(page, rng, { visitorId }) {
 }
 
 /**
+ * Minimal dwell for single-page bounce sessions (page view only, no scroll/forms).
+ * @param {import('playwright').Page} page
+ * @param {() => number} rng
+ * @param {object} [opts]
+ */
+export async function simulateBounceEngagement(page, rng, opts = BOUNCE_ENGAGEMENT_OPTS) {
+  const stats = {
+    assetClicks: 0,
+    assetCandidates: 0,
+    formOutcome: 'none',
+    formSlug: null,
+    bounced: true,
+  };
+
+  await waitForPageAnalyticsReady(page, opts);
+  await page.waitForTimeout(450 + Math.floor(rng() * 900));
+  await waitForAnalyticsBeacons(page, 1, 8000);
+  await page.waitForTimeout(opts.postEngagementMs);
+
+  return stats;
+}
+
+/**
  * @param {import('playwright').Page} page
  * @param {() => number} rng
  * @param {{ visitorId: string, path: string, seed: number }} meta
@@ -249,9 +298,11 @@ export async function simulatePageEngagement(page, rng, meta, opts = DEFAULT_ENG
   stats.assetClicks = asset.clicks;
   stats.assetCandidates = asset.candidateImages;
 
-  const form = await simulateFormEngagement(page, rng, meta);
-  stats.formOutcome = form.outcome;
-  stats.formSlug = form.formSlug;
+  if (!asset.navigatedAway) {
+    const form = await simulateFormEngagement(page, rng, meta);
+    stats.formOutcome = form.outcome;
+    stats.formSlug = form.formSlug;
+  }
 
   await page.waitForTimeout(opts.postEngagementMs);
   await waitForAnalyticsBeacons(page, 1, 10000);
@@ -274,6 +325,7 @@ export function engagementRng(visitorId, path, seed) {
  */
 export function mergeEngagementStats(totals, stats) {
   totals.pagesEngaged += 1;
+  if (stats.bounced) totals.bouncePages += 1;
   totals.assetClicks += stats.assetClicks || 0;
   totals.assetCandidates += stats.assetCandidates || 0;
   if (stats.formOutcome && stats.formOutcome !== 'none') {
@@ -291,6 +343,7 @@ export function mergeEngagementStats(totals, stats) {
 export function createEngagementTotals() {
   return {
     pagesEngaged: 0,
+    bouncePages: 0,
     assetClicks: 0,
     assetCandidates: 0,
     formPages: 0,

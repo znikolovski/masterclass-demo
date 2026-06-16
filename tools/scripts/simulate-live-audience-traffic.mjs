@@ -23,6 +23,8 @@
  *   node tools/scripts/simulate-live-audience-traffic.mjs --visitor-pool-dir=tools/scripts/output/visitor-pool
  *   node tools/scripts/simulate-live-audience-traffic.mjs --dry-run
  *   node tools/scripts/simulate-live-audience-traffic.mjs --no-index   # skip query-index refresh
+ *   node tools/scripts/simulate-live-audience-traffic.mjs --channel-mix=direct:30,organic:30,email:20,social:10,referral:10
+ *   node tools/scripts/simulate-live-audience-traffic.mjs --direct-only   # no referrers / cid (legacy)
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -37,6 +39,15 @@ import {
   summarizeBrowserMix,
 } from './lib/traffic-browsers.mjs';
 import {
+  DEFAULT_CHANNEL_MIX,
+  assignChannelsToSessions,
+  buildGotoOptions,
+  buildSessionPageUrl,
+  parseChannelMixArg,
+  summarizeChannelMix,
+  summarizeChannelStats,
+} from './lib/traffic-channels.mjs';
+import {
   buildTrafficSchedule,
   createRng,
   ensureVisitorPoolDir,
@@ -48,7 +59,9 @@ import {
 import {
   createEngagementTotals,
   engagementRng,
+  isNavigationContextError,
   mergeEngagementStats,
+  simulateBounceEngagement,
   simulatePageEngagement,
 } from './lib/traffic-page-engagement.mjs';
 
@@ -75,9 +88,12 @@ function parseArgs(argv) {
     persistVisitors: true,
     fromIndex: true,
     skipEngagement: false,
+    directOnly: false,
+    channelMix: null,
   };
   argv.forEach((arg) => {
     if (arg === '--dry-run') opts.dryRun = true;
+    else if (arg === '--direct-only') opts.directOnly = true;
     else if (arg === '--skip-engagement') opts.skipEngagement = true;
     else if (arg === '--no-index') opts.fromIndex = false;
     else if (arg === '--from-index') opts.fromIndex = true;
@@ -90,6 +106,7 @@ function parseArgs(argv) {
     else if (arg.startsWith('--visitors=')) opts.visitors = parseInt(arg.slice(11), 10);
     else if (arg.startsWith('--out-dir=')) opts.outDir = arg.slice(10);
     else if (arg.startsWith('--visitor-pool-dir=')) opts.visitorPoolDir = arg.slice(19);
+    else if (arg.startsWith('--channel-mix=')) opts.channelMix = parseChannelMixArg(arg.slice(14));
   });
   return opts;
 }
@@ -124,7 +141,7 @@ async function waitForAnalytics(page) {
  * @param {import('playwright').Browser} browser
  * @param {Record<string, import('playwright').DeviceDescriptor>} devicesMap
  * @param {string} origin
- * @param {{ profileId: string, paths: string[], visitorId: string }} task
+ * @param {{ profileId: string, paths: string[], visitorId: string, isBounce?: boolean, exitAfterFirstPage?: boolean, channel?: import('./lib/traffic-channels.mjs').SessionChannel }} task
  * @param {string|null} poolDir
  * @param {boolean} persistVisitors
  * @param {number} seed
@@ -157,21 +174,29 @@ async function runSession(
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   let sessionFormEngaged = false;
+  const endsAsBounce = Boolean(task.isBounce || task.exitAfterFirstPage);
 
-  for (const path of task.paths) {
-    const url = `${origin}${path.startsWith('/') ? path : `/${path}`}`;
+  for (let pageIndex = 0; pageIndex < task.paths.length; pageIndex += 1) {
+    const path = task.paths[pageIndex];
+    const isLanding = pageIndex === 0;
+    const url = buildSessionPageUrl(origin, path, task.channel, isLanding);
+    const gotoOptions = buildGotoOptions(task.channel, isLanding);
+    const useBounceEngagement = !skipEngagement
+      && (endsAsBounce || (task.exitAfterFirstPage && pageIndex === 0));
     try {
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.goto(url, gotoOptions);
       let engagementStats = null;
       if (skipEngagement) {
         await waitForAnalytics(page);
       } else {
         const rng = engagementRng(task.visitorId, path, seed);
-        engagementStats = await simulatePageEngagement(page, rng, {
-          visitorId: task.visitorId,
-          path,
-          seed,
-        });
+        engagementStats = useBounceEngagement
+          ? await simulateBounceEngagement(page, rng)
+          : await simulatePageEngagement(page, rng, {
+            visitorId: task.visitorId,
+            path,
+            seed,
+          });
         if (engagementStats?.formOutcome && engagementStats.formOutcome !== 'none') {
           sessionFormEngaged = true;
         }
@@ -180,10 +205,11 @@ async function runSession(
     } catch (err) {
       onError(task.profileId, path, task.visitorId, err);
     }
+    if (endsAsBounce) break;
     await page.waitForTimeout(200 + Math.floor(Math.random() * 400));
   }
 
-  if (!skipEngagement && !sessionFormEngaged) {
+  if (!skipEngagement && !sessionFormEngaged && !endsAsBounce) {
     const boostRng = engagementRng(task.visitorId, 'form-boost', seed);
     if (boostRng() < 0.42) {
       try {
@@ -205,14 +231,14 @@ async function runSession(
   }
   await context.close();
 
-  return { isReturning, deviceName, browserLabel };
+  return { isReturning, deviceName, browserLabel, endsAsBounce };
 }
 
 /**
  * @param {import('playwright').Browser} browser
  * @param {Record<string, import('playwright').DeviceDescriptor>} devicesMap
  * @param {string} origin
- * @param {{ profileId: string, paths: string[], visitorId: string }[]} schedule
+ * @param {{ profileId: string, paths: string[], visitorId: string, isBounce?: boolean, exitAfterFirstPage?: boolean }[]} schedule
  * @param {string|null} poolDir
  * @param {boolean} persistVisitors
  * @param {number} concurrency
@@ -235,6 +261,7 @@ async function runScheduledTraffic(
   onError,
 ) {
   let nextIndex = 0;
+  let bounceSessionsDone = 0;
   const rng = createRng(schedule.length);
 
   const worker = async () => {
@@ -256,7 +283,8 @@ async function runScheduledTraffic(
         onHit,
         onError,
       );
-      const { isReturning } = sessionResult;
+      const { isReturning, endsAsBounce } = sessionResult;
+      if (endsAsBounce) bounceSessionsDone += 1;
 
       const gap = isReturning
         ? RETURNING_SESSIONS_MS[0] + Math.floor(rng() * (RETURNING_SESSIONS_MS[1] - RETURNING_SESSIONS_MS[0]))
@@ -266,6 +294,7 @@ async function runScheduledTraffic(
   };
 
   await Promise.all(Array.from({ length: concurrency }, () => worker()));
+  return { bounceSessionsDone };
 }
 
 /**
@@ -340,7 +369,22 @@ async function main() {
     visitors: opts.visitors,
     profiles,
   });
-  const { mixReport, scheduled, visitorStats, visitorCount } = scheduleResult;
+  const {
+    mixReport, scheduled, visitorStats, visitorCount, bounceStats,
+  } = scheduleResult;
+
+  let channelMixReport = null;
+  let channelStats = null;
+  if (!opts.directOnly) {
+    const normalizedChannelMix = assignChannelsToSessions(
+      scheduled,
+      opts.channelMix || DEFAULT_CHANNEL_MIX,
+      createRng(seed + 909),
+    );
+    channelMixReport = summarizeChannelMix(normalizedChannelMix);
+    channelStats = summarizeChannelStats(scheduled);
+  }
+
   const uniqueVisitorIds = [...new Set(scheduled.map(({ visitorId }) => visitorId))];
 
   const poolManifest = poolDir ? loadPoolManifest(poolDir) : { visitors: {} };
@@ -366,6 +410,10 @@ async function main() {
     fromIndex: opts.fromIndex,
     indexMeta,
     enrichStats,
+    bounceStats,
+    directOnly: opts.directOnly,
+    channelMix: channelMixReport,
+    channelStats,
   };
 
   console.log('WKND live audience traffic simulator');
@@ -384,6 +432,8 @@ async function main() {
   }
   console.log(`  Concurrency:    ${opts.concurrency}`);
   console.log(`  Engagement:     ${opts.skipEngagement ? 'off (page views only)' : 'on (assets + forms)'}`);
+  console.log(`  Channels:       ${opts.directOnly ? 'direct only (no referrers/cid)' : 'mixed marketing channels'}`);
+  console.log(`  Bounce rate:    ~${bounceStats.bounceRate}% of sessions (${bounceStats.bounceSessions}/${scheduled.length}, ${bounceStats.earlyExitSessions} early exits)`);
   console.log(`  Seed:           ${seed}`);
 
   let devicesMap = null;
@@ -413,6 +463,21 @@ async function main() {
     console.log(`    ${share.toString().padStart(5)}%  ${label}`);
   });
 
+  if (channelMixReport) {
+    console.log('  Marketing channel mix (landing page per session):');
+    channelMixReport.forEach(({ label, share }) => {
+      console.log(`    ${share.toString().padStart(5)}%  ${label}`);
+    });
+    if (channelStats) {
+      console.log('  Assigned sessions by channel:');
+      Object.entries(channelStats.byChannel)
+        .sort((a, b) => b[1].sessions - a[1].sessions)
+        .forEach(([, stats]) => {
+          console.log(`    ${stats.share.toString().padStart(5)}%  ${stats.label} (${stats.sessions} sessions)`);
+        });
+    }
+  }
+
   const estimate = estimateHitDistribution(scheduleResult.mix, opts.hits, seed, profiles);
   console.log('  Expected hit distribution (approx):');
   PROFILE_IDS.filter((id) => estimate[id] > 0)
@@ -439,6 +504,7 @@ async function main() {
 
   let hitsDone = 0;
   let errors = 0;
+  let bounceSessionsDone = 0;
   const engagementTotals = createEngagementTotals();
   const started = Date.now();
 
@@ -456,14 +522,17 @@ async function main() {
   const onError = (profileId, path, visitorId, err) => {
     errors += 1;
     if (errors <= 10) {
-      console.warn(`  WARN ${visitorId} ${profileId} ${path}: ${err.message}`);
+      const detail = isNavigationContextError(err)
+        ? 'page navigated during engagement (usually a linked image click)'
+        : err.message;
+      console.warn(`  WARN ${visitorId} ${profileId} ${path}: ${detail}`);
     }
   };
 
   console.log('\nStarting browsers…');
   const browser = await chromium.launch({ headless: true });
 
-  await runScheduledTraffic(
+  const { bounceSessionsDone: completedBounces } = await runScheduledTraffic(
     browser,
     devicesMap,
     origin,
@@ -476,6 +545,7 @@ async function main() {
     onHit,
     onError,
   );
+  bounceSessionsDone = completedBounces;
 
   await browser.close();
 
@@ -491,6 +561,7 @@ async function main() {
     finishedAt: new Date().toISOString(),
     hitsCompleted: hitsDone,
     errors,
+    bounceSessionsCompleted: bounceSessionsDone,
     engagement: engagementTotals,
     skipEngagement: opts.skipEngagement,
     durationSec: Math.round((Date.now() - started) / 1000),
@@ -502,6 +573,8 @@ async function main() {
   console.log(`  Hits:     ${hitsDone}/${opts.hits}`);
   console.log(`  Errors:   ${errors}`);
   if (!opts.skipEngagement) {
+    const realizedBounceRate = Math.round((bounceSessionsDone / scheduled.length) * 1000) / 10;
+    console.log(`  Bounces:  ${bounceSessionsDone}/${scheduled.length} sessions (${realizedBounceRate}%)`);
     console.log(`  Assets:   ${engagementTotals.assetClicks} clicks (${engagementTotals.assetCandidates} candidates)`);
     console.log(`  Forms:    ${engagementTotals.formPages} pages with forms`);
     Object.entries(engagementTotals.formOutcomes).forEach(([outcome, count]) => {
