@@ -14,19 +14,41 @@
 </script>
 <script nonce="aem">
 (function (doc) {
+  /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
+  function heroFileExt(pathname) {
+    var parts = pathname.split('.');
+    return parts.length > 1 ? parts.pop() : 'jpg';
+  }
+  function buildHeroLcpUrls(content, baseUri) {
+    var imgUrl = new URL(content, baseUri || window.location.href);
+    var path = imgUrl.origin + imgUrl.pathname;
+    var ext = heroFileExt(imgUrl.pathname);
+    var mobile = 480;
+    var desktop = 1600;
+    var low = 'low';
+    return {
+      preloadHref: path + '?width=' + mobile + '&format=' + ext + '&optimize=' + low,
+      imagesrcset: path + '?width=' + desktop + '&format=webply&optimize=' + low + ' ' + desktop + 'w, '
+        + path + '?width=' + mobile + '&format=webply&optimize=' + low + ' ' + mobile + 'w',
+      imagesizes: '100vw',
+    };
+  }
+  function primeHeroLcpImage() {
+    var img = doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
+    if (!img) return;
+    img.setAttribute('loading', 'eager');
+    img.setAttribute('fetchpriority', 'high');
+  }
   var og = doc.querySelector('meta[property="og:image"]');
   if (og && og.content) {
     try {
-      var imgUrl = new URL(og.content, doc.baseURI || window.location.href);
-      var path = imgUrl.origin + imgUrl.pathname;
-      var mobile = path + '?width=750&format=webply&optimize=medium';
-      var desktop = path + '?width=1200&format=webply&optimize=medium';
+      var urls = buildHeroLcpUrls(og.content, doc.baseURI);
       var preloadImg = doc.createElement('link');
       preloadImg.rel = 'preload';
       preloadImg.as = 'image';
-      preloadImg.href = mobile;
-      preloadImg.setAttribute('imagesrcset', desktop + ' 1200w, ' + mobile + ' 750w');
-      preloadImg.setAttribute('imagesizes', '100vw');
+      preloadImg.href = urls.preloadHref;
+      preloadImg.setAttribute('imagesrcset', urls.imagesrcset);
+      preloadImg.setAttribute('imagesizes', urls.imagesizes);
       doc.head.appendChild(preloadImg);
     } catch (e) { /* ignore invalid og:image */ }
   }
@@ -36,6 +58,11 @@
     heroStyle.rel = 'stylesheet';
     heroStyle.href = '/blocks/hero-adventure/hero-adventure.css';
     doc.head.appendChild(heroStyle);
+  }
+  if (doc.readyState === 'loading') {
+    doc.addEventListener('DOMContentLoaded', primeHeroLcpImage);
+  } else {
+    primeHeroLcpImage();
   }
 })(document);
 </script>

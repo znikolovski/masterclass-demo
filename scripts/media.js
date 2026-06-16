@@ -19,9 +19,12 @@ const DM_PATH_PATTERNS = [
 ];
 
 const HERO_BREAKPOINTS = [
-  { media: '(min-width: 900px)', width: 1200 },
-  { width: 750 },
+  { media: '(min-width: 900px)', width: 1600 },
+  { width: 480 },
 ];
+
+/** Breakpoints for hero-adventure background (must stay in sync with head.html preload). */
+export const HERO_ADVENTURE_BREAKPOINTS = HERO_BREAKPOINTS;
 
 const CARD_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 900 },
@@ -251,6 +254,74 @@ export function createResponsivePicture(
 
   annotatePicture(picture, src);
   applyImageAttributes(picture, { ...attrs, loading });
+  return picture;
+}
+
+/**
+ * Build hero-adventure LCP preload URLs (aligned with createHeroAdventurePicture output).
+ * @param {string} src Image URL (absolute or relative)
+ * @param {string} [base] Base URL for relative src
+ * @returns {{ breakpoints: typeof HERO_ADVENTURE_BREAKPOINTS, sizes: string, preloadHref: string, imagesrcset: string, imagesizes: string }}
+ */
+export function buildHeroAdventureLcpUrls(src, base = window.location.href) {
+  const url = new URL(src, base);
+  const { origin, pathname } = url;
+  const ext = pathname.split('.').pop() || 'jpg';
+  const mobileWidth = HERO_ADVENTURE_BREAKPOINTS[HERO_ADVENTURE_BREAKPOINTS.length - 1].width;
+  const desktopWidth = HERO_ADVENTURE_BREAKPOINTS[0].width;
+  const optimize = 'low';
+  const mobileImg = `${origin}${pathname}?width=${mobileWidth}&format=${ext}&optimize=${optimize}`;
+  const mobileWebp = `${origin}${pathname}?width=${mobileWidth}&format=webply&optimize=${optimize}`;
+  const desktopWebp = `${origin}${pathname}?width=${desktopWidth}&format=webply&optimize=${optimize}`;
+  return {
+    breakpoints: HERO_ADVENTURE_BREAKPOINTS,
+    sizes: '100vw',
+    preloadHref: mobileImg,
+    imagesrcset: `${desktopWebp} ${desktopWidth}w, ${mobileWebp} ${mobileWidth}w`,
+    imagesizes: '100vw',
+  };
+}
+
+/**
+ * @param {HTMLPictureElement} picture
+ * @param {'low'|'medium'|'high'} level
+ */
+export function applyPictureOptimizeLevel(picture, level) {
+  const img = picture.querySelector('img');
+  if (img?.src) {
+    try {
+      const optimized = new URL(img.src, window.location.href);
+      optimized.searchParams.set('optimize', level);
+      img.src = optimized.toString();
+    } catch {
+      // keep default URLs
+    }
+  }
+  picture.querySelectorAll('source').forEach((source) => {
+    const srcset = source.getAttribute('srcset');
+    if (srcset) {
+      source.setAttribute('srcset', srcset.replace(/optimize=(?:medium|high|low)/g, `optimize=${level}`));
+    }
+  });
+}
+
+/**
+ * Responsive hero background picture with eager LCP hints and low optimize tier.
+ * @param {string} src
+ * @param {string} [alt]
+ * @returns {HTMLPictureElement|HTMLImageElement}
+ */
+export function createHeroAdventurePicture(src, alt = '') {
+  const lcp = buildHeroAdventureLcpUrls(src);
+  const picture = createResponsivePicture(src, alt, true, lcp.breakpoints, {
+    loading: 'eager',
+    sizes: lcp.sizes,
+  });
+  if (picture.tagName === 'PICTURE') {
+    applyPictureOptimizeLevel(picture, 'low');
+    const img = picture.querySelector('img');
+    if (img) img.setAttribute('fetchpriority', 'high');
+  }
   return picture;
 }
 

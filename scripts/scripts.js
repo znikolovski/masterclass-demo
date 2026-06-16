@@ -24,7 +24,7 @@ import {
   refreshTargetZones,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
-import { optimizePictures } from './media.js';
+import { optimizePictures, buildHeroAdventureLcpUrls } from './media.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
@@ -61,24 +61,24 @@ function hasImagePreload(href) {
 }
 
 /**
- * Preload LCP candidate from og:image (mobile webp) before module JS runs.
+ * Preload LCP candidate from og:image before module JS runs (aligned with hero-adventure URLs).
  * @param {Document} doc
  */
 function preloadOgImage(doc = document) {
   const og = getMetadata('og:image', doc);
   if (!og) return;
   try {
-    const url = new URL(og, doc.baseURI || window.location.href);
-    const base = `${url.origin}${url.pathname}`;
-    const mobile = `${base}?width=750&format=webply&optimize=medium`;
-    if (hasImagePreload(mobile)) return;
-    const desktop = `${base}?width=1200&format=webply&optimize=medium`;
+    const { preloadHref, imagesrcset, imagesizes } = buildHeroAdventureLcpUrls(
+      og,
+      doc.baseURI || window.location.href,
+    );
+    if (hasImagePreload(preloadHref)) return;
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
-    link.href = mobile;
-    link.setAttribute('imagesrcset', `${desktop} 1200w, ${mobile} 750w`);
-    link.setAttribute('imagesizes', '100vw');
+    link.href = preloadHref;
+    link.setAttribute('imagesrcset', imagesrcset);
+    link.setAttribute('imagesizes', imagesizes);
     document.head.appendChild(link);
   } catch {
     // ignore invalid og:image
@@ -102,19 +102,30 @@ function primeLcpImage(root) {
  */
 function preloadLcpHeroImage(section) {
   const img = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img, picture img`);
-  if (!img) return;
-  const href = img.currentSrc || img.getAttribute('src');
-  if (!href || hasImagePreload(href)) return;
-
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.as = 'image';
-  link.href = href;
-  const srcset = img.getAttribute('srcset');
-  if (srcset) link.setAttribute('imagesrcset', srcset);
-  const sizes = img.getAttribute('sizes');
-  if (sizes) link.setAttribute('imagesizes', sizes);
-  document.head.appendChild(link);
+  if (!img?.src) return;
+  try {
+    const { preloadHref, imagesrcset, imagesizes } = buildHeroAdventureLcpUrls(img.src);
+    if (hasImagePreload(preloadHref)) return;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = preloadHref;
+    link.setAttribute('imagesrcset', imagesrcset);
+    link.setAttribute('imagesizes', imagesizes);
+    document.head.appendChild(link);
+  } catch {
+    const href = img.currentSrc || img.getAttribute('src');
+    if (!href || hasImagePreload(href)) return;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = href;
+    const srcset = img.getAttribute('srcset');
+    if (srcset) link.setAttribute('imagesrcset', srcset);
+    const sizes = img.getAttribute('sizes');
+    if (sizes) link.setAttribute('imagesizes', sizes);
+    document.head.appendChild(link);
+  }
 }
 
 /**
