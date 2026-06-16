@@ -56,6 +56,7 @@ ${extraStyles}
 ${indented}
     </main>
     <footer></footer>
+    <script type="module" src="/scripts/library-preview.js"></script>
   </body>
 </html>
 `;

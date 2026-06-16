@@ -87,25 +87,20 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
 
 for (const rel of REPO_BLOCK_PREVIEWS) {
   const abs = join(ROOT, rel);
-  if (!existsSync(abs)) continue;
-  const raw = readFileSync(abs, 'utf8');
   const plainPath = `${abs}.plain.html`;
+  if (!existsSync(abs) && !existsSync(plainPath)) continue;
 
-  if (isFullPreviewDocument(raw)) {
-    if (!existsSync(plainPath)) {
-      const fragment = extractLibraryFragment(raw);
-      if (fragment) {
-        writeFileSync(plainPath, `${fragment.trim()}\n`);
-        count += 1;
-        console.log(`  ✓ ${rel}.plain.html (from shell)`);
-      }
-    }
-    continue;
+  let fragment = null;
+  if (existsSync(plainPath)) {
+    fragment = readFileSync(plainPath, 'utf8').trim();
+  } else if (existsSync(abs)) {
+    fragment = extractLibraryFragment(readFileSync(abs, 'utf8'));
   }
+  if (!fragment) continue;
 
-  writePreviewShell(rel, raw.trim());
+  writePreviewShell(rel, fragment);
   count += 1;
-  console.log(`  ✓ ${rel} (repo fragment)`);
+  console.log(`  ✓ ${rel} (repo block)`);
 }
 
 console.log(`\nRegenerated ${count} preview shell(s).`);

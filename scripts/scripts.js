@@ -517,6 +517,7 @@ async function bootstrapLibraryBlockDocument(doc) {
   await Promise.all([
     loadCSS(`${base}/styles/library-preview.css`),
     loadCSS(`${base}/styles/library-sidekick-blocks.css`),
+    loadCSS(`${base}/styles/lazy-styles.css`),
     loadCSS(`${base}/blocks/${blockName}/${blockName}.css`),
   ]);
   doc.querySelector('main')?.querySelector(`.${blockName}`)?.classList.add('sidekick-library');
