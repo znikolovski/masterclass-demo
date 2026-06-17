@@ -23,6 +23,8 @@ import {
   refreshTargetZones,
   getTargetDecisionScopes,
   buildTargetApplyMetadata,
+  finalizeTargetZonesAfterApply,
+  revealTargetZones,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
 import { optimizePictures, buildHeroAdventureLcpUrls, enrichHeroPictureAfterLcp } from './media.js';
@@ -398,7 +400,7 @@ function applySectionMetadata(section, sectionMeta) {
     }
   });
   if (meta.targetlocation || meta['target-location']) {
-    section.classList.add('target');
+    markTargetZone(section);
   }
   const wrapper = sectionMeta.closest('.section-metadata-wrapper') || sectionMeta.parentElement;
   if (wrapper && wrapper !== section) wrapper.remove();
@@ -657,8 +659,9 @@ async function loadMartech(doc = document) {
         analytics: isAnalyticsEnabled(doc),
         trackPageView: isAnalyticsEnabled(doc),
         launchUrls: getLaunchUrls(),
-        decisionScopes: getTargetDecisionScopes(main),
-        propositionMetadata: buildTargetApplyMetadata(main),
+        decisionScopes: getTargetDecisionScopes(main, doc),
+        propositionMetadata: buildTargetApplyMetadata(main, doc),
+        personalizationTimeout: 3000,
       },
     ).then(() => {
       if (!isConsentGiven()) return undefined;
@@ -723,11 +726,12 @@ async function loadEager(doc) {
     if (martechPromise) {
       await Promise.all([
         martechPromise.then(() => getMartechModule().then(async (m) => {
-          m.setDecisionScopes(getTargetDecisionScopes(main));
-          m.setPropositionMetadata(buildTargetApplyMetadata(main));
+          m.setDecisionScopes(getTargetDecisionScopes(main, doc));
+          m.setPropositionMetadata(buildTargetApplyMetadata(main, doc));
           initTargetDelivery(main);
           await m.martechEager();
-          await refreshTargetZones(main);
+          revealTargetZones(main);
+          await finalizeTargetZonesAfterApply(main);
         })),
         loadFirstSection,
       ]);

@@ -471,37 +471,57 @@ async function applyPropositions(instanceName) {
   let propositions = window.structuredClone(renderDecisionResponse.propositions)
     .filter(shouldApplyProposition);
 
-  propositionsApplyPromise = new Promise((resolve) => {
-    onDecoratedElement(async () => {
-      try {
-        if (!propositions.length) {
-          window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
-            detail: { propositions: { propositions: [] } },
-          }));
-          resolve();
-          return;
-        }
-        const applyOptions = { propositions };
-        if (config.propositionMetadata && Object.keys(config.propositionMetadata).length) {
-          applyOptions.metadata = config.propositionMetadata;
-        }
-        const appliedPropositions = await window[instanceName](
-          'applyPropositions',
-          applyOptions,
-        );
-        appliedPropositions.propositions.forEach((item) => {
-          if (item.renderAttempted) {
-            propositions = propositions.filter((p) => p.id !== item.id);
-          }
-        });
-        window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
-          detail: { propositions: appliedPropositions },
-        }));
-      } finally {
-        resolve();
+  const hasFormMetadata = Boolean(
+    config.propositionMetadata && Object.keys(config.propositionMetadata).length,
+  );
+
+  const runApply = async () => {
+    if (!propositions.length) {
+      window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
+        detail: { propositions: { propositions: [] } },
+      }));
+      return;
+    }
+    const applyOptions = { propositions };
+    if (hasFormMetadata) {
+      applyOptions.metadata = config.propositionMetadata;
+    }
+    const appliedPropositions = await window[instanceName](
+      'applyPropositions',
+      applyOptions,
+    );
+    appliedPropositions.propositions.forEach((item) => {
+      if (item.renderAttempted) {
+        propositions = propositions.filter((p) => p.id !== item.id);
       }
     });
-  });
+    window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
+      detail: { propositions: appliedPropositions },
+    }));
+  };
+
+  propositionsApplyPromise = (async () => {
+    try {
+      if (hasFormMetadata) {
+        await runApply();
+      } else {
+        await new Promise((resolve) => {
+          let applied = false;
+          const applyOnce = async () => {
+            if (applied) return;
+            applied = true;
+            await runApply();
+            resolve();
+          };
+          onDecoratedElement(applyOnce);
+        });
+      }
+    } catch {
+      window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
+        detail: { propositions: { propositions: [] } },
+      }));
+    }
+  })();
 
   return renderDecisionResponse;
 }

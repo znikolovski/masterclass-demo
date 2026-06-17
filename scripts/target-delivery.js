@@ -28,6 +28,40 @@ export const TARGET_APPLY_ACTION = 'setHtml';
 const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
 
 /**
+ * Target preview / QA session (query params or at_qa_mode cookie set by Web SDK).
+ * @param {Document} [doc]
+ * @returns {boolean}
+ */
+export function isTargetPreviewSession(doc = document) {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('at_preview_token') || params.has('at_preview_index')) return true;
+  }
+  const cookie = doc.cookie || (typeof document !== 'undefined' ? document.cookie : '');
+  return /(?:^|;\s*)at_qa_mode=/.test(cookie);
+}
+
+/**
+ * Page metadata targetlive: on — request named mbox scopes without QA params (go-live).
+ * @param {Document} [doc]
+ * @returns {boolean}
+ */
+export function isTargetLiveDeliveryEnabled(doc = document) {
+  const meta = doc.querySelector('meta[name="targetlive"]');
+  const value = meta?.content?.trim().toLowerCase() || '';
+  return value === 'on' || value === 'true' || value === 'yes';
+}
+
+/**
+ * Whether to request named Target mbox scopes (vs __view__ only).
+ * @param {Document} [doc]
+ * @returns {boolean}
+ */
+export function shouldRequestNamedTargetScopes(doc = document) {
+  return isTargetPreviewSession(doc) || isTargetLiveDeliveryEnabled(doc);
+}
+
+/**
  * Whether page metadata opts in to Adobe Target delivery.
  * @returns {boolean}
  */
@@ -46,7 +80,7 @@ function isTargetPersonalizationEnabled() {
 export function markTargetZone(section) {
   if (!section?.dataset?.targetlocation) return;
   section.classList.add('target');
-  if (!isTargetPersonalizationEnabled()) {
+  if (!isTargetPersonalizationEnabled() || !shouldRequestNamedTargetScopes()) {
     section.classList.add('target-ready');
   }
 }
@@ -65,9 +99,11 @@ export function getTargetZones(main) {
 /**
  * Named Target mbox scopes from outermost page zones (after section hoisting).
  * @param {Element} [main]
+ * @param {Document} [doc]
  * @returns {string[]}
  */
-export function getTargetDecisionScopes(main = document.querySelector('main')) {
+export function getTargetDecisionScopes(main = document.querySelector('main'), doc = document) {
+  if (!shouldRequestNamedTargetScopes(doc)) return [];
   if (!main) return [];
   return getTargetZones(main)
     .map((zone) => zone.dataset.targetlocation?.trim())
@@ -79,9 +115,11 @@ export function getTargetDecisionScopes(main = document.querySelector('main')) {
  * to the EDS zone selector authored via data-targetlocation / section metadata.
  * @see https://experienceleague.adobe.com/en/docs/platform-learn/migrate-target-to-websdk/render-form-based-activities
  * @param {Element} [main]
+ * @param {Document} [doc]
  * @returns {Record<string, {selector: string, actionType: string}>}
  */
-export function buildTargetApplyMetadata(main = document.querySelector('main')) {
+export function buildTargetApplyMetadata(main = document.querySelector('main'), doc = document) {
+  if (!shouldRequestNamedTargetScopes(doc)) return {};
   if (!main) return {};
   const metadata = {};
   getTargetZones(main).forEach((zone) => {
@@ -332,14 +370,46 @@ export async function decorateTargetInjections(main) {
   await Promise.all(pending.map((zone) => decorateTargetZone(zone)));
 }
 
+/** @type {boolean} */
+let suppressTargetObserver = false;
+
+/**
+ * Reveal target sections (pairs with styles.css visibility rule).
+ * @param {Element} main
+ */
+export function revealTargetZones(main) {
+  if (!main) return;
+  getTargetZones(main).forEach((zone) => {
+    const section = zone.classList.contains('section') ? zone : zone.closest('.section');
+    (section || zone).classList.add('target-ready');
+  });
+}
+
 /**
  * @param {Element} main
  * @returns {Promise<void>}
  */
 export async function refreshTargetZones(main) {
   if (!main) return;
-  getTargetZones(main).forEach((zone) => zone.classList.remove('target-ready'));
-  await decorateTargetInjections(main);
+  suppressTargetObserver = true;
+  try {
+    getTargetZones(main).forEach((zone) => zone.classList.remove('target-ready'));
+    await decorateTargetInjections(main);
+  } finally {
+    suppressTargetObserver = false;
+  }
+}
+
+/**
+ * Show zones immediately after Target HTML injection, then decorate blocks.
+ * @param {Element} main
+ * @returns {Promise<void>}
+ */
+export async function finalizeTargetZonesAfterApply(main) {
+  if (!main) return;
+  revealTargetZones(main);
+  await refreshTargetZones(main);
+  revealTargetZones(main);
 }
 
 /** @type {MutationObserver|null} */
@@ -370,24 +440,17 @@ function invalidateZonesAfterInjection(mutations) {
 }
 
 /**
- * Reveal target sections when decoration cannot complete (pairs with styles.css visibility rule).
- * @param {Element} main
- */
-function revealPendingTargetZones(main) {
-  getTargetZones(main).forEach((zone) => {
-    const section = zone.classList.contains('section') ? zone : zone.closest('.section');
-    (section || zone).classList.add('target-ready');
-  });
-}
-
-/**
  * @param {Element} main
  */
 function scheduleTargetRefresh(main) {
+  if (suppressTargetObserver) return;
   if (refreshFrame) cancelAnimationFrame(refreshFrame);
   refreshFrame = requestAnimationFrame(() => {
     refreshFrame = null;
-    refreshTargetZones(main).catch(() => {});
+    revealTargetZones(main);
+    refreshTargetZones(main)
+      .then(() => revealTargetZones(main))
+      .catch(() => revealTargetZones(main));
   });
 }
 
@@ -399,20 +462,23 @@ export function initTargetDelivery(main) {
 
   if (!martechListenerBound) {
     document.addEventListener('martech:propositions-applied', () => {
+      revealTargetZones(main);
       scheduleTargetRefresh(main);
     });
     martechListenerBound = true;
   }
 
   targetObserver = new MutationObserver((mutations) => {
+    if (suppressTargetObserver) return;
+
     invalidateZonesAfterInjection(mutations);
 
     const relevant = mutations.some((mutation) => {
+      if (mutation.type !== 'childList') return false;
       const { target } = mutation;
       if (!(target instanceof Element)) return false;
-      return target.dataset?.targetlocation
-        || target.closest?.('[data-targetlocation]')
-        || (mutation.type === 'childList' && target.closest('main'));
+      return target.matches?.('[data-targetlocation]')
+        || target.closest?.('[data-targetlocation]');
     });
     if (relevant) scheduleTargetRefresh(main);
   });
@@ -420,11 +486,7 @@ export function initTargetDelivery(main) {
   targetObserver.observe(main, {
     subtree: true,
     childList: true,
-    attributes: true,
-    attributeFilter: ['data-targetlocation', 'class'],
   });
 
-  scheduleTargetRefresh(main);
-
-  window.setTimeout(() => revealPendingTargetZones(main), TARGET_REVEAL_TIMEOUT_MS);
+  window.setTimeout(() => revealTargetZones(main), TARGET_REVEAL_TIMEOUT_MS);
 }
