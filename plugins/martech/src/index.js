@@ -438,7 +438,7 @@ async function applyPropositions(instanceName) {
     renderDecisions: false,
     personalization: {
       sendDisplayEvent: false,
-      ...(config.decisionScopes?.length && { decisionScopes: config.decisionScopes }),
+      decisionScopes: [...new Set(['__view__', ...(config.decisionScopes || [])])],
     },
   });
   response = renderDecisionResponse;
@@ -594,6 +594,16 @@ export function initRumTracking(sampleRUM, options = {}) {
  */
 export function isPersonalizationEnabled() {
   return config.personalization;
+}
+
+/**
+ * Refresh named Target mbox scopes before propositionFetch (e.g. after EDS hoists
+ * data-targetlocation onto sections).
+ * @param {string[]} scopes
+ */
+export function setDecisionScopes(scopes) {
+  if (!config) return;
+  config.decisionScopes = [...new Set((scopes || []).filter(Boolean))];
 }
 
 /**

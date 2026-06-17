@@ -219,16 +219,32 @@ function collectZoneBlocks(zone) {
 }
 
 /**
+ * Clears EDS decoration state so Target can re-apply offers on an existing block node.
  * @param {Element} block
+ */
+function resetBlockDecorationState(block) {
+  delete block.dataset.blockStatus;
+  block.classList.remove('block');
+  delete block.dataset.blockName;
+}
+
+/**
+ * @param {Element} block
+ * @param {{ force?: boolean }} [options]
  * @returns {Promise<void>}
  */
-async function loadInjectedBlock(block) {
+async function loadInjectedBlock(block, options = {}) {
+  const { force = false } = options;
   const blockName = getBlockName(block);
   if (!blockName) return;
 
+  if (force) {
+    resetBlockDecorationState(block);
+  }
+
   ensureBlockLayoutClasses(block);
 
-  if (isPreDecoratedBlock(block)) {
+  if (!force && isPreDecoratedBlock(block)) {
     await loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`);
     block.dataset.blockStatus = 'loaded';
     return;
@@ -250,7 +266,11 @@ async function decorateTargetZone(zone) {
   const blocks = collectZoneBlocks(zone);
   if (!blocks.length) return;
 
-  await Promise.all(blocks.map((block) => loadInjectedBlock(block)));
+  zone.querySelectorAll('[data-block-status]').forEach((el) => {
+    resetBlockDecorationState(el);
+  });
+
+  await Promise.all(blocks.map((block) => loadInjectedBlock(block, { force: true })));
   decorateIcons(zone);
 
   const blockName = getBlockName(blocks[0]);
