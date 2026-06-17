@@ -598,6 +598,22 @@ async function bootstrapLibraryBlockDocument(doc) {
 const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
 
 /**
+ * Named Target mbox scopes from authored zone markers. Required when the Target
+ * property disables auto page-load mbox and activities use explicit locations
+ * (e.g. data-targetlocation="homepage-hero-mbox").
+ * @param {Document} doc
+ * @returns {string[]}
+ */
+function getTargetDecisionScopes(doc = document) {
+  const scopes = new Set();
+  doc.querySelector('main')?.querySelectorAll('[data-targetlocation]').forEach((el) => {
+    const scope = el.dataset.targetlocation?.trim();
+    if (scope) scopes.add(scope);
+  });
+  return [...scopes];
+}
+
+/**
  * @param {string} name Metadata key
  * @param {Document} doc Document
  * @returns {boolean}
@@ -655,6 +671,7 @@ async function loadMartech(doc = document) {
         analytics: isAnalyticsEnabled(doc),
         trackPageView: isAnalyticsEnabled(doc),
         launchUrls: getLaunchUrls(),
+        decisionScopes: getTargetDecisionScopes(doc),
       },
     ).then(() => {
       if (!isConsentGiven()) return undefined;
