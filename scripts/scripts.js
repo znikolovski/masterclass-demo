@@ -703,17 +703,16 @@ async function loadEager(doc) {
 
   loadSiteBrandCss(getRepolessSiteSlug(doc));
 
+  const needsEagerMartech = isMartechConfigured()
+    && isPersonalizationEnabled(doc)
+    && !isLibraryPreview(doc);
+  const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
   if (main) {
     primeLcpImage(main);
     await loadHeroBlockCss(main);
     decorateMain(main);
     applyTemplateAndTheme(doc);
-
-    const needsEagerMartech = isMartechConfigured()
-      && isPersonalizationEnabled(doc)
-      && !isLibraryPreview(doc);
-    const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
     primeLcpImage(main);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
@@ -736,7 +735,6 @@ async function loadEager(doc) {
     if (martechPromise) {
       await Promise.all([
         martechPromise.then(() => getMartechModule().then(async (m) => {
-          m.setDecisionScopes(getTargetDecisionScopes(doc));
           await m.martechEager();
           await decorateTargetInjections(main);
           initTargetDelivery(main);
