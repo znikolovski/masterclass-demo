@@ -22,6 +22,8 @@ import {
   initTargetDelivery,
   markTargetZone,
   refreshTargetZones,
+  getTargetDecisionScopes,
+  buildTargetApplyMetadata,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
 import { optimizePictures, buildHeroAdventureLcpUrls, enrichHeroPictureAfterLcp } from './media.js';
@@ -648,6 +650,7 @@ let martechLoadedPromise = null;
 async function loadMartech(doc = document) {
   if (!isMartechConfigured()) return null;
   if (!martechLoadedPromise) {
+    const main = doc.querySelector('main');
     martechLoadedPromise = getMartechModule().then((martech) => martech.initMartech(
       WEB_SDK_CONFIG,
       {
@@ -655,6 +658,8 @@ async function loadMartech(doc = document) {
         analytics: isAnalyticsEnabled(doc),
         trackPageView: isAnalyticsEnabled(doc),
         launchUrls: getLaunchUrls(),
+        decisionScopes: getTargetDecisionScopes(main),
+        propositionMetadata: buildTargetApplyMetadata(main),
       },
     ).then(() => {
       if (!isConsentGiven()) return undefined;
@@ -686,16 +691,17 @@ async function loadEager(doc) {
 
   loadSiteBrandCss(getRepolessSiteSlug(doc));
 
-  const needsEagerMartech = isMartechConfigured()
-    && isPersonalizationEnabled(doc)
-    && !isLibraryPreview(doc);
-  const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
   const main = doc.querySelector('main');
   if (main) {
     primeLcpImage(main);
     await loadHeroBlockCss(main);
     decorateMain(main);
     applyTemplateAndTheme(doc);
+
+    const needsEagerMartech = isMartechConfigured()
+      && isPersonalizationEnabled(doc)
+      && !isLibraryPreview(doc);
+    const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
     primeLcpImage(main);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
@@ -718,6 +724,8 @@ async function loadEager(doc) {
     if (martechPromise) {
       await Promise.all([
         martechPromise.then(() => getMartechModule().then(async (m) => {
+          m.setDecisionScopes(getTargetDecisionScopes(main));
+          m.setPropositionMetadata(buildTargetApplyMetadata(main));
           await m.martechEager();
           await decorateTargetInjections(main);
           initTargetDelivery(main);

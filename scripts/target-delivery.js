@@ -22,6 +22,9 @@ export function getTargetZoneSelector() {
   return '[data-targetlocation]';
 }
 
+/** @type {'setHtml'} */
+export const TARGET_APPLY_ACTION = 'setHtml';
+
 const TARGET_METADATA_KEYS = ['target', 'adobetarget', 'adobe-target'];
 
 /**
@@ -57,6 +60,39 @@ export function getTargetZones(main) {
   if (!main) return [];
   const zones = [...main.querySelectorAll(getTargetZoneSelector())];
   return zones.filter((zone) => !zone.parentElement?.closest('[data-targetlocation]'));
+}
+
+/**
+ * Named Target mbox scopes from outermost page zones (after section hoisting).
+ * @param {Element} [main]
+ * @returns {string[]}
+ */
+export function getTargetDecisionScopes(main = document.querySelector('main')) {
+  if (!main) return [];
+  return getTargetZones(main)
+    .map((zone) => zone.dataset.targetlocation?.trim())
+    .filter(Boolean);
+}
+
+/**
+ * applyPropositions metadata for form-based Target activities — maps each mbox scope
+ * to the EDS zone selector authored via data-targetlocation / section metadata.
+ * @see https://experienceleague.adobe.com/en/docs/platform-learn/migrate-target-to-websdk/render-form-based-activities
+ * @param {Element} [main]
+ * @returns {Record<string, {selector: string, actionType: string}>}
+ */
+export function buildTargetApplyMetadata(main = document.querySelector('main')) {
+  if (!main) return {};
+  const metadata = {};
+  getTargetZones(main).forEach((zone) => {
+    const scope = zone.dataset.targetlocation?.trim();
+    if (!scope || metadata[scope]) return;
+    metadata[scope] = {
+      selector: `[data-targetlocation="${scope.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`,
+      actionType: TARGET_APPLY_ACTION,
+    };
+  });
+  return metadata;
 }
 
 /**
@@ -219,16 +255,32 @@ function collectZoneBlocks(zone) {
 }
 
 /**
+ * Clears EDS decoration state so Target can re-apply offers on an existing block node.
  * @param {Element} block
+ */
+function resetBlockDecorationState(block) {
+  delete block.dataset.blockStatus;
+  block.classList.remove('block');
+  delete block.dataset.blockName;
+}
+
+/**
+ * @param {Element} block
+ * @param {{ force?: boolean }} [options]
  * @returns {Promise<void>}
  */
-async function loadInjectedBlock(block) {
+async function loadInjectedBlock(block, options = {}) {
+  const { force = false } = options;
   const blockName = getBlockName(block);
   if (!blockName) return;
 
+  if (force) {
+    resetBlockDecorationState(block);
+  }
+
   ensureBlockLayoutClasses(block);
 
-  if (isPreDecoratedBlock(block)) {
+  if (!force && isPreDecoratedBlock(block)) {
     await loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`);
     block.dataset.blockStatus = 'loaded';
     return;
@@ -250,7 +302,11 @@ async function decorateTargetZone(zone) {
   const blocks = collectZoneBlocks(zone);
   if (!blocks.length) return;
 
-  await Promise.all(blocks.map((block) => loadInjectedBlock(block)));
+  zone.querySelectorAll('[data-block-status]').forEach((el) => {
+    resetBlockDecorationState(el);
+  });
+
+  await Promise.all(blocks.map((block) => loadInjectedBlock(block, { force: true })));
   decorateIcons(zone);
 
   const blockName = getBlockName(blocks[0]);

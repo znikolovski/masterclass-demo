@@ -40,6 +40,10 @@
  *                                         (non-performance path), with `__view__` always
  *                                         included.
  *                                         (defaults to [])
+ * @property {Object} [propositionMetadata] Map of Target scope/mbox name to applyPropositions
+ *                                         metadata ({ selector, actionType }). Required for
+ *                                         form-based HTML offers on explicit page zones.
+ *                                         (defaults to {})
  */
 export const DEFAULT_CONFIG = {
   analytics: true,
@@ -54,6 +58,7 @@ export const DEFAULT_CONFIG = {
   personalizationTimeout: 1000,
   shouldProcessEvent: () => true,
   decisionScopes: [],
+  propositionMetadata: {},
 };
 
 let config;
@@ -422,6 +427,20 @@ export async function updateUserConsent(consent) {
 
 let response;
 
+const DOM_ACTION_SCHEMA = 'https://ns.adobe.com/personalization/dom-action';
+
+/**
+ * @param {object} proposition
+ * @returns {boolean}
+ */
+function shouldApplyProposition(proposition) {
+  if (proposition.items?.some((item) => item.schema === DOM_ACTION_SCHEMA)) {
+    return true;
+  }
+  const { scope } = proposition;
+  return Boolean(scope && config.propositionMetadata?.[scope]);
+}
+
 /**
  * Fetching propositions from the backend and applying the propositions as the AEM EDS page loads
  * its content async.
@@ -431,6 +450,7 @@ let response;
  * @returns a promise that the propositions were retrieved and will be applied as the page renders
  */
 async function applyPropositions(instanceName) {
+  const decisionScopes = [...new Set(['__view__', ...(config.decisionScopes || [])])];
   // Get the decisions, but don't render them automatically
   // so we can hook up into the AEM EDS page load sequence
   const renderDecisionResponse = await sendEvent({
@@ -438,7 +458,7 @@ async function applyPropositions(instanceName) {
     renderDecisions: false,
     personalization: {
       sendDisplayEvent: false,
-      ...(config.decisionScopes?.length && { decisionScopes: config.decisionScopes }),
+      decisionScopes,
     },
   });
   response = renderDecisionResponse;
@@ -446,16 +466,18 @@ async function applyPropositions(instanceName) {
     return [];
   }
   let propositions = window.structuredClone(renderDecisionResponse.propositions)
-    .filter((p) => p.items.some(
-      (i) => i.schema === 'https://ns.adobe.com/personalization/dom-action',
-    ));
+    .filter(shouldApplyProposition);
   onDecoratedElement(async () => {
     if (!propositions.length) {
       return;
     }
+    const applyOptions = { propositions };
+    if (config.propositionMetadata && Object.keys(config.propositionMetadata).length) {
+      applyOptions.metadata = config.propositionMetadata;
+    }
     const appliedPropositions = await window[instanceName](
       'applyPropositions',
-      { propositions },
+      applyOptions,
     );
     appliedPropositions.propositions.forEach((item) => {
       if (item.renderAttempted) {
@@ -594,6 +616,24 @@ export function initRumTracking(sampleRUM, options = {}) {
  */
 export function isPersonalizationEnabled() {
   return config.personalization;
+}
+
+/**
+ * Refresh named Target mbox scopes before propositionFetch.
+ * @param {string[]} scopes
+ */
+export function setDecisionScopes(scopes) {
+  if (!config) return;
+  config.decisionScopes = [...new Set((scopes || []).filter(Boolean))];
+}
+
+/**
+ * Map form-based Target scopes to DOM selectors for applyPropositions.
+ * @param {Object<string, {selector: string, actionType: string}>} metadata
+ */
+export function setPropositionMetadata(metadata) {
+  if (!config) return;
+  config.propositionMetadata = metadata || {};
 }
 
 /**
