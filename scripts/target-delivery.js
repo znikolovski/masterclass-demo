@@ -300,18 +300,19 @@ async function decorateTargetZone(zone) {
   unwrapTargetLayoutShells(zone);
 
   const blocks = collectZoneBlocks(zone);
-  if (!blocks.length) return;
 
-  zone.querySelectorAll('[data-block-status]').forEach((el) => {
-    resetBlockDecorationState(el);
-  });
+  if (blocks.length) {
+    zone.querySelectorAll('[data-block-status]').forEach((el) => {
+      resetBlockDecorationState(el);
+    });
 
-  await Promise.all(blocks.map((block) => loadInjectedBlock(block, { force: true })));
-  decorateIcons(zone);
+    await Promise.all(blocks.map((block) => loadInjectedBlock(block, { force: true })));
+    decorateIcons(zone);
 
-  const blockName = getBlockName(blocks[0]);
-  const section = zone.classList.contains('section') ? zone : zone.closest('.section');
-  if (section && blockName) section.classList.add(`${blockName}-container`);
+    const blockName = getBlockName(blocks[0]);
+    const section = zone.classList.contains('section') ? zone : zone.closest('.section');
+    if (section && blockName) section.classList.add(`${blockName}-container`);
+  }
 
   zone.classList.add('target-ready');
 }

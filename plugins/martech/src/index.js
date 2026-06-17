@@ -427,6 +427,9 @@ export async function updateUserConsent(consent) {
 
 let response;
 
+/** @type {Promise<void>|null} */
+let propositionsApplyPromise = null;
+
 const DOM_ACTION_SCHEMA = 'https://ns.adobe.com/personalization/dom-action';
 
 /**
@@ -467,28 +470,48 @@ async function applyPropositions(instanceName) {
   }
   let propositions = window.structuredClone(renderDecisionResponse.propositions)
     .filter(shouldApplyProposition);
-  onDecoratedElement(async () => {
-    if (!propositions.length) {
-      return;
-    }
-    const applyOptions = { propositions };
-    if (config.propositionMetadata && Object.keys(config.propositionMetadata).length) {
-      applyOptions.metadata = config.propositionMetadata;
-    }
-    const appliedPropositions = await window[instanceName](
-      'applyPropositions',
-      applyOptions,
-    );
-    appliedPropositions.propositions.forEach((item) => {
-      if (item.renderAttempted) {
-        propositions = propositions.filter((p) => p.id !== item.id);
+
+  propositionsApplyPromise = new Promise((resolve) => {
+    onDecoratedElement(async () => {
+      try {
+        if (!propositions.length) {
+          window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
+            detail: { propositions: { propositions: [] } },
+          }));
+          resolve();
+          return;
+        }
+        const applyOptions = { propositions };
+        if (config.propositionMetadata && Object.keys(config.propositionMetadata).length) {
+          applyOptions.metadata = config.propositionMetadata;
+        }
+        const appliedPropositions = await window[instanceName](
+          'applyPropositions',
+          applyOptions,
+        );
+        appliedPropositions.propositions.forEach((item) => {
+          if (item.renderAttempted) {
+            propositions = propositions.filter((p) => p.id !== item.id);
+          }
+        });
+        window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
+          detail: { propositions: appliedPropositions },
+        }));
+      } finally {
+        resolve();
       }
     });
-    window.dispatchEvent(new CustomEvent('martech:propositions-applied', {
-      detail: { propositions: appliedPropositions },
-    }));
   });
+
   return renderDecisionResponse;
+}
+
+/**
+ * Resolves after applyPropositions finishes (or when there is nothing to apply).
+ * @returns {Promise<void>}
+ */
+export function whenPropositionsApplied() {
+  return propositionsApplyPromise || Promise.resolve();
 }
 
 /**
@@ -678,7 +701,7 @@ export async function martechEager() {
     // eslint-disable-next-line no-console
     console.assert(config.alloyInstanceName && window[config.alloyInstanceName], 'Martech needs to be initialized before the `martechEager` method is called');
     return promiseWithTimeout(
-      applyPropositions(config.alloyInstanceName),
+      applyPropositions(config.alloyInstanceName).then(() => whenPropositionsApplied()),
       config.personalizationTimeout,
     ).then((result) => {
       onPageActivation(() => {

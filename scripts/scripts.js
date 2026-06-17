@@ -16,7 +16,6 @@ import {
 import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext, pushErrorPageContext } from './analytics-page.js';
 import {
-  decorateTargetInjections,
   getTargetZones,
   hoistTargetLocationToSection,
   initTargetDelivery,
@@ -726,9 +725,9 @@ async function loadEager(doc) {
         martechPromise.then(() => getMartechModule().then(async (m) => {
           m.setDecisionScopes(getTargetDecisionScopes(main));
           m.setPropositionMetadata(buildTargetApplyMetadata(main));
-          await m.martechEager();
-          await decorateTargetInjections(main);
           initTargetDelivery(main);
+          await m.martechEager();
+          await refreshTargetZones(main);
         })),
         loadFirstSection,
       ]);
