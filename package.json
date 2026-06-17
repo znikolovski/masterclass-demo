@@ -37,7 +37,8 @@
     "forms:diagnose": "node tools/scripts/diagnose-form-delivery.mjs",
     "metadata:patch": "node tools/scripts/patch-analytics-metadata.mjs --preview --publish",
     "analytics:segments:export": "node tools/scripts/publish-wknd-segments.mjs --dry-run --export",
-    "analytics:segments:publish": "node tools/scripts/publish-wknd-segments.mjs --apply"
+    "analytics:segments:publish": "node tools/scripts/publish-wknd-segments.mjs --apply",
+    "analytics:briefing": "node tools/analytics/scripts/generate-performance-briefing.mjs"
   },
   "repository": {
     "type": "git",

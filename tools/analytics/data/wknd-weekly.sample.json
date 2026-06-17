@@ -1,0 +1,179 @@
+{
+  "orgName": "WKND Adventures",
+  "reportSuite": "ags050wknd",
+  "periodType": "Weekly",
+  "periodLabel": "Jun 2–8, 2026",
+  "comparisonLabel": "May 26–Jun 1, 2026",
+  "generatedDate": "Jun 10, 2026",
+  "ledeSentence": "Leadership readout for the week of Jun 2–8, 2026 compared to May 26–Jun 1, 2026.",
+  "methodology": {
+    "currentStartIso": "2026-06-02",
+    "currentEndIso": "2026-06-08",
+    "comparisonStartIso": "2026-05-26",
+    "comparisonEndIso": "2026-06-01",
+    "weekStartDow": "Monday",
+    "fiscalYearStartMonth": "January",
+    "timezone": "America/Los_Angeles",
+    "calendarSource": "default fallback",
+    "metricIdsCsv": "metrics/visits, metrics/pageviews, metrics/bouncerate, metrics/event17, metrics/event19, metrics/event7"
+  },
+  "callout": {
+    "type": "note",
+    "title": "Sample briefing — replace with live Analytics data",
+    "body": "This page was generated from tools/analytics/data/wknd-weekly.sample.json. Run npm run analytics:briefing after exporting real KPI JSON from Adobe Analytics or the aa-executive-briefing workflow."
+  },
+  "kpis": [
+    {
+      "label": "Visits",
+      "formattedValue": "12,480",
+      "priorValue": "11,902",
+      "priorLabel": "Prior week: 11,902",
+      "pctChange": 4.9,
+      "direction": "up",
+      "polarity": "positive"
+    },
+    {
+      "label": "Page Views",
+      "formattedValue": "38,214",
+      "priorValue": "36,880",
+      "priorLabel": "Prior week: 36,880",
+      "pctChange": 3.6,
+      "direction": "up",
+      "polarity": "positive"
+    },
+    {
+      "label": "Bounce Rate",
+      "formattedValue": "41.2%",
+      "priorValue": "43.8%",
+      "priorLabel": "Prior week: 43.8%",
+      "pctChange": -2.6,
+      "direction": "down",
+      "polarity": "negative"
+    },
+    {
+      "label": "Quiz Starts",
+      "formattedValue": "842",
+      "priorValue": "756",
+      "priorLabel": "Prior week: 756",
+      "pctChange": 11.4,
+      "direction": "up",
+      "polarity": "positive"
+    },
+    {
+      "label": "Quiz Completions",
+      "formattedValue": "518",
+      "priorValue": "461",
+      "priorLabel": "Prior week: 461",
+      "pctChange": 12.4,
+      "direction": "up",
+      "polarity": "positive"
+    },
+    {
+      "label": "Asset Impressions",
+      "formattedValue": "96,410",
+      "priorValue": "91,220",
+      "priorLabel": "Prior week: 91,220",
+      "pctChange": 5.7,
+      "direction": "up",
+      "polarity": "positive"
+    }
+  ],
+  "narrative": [
+    {
+      "emoji": "📈",
+      "metric": "Visits",
+      "text": "12,480 visits (+4.9% vs prior week)",
+      "driver": "Organic Search and Direct traffic both grew, offsetting a lighter email week."
+    },
+    {
+      "emoji": "🧭",
+      "metric": "Quiz engagement",
+      "text": "Quiz starts reached 842 (+11.4%) with completions up 12.4%",
+      "driver": "Find Your Adventure traffic from discovery-stage pages drove most of the lift."
+    },
+    {
+      "emoji": "✅",
+      "metric": "Bounce Rate",
+      "text": "Bounce rate improved to 41.2% (−2.6 pp vs prior week)",
+      "driver": "Homepage and /adventures landing engagement improved after hero performance work."
+    },
+    {
+      "emoji": "🖼️",
+      "metric": "Asset Impressions",
+      "text": "96,410 asset impressions (+5.7%)",
+      "driver": "Climbing and trekking imagery on /adventures and /expeditions led exposure."
+    }
+  ],
+  "kpiDetail": [
+    {
+      "metric": "Visits",
+      "current": "12,480",
+      "prior": "11,902",
+      "delta": "+578",
+      "pctChange": "+4.9%",
+      "signal": "green",
+      "signalLabel": "Favorable"
+    },
+    {
+      "metric": "Page Views",
+      "current": "38,214",
+      "prior": "36,880",
+      "delta": "+1,334",
+      "pctChange": "+3.6%",
+      "signal": "green",
+      "signalLabel": "Favorable"
+    },
+    {
+      "metric": "Bounce Rate",
+      "current": "41.2%",
+      "prior": "43.8%",
+      "delta": "−2.6 pp",
+      "pctChange": "−5.9%",
+      "signal": "green",
+      "signalLabel": "Favorable"
+    },
+    {
+      "metric": "Quiz Starts (event17)",
+      "current": "842",
+      "prior": "756",
+      "delta": "+86",
+      "pctChange": "+11.4%",
+      "signal": "green",
+      "signalLabel": "Favorable"
+    },
+    {
+      "metric": "Quiz Completions (event19)",
+      "current": "518",
+      "prior": "461",
+      "delta": "+57",
+      "pctChange": "+12.4%",
+      "signal": "green",
+      "signalLabel": "Favorable"
+    },
+    {
+      "metric": "Asset Impressions (event7)",
+      "current": "96,410",
+      "prior": "91,220",
+      "delta": "+5,190",
+      "pctChange": "+5.7%",
+      "signal": "green",
+      "signalLabel": "Favorable"
+    }
+  ],
+  "drivers": [
+    {
+      "metric": "Visits",
+      "topDriver": "Organic Search",
+      "currentValue": "4,980",
+      "priorValue": "4,612",
+      "contribution": "+368 visits (~64% of total lift)"
+    },
+    {
+      "metric": "Quiz Starts",
+      "topDriver": "Discovery pages (/adventures, /destinations)",
+      "currentValue": "612",
+      "priorValue": "528",
+      "contribution": "+84 starts (~98% of total lift)"
+    }
+  ]
+}
