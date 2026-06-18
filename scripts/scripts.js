@@ -33,6 +33,7 @@ import {
   isMartechConfigured,
   getLaunchUrls,
 } from './martech-config.js';
+import addMarkdownAlternateLink from './markdown-alternate.js';
 
 /** Instrument Sans (body) + Syncopate (headings); Syncopate woff2 preloaded in head.html */
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@700&display=swap';
@@ -681,6 +682,7 @@ async function loadMartech(doc = document) {
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
+  addMarkdownAlternateLink(doc);
   document.documentElement.lang = 'en';
   doc.body?.classList.add('appear');
   await bootstrapLibraryBlockDocument(doc);
