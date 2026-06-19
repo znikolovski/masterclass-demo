@@ -1,0 +1,45 @@
+# WKND Adventures
+
+> Bold Stories. Real Life. Wild Places. Structured markdown sources for WKND Adventures pages.
+
+Use the `.md` links below for LLM-friendly page content from Adobe Edge Delivery Services.
+HTML pages are available at the same paths without the `.md` suffix (homepage: `/index.md`).
+
+## Core pages
+
+- [WKND Adventures — Bold Stories. Real Life. Wild Places.](/index.md): Bold Stories. Real Life. Wild Places. WKND Adventures documents the people, routes, and moments that make the outdoors worth protecting.
+- [Adventures](/adventures.md): World-class routes, from day hikes to multi-week expeditions.
+- [Destinations](/destinations.md): Curated regions for outdoor adventure around the world.
+- [Field Notes](/field-notes.md): Photo essays and dispatches from the field.
+- [About](/about.md): A small editorial team that goes to wild places and writes honestly about what we find.
+- [Community](/community.md): Join the WKND Adventures community and submit your own stories.
+- [Gear](/gear.md): Tested and verified gear recommendations for outdoor adventures.
+- [Expeditions](/expeditions.md): Multi-day journeys, big summits, and epic adventures.
+- [Basecamp](/basecamp.md): Your starting point for WKND Adventures. Pick an activity, find a route, and get moving — no prior experience required.
+- [Sustainability](/sustainability.md): Our commitment to preserving wild places and responsible outdoor practices.
+- [FAQ](/faq.md): Questions about WKND Adventures, planning trips, submitting stories, and more.
+
+## Blog articles
+
+- [48 Hours in the Sonoran: A Field Guide](/blog/desert-survival-guide.md): A field guide to 48 hours in the Sonoran Desert — water, heat management, navigation, wildlife, and the night desert.
+- [First Light on the Valley](/blog/yosemite-rock-climbing.md): A beginner
+- [Ladakh, India: A Trekker's Guide to the High Himalayas](/blog/ladakh-india.md): From the Markha Valley to Pangong Lake, discover Ladakh's high-altitude cold desert, ancient monasteries, and world-class trekking routes. The definitive WKND guide to the Indian Himalayas.
+- [Lofoten Islands: Arctic Surfing at the Top of the World](/blog/kayaking-norway.md): The camera as creative tool and physical burden. Alex R.'s landmark essay on shooting in the high mountains.
+- [Mekong Delta, Vietnam: Paddling, Markets & Slow Water Travel](/blog/mekong-delta-vietnam.md): Go beyond the day trip. WKND's guide to the Mekong Delta covers kayak routes, floating market timing, homestay villages, and the four experiences that make the delta worth staying for.
+- [Ohrid Adventure Travel Guide: Trekking, Kayaking & Balkan Culture](/blog/ohrid-north-macedonia.md): Discover Ohrid, North Macedonia — where Byzantine history meets alpine trails and one of Europe's oldest lakes. WKND's complete adventure guide.
+- [Ohrid, North Macedonia: Lakeside Adventure & UNESCO Heritage](/blog/ohrid-macedonia.md): Discover Ohrid — swim a 3-million-year-old lake, hike to cliff-top churches, and wander a UNESCO old town. WKND's guide to North Macedonia's lakeside gem.
+- [Ohrid: City of a Thousand Churches — North Macedonia Travel](/blog/ohrid-city-of-thousand-churches.md): Explore Ohrid, North Macedonia — a UNESCO World Heritage city of Byzantine churches, ancient Roman ruins, and the crystal-clear waters of one of the world's oldest lakes.
+- [Pavones and Playa Negra: Costa Rica Surf Guide](/blog/surfing-costa-rica.md): A guide to surfing Pavones and Playa Negra on Costa Rica
+- [Reading a River: Access, Ethics, and the Joy of Wild Water](/blog/wild-swimming-guide.md): A full account of the W Circuit in Torres del Paine — permit strategy, daily stage breakdowns, refugio conditions, and the one weather window that ...
+- [Six Days Through the High Alps](/blog/alpine-cycling.md): Six days through the French Alps by loaded touring bike — Galibier, Izoard, Telegraphe, and the descent into Briançon.
+- [Sub-10 lb: What to Cut, What to Keep](/blog/ultralight-backpacking.md): An honest guide to ultralight backpacking — where the weight actually lives, what to cut, what to keep, and when to ignore all of it.
+- [The Camera on Your Back: A Practical and Philosophical Guide](/blog/mountain-photography.md): A full account of the W Circuit in Torres del Paine — permit strategy, daily stage breakdowns, refugio conditions, and the one weather window that ...
+- [W Circuit: 9 Days, 115 km](/blog/patagonia-trek.md): A day-by-day journal of the W Circuit in Torres del Paine — 9 days, 115 km, and everything the guidebook doesn
+- [Why Cold Routes Demand Warm Minds](/blog/winter-mountaineering.md): A winter mountaineering primer — what changes in winter, technical basics, avalanche awareness, cold starts, and the hardest skill: knowing when to turn around.
+
+## Optional
+
+- [WKND Adventures](/nav.md)
+- [WKND Adventures](/footer.md): Bold Stories. Real Life. Wild Places. Published weekly from somewhere with no Wi-Fi.
+- [Adventure interest](/forms/wknd-adventure-interest.md): Tell us about your trip and we will be in touch.
+- [Contact us](/forms/wknd-contact-b2b.md): Send us a message and our team will respond shortly.

@@ -24,6 +24,7 @@
     "migrate:resolve-delivery": "node tools/aem-assets/resolve-delivery-urls.mjs",
     "migrate:replace-da": "node tools/aem-assets/replace-da-media-urls.mjs",
     "migrate:repoless": "node tools/scripts/migrate-to-repoless-config.mjs",
+    "generate:llms": "node tools/scripts/generate-llms-txt.mjs",
     "b2b:seed": "node tools/scripts/seed-b2b-da.mjs --preview",
     "b2b:sync-blog": "node tools/scripts/sync-blog-to-b2b.mjs --preview",
     "b2b:seed-b2c-form": "node tools/scripts/seed-b2c-adventure-form.mjs --preview",

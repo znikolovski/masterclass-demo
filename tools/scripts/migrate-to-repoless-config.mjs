@@ -2,7 +2,7 @@
 /**
  * Migrate WKND from document-mode config (files in Git) to Config Service (repoless/API mode).
  *
- * Pushes site, index, sidekick, and robots settings to admin.hlx.page so code and content
+ * Pushes site, index, sidekick, robots, and llms.txt settings to admin.hlx.page so code and content
  * are defined in the Configuration Service instead of fstab / helix-query.yaml / etc.
  *
  * Prerequisites:
@@ -473,6 +473,7 @@ Then:
   await pushTextConfig(opts, token || '', 'query index', '/content/query.yaml', 'query.yaml', 'text/yaml');
   await pushSidekickConfig(opts, token || '');
   await pushTextConfig(opts, token || '', 'robots.txt', '/robots.txt', 'robots.txt', 'text/plain');
+  await pushTextConfig(opts, token || '', 'llms.txt', '/llms.txt', 'llms.txt', 'text/plain');
 
   if (opts.dryRun) {
     console.log('\nDry run complete. Re-run with --apply to push to Config Service.');
