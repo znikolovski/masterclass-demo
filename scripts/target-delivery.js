@@ -497,5 +497,6 @@ export function initTargetDelivery(main) {
     childList: true,
   });
 
+  revealTargetZones(main);
   window.setTimeout(() => revealTargetZones(main), TARGET_REVEAL_TIMEOUT_MS);
 }

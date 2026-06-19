@@ -420,7 +420,8 @@ function applySectionMetadata(section, sectionMeta) {
 }
 
 function decorateSections(main) {
-  main.querySelectorAll(':scope > div').forEach((section) => {
+  const sections = [...main.querySelectorAll(':scope > div')];
+  sections.forEach((section, index) => {
     if (isEmptySection(section)) {
       section.remove();
       return;
@@ -453,8 +454,10 @@ function decorateSections(main) {
     }
     const primedHero = hasPrimedLcpHero(section);
     const lcpHero = primedHero || Boolean(section.querySelector(HERO_BLOCK_SELECTOR));
-    if (lcpHero) {
+    const isFirstSection = index === 0;
+    if (lcpHero || isFirstSection) {
       section.classList.add('lcp-section');
+      section.style.display = null;
     } else {
       section.style.display = 'none';
     }
