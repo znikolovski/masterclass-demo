@@ -169,6 +169,7 @@ async function waitForHeroHeadingFont(section) {
     ]);
   } finally {
     h1.classList.remove('hero-heading-pending');
+    h1.classList.add('hero-heading-ready');
   }
 }
 
@@ -247,13 +248,37 @@ async function loadFonts() {
 }
 
 /**
+ * @param {Element} root
+ * @returns {boolean}
+ */
+function hasPrimedLcpHero(root) {
+  return Boolean(root?.querySelector(
+    `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
+  ));
+}
+
+/**
+ * @param {Element} block
+ * @returns {boolean}
+ */
+function isFragmentBlock(block) {
+  const name = block.dataset.blockName || block.classList[0] || '';
+  return name === 'fragment';
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
 function buildAutoBlocks(main) {
   try {
-    // auto load `*/fragments/*` references
-    const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
+    const lcpSection = hasPrimedLcpHero(main)
+      ? [...main.children].find((child) => child.tagName === 'DIV' && hasPrimedLcpHero(child))
+      : null;
+    // auto load `*/fragments/*` references (skip homepage LCP section — loaded in lazy phase)
+    const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')]
+      .filter((f) => !f.closest('.fragment'))
+      .filter((f) => !lcpSection?.contains(f));
     if (fragments.length > 0) {
       // eslint-disable-next-line import/no-cycle
       import('../blocks/fragment/fragment.js').then(({ loadFragment, resolveFragmentPath }) => {
@@ -423,7 +448,15 @@ function decorateSections(main) {
     wrappers.forEach((wrapper) => section.append(wrapper));
     section.classList.add('section');
     section.dataset.sectionStatus = 'initialized';
-    section.style.display = 'none';
+    if (section.querySelector(HERO_BLOCK_SELECTOR)) {
+      section.classList.add('hero-adventure-container');
+    }
+    const primedHero = hasPrimedLcpHero(section);
+    if (primedHero) {
+      section.classList.add('lcp-section');
+    } else {
+      section.style.display = 'none';
+    }
 
     section.querySelectorAll('div.section-metadata').forEach((sectionMeta) => {
       applySectionMetadata(section, sectionMeta);
@@ -676,13 +709,15 @@ function isEagerFirstBlock(block) {
  * @returns {Promise<void>}
  */
 async function finishFirstSectionPaint(section) {
-  optimizePictures(section, {
-    eagerSelector: HERO_BLOCK_SELECTOR,
-    eagerAll: true,
-  });
-  primeLcpImage(section);
+  const lcpImg = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`);
+  if (!lcpImg) {
+    optimizePictures(section, {
+      eagerSelector: HERO_BLOCK_SELECTOR,
+      eagerAll: true,
+    });
+    primeLcpImage(section);
+  }
   if (!document.body.classList.contains('quick-edit')) {
-    const lcpImg = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`);
     if (!lcpImg) {
       await waitForFirstImage(section);
     }
@@ -723,14 +758,17 @@ async function loadEagerFirstSection(section) {
   const primedHero = section.querySelector(
     `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
   );
+  const postLcpBlocks = primedHero
+    ? deferredBlocks.filter((block) => !isFragmentBlock(block))
+    : deferredBlocks;
 
   if (primedHero) {
-    await finishFirstSectionPaint(section);
-    section.dataset.sectionStatus = 'loaded';
     section.style.display = null;
+    section.dataset.sectionStatus = 'loaded';
+    finishFirstSectionPaint(section).catch(() => {});
     schedulePrimedHeroBlockLoad(section);
-    if (deferredBlocks.length) {
-      Promise.all(deferredBlocks.map((block) => loadBlock(block))).catch(() => {});
+    if (postLcpBlocks.length) {
+      Promise.all(postLcpBlocks.map((block) => loadBlock(block))).catch(() => {});
     }
     return;
   }
@@ -771,10 +809,12 @@ function scheduleEagerTargetDelivery(main, doc) {
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
-  addMarkdownAlternateLink(doc);
   document.documentElement.lang = 'en';
   doc.body?.classList.add('appear');
   await bootstrapLibraryBlockDocument(doc);
+  if (!doc.querySelector('link[rel="alternate"][type="text/markdown"]')) {
+    addMarkdownAlternateLink(doc);
+  }
   preloadOgImage(doc);
   applyTemplateAndTheme(doc);
 
@@ -786,8 +826,11 @@ async function loadEager(doc) {
 
   const main = doc.querySelector('main');
   if (main) {
-    primeLcpImage(main);
-    await loadHeroBlockCss(main);
+    const primedHero = hasPrimedLcpHero(main);
+    if (!primedHero) {
+      primeLcpImage(main);
+      await loadHeroBlockCss(main);
+    }
     decorateMain(main);
     applyTemplateAndTheme(doc);
 
@@ -798,10 +841,12 @@ async function loadEager(doc) {
     if (needsEagerMartech) {
       scheduleEagerTargetDelivery(main, doc);
     }
-    primeLcpImage(main);
+    if (!primedHero) {
+      primeLcpImage(main);
+    }
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
-    if (firstSection) preloadLcpHeroImage(firstSection);
+    if (firstSection && !primedHero) preloadLcpHeroImage(firstSection);
     const loadFirstSection = firstSection
       ? loadEagerFirstSection(firstSection)
       : Promise.resolve();
@@ -830,6 +875,15 @@ async function loadLazy(doc) {
   }
 
   const main = doc.querySelector('main');
+  const lcpSection = main?.querySelector('.section.lcp-section');
+  if (lcpSection) {
+    const fragmentBlocks = [...lcpSection.querySelectorAll('.fragment.block')]
+      .filter((block) => block.dataset.blockStatus !== 'loaded');
+    if (fragmentBlocks.length) {
+      await Promise.all(fragmentBlocks.map((block) => loadBlock(block)));
+    }
+  }
+
   await loadSections(main);
 
   const needsTargetRefresh = isPersonalizationEnabled(doc)

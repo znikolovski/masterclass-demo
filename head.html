@@ -4,55 +4,35 @@
   move-to-http-header="true"
 >
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<script nonce="aem">
-(function (doc) {
-  if (doc.querySelector('link[rel="alternate"][type="text/markdown"]')) return;
-  var path = (doc.location || window.location).pathname.replace(/\/$/, '') || '/';
-  if (path.indexOf('/blocks/') === 0 || path.indexOf('/tools/') === 0) return;
-  if (/\.[^/]+$/.test(path) && !/\.html$/.test(path)) return;
-  var link = doc.createElement('link');
-  link.rel = 'alternate';
-  link.type = 'text/markdown';
-  link.title = 'Markdown';
-  link.href = path === '/' ? '/index.md' : path + '.md';
-  doc.head.appendChild(link);
-})(document);
-</script>
-<script nonce="aem" type="importmap">
-{
-  "imports": {
-    "da-lit": "https://da.live/deps/lit/dist/index.js",
-    "da-y-wrapper": "https://da.live/deps/da-y-wrapper/dist/index.js"
-  }
-}
-</script>
 <style nonce="aem">
-/* Critical design tokens — keep in sync with styles/brand.css */
+/* Critical tokens — keep in sync with styles/brand.css */
 :root {
   --heading-font-family: "Syncopate", sans-serif;
   --body-font-family: "Instrument Sans", sans-serif;
   --background-color: #fff;
   --text-color: #0f1a14;
-  --link-color: #0f1a14;
-  --link-hover-color: #e8651a;
   --accent-color: #e8651a;
-  --light-color: #f4f2ef;
-  --dark-color: #0f1a14;
   --heading-font-size-xxl: 56px;
-  --heading-font-size-xl: 40px;
-  --heading-font-size-l: 24px;
-  --heading-font-size-m: 20px;
-  --heading-font-size-s: 18px;
-  --heading-font-size-xs: 14px;
   --body-font-size-m: 20px;
-  --body-font-size-s: 18px;
-  --body-font-size-xs: 14px;
-  --space-3xl: 80px;
-  --section-padding: 80px;
   --nav-height: 64px;
 }
 
-/* LCP-critical hero layout — full rules in blocks/hero-adventure/hero-adventure.css */
+body {
+  display: none;
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+body.appear {
+  display: block;
+}
+
+header {
+  min-height: var(--nav-height);
+}
+
+/* LCP hero shell — keep in sync with styles/styles.css and blocks/hero-adventure/hero-adventure.css */
 .hero-adventure-wrapper {
   max-width: 100% !important;
   padding: 0 !important;
@@ -67,15 +47,12 @@
   padding: 0;
 }
 
-.hero-adventure > div:first-child {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
+.hero-adventure > div:first-child,
+.hero-adventure > div:first-child > div,
 .hero-adventure > div:first-child picture {
   position: absolute;
   inset: 0;
+  z-index: 0;
 }
 
 .hero-adventure > div:first-child img {
@@ -96,11 +73,51 @@
 .hero-adventure > div:last-child {
   position: relative;
   z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
   color: #fff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 35%);
 }
 
-.hero-adventure h1.hero-heading-pending {
+.hero-adventure > div:last-child > div:has(> h1) {
+  min-height: calc(var(--heading-font-size-xxl) * 1.1 * 4 + 40px);
+}
+
+.hero-adventure h1 {
+  font-size: var(--heading-font-size-xxl);
+  font-weight: 700;
+  font-family: var(--heading-font-family);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 16px 0 24px;
+  max-width: 52rem;
   visibility: hidden;
+}
+
+.hero-adventure h1.hero-heading-ready {
+  visibility: visible;
+}
+
+main .section.hero-adventure-container,
+main .section.lcp-section {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+main .section.hero-adventure-container > div,
+main .section.lcp-section > div {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+main .section.lcp-section .fragment:not([data-block-status="loaded"]) {
+  display: none;
+  min-height: 0;
 }
 </style>
 <script nonce="aem">
@@ -151,6 +168,17 @@
       heroBaseSrc: base,
     };
   }
+  function revealHeroHeading() {
+    var h1 = doc.querySelector('.hero-adventure h1, .hero h1');
+    if (!h1 || h1.classList.contains('hero-heading-ready')) return;
+    var show = function () { h1.classList.add('hero-heading-ready'); };
+    if (doc.fonts && doc.fonts.load) {
+      doc.fonts.load('700 56px Syncopate').then(show).catch(show);
+      setTimeout(show, 2500);
+    } else {
+      show();
+    }
+  }
   function upgradeHeroImg(img) {
     if (!img || img.dataset.lcpPrimed) return true;
     try {
@@ -164,14 +192,18 @@
       img.dataset.heroBaseSrc = urls.heroBaseSrc;
       img.setAttribute('loading', 'eager');
       img.setAttribute('fetchpriority', 'high');
+      img.setAttribute('decoding', 'async');
       img.setAttribute('sizes', '100vw');
       img.src = urls.preloadHref;
       if (doc.body) doc.body.classList.add('appear');
+      revealHeroHeading();
     } catch (e) {
       img.dataset.lcpPrimed = 'true';
       img.setAttribute('loading', 'eager');
       img.setAttribute('fetchpriority', 'high');
+      img.setAttribute('decoding', 'async');
       if (doc.body) doc.body.classList.add('appear');
+      revealHeroHeading();
     }
     return true;
   }
@@ -208,11 +240,14 @@
   }
 })(document);
 </script>
-<script nonce="aem" src="/scripts/aem.js" type="module"></script>
-<script nonce="aem" src="/scripts/scripts.js" type="module"></script>
+<link rel="preload" href="https://fonts.gstatic.com/s/syncopate/v24/pe0pMIuPIYBCpEV5eFdKvtKqBP5vWVYgVw.woff2" as="font" type="font/woff2" crossorigin=""/>
 <link rel="stylesheet" href="/styles/styles.css"/>
+<link rel="preload" href="/blocks/hero-adventure/hero-adventure.css" as="style"/>
+<link rel="stylesheet" href="/blocks/hero-adventure/hero-adventure.css"/>
 <link rel="stylesheet" href="/styles/brand.css" media="print" onload="this.media='all'"/>
 <noscript><link rel="stylesheet" href="/styles/brand.css"/></noscript>
+<script nonce="aem" src="/scripts/aem.js" type="module"></script>
+<script nonce="aem" src="/scripts/scripts.js" type="module"></script>
 <link rel="preconnect" href="https://edge.adobedc.net"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
