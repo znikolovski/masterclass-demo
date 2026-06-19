@@ -272,8 +272,8 @@ function isFragmentBlock(block) {
  */
 function buildAutoBlocks(main) {
   try {
-    const lcpSection = hasPrimedLcpHero(main)
-      ? [...main.children].find((child) => child.tagName === 'DIV' && hasPrimedLcpHero(child))
+    const lcpSection = main.querySelector(HERO_BLOCK_SELECTOR)
+      ? [...main.children].find((child) => child.tagName === 'DIV' && child.querySelector(HERO_BLOCK_SELECTOR))
       : null;
     // auto load `*/fragments/*` references (skip homepage LCP section — loaded in lazy phase)
     const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')]
@@ -452,7 +452,8 @@ function decorateSections(main) {
       section.classList.add('hero-adventure-container');
     }
     const primedHero = hasPrimedLcpHero(section);
-    if (primedHero) {
+    const lcpHero = primedHero || Boolean(section.querySelector(HERO_BLOCK_SELECTOR));
+    if (lcpHero) {
       section.classList.add('lcp-section');
     } else {
       section.style.display = 'none';
@@ -758,11 +759,15 @@ async function loadEagerFirstSection(section) {
   const primedHero = section.querySelector(
     `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
   );
-  const postLcpBlocks = primedHero
+  const lcpHero = primedHero || section.classList.contains('lcp-section');
+  const postLcpBlocks = lcpHero
     ? deferredBlocks.filter((block) => !isFragmentBlock(block))
     : deferredBlocks;
 
-  if (primedHero) {
+  if (lcpHero) {
+    if (!primedHero) {
+      primeLcpImage(section);
+    }
     section.style.display = null;
     section.dataset.sectionStatus = 'loaded';
     finishFirstSectionPaint(section).catch(() => {});
@@ -827,7 +832,8 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     const primedHero = hasPrimedLcpHero(main);
-    if (!primedHero) {
+    const lcpHero = primedHero || Boolean(main.querySelector(HERO_BLOCK_SELECTOR));
+    if (!lcpHero) {
       primeLcpImage(main);
       await loadHeroBlockCss(main);
     }
@@ -846,7 +852,7 @@ async function loadEager(doc) {
     }
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
-    if (firstSection && !primedHero) preloadLcpHeroImage(firstSection);
+    if (firstSection && !lcpHero) preloadLcpHeroImage(firstSection);
     const loadFirstSection = firstSection
       ? loadEagerFirstSection(firstSection)
       : Promise.resolve();

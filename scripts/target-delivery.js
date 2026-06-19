@@ -81,7 +81,7 @@ export function markTargetZone(section) {
   if (!section?.dataset?.targetlocation) return;
   section.classList.add('target');
   const isLcpSection = section.classList.contains('lcp-section')
-    || Boolean(section.querySelector('.hero-adventure picture img[data-lcp-primed="true"]'));
+    || Boolean(section.querySelector('.hero-adventure, .carousel-hero, .hero'));
   if (isLcpSection || !isTargetPersonalizationEnabled() || !shouldRequestNamedTargetScopes()) {
     section.classList.add('target-ready');
   }
