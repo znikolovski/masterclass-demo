@@ -719,6 +719,18 @@ async function loadEagerFirstSection(section) {
   const blocks = [...section.querySelectorAll('div.block')];
   const eagerBlocks = blocks.filter(isEagerFirstBlock);
   const deferredBlocks = blocks.filter((block) => !isEagerFirstBlock(block));
+  const primedHero = section.querySelector(
+    `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
+  );
+
+  if (primedHero) {
+    await finishFirstSectionPaint(section);
+    section.dataset.sectionStatus = 'loaded';
+    section.style.display = null;
+    Promise.all([...eagerBlocks, ...deferredBlocks].map((block) => loadBlock(block)))
+      .catch(() => {});
+    return;
+  }
 
   // eslint-disable-next-line no-restricted-syntax
   for (const block of eagerBlocks) {
