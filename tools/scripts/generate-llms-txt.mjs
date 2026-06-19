@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Build config/llms.txt from the EDS query index — links to .md sources for each page.
+ * Build llms.txt at the site root from the EDS query index — links to .md sources for each page.
+ * Served via code sync (Config Service has no llms.txt endpoint; see robots.txt for API-managed text).
  *
  * Usage:
  *   node tools/scripts/generate-llms-txt.mjs
@@ -8,6 +9,7 @@
  *   node tools/scripts/generate-llms-txt.mjs --dry-run
  *
  * @see https://llmstxt.org/
+ * @see https://www.aem.live/developer/ai-coding-agents
  */
 
 import { writeFileSync } from 'node:fs';
@@ -16,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const DEFAULT_INDEX_URL = 'https://main--masterclass-demo--znikolovski.aem.live/query-index.json';
-const DEFAULT_OUT = join(ROOT, 'config/llms.txt');
+const DEFAULT_OUT = join(ROOT, 'llms.txt');
 
 const EXCLUDE_PREFIXES = [
   '/drafts/',
