@@ -6,25 +6,110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <script nonce="aem">
 (function (doc) {
-  if (doc.querySelector('link[rel="alternate"][type="text/markdown"]')) return;
-  var path = (doc.location || window.location).pathname.replace(/\/$/, '') || '/';
-  if (path.indexOf('/blocks/') === 0 || path.indexOf('/tools/') === 0) return;
-  if (/\.[^/]+$/.test(path) && !/\.html$/.test(path)) return;
-  var link = doc.createElement('link');
-  link.rel = 'alternate';
-  link.type = 'text/markdown';
-  link.title = 'Markdown';
-  link.href = path === '/' ? '/index.md' : path + '.md';
-  doc.head.appendChild(link);
-})(document);
-</script>
-<script nonce="aem" type="importmap">
-{
-  "imports": {
-    "da-lit": "https://da.live/deps/lit/dist/index.js",
-    "da-y-wrapper": "https://da.live/deps/da-y-wrapper/dist/index.js"
+  /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
+  var HERO_LCP_MAX = 1600;
+  var HERO_LCP_MIN = 640;
+  function isDynamicMediaUrl(url) {
+    return /\/adobe\/assets\/|\/is\/(image|content)\//.test(url.pathname)
+      || /\.adobeaemcloud\.com$|scene7\.com$|adobedc\.net$/i.test(url.hostname);
   }
-}
+  function getHeroLcpWidth() {
+    var vw = window.innerWidth || 412;
+    var dpr = window.devicePixelRatio || 1;
+    var needed = Math.ceil(vw * dpr);
+    return Math.min(HERO_LCP_MAX, Math.max(HERO_LCP_MIN, needed));
+  }
+  function getHeroBaseSrc(src, baseUri) {
+    var url = new URL(src, baseUri || window.location.href);
+    if (isDynamicMediaUrl(url)) {
+      if (url.pathname.indexOf('/adobe/assets/') !== -1) {
+        ['width', 'format', 'height', 'preferwebp'].forEach(function (p) { url.searchParams.delete(p); });
+      } else {
+        ['wid', 'qlt', 'fmt', 'hei', 't'].forEach(function (p) { url.searchParams.delete(p); });
+      }
+    } else {
+      ['width', 'format', 'optimize', 'height'].forEach(function (p) { url.searchParams.delete(p); });
+    }
+    return url.toString();
+  }
+  function buildHeroLcpUrl(src, baseUri) {
+    var base = getHeroBaseSrc(src, baseUri);
+    var url = new URL(base, baseUri || window.location.href);
+    var width = getHeroLcpWidth();
+    if (isDynamicMediaUrl(url)) {
+      if (url.pathname.indexOf('/adobe/assets/') !== -1) {
+        url.searchParams.set('width', String(width));
+        url.searchParams.set('format', 'webp');
+        return { preloadHref: url.toString(), heroBaseSrc: base };
+      }
+      url.searchParams.set('wid', String(width));
+      url.searchParams.set('qlt', '85');
+      url.searchParams.set('fmt', 'webp');
+      return { preloadHref: url.toString(), heroBaseSrc: base };
+    }
+    return {
+      preloadHref: url.origin + url.pathname + '?width=' + width + '&format=webply&optimize=medium',
+      heroBaseSrc: base,
+    };
+  }
+  function upgradeHeroImg(img) {
+    if (!img || img.dataset.lcpPrimed) return true;
+    try {
+      var picture = img.closest('picture');
+      if (picture) {
+        picture.querySelectorAll('source').forEach(function (source) { source.remove(); });
+      }
+      var urls = buildHeroLcpUrl(img.getAttribute('src') || img.src, doc.baseURI);
+      img.dataset.lcpPrimed = 'true';
+      img.dataset.mediaOptimized = 'true';
+      img.dataset.heroBaseSrc = urls.heroBaseSrc;
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('fetchpriority', 'high');
+      img.setAttribute('decoding', 'async');
+      img.setAttribute('sizes', '100vw');
+      img.src = urls.preloadHref;
+      if (doc.body) doc.body.classList.add('appear');
+    } catch (e) {
+      img.dataset.lcpPrimed = 'true';
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('fetchpriority', 'high');
+      img.setAttribute('decoding', 'async');
+      if (doc.body) doc.body.classList.add('appear');
+    }
+    return true;
+  }
+  function findHeroImg() {
+    return doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
+  }
+  function watchHeroImg() {
+    var img = findHeroImg();
+    if (img) return upgradeHeroImg(img);
+    return false;
+  }
+  var og = doc.querySelector('meta[property="og:image"]');
+  if (og && og.content) {
+    try {
+      var urls = buildHeroLcpUrl(og.content, doc.baseURI);
+      var preloadImg = doc.createElement('link');
+      preloadImg.rel = 'preload';
+      preloadImg.as = 'image';
+      preloadImg.href = urls.preloadHref;
+      preloadImg.setAttribute('fetchpriority', 'high');
+      doc.head.appendChild(preloadImg);
+    } catch (e) { /* ignore invalid og:image */ }
+  }
+  if (!watchHeroImg()) {
+    var obs = new MutationObserver(function () {
+      if (watchHeroImg()) obs.disconnect();
+    });
+    obs.observe(doc.documentElement, { childList: true, subtree: true });
+    doc.addEventListener('DOMContentLoaded', function () {
+      obs.disconnect();
+      watchHeroImg();
+      if (doc.body) doc.body.classList.add('appear');
+    }, { once: true });
+  }
+})(document);
 </script>
 <style nonce="aem">
 /* Critical design tokens — keep in sync with styles/brand.css */
@@ -103,111 +188,6 @@
   visibility: hidden;
 }
 </style>
-<script nonce="aem">
-(function (doc) {
-  /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
-  var HERO_LCP_MAX = 1600;
-  var HERO_LCP_MIN = 640;
-  function isDynamicMediaUrl(url) {
-    return /\/adobe\/assets\/|\/is\/(image|content)\//.test(url.pathname)
-      || /\.adobeaemcloud\.com$|scene7\.com$|adobedc\.net$/i.test(url.hostname);
-  }
-  function getHeroLcpWidth() {
-    var vw = window.innerWidth || 412;
-    var dpr = window.devicePixelRatio || 1;
-    var needed = Math.ceil(vw * dpr);
-    return Math.min(HERO_LCP_MAX, Math.max(HERO_LCP_MIN, needed));
-  }
-  function getHeroBaseSrc(src, baseUri) {
-    var url = new URL(src, baseUri || window.location.href);
-    if (isDynamicMediaUrl(url)) {
-      if (url.pathname.indexOf('/adobe/assets/') !== -1) {
-        ['width', 'format', 'height', 'preferwebp'].forEach(function (p) { url.searchParams.delete(p); });
-      } else {
-        ['wid', 'qlt', 'fmt', 'hei', 't'].forEach(function (p) { url.searchParams.delete(p); });
-      }
-    } else {
-      ['width', 'format', 'optimize', 'height'].forEach(function (p) { url.searchParams.delete(p); });
-    }
-    return url.toString();
-  }
-  function buildHeroLcpUrl(src, baseUri) {
-    var base = getHeroBaseSrc(src, baseUri);
-    var url = new URL(base, baseUri || window.location.href);
-    var width = getHeroLcpWidth();
-    if (isDynamicMediaUrl(url)) {
-      if (url.pathname.indexOf('/adobe/assets/') !== -1) {
-        url.searchParams.set('width', String(width));
-        url.searchParams.set('format', 'webp');
-        return { preloadHref: url.toString(), heroBaseSrc: base };
-      }
-      url.searchParams.set('wid', String(width));
-      url.searchParams.set('qlt', '85');
-      url.searchParams.set('fmt', 'webp');
-      return { preloadHref: url.toString(), heroBaseSrc: base };
-    }
-    return {
-      preloadHref: url.origin + url.pathname + '?width=' + width + '&format=webply&optimize=medium',
-      heroBaseSrc: base,
-    };
-  }
-  function upgradeHeroImg(img) {
-    if (!img || img.dataset.lcpPrimed) return true;
-    try {
-      var picture = img.closest('picture');
-      if (picture) {
-        picture.querySelectorAll('source').forEach(function (source) { source.remove(); });
-      }
-      var urls = buildHeroLcpUrl(img.getAttribute('src') || img.src, doc.baseURI);
-      img.dataset.lcpPrimed = 'true';
-      img.dataset.mediaOptimized = 'true';
-      img.dataset.heroBaseSrc = urls.heroBaseSrc;
-      img.setAttribute('loading', 'eager');
-      img.setAttribute('fetchpriority', 'high');
-      img.setAttribute('sizes', '100vw');
-      img.src = urls.preloadHref;
-      if (doc.body) doc.body.classList.add('appear');
-    } catch (e) {
-      img.dataset.lcpPrimed = 'true';
-      img.setAttribute('loading', 'eager');
-      img.setAttribute('fetchpriority', 'high');
-      if (doc.body) doc.body.classList.add('appear');
-    }
-    return true;
-  }
-  function findHeroImg() {
-    return doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
-  }
-  function watchHeroImg() {
-    var img = findHeroImg();
-    if (img) return upgradeHeroImg(img);
-    return false;
-  }
-  var og = doc.querySelector('meta[property="og:image"]');
-  if (og && og.content) {
-    try {
-      var urls = buildHeroLcpUrl(og.content, doc.baseURI);
-      var preloadImg = doc.createElement('link');
-      preloadImg.rel = 'preload';
-      preloadImg.as = 'image';
-      preloadImg.href = urls.preloadHref;
-      preloadImg.setAttribute('fetchpriority', 'high');
-      doc.head.appendChild(preloadImg);
-    } catch (e) { /* ignore invalid og:image */ }
-  }
-  if (!watchHeroImg()) {
-    var obs = new MutationObserver(function () {
-      if (watchHeroImg()) obs.disconnect();
-    });
-    obs.observe(doc.documentElement, { childList: true, subtree: true });
-    doc.addEventListener('DOMContentLoaded', function () {
-      obs.disconnect();
-      watchHeroImg();
-      if (doc.body) doc.body.classList.add('appear');
-    }, { once: true });
-  }
-})(document);
-</script>
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>
 <link rel="stylesheet" href="/styles/styles.css"/>

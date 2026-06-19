@@ -373,6 +373,16 @@ function isEmptySection(section) {
   return !text && !hasMedia;
 }
 
+/**
+ * @param {Element} section
+ * @returns {boolean}
+ */
+function sectionHasPrimedHero(section) {
+  return Boolean(section.querySelector(
+    `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
+  ));
+}
+
 function applySectionMetadata(section, sectionMeta) {
   const meta = readBlockConfig(sectionMeta);
   Object.keys(meta).forEach((key) => {
@@ -395,7 +405,7 @@ function applySectionMetadata(section, sectionMeta) {
 }
 
 function decorateSections(main) {
-  main.querySelectorAll(':scope > div').forEach((section) => {
+  main.querySelectorAll(':scope > div').forEach((section, index) => {
     if (isEmptySection(section)) {
       section.remove();
       return;
@@ -423,7 +433,9 @@ function decorateSections(main) {
     wrappers.forEach((wrapper) => section.append(wrapper));
     section.classList.add('section');
     section.dataset.sectionStatus = 'initialized';
-    section.style.display = 'none';
+    if (!(index === 0 && sectionHasPrimedHero(section))) {
+      section.style.display = 'none';
+    }
 
     section.querySelectorAll('div.section-metadata').forEach((sectionMeta) => {
       applySectionMetadata(section, sectionMeta);
@@ -676,13 +688,15 @@ function isEagerFirstBlock(block) {
  * @returns {Promise<void>}
  */
 async function finishFirstSectionPaint(section) {
-  optimizePictures(section, {
-    eagerSelector: HERO_BLOCK_SELECTOR,
-    eagerAll: true,
-  });
-  primeLcpImage(section);
+  const lcpImg = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`);
+  if (!lcpImg) {
+    optimizePictures(section, {
+      eagerSelector: HERO_BLOCK_SELECTOR,
+      eagerAll: true,
+    });
+    primeLcpImage(section);
+  }
   if (!document.body.classList.contains('quick-edit')) {
-    const lcpImg = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`);
     if (!lcpImg) {
       await waitForFirstImage(section);
     }
@@ -725,9 +739,9 @@ async function loadEagerFirstSection(section) {
   );
 
   if (primedHero) {
+    section.style.display = null;
     await finishFirstSectionPaint(section);
     section.dataset.sectionStatus = 'loaded';
-    section.style.display = null;
     schedulePrimedHeroBlockLoad(section);
     if (deferredBlocks.length) {
       Promise.all(deferredBlocks.map((block) => loadBlock(block))).catch(() => {});
@@ -787,7 +801,13 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     primeLcpImage(main);
-    await loadHeroBlockCss(main);
+    const primedHero = main.querySelector(
+      `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
+    );
+    const heroCssPromise = loadHeroBlockCss(main);
+    if (!primedHero) {
+      await heroCssPromise;
+    }
     decorateMain(main);
     applyTemplateAndTheme(doc);
 
@@ -807,6 +827,7 @@ async function loadEager(doc) {
       : Promise.resolve();
 
     await loadFirstSection;
+    heroCssPromise.catch(() => {});
   }
 }
 
