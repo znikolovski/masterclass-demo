@@ -6,8 +6,8 @@ import {
   decorateBlocks,
   getMetadata,
   waitForFirstImage,
-  loadSection,
   loadSections,
+  loadBlock,
   loadCSS,
   readBlockConfig,
   toClassName,
@@ -25,6 +25,7 @@ import {
   buildTargetApplyMetadata,
   finalizeTargetZonesAfterApply,
   revealTargetZones,
+  shouldRequestNamedTargetScopes,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
 import { optimizePictures, buildHeroAdventureLcpUrls, enrichHeroPictureAfterLcp } from './media.js';
@@ -41,6 +42,9 @@ const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instru
 const HERO_HEADING_FONT = 'Syncopate';
 
 const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
+
+/** Blocks that must load before revealing the first section (LCP). */
+const EAGER_FIRST_BLOCK_NAMES = new Set(['hero-adventure', 'carousel-hero', 'hero']);
 
 /**
  * Eager-load hero block CSS so above-fold layout is stable before block decoration.
@@ -662,7 +666,6 @@ async function loadMartech(doc = document) {
         launchUrls: getLaunchUrls(),
         decisionScopes: getTargetDecisionScopes(main, doc),
         propositionMetadata: buildTargetApplyMetadata(main, doc),
-        personalizationTimeout: 3000,
       },
     ).then(() => {
       if (!isConsentGiven()) return undefined;
@@ -675,6 +678,77 @@ async function loadMartech(doc = document) {
     }));
   }
   return martechLoadedPromise;
+}
+
+/**
+ * @param {Element} block
+ * @returns {boolean}
+ */
+function isEagerFirstBlock(block) {
+  const name = block.dataset.blockName || block.classList[0] || '';
+  return EAGER_FIRST_BLOCK_NAMES.has(name);
+}
+
+/**
+ * @param {Element} section
+ * @returns {Promise<void>}
+ */
+async function finishFirstSectionPaint(section) {
+  optimizePictures(section, {
+    eagerSelector: HERO_BLOCK_SELECTOR,
+    eagerAll: true,
+  });
+  primeLcpImage(section);
+  if (!document.body.classList.contains('quick-edit')) {
+    await waitForFirstImage(section);
+    waitForHeroHeadingFont(section);
+    scheduleHeroDisplayUpgrade(section);
+  }
+}
+
+/**
+ * Load hero/LCP blocks first, reveal the section, then finish other blocks in the background.
+ * @param {Element} section
+ * @returns {Promise<void>}
+ */
+async function loadEagerFirstSection(section) {
+  const status = section.dataset.sectionStatus;
+  if (!status || status === 'loaded') return;
+
+  section.dataset.sectionStatus = 'loading';
+  const blocks = [...section.querySelectorAll('div.block')];
+  const eagerBlocks = blocks.filter(isEagerFirstBlock);
+  const deferredBlocks = blocks.filter((block) => !isEagerFirstBlock(block));
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const block of eagerBlocks) {
+    // eslint-disable-next-line no-await-in-loop
+    await loadBlock(block);
+  }
+
+  await finishFirstSectionPaint(section);
+  section.dataset.sectionStatus = 'loaded';
+  section.style.display = null;
+
+  if (deferredBlocks.length) {
+    Promise.all(deferredBlocks.map((block) => loadBlock(block))).catch(() => {});
+  }
+}
+
+/**
+ * Target personalization on the eager path — preview/live only, never blocks LCP.
+ * @param {Element} main
+ * @param {Document} doc
+ */
+function scheduleEagerTargetDelivery(main, doc) {
+  loadMartech(doc)?.then(() => getMartechModule().then(async (m) => {
+    m.setDecisionScopes(getTargetDecisionScopes(main, doc));
+    m.setPropositionMetadata(buildTargetApplyMetadata(main, doc));
+    initTargetDelivery(main);
+    await m.martechEager();
+    revealTargetZones(main);
+    await finalizeTargetZonesAfterApply(main);
+  })).catch(() => {});
 }
 
 /**
@@ -704,42 +778,20 @@ async function loadEager(doc) {
 
     const needsEagerMartech = isMartechConfigured()
       && isPersonalizationEnabled(doc)
+      && shouldRequestNamedTargetScopes(doc)
       && !isLibraryPreview(doc);
-    const martechPromise = needsEagerMartech ? loadMartech(doc) : null;
+    if (needsEagerMartech) {
+      scheduleEagerTargetDelivery(main, doc);
+    }
     primeLcpImage(main);
     document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
     if (firstSection) preloadLcpHeroImage(firstSection);
     const loadFirstSection = firstSection
-      ? loadSection(firstSection, async (section) => {
-        optimizePictures(section, {
-          eagerSelector: HERO_BLOCK_SELECTOR,
-          eagerAll: true,
-        });
-        primeLcpImage(section);
-        if (!document.body.classList.contains('quick-edit')) {
-          await waitForFirstImage(section);
-          waitForHeroHeadingFont(section);
-          scheduleHeroDisplayUpgrade(section);
-        }
-      })
+      ? loadEagerFirstSection(firstSection)
       : Promise.resolve();
 
-    if (martechPromise) {
-      await Promise.all([
-        martechPromise.then(() => getMartechModule().then(async (m) => {
-          m.setDecisionScopes(getTargetDecisionScopes(main, doc));
-          m.setPropositionMetadata(buildTargetApplyMetadata(main, doc));
-          initTargetDelivery(main);
-          await m.martechEager();
-          revealTargetZones(main);
-          await finalizeTargetZonesAfterApply(main);
-        })),
-        loadFirstSection,
-      ]);
-    } else {
-      await loadFirstSection;
-    }
+    await loadFirstSection;
   }
 }
 
@@ -765,7 +817,10 @@ async function loadLazy(doc) {
   const main = doc.querySelector('main');
   await loadSections(main);
 
-  if (main && isPersonalizationEnabled(doc) && !isLibraryPreview(doc)) {
+  const needsTargetRefresh = isPersonalizationEnabled(doc)
+    && shouldRequestNamedTargetScopes(doc)
+    && !isLibraryPreview(doc);
+  if (main && needsTargetRefresh) {
     await refreshTargetZones(main);
   }
 

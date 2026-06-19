@@ -4,9 +4,19 @@
   move-to-http-header="true"
 >
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<script nonce="aem" type="module">
-  import addMarkdownAlternateLink from '/scripts/markdown-alternate.js';
-  addMarkdownAlternateLink(document);
+<script nonce="aem">
+(function (doc) {
+  if (doc.querySelector('link[rel="alternate"][type="text/markdown"]')) return;
+  var path = (doc.location || window.location).pathname.replace(/\/$/, '') || '/';
+  if (path.indexOf('/blocks/') === 0 || path.indexOf('/tools/') === 0) return;
+  if (/\.[^/]+$/.test(path) && !/\.html$/.test(path)) return;
+  var link = doc.createElement('link');
+  link.rel = 'alternate';
+  link.type = 'text/markdown';
+  link.title = 'Markdown';
+  link.href = path === '/' ? '/index.md' : path + '.md';
+  doc.head.appendChild(link);
+})(document);
 </script>
 <script nonce="aem" type="importmap">
 {
