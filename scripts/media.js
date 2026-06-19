@@ -28,7 +28,7 @@ export const HERO_ADVENTURE_BREAKPOINTS = HERO_BREAKPOINTS;
 
 /** Cap LCP preload width; display tier can go higher via post-LCP srcset. */
 export const HERO_LCP_MAX_WIDTH = 1600;
-export const HERO_LCP_MIN_WIDTH = 900;
+export const HERO_LCP_MIN_WIDTH = 640;
 
 const CARD_BREAKPOINTS = [
   { media: '(min-width: 900px)', width: 900 },

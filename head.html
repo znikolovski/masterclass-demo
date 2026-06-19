@@ -51,12 +51,48 @@
   --section-padding: 80px;
   --nav-height: 64px;
 }
+
+/* LCP-critical hero layout — full rules in blocks/hero-adventure/hero-adventure.css */
+.hero-adventure-wrapper {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+.hero-adventure {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 55vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.hero-adventure > div:first-child {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-adventure > div:first-child picture {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-adventure > div:first-child img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-adventure h1.hero-heading-pending {
+  visibility: hidden;
+}
 </style>
 <script nonce="aem">
 (function (doc) {
   /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
   var HERO_LCP_MAX = 1600;
-  var HERO_LCP_MIN = 900;
+  var HERO_LCP_MIN = 640;
   function isDynamicMediaUrl(url) {
     return /\/adobe\/assets\/|\/is\/(image|content)\//.test(url.pathname)
       || /\.adobeaemcloud\.com$|scene7\.com$|adobedc\.net$/i.test(url.hostname);

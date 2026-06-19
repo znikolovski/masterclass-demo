@@ -184,36 +184,18 @@ function scheduleHeroDisplayUpgrade(section) {
 
   const schedule = () => {
     if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(run, { timeout: 2500 });
+      requestIdleCallback(run, { timeout: 5000 });
     } else {
-      setTimeout(run, 0);
+      setTimeout(run, 3000);
     }
   };
 
-  if (typeof PerformanceObserver === 'undefined') {
-    schedule();
+  if (document.readyState === 'complete') {
+    setTimeout(schedule, 1500);
     return;
   }
 
-  let ran = false;
-  const exec = () => {
-    if (ran) return;
-    ran = true;
-    schedule();
-  };
-
-  try {
-    const po = new PerformanceObserver((list) => {
-      if (list.getEntries().length) {
-        po.disconnect();
-        exec();
-      }
-    });
-    po.observe({ type: 'largest-contentful-paint', buffered: true });
-    setTimeout(exec, 4000);
-  } catch {
-    schedule();
-  }
+  window.addEventListener('load', () => setTimeout(schedule, 1500), { once: true });
 }
 
 /** @type {Promise<typeof import('../plugins/martech/src/index.js')>|null} */
@@ -413,7 +395,7 @@ function applySectionMetadata(section, sectionMeta) {
 }
 
 function decorateSections(main) {
-  main.querySelectorAll(':scope > div').forEach((section) => {
+  main.querySelectorAll(':scope > div').forEach((section, index) => {
     if (isEmptySection(section)) {
       section.remove();
       return;
@@ -441,7 +423,10 @@ function decorateSections(main) {
     wrappers.forEach((wrapper) => section.append(wrapper));
     section.classList.add('section');
     section.dataset.sectionStatus = 'initialized';
-    section.style.display = 'none';
+    // Keep the first section visible for LCP — head.html may already have primed the hero image.
+    if (index > 0) {
+      section.style.display = 'none';
+    }
 
     section.querySelectorAll('div.section-metadata').forEach((sectionMeta) => {
       applySectionMetadata(section, sectionMeta);
@@ -700,7 +685,10 @@ async function finishFirstSectionPaint(section) {
   });
   primeLcpImage(section);
   if (!document.body.classList.contains('quick-edit')) {
-    await waitForFirstImage(section);
+    const lcpImg = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`);
+    if (!lcpImg) {
+      await waitForFirstImage(section);
+    }
     waitForHeroHeadingFont(section);
     scheduleHeroDisplayUpgrade(section);
   }
@@ -724,9 +712,9 @@ async function loadEagerFirstSection(section) {
   );
 
   if (primedHero) {
-    await finishFirstSectionPaint(section);
     section.dataset.sectionStatus = 'loaded';
     section.style.display = null;
+    finishFirstSectionPaint(section).catch(() => {});
     Promise.all([...eagerBlocks, ...deferredBlocks].map((block) => loadBlock(block)))
       .catch(() => {});
     return;
@@ -784,7 +772,13 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     primeLcpImage(main);
-    await loadHeroBlockCss(main);
+    const primedHero = main.querySelector(
+      `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
+    );
+    const heroCssPromise = loadHeroBlockCss(main);
+    if (!primedHero) {
+      await heroCssPromise;
+    }
     decorateMain(main);
     applyTemplateAndTheme(doc);
 
@@ -804,6 +798,7 @@ async function loadEager(doc) {
       : Promise.resolve();
 
     await loadFirstSection;
+    heroCssPromise.catch(() => {});
   }
 }
 
