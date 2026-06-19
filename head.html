@@ -84,6 +84,21 @@
   object-fit: cover;
 }
 
+.hero-adventure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgb(0 0 0 / 45%) 0%, rgb(0 0 0 / 15%) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-adventure > div:last-child {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+}
+
 .hero-adventure h1.hero-heading-pending {
   visibility: hidden;
 }
