@@ -80,7 +80,9 @@ function isTargetPersonalizationEnabled() {
 export function markTargetZone(section) {
   if (!section?.dataset?.targetlocation) return;
   section.classList.add('target');
-  if (!isTargetPersonalizationEnabled() || !shouldRequestNamedTargetScopes()) {
+  const isLcpSection = section.classList.contains('lcp-section')
+    || Boolean(section.querySelector('.hero-adventure picture img[data-lcp-primed="true"]'));
+  if (isLcpSection || !isTargetPersonalizationEnabled() || !shouldRequestNamedTargetScopes()) {
     section.classList.add('target-ready');
   }
 }
@@ -393,7 +395,11 @@ export async function refreshTargetZones(main) {
   if (!main) return;
   suppressTargetObserver = true;
   try {
-    getTargetZones(main).forEach((zone) => zone.classList.remove('target-ready'));
+    getTargetZones(main).forEach((zone) => {
+      const section = zone.classList.contains('section') ? zone : zone.closest('.section');
+      if (section?.classList.contains('lcp-section')) return;
+      zone.classList.remove('target-ready');
+    });
     await decorateTargetInjections(main);
   } finally {
     suppressTargetObserver = false;
@@ -435,7 +441,10 @@ function invalidateZonesAfterInjection(mutations) {
     const zone = target.matches('[data-targetlocation]')
       ? target
       : target.closest('[data-targetlocation]');
-    if (zone) zone.classList.remove('target-ready');
+    if (!zone) return;
+    const section = zone.classList?.contains('section') ? zone : zone.closest('.section');
+    if (section?.classList.contains('lcp-section')) return;
+    zone.classList.remove('target-ready');
   });
 }
 

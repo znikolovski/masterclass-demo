@@ -119,6 +119,10 @@ main .section.lcp-section .fragment:not([data-block-status="loaded"]) {
   display: none;
   min-height: 0;
 }
+
+main .section.lcp-section.target:not(.target-ready) {
+  visibility: visible;
+}
 </style>
 <script nonce="aem">
 (function (doc) {

@@ -221,7 +221,11 @@ main > .section:first-of-type .columns-featured-wrapper {
   }
 }
 
-/* Target zone — must be eager on personalized pages */
+/* Target zone — must be eager on personalized pages (never hide LCP hero) */
+main .section.lcp-section.target:not(.target-ready) {
+  visibility: visible;
+}
+
 main .section.target:not(.target-ready) {
   visibility: hidden;
   min-height: 260px;
