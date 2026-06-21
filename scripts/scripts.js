@@ -6,7 +6,6 @@ import {
   decorateBlocks,
   getMetadata,
   waitForFirstImage,
-  loadSections,
   loadBlock,
   loadCSS,
   readBlockConfig,
@@ -253,16 +252,32 @@ async function loadFonts() {
  * @returns {Promise<void>}
  */
 async function ensureStylesheet(href) {
-  const existing = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
-  if (!existing) {
+  let link = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
+  if (!link) {
     await loadCSS(href);
     return;
   }
-  if (existing.sheet) return;
-  await new Promise((resolve, reject) => {
-    existing.addEventListener('load', resolve, { once: true });
-    existing.addEventListener('error', reject, { once: true });
-  });
+  if (link.sheet) return;
+  await Promise.race([
+    new Promise((resolve, reject) => {
+      link.addEventListener('load', resolve, { once: true });
+      link.addEventListener('error', reject, { once: true });
+    }),
+    new Promise((resolve) => { setTimeout(resolve, 4000); }),
+  ]);
+  if (!link.sheet) {
+    link = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
+    if (link?.sheet) return;
+    await loadCSS(href);
+  }
+}
+
+/**
+ * @param {string} blockName
+ * @returns {string}
+ */
+function getBlockStylesheetHref(blockName) {
+  return `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`;
 }
 
 /**
@@ -831,17 +846,65 @@ function scheduleEagerTargetDelivery(main, doc) {
 }
 
 /**
- * Start lazy-styles download during eager phase without blocking LCP.
+ * Start below-fold stylesheets during eager phase (non-blocking).
+ * @param {Element} main
  * @param {Document} doc
  */
-function prefetchLazyStyles(doc) {
-  if (isLibraryPreview(doc)) return;
-  const href = `${window.hlx.codeBasePath}/styles/lazy-styles.css`;
-  if (document.querySelector(`head > link[href="${href}"]`)) return;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = href;
-  document.head.append(link);
+function prefetchBelowFoldStyles(main, doc) {
+  if (isLibraryPreview(doc) || !main) return;
+  const lazyHref = `${window.hlx.codeBasePath}/styles/lazy-styles.css`;
+  if (!document.querySelector(`head > link[href="${lazyHref}"]`)) {
+    const lazyLink = document.createElement('link');
+    lazyLink.rel = 'stylesheet';
+    lazyLink.href = lazyHref;
+    document.head.append(lazyLink);
+  }
+  main.querySelectorAll('.block[data-block-name]').forEach((block) => {
+    const { blockName } = block.dataset;
+    if (!blockName || blockName === 'hero-adventure') return;
+    const href = getBlockStylesheetHref(blockName);
+    if (document.querySelector(`head > link[href="${href}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.append(link);
+  });
+}
+
+/**
+ * Load a deferred section only after lazy + block CSS is applied.
+ * @param {Element} section
+ * @returns {Promise<void>}
+ */
+async function loadDeferredSection(section) {
+  const status = section.dataset.sectionStatus;
+  if (status && status !== 'initialized') return;
+
+  section.dataset.sectionStatus = 'loading';
+  const blocks = [...section.querySelectorAll('div.block')];
+  await Promise.all(blocks.map(async (block) => {
+    const name = block.dataset.blockName || block.classList[0];
+    if (name) {
+      await ensureStylesheet(getBlockStylesheetHref(name));
+    }
+    await loadBlock(block);
+  }));
+  section.dataset.sectionStatus = 'loaded';
+  section.style.display = null;
+}
+
+/**
+ * @param {Element} main
+ * @returns {Promise<void>}
+ */
+async function loadDeferredSections(main) {
+  if (!main) return;
+  const sections = [...main.querySelectorAll('div.section')];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const section of sections) {
+    // eslint-disable-next-line no-await-in-loop
+    await loadDeferredSection(section);
+  }
 }
 
 /**
@@ -893,7 +956,7 @@ async function loadEager(doc) {
       : Promise.resolve();
 
     await loadFirstSection;
-    prefetchLazyStyles(doc);
+    prefetchBelowFoldStyles(main, doc);
   }
 }
 
@@ -922,11 +985,14 @@ async function loadLazy(doc) {
     const fragmentBlocks = [...lcpSection.querySelectorAll('.fragment.block')]
       .filter((block) => block.dataset.blockStatus !== 'loaded');
     if (fragmentBlocks.length) {
-      await Promise.all(fragmentBlocks.map((block) => loadBlock(block)));
+      await Promise.all(fragmentBlocks.map(async (block) => {
+        await ensureStylesheet(getBlockStylesheetHref('fragment'));
+        await loadBlock(block);
+      }));
     }
   }
 
-  await loadSections(main);
+  await loadDeferredSections(main);
 
   const needsTargetRefresh = isPersonalizationEnabled(doc)
     && shouldRequestNamedTargetScopes(doc)
