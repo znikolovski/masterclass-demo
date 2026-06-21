@@ -1,5 +1,9 @@
 /* LCP-critical global styles — tokens in brand.css (parallel head link, not @import) */
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   display: none;
   margin: 0;
@@ -193,11 +197,19 @@ main .section.hero-adventure-container > div {
   }
 }
 
-/* Above-fold fragment — hide until lazy load (homepage LCP); reserve height once loaded */
+/* Above-fold fragment — hide until lazy load; reserve height to avoid CLS when injected */
 main > .section:first-of-type .fragment:not([data-block-status="loaded"]),
 main > .section.lcp-section .fragment:not([data-block-status="loaded"]) {
-  display: none;
-  min-height: 0;
+  visibility: hidden;
+  overflow: hidden;
+  min-height: 600px;
+}
+
+@media (width >= 900px) {
+  main > .section:first-of-type .fragment:not([data-block-status="loaded"]),
+  main > .section.lcp-section .fragment:not([data-block-status="loaded"]) {
+    min-height: 360px;
+  }
 }
 
 main > .section:first-of-type .fragment[data-block-status="loaded"],

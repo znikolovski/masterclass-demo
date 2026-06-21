@@ -1007,10 +1007,15 @@ async function loadLazy(doc) {
     const fragmentBlocks = [...lcpSection.querySelectorAll('.fragment.block')]
       .filter((block) => block.dataset.blockStatus !== 'loaded');
     if (fragmentBlocks.length) {
-      await Promise.all(fragmentBlocks.map(async (block) => {
+      const loadLcpFragments = () => Promise.all(fragmentBlocks.map(async (block) => {
         await ensureStylesheet(getBlockStylesheetHref('fragment'));
         await loadBlock(block);
-      }));
+      })).catch(() => {});
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(() => { loadLcpFragments(); }, { timeout: 2500 });
+      } else {
+        setTimeout(loadLcpFragments, 100);
+      }
     }
   }
 
@@ -1033,10 +1038,6 @@ async function loadLazy(doc) {
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
-
-  if (!isLibraryPreview(doc)) {
-    loadFooter(doc.querySelector('footer'));
-  }
 
   if (martechLoadedPromise && !isLibraryPreview(doc)) {
     await martechLoadedPromise;
@@ -1090,6 +1091,9 @@ async function loadLazy(doc) {
  */
 function loadDelayed() {
   window.setTimeout(() => {
+    if (!isLibraryPreview(document)) {
+      loadFooter(document.querySelector('footer'));
+    }
     if (martechLoadedPromise) {
       martechLoadedPromise.then(() => getMartechModule().then(async (m) => {
         await m.martechDelayed();

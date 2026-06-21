@@ -12,7 +12,7 @@
 .hero-adventure {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   min-height: 55vh;
   overflow: hidden;
   padding: 0;
@@ -83,6 +83,14 @@
 /* Heading cell — reserve line box before Syncopate paints (prevents H1 CLS) */
 .hero-adventure > div:last-child > div:has(> h1) {
   min-height: calc(var(--heading-font-size-xxl) * 1.1 * 4 + 40px);
+}
+
+.hero-adventure > div:last-child > div:nth-child(3) {
+  min-height: 4.8em;
+}
+
+.hero-adventure > div:last-child > div:nth-child(n+4) {
+  min-height: 45px;
 }
 
 .hero-adventure h1 {
