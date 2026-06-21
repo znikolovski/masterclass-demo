@@ -248,6 +248,24 @@ async function loadFonts() {
 }
 
 /**
+ * Load a stylesheet and wait until it is applied (handles preload + in-flight link tags).
+ * @param {string} href Stylesheet URL
+ * @returns {Promise<void>}
+ */
+async function ensureStylesheet(href) {
+  const existing = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
+  if (!existing) {
+    await loadCSS(href);
+    return;
+  }
+  if (existing.sheet) return;
+  await new Promise((resolve, reject) => {
+    existing.addEventListener('load', resolve, { once: true });
+    existing.addEventListener('error', reject, { once: true });
+  });
+}
+
+/**
  * @param {Element} root
  * @returns {boolean}
  */
@@ -813,6 +831,20 @@ function scheduleEagerTargetDelivery(main, doc) {
 }
 
 /**
+ * Start lazy-styles download during eager phase without blocking LCP.
+ * @param {Document} doc
+ */
+function prefetchLazyStyles(doc) {
+  if (isLibraryPreview(doc)) return;
+  const href = `${window.hlx.codeBasePath}/styles/lazy-styles.css`;
+  if (document.querySelector(`head > link[href="${href}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.append(link);
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
@@ -861,6 +893,7 @@ async function loadEager(doc) {
       : Promise.resolve();
 
     await loadFirstSection;
+    prefetchLazyStyles(doc);
   }
 }
 
@@ -870,7 +903,7 @@ async function loadEager(doc) {
  */
 async function loadLazy(doc) {
   if (!isLibraryPreviewShell(doc)) {
-    loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+    await ensureStylesheet(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   }
 
   loadFonts().catch(() => {});
