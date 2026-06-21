@@ -247,6 +247,19 @@ async function loadFonts() {
 }
 
 /**
+ * Warm-cache a stylesheet without blocking first paint (promoted in loadLazy).
+ * @param {string} href Stylesheet URL
+ */
+function prefetchStylesheet(href) {
+  if (document.querySelector(`head > link[href="${href}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'style';
+  link.href = href;
+  document.head.append(link);
+}
+
+/**
  * Promote a preload link to an applied stylesheet, or insert a new one.
  * loadCSS in aem.js skips insertion when *any* same-href link exists (including preload).
  * @param {string} href Stylesheet URL
@@ -864,18 +877,19 @@ function scheduleEagerTargetDelivery(main, doc) {
 }
 
 /**
- * Start below-fold stylesheets during eager phase (non-blocking).
+ * Warm-cache below-fold CSS during eager (preload only — never render-blocking).
  * @param {Element} main
  * @param {Document} doc
  */
 function prefetchBelowFoldStyles(main, doc) {
   if (isLibraryPreview(doc) || !main) return;
-  const lazyHref = `${window.hlx.codeBasePath}/styles/lazy-styles.css`;
-  attachStylesheetLink(lazyHref);
+  prefetchStylesheet(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   main.querySelectorAll('.block[data-block-name]').forEach((block) => {
     const { blockName } = block.dataset;
-    if (!blockName || blockName === 'hero-adventure') return;
-    attachStylesheetLink(getBlockStylesheetHref(blockName));
+    if (!blockName || blockName === 'hero-adventure' || blockName === 'default-content-wrapper') {
+      return;
+    }
+    prefetchStylesheet(getBlockStylesheetHref(blockName));
   });
 }
 
