@@ -247,16 +247,36 @@ async function loadFonts() {
 }
 
 /**
+ * Promote a preload link to an applied stylesheet, or insert a new one.
+ * loadCSS in aem.js skips insertion when *any* same-href link exists (including preload).
+ * @param {string} href Stylesheet URL
+ * @returns {HTMLLinkElement|null}
+ */
+function attachStylesheetLink(href) {
+  let link = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
+  if (link) return link;
+
+  const preload = document.querySelector(`head > link[rel="preload"][href="${href}"]`);
+  if (preload) {
+    preload.rel = 'stylesheet';
+    preload.removeAttribute('as');
+    return preload;
+  }
+
+  link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.append(link);
+  return link;
+}
+
+/**
  * Load a stylesheet and wait until it is applied (handles preload + in-flight link tags).
  * @param {string} href Stylesheet URL
  * @returns {Promise<void>}
  */
 async function ensureStylesheet(href) {
-  let link = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
-  if (!link) {
-    await loadCSS(href);
-    return;
-  }
+  let link = attachStylesheetLink(href);
   if (link.sheet) return;
   await Promise.race([
     new Promise((resolve, reject) => {
@@ -266,9 +286,7 @@ async function ensureStylesheet(href) {
     new Promise((resolve) => { setTimeout(resolve, 4000); }),
   ]);
   if (!link.sheet) {
-    link = document.querySelector(`head > link[rel="stylesheet"][href="${href}"]`);
-    if (link?.sheet) return;
-    await loadCSS(href);
+    link = attachStylesheetLink(href);
   }
 }
 
@@ -853,21 +871,11 @@ function scheduleEagerTargetDelivery(main, doc) {
 function prefetchBelowFoldStyles(main, doc) {
   if (isLibraryPreview(doc) || !main) return;
   const lazyHref = `${window.hlx.codeBasePath}/styles/lazy-styles.css`;
-  if (!document.querySelector(`head > link[href="${lazyHref}"]`)) {
-    const lazyLink = document.createElement('link');
-    lazyLink.rel = 'stylesheet';
-    lazyLink.href = lazyHref;
-    document.head.append(lazyLink);
-  }
+  attachStylesheetLink(lazyHref);
   main.querySelectorAll('.block[data-block-name]').forEach((block) => {
     const { blockName } = block.dataset;
     if (!blockName || blockName === 'hero-adventure') return;
-    const href = getBlockStylesheetHref(blockName);
-    if (document.querySelector(`head > link[href="${href}"]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.append(link);
+    attachStylesheetLink(getBlockStylesheetHref(blockName));
   });
 }
 
