@@ -80,7 +80,7 @@ const pageOk = page
   && String(page.journeyStage).trim() === 'inspiration';
 record('Page context on homepage', pageOk, page);
 
-if (BASE.includes('aem.page') || BASE.includes('aem.live')) {
+if (BASE.includes('aem.page') || BASE.includes('aem.live') || BASE.includes('aem.network')) {
   const launch = evalPage(`
     const scripts = [...document.scripts].map((s) => s.src).filter(Boolean);
     const launchScript = scripts.find((src) => src.includes('adobedtm.com') && src.includes('launch'));

@@ -14,7 +14,7 @@ import {
 } from '../../scripts/aem.js';
 
 /**
- * Normalizes authored fragment references (relative paths, .aem.page/.aem.live
+ * Normalizes authored fragment references (relative paths, .aem.page/.aem.live/.aem.network
  * URLs, or content.da.live paths) to a site-root path for .plain.html fetch.
  * @param {string} pathOrUrl Fragment reference from the block or a link
  * @returns {string|null} Path such as /fragments/my-fragment, or null if invalid

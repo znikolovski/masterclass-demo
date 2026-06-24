@@ -406,6 +406,7 @@ function isDynamicOptionsHost(hostname) {
   return hostname.endsWith('hlx.page')
     || hostname.endsWith('hlx.live')
     || hostname.endsWith('aem.live')
+    || hostname.endsWith('aem.network')
     || hostname.endsWith('aem.page');
 }
 

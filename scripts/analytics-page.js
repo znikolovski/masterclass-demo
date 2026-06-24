@@ -20,6 +20,11 @@ const ADVENTURE_CATEGORY_KEYWORDS = {
   photography: ['photography', 'field-notes'],
 };
 
+/** Production EDS hosts (aem.network primary; aem.live retained during transition). */
+export function isAemProductionHost(hostname = window.location?.hostname || '') {
+  return hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network');
+}
+
 /**
  * @param {string} [hostname]
  * @returns {'local'|'preview'|'live'|'other'}
@@ -27,7 +32,7 @@ const ADVENTURE_CATEGORY_KEYWORDS = {
 export function getAnalyticsEnvironment(hostname = window.location?.hostname || '') {
   if (hostname === 'localhost' || hostname === 'localhost.local') return 'local';
   if (hostname.endsWith('.aem.page')) return 'preview';
-  if (hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network')) return 'live';
+  if (isAemProductionHost(hostname)) return 'live';
   return 'other';
 }
 

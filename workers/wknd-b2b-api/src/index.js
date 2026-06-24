@@ -43,7 +43,7 @@ function isAllowedOrigin(origin, allowed) {
   if (list.includes(origin)) return true;
   try {
     const { hostname } = new URL(origin);
-    return hostname.endsWith('.aem.page') || hostname.endsWith('.aem.live');
+    return hostname.endsWith('.aem.page') || hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network');
   } catch {
     return false;
   }

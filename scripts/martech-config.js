@@ -4,7 +4,7 @@
  * @see docs/MARTECH.md
  */
 
-import { mapPageToAnalytics } from './analytics-page.js';
+import { mapPageToAnalytics, isAemProductionHost } from './analytics-page.js';
 
 export const WEB_SDK_CONFIG = {
   datastreamId: '56dee4fc-21a9-4e37-83ab-bdd874957aba',
@@ -38,7 +38,7 @@ export function getLaunchUrls() {
   if (typeof window === 'undefined') return [];
 
   const { hostname } = window.location;
-  const isLive = hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network');
+  const isLive = isAemProductionHost(hostname);
   const isLocal = hostname === 'localhost' || hostname === 'localhost.local';
   const isPreview = hostname.endsWith('.aem.page') || isLocal;
 

@@ -116,8 +116,8 @@ function parseArgs(argv) {
  */
 function assertLiveOrigin(base) {
   const url = new URL(base);
-  if (!url.hostname.endsWith('.aem.live')) {
-    throw new Error(`Refusing non-production host "${url.hostname}". Use an *.aem.live URL.`);
+  if (!url.hostname.endsWith('.aem.live') && !url.hostname.endsWith('.aem.network')) {
+    throw new Error(`Refusing non-production host "${url.hostname}". Use an *.aem.live or *.aem.network URL.`);
   }
   return url.origin;
 }
