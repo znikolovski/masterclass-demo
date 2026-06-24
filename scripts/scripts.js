@@ -72,13 +72,37 @@ function isLayoutClassName(name) {
 }
 
 /**
+ * @param {Element} el
+ * @returns {boolean}
+ */
+function isBlockRootCandidate(el) {
+  if (el.tagName !== 'DIV') return false;
+  if (el.classList.contains('block')) return false;
+  const name = el.classList[0];
+  if (!name || isLayoutClassName(name)) return false;
+  return el.children.length > 0
+    && [...el.children].every((child) => child.tagName === 'DIV');
+}
+
+/**
+ * Find innermost block roots inside a section (handles server-inlined fragments in layout shells).
+ * @param {Element} section
+ * @returns {Element[]}
+ */
+function collectSectionBlocks(section) {
+  const candidates = [...section.querySelectorAll(':scope div[class]')].filter(isBlockRootCandidate);
+  return candidates.filter(
+    (el) => !candidates.some((other) => other !== el && el.contains(other)),
+  );
+}
+
+/**
  * Decorate real blocks only — skip section style shells (e.g. narrow) from inlined fragments.
  * @param {Element} main
  */
 function decoratePageBlocks(main) {
-  main.querySelectorAll('div.section > div > div').forEach((block) => {
-    if (isLayoutClassName(block.classList[0])) return;
-    decorateBlock(block);
+  main.querySelectorAll('div.section').forEach((section) => {
+    collectSectionBlocks(section).forEach(decorateBlock);
   });
 }
 

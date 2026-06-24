@@ -71,7 +71,23 @@ export async function loadFragment(pathOrUrl) {
   return main;
 }
 
+/**
+ * Server-inlined fragments replace the block table with real content (often inside layout shells).
+ * @param {Element} block
+ * @returns {boolean}
+ */
+function hasServerInlinedFragmentContent(block) {
+  return [...block.querySelectorAll(':scope > div[class]')].some((el) => {
+    const name = el.classList[0];
+    return name && name !== 'fragment';
+  });
+}
+
 export default async function decorate(block) {
+  if (hasServerInlinedFragmentContent(block)) {
+    return;
+  }
+
   const link = block.querySelector('a');
   const raw = link ? (link.getAttribute('href') || link.href) : block.textContent.trim();
   const path = resolveFragmentPath(raw);
