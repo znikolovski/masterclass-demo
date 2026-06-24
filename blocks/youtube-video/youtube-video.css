@@ -31,6 +31,10 @@ main .youtube-video .youtube-video-caption {
   text-align: center;
 }
 
+main .inverse > .youtube-video .youtube-video-caption {
+  color: rgb(255, 255, 255);
+}
+
 main .youtube-video .youtube-video-caption::before {
   content: '';
   display: inline-block;

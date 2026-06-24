@@ -179,10 +179,14 @@ function isLayoutClassName(name) {
   return !name
     || name === 'section'
     || name === 'narrow'
+    || name === 'inverse'
+    || name === 'secondary'
+    || name === 'accent'
     || name === 'block'
     || name === 'default-content-wrapper'
     || name === 'target'
     || name === 'section-metadata'
+    || name === 'richtext'
     || name.endsWith('-wrapper')
     || name.endsWith('-container')
     || name.endsWith('-track');

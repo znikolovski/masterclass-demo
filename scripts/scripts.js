@@ -3,7 +3,7 @@ import {
   loadHeader,
   loadFooter,
   decorateIcons,
-  decorateBlocks,
+  decorateBlock,
   getMetadata,
   waitForFirstImage,
   loadBlock,
@@ -44,6 +44,43 @@ const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
 
 /** Blocks that must load before revealing the first section (LCP). */
 const EAGER_FIRST_BLOCK_NAMES = new Set(['hero-adventure', 'carousel-hero', 'hero']);
+
+/** Section layout shells from inline fragments — not blocks (no blocks/{name}/ CSS). */
+const LAYOUT_CLASS_NAMES = new Set([
+  'section',
+  'narrow',
+  'inverse',
+  'secondary',
+  'accent',
+  'block',
+  'default-content-wrapper',
+  'target',
+  'section-metadata',
+  'richtext',
+]);
+
+/**
+ * @param {string} [name]
+ * @returns {boolean}
+ */
+function isLayoutClassName(name) {
+  return !name
+    || LAYOUT_CLASS_NAMES.has(name)
+    || name.endsWith('-wrapper')
+    || name.endsWith('-container')
+    || name.endsWith('-track');
+}
+
+/**
+ * Decorate real blocks only — skip section style shells (e.g. narrow) from inlined fragments.
+ * @param {Element} main
+ */
+function decoratePageBlocks(main) {
+  main.querySelectorAll('div.section > div > div').forEach((block) => {
+    if (isLayoutClassName(block.classList[0])) return;
+    decorateBlock(block);
+  });
+}
 
 /**
  * Eager-load hero block CSS so above-fold layout is stable before block decoration.
@@ -297,7 +334,7 @@ async function ensureStylesheet(href) {
       link.addEventListener('error', reject, { once: true });
     }),
     new Promise((resolve) => { setTimeout(resolve, 4000); }),
-  ]);
+  ]).catch(() => {});
   if (!link.sheet) {
     link = attachStylesheetLink(href);
   }
@@ -543,7 +580,7 @@ export function decorateMain(main) {
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
-  decorateBlocks(main);
+  decoratePageBlocks(main);
   hoistTargetLocationToSection(main);
   decorateButtonGroups(main);
   getTargetZones(main).forEach(markTargetZone);
@@ -574,7 +611,7 @@ function getPageMetadataValue(name, doc = document) {
 const SITE_BRAND_OVERRIDES = new Set(['wknd-business']);
 
 /**
- * Site slug from AEM preview/live hostname ({branch}--{site}--{org}.aem.page).
+ * Site slug from AEM preview/live hostname ({branch}--{site}--{org}.aem.page|.aem.live|.aem.network).
  * @param {Document} [doc]
  * @returns {string}
  */
@@ -586,8 +623,8 @@ function getRepolessSiteSlug(doc = document) {
   if (brandMeta) return toClassName(brandMeta) || brandMeta;
 
   const { hostname } = window.location;
-  if (hostname.endsWith('.aem.page') || hostname.endsWith('.aem.live')) {
-    const parts = hostname.replace(/\.aem\.(page|live)$/, '').split('--');
+  if (hostname.endsWith('.aem.page') || hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network')) {
+    const parts = hostname.replace(/\.aem\.(page|live|network)$/, '').split('--');
     if (parts.length >= 3) return parts[parts.length - 2];
   }
   return 'masterclass-demo';
@@ -717,7 +754,8 @@ function isConsentGiven() {
   return hostname === 'localhost'
     || hostname === 'localhost.local'
     || hostname.endsWith('.page')
-    || hostname.endsWith('.live');
+    || hostname.endsWith('.live')
+    || hostname.endsWith('.network');
 }
 
 /**
@@ -886,7 +924,7 @@ function prefetchBelowFoldStyles(main, doc) {
   prefetchStylesheet(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   main.querySelectorAll('.block[data-block-name]').forEach((block) => {
     const { blockName } = block.dataset;
-    if (!blockName || blockName === 'hero-adventure' || blockName === 'default-content-wrapper') {
+    if (!blockName || blockName === 'hero-adventure' || isLayoutClassName(blockName)) {
       return;
     }
     prefetchStylesheet(getBlockStylesheetHref(blockName));
@@ -906,7 +944,7 @@ async function loadDeferredSection(section) {
   const blocks = [...section.querySelectorAll('div.block')];
   await Promise.all(blocks.map(async (block) => {
     const name = block.dataset.blockName || block.classList[0];
-    if (name) {
+    if (name && !isLayoutClassName(name)) {
       await ensureStylesheet(getBlockStylesheetHref(name));
     }
     await loadBlock(block);

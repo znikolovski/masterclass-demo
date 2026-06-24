@@ -38,7 +38,7 @@ export function getLaunchUrls() {
   if (typeof window === 'undefined') return [];
 
   const { hostname } = window.location;
-  const isLive = hostname.endsWith('.aem.live');
+  const isLive = hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network');
   const isLocal = hostname === 'localhost' || hostname === 'localhost.local';
   const isPreview = hostname.endsWith('.aem.page') || isLocal;
 

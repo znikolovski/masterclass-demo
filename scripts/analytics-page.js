@@ -27,7 +27,7 @@ const ADVENTURE_CATEGORY_KEYWORDS = {
 export function getAnalyticsEnvironment(hostname = window.location?.hostname || '') {
   if (hostname === 'localhost' || hostname === 'localhost.local') return 'local';
   if (hostname.endsWith('.aem.page')) return 'preview';
-  if (hostname.endsWith('.aem.live')) return 'live';
+  if (hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network')) return 'live';
   return 'other';
 }
 

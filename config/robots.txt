@@ -3,4 +3,4 @@ Disallow: /reports/
 Disallow: /fragments/
 Disallow: /find-your-adventure/results
 
-Sitemap: https://main--masterclass-demo--znikolovski.aem.live/sitemap.xml
+Sitemap: https://main--masterclass-demo--znikolovski.aem.network/sitemap.xml
