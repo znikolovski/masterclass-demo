@@ -453,6 +453,7 @@ Use **Custom Code only** for interaction rules — do not use the individual att
 | [4d-4](#recipe-4d-4--eds---carousel-change) | `EDS - Carousel Change` | ✅ Yes |
 | [4d-7](#recipe-4d-7--eds---faq-expand) | `EDS - FAQ Expand` | ✅ Yes |
 | [4d-8](#recipe-4d-8--eds---tab-select) | `EDS - Tab Select` | ✅ Yes |
+| [4d-9](#recipe-4d-9--eds---map-pin-click) | `EDS - Map Pin Click` | ✅ Yes (adventure-map block) |
 | [4d-5 / 4d-6](#recipe-4d-5--4d-6--eds---video-start--complete) | Video Start / Complete | ⏸ After block JS |
 | [ACDL mode](#when-site-code-pushes-acdl-events-later) | same rule names | Later |
 
@@ -650,6 +651,36 @@ s.prop5 = 'tabs-activity';
 
 ---
 
+##### Recipe 4d-9 — `EDS - Map Pin Click`
+
+**ACDL event mode** — fired from [adventure-map.js](../blocks/adventure-map/adventure-map.js) on marker click.
+
+| Step | What to enter |
+|------|----------------|
+| **Extension** | Adobe Client Data Layer |
+| **Event type** | Listen to a specific event pushed to the Data Layer |
+| **Event name** | `mapPinClick` |
+| **Scope** | All |
+
+**Action 1 — Custom Code:**
+
+```js
+content.__adobe = content.__adobe || {};
+content.__adobe.analytics = content.__adobe.analytics || {};
+const s = content.__adobe.analytics;
+const interaction = window.adobeDataLayer?.getState?.('interaction') || {};
+s.events = 'event6';
+s.linkName = interaction.label || 'map-pin';
+s.linkType = 'o';
+s.prop5 = interaction.detail || interaction.block || 'adventure-map';
+```
+
+**Action 2 — Send event:** Link click · **`EDS - Analytics Variable`**
+
+**Map popup links:** append `?cid=adventure-map` (or block-configured cid) on adventure URLs. Destination page loads `cid` into **eVar1** via existing `onBeforeEventSend` / `EDS - CID` data element.
+
+---
+
 ##### Recipe 4d-5 / 4d-6 — `EDS - Video Start` & `Complete`
 
 **Do not build in Launch yet** — YouTube runs in an iframe; Core Click cannot see play/complete.
@@ -683,7 +714,7 @@ Replace **Core → Click** with **Adobe Client Data Layer** event:
 1. **Events → Add**
 2. **Extension:** `Adobe Client Data Layer`
 3. **Event type:** `Listen to a specific event pushed to the Data Layer` (wording may vary)
-4. **Event name:** exact string, e.g. `ctaClick`, `carouselChange`, `faqExpand`, `tabSelect`
+4. **Event name:** exact string, e.g. `ctaClick`, `carouselChange`, `faqExpand`, `tabSelect`, `mapPinClick`
 5. **Scope:** `All` (default)
 6. **Data elements:** `interaction.label`, `interaction.block`, `interaction.detail` — type **Data Layer Computed State**, storage **Page view** ([§3 paths](#acdl-data-elements-primary))
 7. **Custom Code** — read `interaction` from `adobeDataLayer.getState('interaction')`; do **not** use `%EDS - Interaction Label%` literals in Web SDK Custom Code

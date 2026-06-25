@@ -1,0 +1,27 @@
+{
+  "variantName": "adventure-map",
+  "version": "1.0.0",
+  "created": "2026-06-24T00:00:00.000Z",
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "comfortable",
+    "purpose": "interactive-map",
+    "imagePattern": "none"
+  },
+  "contentPattern": {
+    "structure": "heading + optional zoom + optional analytics cid; pins from adventures-map index",
+    "buttonCount": 0,
+    "imageCount": 0
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "destinations discovery",
+      "adventure landing pages below the fold",
+      "geo exploration of field notes"
+    ],
+    "notSuitableFor": [
+      "LCP / first section of a page",
+      "pages without geo metadata on adventure content"
+    ]
+  }
+}

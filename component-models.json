@@ -153,6 +153,27 @@
         "label": "B2B API URL",
         "valueType": "string",
         "description": "Cloudflare Worker or Edge Function base URL for B2B dashboard"
+      },
+      {
+        "component": "text",
+        "name": "latitude",
+        "label": "Latitude",
+        "valueType": "string",
+        "description": "Decimal degrees for adventure map pin (e.g. -51.25). Used by the adventure-map block index."
+      },
+      {
+        "component": "text",
+        "name": "longitude",
+        "label": "Longitude",
+        "valueType": "string",
+        "description": "Decimal degrees for adventure map pin (e.g. -73.05). Used by the adventure-map block index."
+      },
+      {
+        "component": "text",
+        "name": "placeName",
+        "label": "Place name",
+        "valueType": "string",
+        "description": "Human-readable location label for map popup (e.g. Torres del Paine, Chile)."
       }
     ]
   },
@@ -784,6 +805,33 @@
         "name": "autoplay",
         "label": "Autoplay (muted)",
         "valueType": "boolean"
+      }
+    ]
+  },
+  {
+    "id": "adventure-map",
+    "fields": [
+      {
+        "component": "text",
+        "name": "heading",
+        "label": "Heading",
+        "valueType": "string",
+        "required": true,
+        "description": "Map section title (rendered as h2)"
+      },
+      {
+        "component": "number",
+        "name": "defaultZoom",
+        "label": "Default zoom",
+        "valueType": "number",
+        "description": "Initial zoom level when fewer than two pins (1–18). Default 2."
+      },
+      {
+        "component": "text",
+        "name": "analyticsCid",
+        "label": "Analytics campaign ID",
+        "valueType": "string",
+        "description": "cid query parameter on adventure links from map popups. Default adventure-map."
       }
     ]
   },

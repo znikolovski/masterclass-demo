@@ -1,0 +1,125 @@
+.adventure-map {
+  padding: var(--space-3xl) 0;
+}
+
+.adventure-map-header {
+  margin-bottom: var(--space-lg);
+}
+
+.adventure-map-header h2 {
+  margin: 0 0 var(--space-sm);
+}
+
+.adventure-map-count {
+  margin: 0;
+  font-size: var(--body-font-size-s);
+  color: rgb(15 26 20 / 70%);
+}
+
+.adventure-map-canvas-wrap {
+  position: relative;
+  min-height: 360px;
+  background-color: var(--light-color);
+  border: 2px solid var(--dark-color);
+  box-shadow: 4px 4px 0 var(--dark-color);
+}
+
+.adventure-map-canvas {
+  width: 100%;
+  min-height: 360px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.adventure-map-loaded .adventure-map-canvas {
+  opacity: 1;
+}
+
+.adventure-map-message {
+  margin: var(--space-md) 0 0;
+  padding: var(--space-md);
+  background-color: var(--light-color);
+  border: 1px solid rgb(15 26 20 / 15%);
+}
+
+.adventure-map-list {
+  margin-top: var(--space-lg);
+}
+
+.adventure-map-list-heading {
+  font-size: var(--heading-font-size-s);
+  margin: 0 0 var(--space-sm);
+}
+
+.adventure-map-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.adventure-map-list a {
+  display: block;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--light-color);
+  border: 1px solid rgb(15 26 20 / 12%);
+  text-decoration: none;
+  color: var(--text-color);
+}
+
+.adventure-map-list a:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.adventure-map-popup {
+  max-width: 240px;
+  font-family: var(--body-font-family);
+  color: var(--text-color);
+}
+
+.adventure-map-popup img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: var(--space-sm);
+  object-fit: cover;
+}
+
+.adventure-map-popup-tag {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-color);
+}
+
+.adventure-map-popup-title {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--heading-font-size-xs);
+  font-family: var(--heading-font-family);
+}
+
+.adventure-map-popup-place {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--body-font-size-s);
+  color: rgb(15 26 20 / 75%);
+}
+
+.adventure-map-popup .button-container {
+  margin: 0;
+}
+
+@media (width >= 900px) {
+  .adventure-map-canvas-wrap,
+  .adventure-map-canvas {
+    min-height: 520px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adventure-map-canvas {
+    transition: none;
+  }
+}

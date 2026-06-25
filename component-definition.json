@@ -712,6 +712,32 @@
           }
         },
         {
+          "title": "Adventure Map",
+          "id": "adventure-map",
+          "model": "adventure-map",
+          "plugins": {
+            "da": {
+              "name": "adventure-map",
+              "rows": 1,
+              "columns": 2,
+              "fields": [
+                {
+                  "name": "heading",
+                  "selector": "div h2"
+                },
+                {
+                  "name": "defaultZoom",
+                  "selector": "div:nth-child(1) > div:nth-child(2)"
+                },
+                {
+                  "name": "analyticsCid",
+                  "selector": "div:nth-child(1) > div:nth-child(3)"
+                }
+              ]
+            }
+          }
+        },
+        {
           "title": "Adaptive Form",
           "id": "form",
           "model": "form",
