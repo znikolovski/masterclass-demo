@@ -1,6 +1,6 @@
 import { loadScript } from '../../scripts/aem.js';
 import {
-  GOOGLE_MAPS_API_KEY,
+  getGoogleMapsApiKey,
   DEFAULT_MAP_ANALYTICS_CID,
   DEFAULT_MAP_ZOOM,
 } from '../../scripts/maps-config.js';
@@ -161,7 +161,8 @@ function loadGoogleMaps() {
       resolve(window.google.maps);
       return;
     }
-    if (!GOOGLE_MAPS_API_KEY) {
+    const apiKey = getGoogleMapsApiKey();
+    if (!apiKey) {
       reject(new Error('Maps API key not configured'));
       return;
     }
@@ -179,13 +180,28 @@ function loadGoogleMaps() {
     };
 
     const params = new URLSearchParams({
-      key: GOOGLE_MAPS_API_KEY,
+      key: apiKey,
       loading: 'async',
       callback: MAPS_CALLBACK,
     });
 
     loadScript(`https://maps.googleapis.com/maps/api/js?${params.toString()}`).catch(reject);
   });
+}
+
+/**
+ * @param {Element} canvasWrap
+ * @param {string} message
+ */
+function showCanvasMessage(canvasWrap, message) {
+  let msg = canvasWrap.querySelector('.adventure-map-canvas-message');
+  if (!msg) {
+    msg = document.createElement('p');
+    msg.className = 'adventure-map-canvas-message';
+    msg.setAttribute('role', 'status');
+    canvasWrap.append(msg);
+  }
+  msg.textContent = message;
 }
 
 /**
@@ -328,6 +344,83 @@ function createNearbyCard(adventure, analyticsCid) {
 }
 
 /**
+ * @param {Element|null} list
+ * @param {object[]} visible
+ * @param {object} config
+ */
+function renderAdventureList(list, visible, config) {
+  if (!list) return;
+
+  list.replaceChildren();
+  list.classList.toggle('adventure-map-nearby-empty', visible.length === 0);
+  if (visible.length === 0) return;
+
+  list.dataset.activeSlide = '0';
+  list.setAttribute('role', 'region');
+  list.setAttribute('aria-roledescription', 'Carousel');
+  list.setAttribute('aria-label', 'Adventures in this area');
+
+  const header = document.createElement('div');
+  header.className = 'adventure-map-nearby-header';
+
+  const eyebrow = document.createElement('p');
+  eyebrow.className = 'adventure-map-nearby-eyebrow';
+  eyebrow.textContent = 'Local discoveries';
+
+  const heading = document.createElement('h3');
+  heading.className = 'adventure-map-nearby-heading';
+  heading.textContent = 'Adventures in this area';
+
+  header.append(eyebrow, heading);
+
+  if (visible.length > 1) {
+    const controls = document.createElement('div');
+    controls.className = 'adventure-map-nearby-controls';
+    controls.innerHTML = `
+      <div class="adventure-map-nearby-nav">
+        <button type="button" class="adventure-map-nearby-prev" aria-label="Previous adventure"></button>
+        <button type="button" class="adventure-map-nearby-next" aria-label="Next adventure"></button>
+      </div>
+    `;
+    header.append(controls);
+  }
+
+  list.append(header);
+
+  const trackWrap = document.createElement('div');
+  trackWrap.className = 'adventure-map-nearby-track-wrap';
+
+  const track = document.createElement('ul');
+  track.className = 'adventure-map-nearby-track';
+  visible.forEach((adventure) => {
+    track.append(createNearbyCard(adventure, config.analyticsCid));
+  });
+
+  trackWrap.append(track);
+  list.append(trackWrap);
+
+  list.dataset.carouselClickBound = 'false';
+  bindNearbyCarousel(list);
+  updateNearbySlide(list, 0);
+}
+
+/**
+ * @param {Element} block
+ * @param {object} config
+ * @param {object[]} adventures
+ */
+function initListOnly(block, config, adventures) {
+  const countEl = block.querySelector('.adventure-map-count');
+  const list = block.querySelector('.adventure-map-nearby');
+  if (countEl) {
+    countEl.textContent = adventures.length
+      ? `Showing ${adventures.length} adventure${adventures.length === 1 ? '' : 's'}`
+      : '';
+  }
+  renderAdventureList(list, adventures, config);
+}
+
+/**
  * @param {Element} block
  * @param {object} config
  * @param {object[]} adventures
@@ -405,63 +498,10 @@ function initMap(block, config, adventures, maps) {
    * @param {object[]} visible
    */
   function renderList(visible) {
-    if (!list) return;
-
     const visibleKey = visible.map((adventure) => adventure.path).join('|');
     if (visibleKey === lastVisibleKey) return;
     lastVisibleKey = visibleKey;
-
-    list.replaceChildren();
-    list.classList.toggle('adventure-map-nearby-empty', visible.length === 0);
-    if (visible.length === 0) return;
-
-    list.dataset.activeSlide = '0';
-    list.setAttribute('role', 'region');
-    list.setAttribute('aria-roledescription', 'Carousel');
-    list.setAttribute('aria-label', 'Adventures in this area');
-
-    const header = document.createElement('div');
-    header.className = 'adventure-map-nearby-header';
-
-    const eyebrow = document.createElement('p');
-    eyebrow.className = 'adventure-map-nearby-eyebrow';
-    eyebrow.textContent = 'Local discoveries';
-
-    const heading = document.createElement('h3');
-    heading.className = 'adventure-map-nearby-heading';
-    heading.textContent = 'Adventures in this area';
-
-    header.append(eyebrow, heading);
-
-    if (visible.length > 1) {
-      const controls = document.createElement('div');
-      controls.className = 'adventure-map-nearby-controls';
-      controls.innerHTML = `
-        <div class="adventure-map-nearby-nav">
-          <button type="button" class="adventure-map-nearby-prev" aria-label="Previous adventure"></button>
-          <button type="button" class="adventure-map-nearby-next" aria-label="Next adventure"></button>
-        </div>
-      `;
-      header.append(controls);
-    }
-
-    list.append(header);
-
-    const trackWrap = document.createElement('div');
-    trackWrap.className = 'adventure-map-nearby-track-wrap';
-
-    const track = document.createElement('ul');
-    track.className = 'adventure-map-nearby-track';
-    visible.forEach((adventure) => {
-      track.append(createNearbyCard(adventure, config.analyticsCid));
-    });
-
-    trackWrap.append(track);
-    list.append(trackWrap);
-
-    list.dataset.carouselClickBound = 'false';
-    bindNearbyCarousel(list);
-    updateNearbySlide(list, 0);
+    renderAdventureList(list, visible, config);
   }
 
   function updateVisibleMarkers() {
@@ -492,21 +532,40 @@ function initMap(block, config, adventures, maps) {
  * @param {{ heading: string, defaultZoom: number, analyticsCid: string }} config
  */
 async function loadMapBlock(block, config) {
+  block.classList.add('adventure-map-loading');
+  const canvasWrap = block.querySelector('.adventure-map-canvas-wrap');
+
+  let adventures = [];
   try {
-    const [adventures, maps] = await Promise.all([
-      fetchAdventures(),
-      loadGoogleMaps(),
-    ]);
-
-    if (adventures.length === 0) {
-      showMessage(block, 'No adventures with map coordinates are available yet.');
-      return;
-    }
-
-    initMap(block, config, adventures, maps);
-  } catch {
-    showMessage(block, 'Map unavailable. Check Google Maps API configuration.');
+    adventures = await fetchAdventures();
+  } finally {
+    block.classList.remove('adventure-map-loading');
   }
+
+  if (adventures.length === 0) {
+    if (canvasWrap) {
+      showCanvasMessage(canvasWrap, 'No adventures with map coordinates are available yet.');
+    } else {
+      showMessage(block, 'No adventures with map coordinates are available yet.');
+    }
+    return;
+  }
+
+  let maps = null;
+  try {
+    maps = await loadGoogleMaps();
+  } catch {
+    if (canvasWrap) {
+      showCanvasMessage(
+        canvasWrap,
+        'Map unavailable. Set a referrer-restricted Google Maps API key in scripts/maps-config.js or page metadata.',
+      );
+    }
+    initListOnly(block, config, adventures);
+    return;
+  }
+
+  initMap(block, config, adventures, maps);
 }
 
 /**

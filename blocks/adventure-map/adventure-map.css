@@ -129,6 +129,37 @@
   background: #fff !important;
 }
 
+.adventure-map-loading .adventure-map-canvas-wrap::before {
+  content: 'Loading adventures…';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--body-font-size-s);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--aero-muted);
+  background-color: var(--aero-forest);
+}
+
+.adventure-map-canvas-message {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--space-lg);
+  text-align: center;
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+  color: var(--aero-muted);
+  background: rgb(15 26 20 / 92%);
+}
+
 .adventure-map-message {
   margin: var(--space-md) 0 0;
   padding: var(--space-md);
