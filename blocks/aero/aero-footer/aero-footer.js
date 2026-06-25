@@ -19,8 +19,7 @@ const DEFAULT_FOOTER_HTML = `
  */
 function resolveFooterPath(footerMeta) {
   if (footerMeta) return new URL(footerMeta, window.location).pathname;
-  if (/\/wknd-aero/i.test(window.location.pathname)) return '/drafts/wknd-aero/footer';
-  return '/drafts/wknd-aero/footer';
+  return '/footer';
 }
 
 /**
@@ -56,9 +55,12 @@ export default async function decorate(block) {
 
   let rows = [...block.children].filter((row) => row.textContent.trim());
   if (!rows.length) {
-    const resp = await fetch(`${footerPath}.plain.html`);
-    if (resp.ok) {
-      rows = parseFooterRows(await resp.text());
+    const paths = footerPath === '/footer' ? [footerPath] : [footerPath, '/footer'];
+    for (let i = 0; i < paths.length && !rows.length; i += 1) {
+      const resp = await fetch(`${paths[i]}.plain.html`);
+      if (resp.ok) {
+        rows = parseFooterRows(await resp.text());
+      }
     }
     if (!rows.length) {
       rows = parseFooterRows(DEFAULT_FOOTER_HTML);

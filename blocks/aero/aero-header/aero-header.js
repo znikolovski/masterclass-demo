@@ -60,16 +60,54 @@ function splitNavLinks(links) {
   return { brand, navLinks, actions };
 }
 
+/** Default nav fragment on seeded WKND Aero DA sites. */
+const DEFAULT_NAV_PATH = '/nav';
+
+/**
+ * @param {string} [navMeta]
+ * @returns {string}
+ */
+function resolveNavPath(navMeta) {
+  if (navMeta) return new URL(navMeta, window.location).pathname;
+  return DEFAULT_NAV_PATH;
+}
+
+/**
+ * @param {string} path
+ * @returns {Promise<string>}
+ */
+async function fetchNavHtml(path) {
+  const resp = await fetch(`${path}.plain.html`);
+  if (!resp.ok) return '';
+  return resp.text();
+}
+
+/**
+ * @param {HTMLAnchorElement|null} brand
+ * @returns {string}
+ */
+function renderBrand(brand) {
+  if (!brand) {
+    return '<a href="/" class="aero-header-logo">WKND<br>AERO</a>';
+  }
+  const label = brand.textContent.trim();
+  const href = brand.getAttribute('href') || '/';
+  if (/^WKND\s+AERO$/i.test(label)) {
+    return `<a href="${href}" class="aero-header-logo">WKND<br>AERO</a>`;
+  }
+  return brand.outerHTML.replace('<a ', '<a class="aero-header-logo" ');
+}
+
 /**
  * @param {Element} block
  */
 export default async function decorate(block) {
-  const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/drafts/wknd-aero/nav';
+  const navPath = resolveNavPath(getMetadata('nav'));
 
-  let html = '';
-  const resp = await fetch(`${navPath}.plain.html`);
-  if (resp.ok) html = await resp.text();
+  let html = await fetchNavHtml(navPath);
+  if (!html && navPath !== DEFAULT_NAV_PATH) {
+    html = await fetchNavHtml(DEFAULT_NAV_PATH);
+  }
 
   block.textContent = '';
   block.classList.add('block');
@@ -84,7 +122,7 @@ export default async function decorate(block) {
     tmp.innerHTML = html;
     const { brand, navLinks, actions } = splitNavLinks([...tmp.querySelectorAll('a')]);
     nav.innerHTML = `
-      <div class="aero-header-brand">${brand ? brand.outerHTML : '<a href="/" class="aero-header-logo">WKND<br>AERO</a>'}</div>
+      <div class="aero-header-brand">${renderBrand(brand)}</div>
       <button type="button" class="aero-header-toggle" aria-expanded="false" aria-controls="aero-header-menu">
         <span class="aero-header-toggle-bar"></span>
         <span class="aero-header-toggle-bar"></span>

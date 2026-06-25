@@ -19,6 +19,7 @@
   box-sizing: border-box;
 }
 
+.aero-header .aero-header-brand a,
 .aero-header .aero-header-logo {
   font-family: var(--heading-font-family);
   font-size: 14px;
