@@ -10,82 +10,117 @@
       "path",
       "value"
     ],
-    "total": 18,
+    "total": 25,
     "data": [
       {
-        "name": "Aero Header",
-        "path": "/blocks/aero/aero-header/aero-header.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/aero-header/aero-header.html"
+        "name": "Adventure Facts",
+        "path": "/blocks/adventure-facts/adventure-facts.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-facts/adventure-facts.html"
       },
       {
-        "name": "Aero Footer",
-        "path": "/blocks/aero/aero-footer/aero-footer.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/aero-footer/aero-footer.html"
+        "name": "Adventure Quiz",
+        "path": "/blocks/adventure-quiz/adventure-quiz.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-quiz/adventure-quiz.html"
       },
       {
-        "name": "Aero Hero",
-        "path": "/blocks/aero/aero-hero/aero-hero.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/aero-hero/aero-hero.html"
-      },
-      {
-        "name": "Flight Search",
-        "path": "/blocks/aero/flight-search/flight-search.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/flight-search/flight-search.html"
-      },
-      {
-        "name": "Adventures Bento",
-        "path": "/blocks/aero/adventures-bento/adventures-bento.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/adventures-bento/adventures-bento.html"
-      },
-      {
-        "name": "Aero Pass",
-        "path": "/blocks/aero/aero-pass/aero-pass.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/aero-pass/aero-pass.html"
-      },
-      {
-        "name": "Aero Newsletter",
-        "path": "/blocks/aero/aero-newsletter/aero-newsletter.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/aero-newsletter/aero-newsletter.html"
-      },
-      {
-        "name": "Destinations Grid",
-        "path": "/blocks/aero/destinations-grid/destinations-grid.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/destinations-grid/destinations-grid.html"
-      },
-      {
-        "name": "Travel Inspiration",
-        "path": "/blocks/aero/travel-inspiration/travel-inspiration.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/travel-inspiration/travel-inspiration.html"
-      },
-      {
-        "name": "Booking Journey",
-        "path": "/blocks/aero/booking-journey/booking-journey.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aero/booking-journey/booking-journey.html"
+        "name": "Quiz Results",
+        "path": "/blocks/quiz-results/quiz-results.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/quiz-results/quiz-results.html"
       },
       {
         "name": "Accordion FAQ",
         "path": "/blocks/accordion-faq/accordion-faq.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/accordion-faq/accordion-faq.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/accordion-faq/accordion-faq.html"
+      },
+      {
+        "name": "Cards",
+        "path": "/blocks/cards/cards.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards/cards.html"
+      },
+      {
+        "name": "Cards Steps",
+        "path": "/blocks/cards-steps/cards-steps.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards-steps/cards-steps.html"
+      },
+      {
+        "name": "Carousel Blog",
+        "path": "/blocks/carousel-blog/carousel-blog.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-blog/carousel-blog.html"
+      },
+      {
+        "name": "Carousel Hero",
+        "path": "/blocks/carousel-hero/carousel-hero.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-hero/carousel-hero.html"
       },
       {
         "name": "Columns",
         "path": "/blocks/columns/columns.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/columns/columns.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns/columns.html"
+      },
+      {
+        "name": "Columns Article",
+        "path": "/blocks/columns-article/columns-article.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-article/columns-article.html"
+      },
+      {
+        "name": "Columns Featured",
+        "path": "/blocks/columns-featured/columns-featured.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-featured/columns-featured.html"
+      },
+      {
+        "name": "Columns Gallery",
+        "path": "/blocks/columns-gallery/columns-gallery.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-gallery/columns-gallery.html"
       },
       {
         "name": "Fragment",
         "path": "/blocks/fragment/fragment.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/fragment/fragment.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/fragment/fragment.html"
+      },
+      {
+        "name": "Hero Adventure",
+        "path": "/blocks/hero-adventure/hero-adventure.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/hero-adventure/hero-adventure.html"
+      },
+      {
+        "name": "Marquee Ticker",
+        "path": "/blocks/marquee-ticker/marquee-ticker.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/marquee-ticker/marquee-ticker.html"
       },
       {
         "name": "Section Metadata",
         "path": "/blocks/section-metadata/section-metadata.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/section-metadata/section-metadata.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/section-metadata/section-metadata.html"
+      },
+      {
+        "name": "Tabs Activity",
+        "path": "/blocks/tabs-activity/tabs-activity.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
+      },
+      {
+        "name": "Teaser",
+        "path": "/blocks/teaser/teaser.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
+      },
+      {
+        "name": "YouTube Video",
+        "path": "/blocks/youtube-video/youtube-video.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/youtube-video/youtube-video.html"
       },
       {
         "name": "Adaptive Form",
         "path": "/blocks/form/form.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/blocks/form/form.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/form/form.html"
+      },
+      {
+        "name": "Embed Adaptive Form",
+        "path": "/blocks/embed-adaptive-form/embed-adaptive-form.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html"
+      },
+      {
+        "name": "AEM Embed",
+        "path": "/blocks/aem-embed/aem-embed.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/aem-embed/aem-embed.html"
       },
       {
         "name": "Blog Article",

@@ -11,18 +11,18 @@
   "data": [
     {
       "key": "Blog Article",
-      "value": "https://content.da.live/znikolovski/wknd-aero/templates/blog-article/blog-article.html",
-      "path": "https://main--wknd-aero--znikolovski.aem.page/templates/blog-article/blog-article.html"
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/templates/blog-article/blog-article.html"
     },
     {
       "key": "Field Notes",
-      "value": "https://content.da.live/znikolovski/wknd-aero/templates/field-notes/field-notes.html",
-      "path": "https://main--wknd-aero--znikolovski.aem.page/templates/field-notes/field-notes.html"
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/templates/field-notes/field-notes.html"
     },
     {
       "key": "Landing Page",
-      "value": "https://content.da.live/znikolovski/wknd-aero/templates/landing-page/landing-page.html",
-      "path": "https://main--wknd-aero--znikolovski.aem.page/templates/landing-page/landing-page.html"
+      "value": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/templates/landing-page/landing-page.html"
     }
   ]
 }
