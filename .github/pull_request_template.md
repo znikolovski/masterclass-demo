@@ -10,18 +10,16 @@ Test URLs:
 
 Run locally: `npm run dry:analysis`
 
-**Status:** PASS | WARN | FAIL _(CI also runs [DRY Analysis](.github/workflows/pr-dry-analysis.yaml) and posts the report to the job summary)_
+**Status:** PASS | WARN | FAIL _(CI runs [DRY Analysis](.github/workflows/pr-dry-analysis.yaml), posts an ephemeral report comment on the PR, and removes the build artifact)_
 
 - _What shared modules did you reuse? (`scripts/paths.js`, `scripts/index.js`, `scripts/carousel.js`, etc.)_
 - _Any intentional duplication? Explain why._
 
 <details>
-<summary>Full DRY report (paste from CI artifact or local run)</summary>
+<summary>Full DRY report (optional — CI also posts this automatically)</summary>
 
 ```
-(paste output of npm run dry:analysis)
+(paste output of npm run dry:analysis if needed)
 ```
 
 </details>
-
-See [docs/DRY-ANALYSIS.md](docs/DRY-ANALYSIS.md) for the workflow and shared module catalog.

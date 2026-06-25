@@ -1,4 +1,4 @@
-/** @see docs/DRY-ANALYSIS.md */
+/** Helix index fetch helpers — catalog in tools/scripts/dry-analysis.mjs */
 
 /**
  * @param {string} indexName e.g. blog-index.json

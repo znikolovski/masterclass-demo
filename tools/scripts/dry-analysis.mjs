@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 /**
  * DRY analysis for pull requests — flags duplicated utilities and suggests shared modules.
+ * Report is ephemeral: stdout locally, CI posts to the PR comment and job summary (not committed).
  *
  * Usage:
- *   node tools/scripts/dry-analysis.mjs
- *   node tools/scripts/dry-analysis.mjs --base=main
- *   node tools/scripts/dry-analysis.mjs --output=docs/DRY-REPORT.md
- *
- * @see docs/DRY-ANALYSIS.md
+ *   npm run dry:analysis
+ *   npm run dry:analysis -- --base=main
+ *   node tools/scripts/dry-analysis.mjs --output=dry-report.md
  */
 
 import { execSync } from 'node:child_process';
@@ -16,6 +15,13 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
+
+const ANTIPATTERN_GUIDE = [
+  { id: 'local-isSafePath', severity: 'error', description: 'Block-local `function isSafePath`' },
+  { id: 'inline-wknd-title-strip', severity: 'warn', description: 'Inline `— WKND Adventures` regex' },
+  { id: 'local-carousel-slide-wrap', severity: 'warn', description: 'Manual carousel slide index wrap logic' },
+  { id: 'duplicate-index-fetch', severity: 'warn', description: 'Inline Helix index fetch + `json.data` parsing' },
+];
 
 const SHARED_MODULES = [
   {
@@ -212,7 +218,26 @@ function renderReport(files, findings) {
   md += '- [ ] Carousel behavior uses `scripts/carousel.js` when applicable\n';
   md += '- [ ] Analytics uses `scripts/analytics-acdl.js`\n';
   md += '- [ ] Block-specific UI duplication is justified in PR notes\n\n';
-  md += 'See [docs/DRY-ANALYSIS.md](docs/DRY-ANALYSIS.md) for the full workflow.\n';
+
+  md += '## Anti-patterns checked\n\n';
+  md += '| ID | Severity | Description |\n';
+  md += '|----|----------|-------------|\n';
+  ANTIPATTERN_GUIDE.forEach(({ id, severity, description }) => {
+    md += `| \`${id}\` | ${severity} | ${description} |\n`;
+  });
+  md += '\n**Errors fail CI.** Warnings are advisory — note intentional duplication in the PR.\n\n';
+
+  md += '## Data-layer DRY (manual review)\n\n';
+  md += '- Geo coordinates: page metadata → `helix-query.yaml` index → blocks (never duplicate pins in block content)\n';
+  md += '- Analytics `cid`: shared URL helpers → eVar1 via existing page analytics\n';
+  md += '- Seed scripts may duplicate metadata until authors own production content\n\n';
+
+  md += '## Workflow\n\n';
+  md += '1. Run `npm run dry:analysis` locally and fix **error** findings\n';
+  md += '2. Open a PR — CI posts this report to the PR (updated on each push)\n';
+  md += '3. Copy status + notes into the **DRY analysis** section if needed\n';
+  md += '4. When adding shared utilities: extract to `scripts/`, update catalog in `tools/scripts/dry-analysis.mjs`\n\n';
+  md += '_This report is generated at PR time and is not stored in the repository._\n';
 
   return md;
 }

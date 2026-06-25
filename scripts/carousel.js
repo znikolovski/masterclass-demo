@@ -1,4 +1,4 @@
-/** @see docs/DRY-ANALYSIS.md */
+/** Horizontal carousel utilities — catalog in tools/scripts/dry-analysis.mjs */
 
 /**
  * @typedef {object} CarouselSelectors

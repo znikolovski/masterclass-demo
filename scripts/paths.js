@@ -1,4 +1,4 @@
-/** @see docs/DRY-ANALYSIS.md */
+/** Shared path helpers — catalog in tools/scripts/dry-analysis.mjs */
 
 const WKND_TITLE_SUFFIX = /\s+—\s+WKND Adventures$/i;
 
