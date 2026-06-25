@@ -8,7 +8,7 @@
  * Resolution order: page meta `google-maps-api-key`, then `window.hlx.mapsApiKey`,
  * then GOOGLE_MAPS_API_KEY below.
  */
-export const GOOGLE_MAPS_API_KEY = '';
+export const GOOGLE_MAPS_API_KEY = 'AIzaSyD40-pgSv9jbO7_yp54RYX488Eh5mrwSok';
 
 /**
  * @returns {string}
