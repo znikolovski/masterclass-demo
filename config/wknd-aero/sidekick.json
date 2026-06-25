@@ -1,0 +1,17 @@
+{
+  "project": "WKND Aero",
+  "plugins": [
+    {
+      "id": "library",
+      "title": "Library",
+      "environments": ["edit"],
+      "url": "https://main--wknd-aero--znikolovski.aem.page/tools/sidekick/library.html?base=/tools/sidekick/library.json"
+    },
+    {
+      "id": "fragment-picker",
+      "title": "Fragments",
+      "environments": ["edit"],
+      "url": "https://main--wknd-aero--znikolovski.aem.page/tools/fragment-picker/fragment-picker.html"
+    }
+  ]
+}

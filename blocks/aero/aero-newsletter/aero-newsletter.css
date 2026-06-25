@@ -1,0 +1,113 @@
+.aero-newsletter {
+  background: transparent;
+  color: var(--aero-forest);
+  padding: 0;
+}
+
+.aero-newsletter .aero-newsletter-inner {
+  max-width: 1216px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+  padding-inline: 32px;
+  box-sizing: border-box;
+}
+
+.aero-newsletter h2 {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--aero-forest);
+  max-width: 900px;
+}
+
+.aero-newsletter p {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  line-height: 1.6;
+  color: var(--aero-label);
+  max-width: 672px;
+}
+
+.aero-newsletter .aero-newsletter-form {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 576px;
+  margin-top: 16px;
+  gap: 0;
+}
+
+.aero-newsletter input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 2px solid var(--aero-forest);
+  border-radius: 0;
+  background: transparent;
+  color: var(--aero-forest);
+  font: inherit;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.aero-newsletter input::placeholder {
+  color: var(--aero-muted);
+  text-transform: uppercase;
+}
+
+.aero-newsletter input:focus {
+  outline: none;
+  border-bottom-color: var(--aero-orange);
+}
+
+.aero-newsletter button {
+  background: var(--aero-orange);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: flex-end;
+  margin-left: 8px;
+}
+
+.aero-newsletter button:hover {
+  background: var(--aero-orange-hover);
+}
+
+.aero-newsletter .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (width < 600px) {
+  .aero-newsletter .aero-newsletter-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .aero-newsletter button {
+    align-self: stretch;
+    margin-left: 0;
+  }
+}

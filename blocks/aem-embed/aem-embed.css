@@ -1,0 +1,14 @@
+.aem-embed {
+  min-height: 120px;
+}
+
+.aem-embed .aem-embed-error {
+  color: #c00;
+  padding: 16px;
+}
+
+.aem-embed aem-embed {
+  display: block;
+  width: 100%;
+  min-height: 200px;
+}

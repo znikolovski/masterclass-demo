@@ -6,8 +6,8 @@
 import {
   decorateBlocks,
   decorateIcons,
-  loadSections,
 } from './aem.js';
+import { loadSiteBlock } from './aero-blocks.js';
 
 /**
  * @param {Element} main
@@ -30,6 +30,34 @@ function decorateSections(main) {
     section.dataset.sectionStatus = 'initialized';
     section.style.display = 'none';
   });
+}
+
+/**
+ * @param {Element} section
+ */
+async function loadSection(section) {
+  const status = section.dataset.sectionStatus;
+  if (!status || status === 'initialized') {
+    section.dataset.sectionStatus = 'loading';
+    const blocks = [...section.querySelectorAll('div.block')];
+    for (let i = 0; i < blocks.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await loadSiteBlock(blocks[i]);
+    }
+    section.dataset.sectionStatus = 'loaded';
+    section.style.display = null;
+  }
+}
+
+/**
+ * @param {Element} element
+ */
+async function loadSections(element) {
+  const sections = [...element.querySelectorAll('div.section')];
+  for (let i = 0; i < sections.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await loadSection(sections[i]);
+  }
 }
 
 async function initLibraryPreview() {

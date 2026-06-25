@@ -7,9 +7,34 @@
  */
 
 /**
+ * @param {string} daPath e.g. blocks/aero/flight-search/flight-search.html
+ * @returns {string} Asset base without extension
+ */
+export function getBlockAssetPath(daPath) {
+  const nested = daPath.match(/^blocks\/aero\/([^/]+)\/\1\.html$/);
+  if (nested) return `blocks/aero/${nested[1]}/${nested[1]}`;
+  const name = daPath.split('/').pop()?.replace(/\.html$/, '') || '';
+  return `blocks/${name}/${name}`;
+}
+
+/**
+ * @param {string} daPath
+ */
+export function getPreviewOptionsForDaPath(daPath) {
+  const blockName = daPath.split('/').pop()?.replace(/\.html$/, '') || '';
+  const isAero = daPath.startsWith('blocks/aero/');
+  return {
+    blockName,
+    blockAssetPath: getBlockAssetPath(daPath),
+    stylesheets: isAero ? ['/styles/brands/wknd-aero.css'] : [],
+    bodyClasses: isAero ? ['wknd-aero'] : [],
+  };
+}
+
+/**
  * @param {string} title Page title
  * @param {string} sectionHtml Section divs (library fragment)
- * @param {{ bodyClasses?: string[], stylesheets?: string[], blockName?: string, blockNames?: string[] }} [options]
+ * @param {{ bodyClasses?: string[], stylesheets?: string[], blockName?: string, blockNames?: string[], blockAssetPath?: string }} [options]
  */
 export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
   let body = sectionHtml.trim();
@@ -24,13 +49,11 @@ export function wrapLibraryPreviewPage(title, sectionHtml, options = {}) {
   const extraStyles = (options.stylesheets || [])
     .map((href) => `    <link rel="stylesheet" href="${href}">`)
     .join('\n');
-  const blockNames = [
-    ...(options.blockNames || []),
-    ...(options.blockName ? [options.blockName] : []),
-  ].filter(Boolean);
-  const blockStyles = blockNames
-    .map((name) => `    <link rel="stylesheet" href="/blocks/${name}/${name}.css">`)
-    .join('\n');
+  const assetPath = options.blockAssetPath
+    || (options.blockName ? `blocks/${options.blockName}/${options.blockName}` : null);
+  const blockStyles = assetPath
+    ? `    <link rel="stylesheet" href="/${assetPath}.css">`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en">

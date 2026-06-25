@@ -18,13 +18,27 @@ import {
   basename, dirname, join, relative,
 } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { wrapLibraryPreviewPage } from './wrap-library-preview.mjs';
+import { wrapLibraryPreviewPage, getPreviewOptionsForDaPath } from './wrap-library-preview.mjs';
 
 const ORG = process.env.DA_ORG || 'znikolovski';
 const SITE = process.env.DA_SITE || process.argv.find((a) => a.startsWith('--site='))?.slice(7) || 'masterclass-demo';
 const CONTENT_BASE = `https://content.da.live/${ORG}/${SITE}`;
 const PREVIEW_BASE = `https://main--${SITE}--${ORG}.aem.page`;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
+
+/**
+ * Per-site block allowlist sheet path.
+ * @param {string} site
+ * @returns {string}
+ */
+function getLibraryBlocksPath(site) {
+  const map = {
+    'masterclass-demo': 'library/blocks-adventures.json',
+    'wknd-business': 'library/blocks-business.json',
+    'wknd-aero': 'library/blocks-aero.json',
+  };
+  return join(ROOT, map[site] || 'library/blocks.json');
+}
 
 function getToken() {
   const paths = [
@@ -61,6 +75,8 @@ async function putSource(token, daPath, body, mime = 'application/json') {
 }
 
 async function triggerPreview(token, daPath) {
+  // Content-bus preview only applies to published HTML pages (not JSON index sheets or .plain.html sources).
+  if (daPath.endsWith('.json') || daPath.endsWith('.plain.html')) return;
   const pagePath = daPath.replace(/\.html$/, '').replace(/^\//, '');
   const res = await fetch(`https://admin.hlx.page/preview/${ORG}/${SITE}/main/${pagePath}`, {
     method: 'POST',
@@ -239,7 +255,7 @@ function buildDaConfig(existing) {
 function toSidekickPreviewPath(daPath) {
   if (!daPath) return daPath;
   const pathname = daPath.includes('://') ? new URL(daPath).pathname : daPath;
-  const match = pathname.match(/\/((?:blocks|templates)\/[^/]+\/[^/.]+)\.html$/);
+  const match = pathname.match(/\/((?:blocks\/aero\/[^/]+|(?:blocks|templates)\/[^/]+)\/[^/.]+)\.html$/);
   if (match) return `/${match[1]}.html`;
   if (pathname.match(/\/(blocks|templates)\//)) {
     return pathname.endsWith('.html') ? pathname : `${pathname}.html`;
@@ -249,7 +265,7 @@ function toSidekickPreviewPath(daPath) {
 
 /** EW Sidekick library panel reads /tools/sidekick/library.json (not library/blocks.json). */
 function syncSidekickLibrary(root, site = SITE) {
-  const blocks = JSON.parse(readFileSync(join(root, 'library/blocks.json'), 'utf8'));
+  const blocks = JSON.parse(readFileSync(getLibraryBlocksPath(site), 'utf8'));
   const templates = JSON.parse(readFileSync(join(root, 'library/templates.json'), 'utf8'));
   let blocksData = blocks.data.map(({ name, path, value }) => ({
     name,
@@ -304,7 +320,10 @@ function toContentDaUrl(anyUrl) {
 
 function normalizeLibrarySheets(root) {
   const templatesPath = join(root, 'library/templates.json');
-  const blocksPath = join(root, 'library/blocks.json');
+  const blocksPath = getLibraryBlocksPath(SITE);
+  if (!existsSync(blocksPath)) {
+    throw new Error(`Missing library blocks file for ${SITE}: ${blocksPath}`);
+  }
 
   const templates = JSON.parse(readFileSync(templatesPath, 'utf8'));
   templates.columns = ['key', 'value', 'path'];
@@ -337,7 +356,16 @@ syncSidekickLibrary(ROOT, SITE);
 console.log(`  ✓ tools/sidekick/library.json (EW Sidekick library, ${SITE})`);
 
 // 1. Library index sheets (DA sheet format)
-for (const file of ['library/blocks.json', 'library/templates.json']) {
+{
+  let blocksBody = readFileSync(getLibraryBlocksPath(SITE), 'utf8');
+  if (SITE !== 'masterclass-demo') {
+    blocksBody = blocksBody.replaceAll('znikolovski/masterclass-demo', `znikolovski/${SITE}`);
+  }
+  await putSource(token, 'library/blocks.json', blocksBody);
+  await triggerPreview(token, 'library/blocks.json');
+  console.log(`  ✓ library/blocks.json (from ${relative(ROOT, getLibraryBlocksPath(SITE))})`);
+}
+for (const file of ['library/templates.json']) {
   let body = readFileSync(join(ROOT, file), 'utf8');
   if (SITE !== 'masterclass-demo') {
     body = body.replaceAll(`znikolovski/masterclass-demo`, `znikolovski/${SITE}`);
@@ -357,6 +385,17 @@ const repoBlockPreviews = [
   'blocks/business-register/business-register.html',
   'blocks/business-login/business-login.html',
   'blocks/business-dashboard/business-dashboard.html',
+  'blocks/aem-embed/aem-embed.html',
+  'blocks/aero/aero-header/aero-header.html',
+  'blocks/aero/aero-footer/aero-footer.html',
+  'blocks/aero/aero-hero/aero-hero.html',
+  'blocks/aero/flight-search/flight-search.html',
+  'blocks/aero/adventures-bento/adventures-bento.html',
+  'blocks/aero/aero-pass/aero-pass.html',
+  'blocks/aero/aero-newsletter/aero-newsletter.html',
+  'blocks/aero/destinations-grid/destinations-grid.html',
+  'blocks/aero/travel-inspiration/travel-inspiration.html',
+  'blocks/aero/booking-journey/booking-journey.html',
 ];
 for (const rel of repoBlockPreviews) {
   const abs = join(ROOT, rel);
@@ -385,15 +424,12 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   const label = basename(daPath, '.html').replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase()}${label.slice(1)} — Library preview`;
   const previewOptions = daPath.includes('templates/blog-article/')
-    ? { bodyClasses: ['blog-article'], stylesheets: ['/styles/blog.css'] }
-    : {};
+    ? { bodyClasses: ['blog-article'], stylesheets: ['/styles/blog.css'], ...getPreviewOptionsForDaPath(daPath) }
+    : getPreviewOptionsForDaPath(daPath);
 
   const isTemplate = daPath.startsWith('templates/');
+  const previewOptionsWithBlock = isTemplate ? previewOptions : previewOptions;
   const daBody = isTemplate ? wrapDaTemplate(fragment) : fragment;
-  const blockName = !isTemplate ? basename(daPath, '.html') : undefined;
-  const previewOptionsWithBlock = blockName
-    ? { ...previewOptions, blockName }
-    : previewOptions;
 
   await putSource(token, daPath, daBody, 'text/html');
   await triggerPreview(token, daPath);
@@ -412,6 +448,15 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
     writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
     console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview shell + .plain.html)`);
   } else {
+    const gitPath = join(ROOT, daPath);
+    if (daPath.startsWith('blocks/aero/')) {
+      mkdirSync(dirname(gitPath), { recursive: true });
+      writeFileSync(
+        gitPath,
+        wrapLibraryPreviewPage(title, fragment, previewOptionsWithBlock),
+      );
+      writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
+    }
     console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + .plain.html)`);
   }
 }

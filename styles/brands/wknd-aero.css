@@ -1,0 +1,132 @@
+/* WKND Aero (wknd-aero repoless site) — brand token overrides */
+
+:root {
+  --accent-color: #e8651a;
+  --dark-color: #0f1a14;
+  --aero-forest: #0f1a14;
+  --aero-charcoal: #1b1c1a;
+  --aero-charcoal-light: #2d2d2d;
+  --aero-orange: #e8651a;
+  --aero-orange-hover: #d45a15;
+  --aero-cream: #f4f2ef;
+  --aero-green: #0f1a14;
+  --aero-border: rgb(27 28 26 / 10%);
+  --aero-label: #584238;
+  --aero-muted: #dbdad7;
+  --aero-body-muted: #e4e2df;
+  --aero-radius: 0;
+  --aero-search-bg: #fff;
+  --nav-height: 82px;
+  --section-padding: 96px;
+}
+
+body.wknd-aero {
+  --background-color: #fff;
+  --text-color: #0f1a14;
+  --link-hover-color: var(--aero-orange);
+  --space-3xl: 0;
+  font-family: var(--body-font-family);
+}
+
+/* Kill boilerplate section gutters — Figma sections are flush edge-to-edge */
+body.wknd-aero main > .section {
+  padding-block: 0;
+  margin-block: 0;
+}
+
+body.wknd-aero main > .section > div {
+  padding-block: 0;
+}
+
+/* Full-bleed hero (870px) — no outer section padding */
+body.wknd-aero main > .section.hero-adventure-container,
+body.wknd-aero main > .section.aero-hero-container {
+  max-width: 100%;
+  padding: 0;
+}
+
+body.wknd-aero main > .section.hero-adventure-container > div,
+body.wknd-aero main > .section.hero-adventure-container > .aero-hero-wrapper,
+body.wknd-aero main > .section.aero-hero-container > div,
+body.wknd-aero main > .section.aero-hero-container > .aero-hero-wrapper,
+body.wknd-aero main > .section.hero-adventure-container .aero-hero-wrapper,
+body.wknd-aero main > .section.aero-hero-container .aero-hero-wrapper {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+body.wknd-aero .aero-hero-wrapper {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
+/* Section backgrounds only — vertical rhythm lives on blocks (96px Figma inset) */
+body.wknd-aero main > .section:has(.adventures-bento),
+body.wknd-aero main > .section:has(.travel-inspiration),
+body.wknd-aero main > .section:has(.aero-newsletter),
+body.wknd-aero main > .section:has(.destinations-grid),
+body.wknd-aero main > .section:has(.adventure-detail) {
+  background: #fbf9f6;
+}
+
+body.wknd-aero main > .section:has(.travel-inspiration) {
+  max-width: 100%;
+  padding: 0;
+}
+
+body.wknd-aero main > .section:has(.travel-inspiration) > div {
+  max-width: 100%;
+  padding: 0;
+}
+
+body.wknd-aero main > .section:has(.aero-pass.landing) {
+  background: #fbf9f6;
+  max-width: 100%;
+  padding: 0;
+}
+
+body.wknd-aero main > .section:has(.aero-pass.landing) > div {
+  max-width: 100%;
+  padding: 0;
+}
+
+body.wknd-aero main > .section:has(.aero-pass):not(:has(.aero-pass.landing)) {
+  background: var(--aero-forest);
+  color: #fff;
+}
+
+body.wknd-aero main > .section:has(.adventures-bento) > div,
+body.wknd-aero main > .section:has(.aero-pass) > div,
+body.wknd-aero main > .section:has(.aero-newsletter) > div,
+body.wknd-aero main > .section:has(.destinations-grid) > div,
+body.wknd-aero main > .section:has(.adventure-detail) > div {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+
+body.wknd-aero main > .section:has(.aero-pass):not(:has(.aero-pass.landing)) .aero-pass {
+  padding-block: var(--section-padding);
+}
+
+body.wknd-aero main > .section:has(.aero-pass.landing) .aero-pass {
+  padding-block: 0;
+}
+
+body.wknd-aero main > .section:has(.aero-newsletter) .aero-newsletter {
+  padding-block: var(--section-padding);
+}
+
+/* Booking pages — full-width cream canvas */
+body.wknd-aero main > .section:has(.booking-journey) {
+  background: var(--aero-cream);
+  max-width: 100%;
+  padding: 0;
+}
+
+body.wknd-aero main > .section:has(.booking-journey) > div {
+  max-width: 100%;
+  padding: 0;
+}

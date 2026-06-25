@@ -126,6 +126,102 @@ header {
   visibility: visible;
 }
 
+/* Aero hero LCP shell — keep in sync with blocks/aero/aero-hero/aero-hero.css */
+.aero-hero-wrapper:has(> .aero-hero) {
+  max-width: 100% !important;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.aero-hero {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 560px;
+  padding: 0;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.aero-hero:not([data-block-status="loaded"]):not(.compact) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-top: clamp(180px, 47vw, 412px);
+}
+
+.aero-hero > div:first-child,
+.aero-hero > div:first-child > div,
+.aero-hero > div:first-child picture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.aero-hero > div:first-child img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aero-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(15 26 20 / 80%) 0%, rgb(15 26 20 / 0%) 50%, rgb(15 26 20 / 0%) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.aero-hero > div:last-child {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 64px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: flex-start;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2rem, 5vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+}
+
+.aero-hero h1 {
+  font-family: var(--heading-font-family);
+  font-size: clamp(2rem, 5vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  max-width: 1024px;
+  color: #fff;
+}
+
+.aero-hero h1.hero-heading-pending {
+  visibility: hidden;
+}
+
+.aero-hero h1.hero-heading-ready {
+  visibility: visible;
+}
+
+@media (width >= 900px) {
+  .aero-hero:not([data-block-status="loaded"]):not(.compact) {
+    min-height: 870px;
+    padding-top: 412px;
+  }
+}
+
 main .section.hero-adventure-container,
 main .section.lcp-section {
   max-width: 100%;
@@ -162,6 +258,25 @@ main .section.target:not(.target-ready) {
   /* Keep in sync with buildHeroAdventureLcpUrls() in scripts/media.js */
   var HERO_LCP_MAX = 1600;
   var HERO_LCP_MIN = 640;
+  function isLocalDevHost(hostname) {
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+  }
+  function normalizeLocalDevUrl(src, baseUri) {
+    try {
+      var base = new URL(baseUri || window.location.href);
+      if (isLocalDevHost(base.hostname)) base.protocol = 'http:';
+      var url = new URL(src, base.href);
+      if (isLocalDevHost(url.hostname)) url.protocol = 'http:';
+      return url.toString();
+    } catch (e) {
+      return src;
+    }
+  }
+  function isUsableOgImage(content) {
+    if (!content || content.indexOf('about:') === 0) return false;
+    if (content.indexOf('default-meta-image') !== -1) return false;
+    return content.indexOf('http') === 0;
+  }
   function isDynamicMediaUrl(url) {
     return /\/adobe\/assets\/|\/is\/(image|content)\//.test(url.pathname)
       || /\.adobeaemcloud\.com$|scene7\.com$|adobedc\.net$/i.test(url.hostname);
@@ -173,7 +288,7 @@ main .section.target:not(.target-ready) {
     return Math.min(HERO_LCP_MAX, Math.max(HERO_LCP_MIN, needed));
   }
   function getHeroBaseSrc(src, baseUri) {
-    var url = new URL(src, baseUri || window.location.href);
+    var url = new URL(normalizeLocalDevUrl(src, baseUri), normalizeLocalDevUrl(baseUri || window.location.href, baseUri || window.location.href));
     if (isDynamicMediaUrl(url)) {
       if (url.pathname.indexOf('/adobe/assets/') !== -1) {
         ['width', 'format', 'height', 'preferwebp'].forEach(function (p) { url.searchParams.delete(p); });
@@ -183,26 +298,28 @@ main .section.target:not(.target-ready) {
     } else {
       ['width', 'format', 'optimize', 'height'].forEach(function (p) { url.searchParams.delete(p); });
     }
-    return url.toString();
+    return normalizeLocalDevUrl(url.toString(), baseUri || window.location.href);
   }
   function buildHeroLcpUrl(src, baseUri) {
-    var base = getHeroBaseSrc(src, baseUri);
-    var url = new URL(base, baseUri || window.location.href);
+    var base = normalizeLocalDevUrl(baseUri || window.location.href, baseUri || window.location.href);
+    var normalizedSrc = normalizeLocalDevUrl(src, base);
+    var baseSrc = getHeroBaseSrc(normalizedSrc, base);
+    var url = new URL(baseSrc, base);
     var width = getHeroLcpWidth();
     if (isDynamicMediaUrl(url)) {
       if (url.pathname.indexOf('/adobe/assets/') !== -1) {
         url.searchParams.set('width', String(width));
         url.searchParams.set('format', 'webp');
-        return { preloadHref: url.toString(), heroBaseSrc: base };
+        return { preloadHref: normalizeLocalDevUrl(url.toString(), base), heroBaseSrc: baseSrc };
       }
       url.searchParams.set('wid', String(width));
       url.searchParams.set('qlt', '85');
       url.searchParams.set('fmt', 'webp');
-      return { preloadHref: url.toString(), heroBaseSrc: base };
+      return { preloadHref: normalizeLocalDevUrl(url.toString(), base), heroBaseSrc: baseSrc };
     }
     return {
-      preloadHref: url.origin + url.pathname + '?width=' + width + '&format=webply&optimize=medium',
-      heroBaseSrc: base,
+      preloadHref: normalizeLocalDevUrl(url.origin + url.pathname + '?width=' + width + '&format=webply&optimize=medium', base),
+      heroBaseSrc: baseSrc,
     };
   }
   function revealHeroHeading() {
@@ -216,14 +333,37 @@ main .section.target:not(.target-ready) {
       show();
     }
   }
+  function parseSrcsetUrl(srcset) {
+    if (!srcset) return '';
+    return srcset.split(',')[0].trim().split(/\s+/)[0] || '';
+  }
+  function resolvePictureSrcFromImg(img) {
+    if (!img) return '';
+    var attrSrc = (img.getAttribute('src') || '').trim();
+    if (attrSrc && attrSrc.indexOf('http') === 0) return attrSrc;
+    var imgSrcset = parseSrcsetUrl(img.getAttribute('srcset'));
+    if (imgSrcset && imgSrcset.indexOf('http') === 0) return imgSrcset;
+    var picture = img.closest('picture');
+    if (picture) {
+      var sources = picture.querySelectorAll('source[srcset]');
+      for (var i = 0; i < sources.length; i += 1) {
+        var sourceUrl = parseSrcsetUrl(sources[i].getAttribute('srcset'));
+        if (sourceUrl && sourceUrl.indexOf('http') === 0) return sourceUrl;
+      }
+    }
+    var current = img.currentSrc || img.src || '';
+    return current.indexOf('http') === 0 ? current : '';
+  }
   function upgradeHeroImg(img) {
     if (!img || img.dataset.lcpPrimed) return true;
     try {
+      var src = resolvePictureSrcFromImg(img);
+      if (!src) return false;
       var picture = img.closest('picture');
       if (picture) {
         picture.querySelectorAll('source').forEach(function (source) { source.remove(); });
       }
-      var urls = buildHeroLcpUrl(img.getAttribute('src') || img.src, doc.baseURI);
+      var urls = buildHeroLcpUrl(src, doc.baseURI);
       img.dataset.lcpPrimed = 'true';
       img.dataset.mediaOptimized = 'true';
       img.dataset.heroBaseSrc = urls.heroBaseSrc;
@@ -245,7 +385,7 @@ main .section.target:not(.target-ready) {
     return true;
   }
   function findHeroImg() {
-    return doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img');
+    return doc.querySelector('.hero-adventure > div:first-child picture img, .hero-adventure picture img, .aero-hero picture img, .aero-hero img');
   }
   function watchHeroImg() {
     var img = findHeroImg();
@@ -253,7 +393,7 @@ main .section.target:not(.target-ready) {
     return false;
   }
   var og = doc.querySelector('meta[property="og:image"]');
-  if (og && og.content) {
+  if (og && og.content && isUsableOgImage(og.content)) {
     try {
       var urls = buildHeroLcpUrl(og.content, doc.baseURI);
       var preloadImg = doc.createElement('link');
@@ -281,7 +421,70 @@ main .section.target:not(.target-ready) {
 <link rel="preload" href="https://fonts.gstatic.com/s/instrumentsans/v4/pximypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr-yp2JGEJOH9npSTF-Tf8kywf3w.woff2" as="font" type="font/woff2" crossorigin=""/>
 <link rel="stylesheet" href="/styles/brand.css"/>
 <link rel="stylesheet" href="/styles/styles.css"/>
-<link rel="stylesheet" href="/blocks/hero-adventure/hero-adventure.css"/>
+<script nonce="aem">
+(function (doc, win) {
+  function detectSite() {
+    var brand = doc.querySelector('meta[name="brand"]');
+    if (brand && brand.content) {
+      return brand.content.trim().toLowerCase().replace(/\s+/g, '-');
+    }
+    var proxy = doc.querySelector('meta[property="hlx:proxyUrl"]');
+    if (proxy && /wknd-aero/i.test(proxy.content)) return 'wknd-aero';
+    if (proxy && /wknd-business/i.test(proxy.content)) return 'wknd-business';
+    var path = win.location.pathname || '';
+    if (/\/wknd-aero/i.test(path)) return 'wknd-aero';
+    if (/\/wknd-business/i.test(path)) return 'wknd-business';
+    if (/\/book/i.test(path)) return 'wknd-aero';
+    if (/\/destinations/i.test(path)) return 'wknd-aero';
+    if (/\/adventures/i.test(path)) return 'wknd-aero';
+    return '';
+  }
+  function appendStylesheet(id, href) {
+    var existing = doc.getElementById(id);
+    if (existing) {
+      var absolute = new URL(href, win.location.origin).href;
+      if (existing.href !== absolute) existing.href = href;
+      return;
+    }
+    var link = doc.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = href;
+    doc.head.appendChild(link);
+  }
+  function injectSiteStyles() {
+    var site = detectSite();
+    if (!site && (win.location.pathname === '/' || win.location.pathname === '')) {
+      return;
+    }
+    var heroCss = site === 'wknd-aero'
+      ? '/blocks/aero/aero-hero/aero-hero.css'
+      : '/blocks/hero-adventure/hero-adventure.css';
+    appendStylesheet('site-hero-css', heroCss);
+    if (site === 'wknd-aero') {
+      appendStylesheet('site-flight-search-css', '/blocks/aero/flight-search/flight-search.css');
+      appendStylesheet('site-aero-header-css', '/blocks/aero/aero-header/aero-header.css');
+      appendStylesheet('site-aero-footer-css', '/blocks/aero/aero-footer/aero-footer.css');
+      appendStylesheet('site-wknd-aero-brand-css', '/styles/brands/wknd-aero.css');
+      if (/\/book/i.test(win.location.pathname)) {
+        appendStylesheet('site-booking-journey-css', '/blocks/aero/booking-journey/booking-journey.css');
+      }
+      if (/\/destinations/i.test(win.location.pathname)) {
+        appendStylesheet('site-destinations-grid-css', '/blocks/aero/destinations-grid/destinations-grid.css');
+      }
+      if (/\/adventures/i.test(win.location.pathname)) {
+        appendStylesheet('site-adventures-bento-css', '/blocks/aero/adventures-bento/adventures-bento.css');
+        appendStylesheet('site-adventure-detail-css', '/blocks/aero/adventure-detail/adventure-detail.css');
+      }
+    }
+    if (site === 'wknd-business') {
+      appendStylesheet('site-wknd-business-brand-css', '/styles/brands/wknd-business.css');
+    }
+  }
+  injectSiteStyles();
+  doc.addEventListener('DOMContentLoaded', injectSiteStyles, { once: true });
+})(document, window);
+</script>
 <script nonce="aem" src="/scripts/aem.js" type="module"></script>
 <script nonce="aem" src="/scripts/scripts.js" type="module"></script>
 <link rel="preconnect" href="https://edge.adobedc.net"/>

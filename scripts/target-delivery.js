@@ -13,9 +13,9 @@
 import {
   decorateBlock,
   decorateIcons,
-  loadBlock,
   loadCSS,
 } from './aem.js';
+import { getBlockStylesheetHref, isAeroBlock, loadBlockOrSiteBlock } from './aero-blocks.js';
 
 /** @returns {string} */
 export function getTargetZoneSelector() {
@@ -325,14 +325,17 @@ async function loadInjectedBlock(block, options = {}) {
   ensureBlockLayoutClasses(block);
 
   if (!force && isPreDecoratedBlock(block)) {
-    await loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`);
+    const cssHref = isAeroBlock(blockName)
+      ? getBlockStylesheetHref(blockName)
+      : `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`;
+    await loadCSS(cssHref);
     block.dataset.blockStatus = 'loaded';
     return;
   }
 
   delete block.dataset.blockStatus;
   decorateBlock(block);
-  await loadBlock(block);
+  await loadBlockOrSiteBlock(block);
 }
 
 /**

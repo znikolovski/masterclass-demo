@@ -5,6 +5,13 @@
  */
 
 import { createOptimizedPicture } from './aem.js';
+import {
+  isValidImageSrc,
+  isUsableMetaImageUrl,
+  normalizeLocalDevMediaUrl,
+} from './aero-catalog-images.js';
+
+export { isUsableMetaImageUrl, normalizeLocalDevMediaUrl } from './aero-catalog-images.js';
 
 const DM_HOST_PATTERNS = [
   /scene7\.com$/i,
@@ -40,8 +47,83 @@ const DEFAULT_BREAKPOINTS = [
   { width: 600 },
 ];
 
-const HERO_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
+const HERO_SELECTOR = '.hero-adventure, .carousel-hero, .hero, .aero-hero';
 const CARD_SELECTOR = '.activity-card-image, .cards, .columns-featured, .columns-gallery';
+
+/**
+ * @param {string} [srcset]
+ * @returns {string}
+ */
+export function parseSrcsetUrl(srcset) {
+  if (!srcset) return '';
+  return srcset.split(',')[0].trim().split(/\s+/)[0] || '';
+}
+
+/**
+ * Resolve image URL from authored picture markup (handles empty img src + source srcset).
+ * @param {HTMLImageElement|null|undefined} img
+ * @returns {string}
+ */
+export function resolvePictureSrc(img) {
+  if (!img) return '';
+
+  const attrSrc = img.getAttribute('src')?.trim();
+  if (attrSrc && isValidImageSrc(attrSrc)) return normalizeLocalDevMediaUrl(attrSrc);
+
+  const imgSrcset = parseSrcsetUrl(img.getAttribute('srcset'));
+  if (imgSrcset && isValidImageSrc(imgSrcset)) return normalizeLocalDevMediaUrl(imgSrcset);
+
+  const picture = img.closest('picture');
+  if (picture) {
+    const sources = picture.querySelectorAll('source[srcset]');
+    for (let i = 0; i < sources.length; i += 1) {
+      const sourceUrl = parseSrcsetUrl(sources[i].getAttribute('srcset'));
+      if (sourceUrl && isValidImageSrc(sourceUrl)) return normalizeLocalDevMediaUrl(sourceUrl);
+    }
+  }
+
+  const current = img.currentSrc || img.src || '';
+  return isValidImageSrc(current) ? normalizeLocalDevMediaUrl(current) : '';
+}
+
+/**
+ * Rewrite picture srcset/src (createOptimizedPicture may emit https on localhost).
+ * @param {Element} picture
+ */
+export function rewritePictureLocalDevUrls(picture) {
+  if (!picture || typeof window === 'undefined') return;
+  const fixSrcset = (srcset) => srcset.split(',').map((part) => {
+    const bits = part.trim().split(/\s+/);
+    if (bits.length > 1) return `${normalizeLocalDevMediaUrl(bits[0])} ${bits.slice(1).join(' ')}`;
+    return normalizeLocalDevMediaUrl(bits[0]);
+  }).join(', ');
+
+  picture.querySelectorAll('source[srcset]').forEach((source) => {
+    const srcset = source.getAttribute('srcset');
+    if (srcset) source.setAttribute('srcset', fixSrcset(srcset));
+  });
+  picture.querySelectorAll('img[src]').forEach((img) => {
+    const src = img.getAttribute('src');
+    if (src) img.setAttribute('src', normalizeLocalDevMediaUrl(src));
+  });
+}
+
+/**
+ * Fix proxied meta image tags (https localhost, missing default-meta-image placeholder).
+ * @param {Document} doc
+ * @param {string} [fallbackImage]
+ */
+export function fixDocumentMetaImageUrls(doc, fallbackImage = '') {
+  doc.querySelectorAll('meta[property="og:image"], meta[property="og:image:secure_url"], meta[name="twitter:image"], meta[name="image"]').forEach((meta) => {
+    const content = meta.getAttribute('content')?.trim() || '';
+    if (!isUsableMetaImageUrl(content)) {
+      if (fallbackImage) meta.setAttribute('content', fallbackImage);
+      else meta.removeAttribute('content');
+      return;
+    }
+    meta.setAttribute('content', normalizeLocalDevMediaUrl(content));
+  });
+}
 
 /**
  * @param {URL} url
@@ -228,12 +310,13 @@ export function createResponsivePicture(
   breakpoints = DEFAULT_BREAKPOINTS,
   attrs = {},
 ) {
-  const sourceType = getMediaSourceType(src);
+  const normalizedSrc = normalizeLocalDevMediaUrl(src);
+  const sourceType = getMediaSourceType(normalizedSrc);
   const loading = attrs.loading || (eager ? 'eager' : 'lazy');
 
   if (sourceType === 'external') {
     const img = document.createElement('img');
-    img.src = src;
+    img.src = normalizedSrc;
     img.alt = alt;
     img.loading = loading;
     applyImageAttributes(img, attrs);
@@ -243,10 +326,10 @@ export function createResponsivePicture(
 
   let picture;
   if (sourceType === 'dynamic-media') {
-    picture = createDynamicMediaPicture(src, alt, eager, breakpoints);
+    picture = createDynamicMediaPicture(normalizedSrc, alt, eager, breakpoints);
   } else {
     picture = createOptimizedPicture(
-      src,
+      normalizedSrc,
       alt,
       eager,
       breakpoints.map((br) => ({
@@ -254,9 +337,10 @@ export function createResponsivePicture(
         width: String(br.width),
       })),
     );
+    rewritePictureLocalDevUrls(picture);
   }
 
-  annotatePicture(picture, src);
+  annotatePicture(picture, normalizedSrc);
   applyImageAttributes(picture, { ...attrs, loading });
   return picture;
 }
@@ -281,7 +365,8 @@ export function getHeroLcpWidth(viewportWidth, dpr) {
  * @returns {string}
  */
 export function getHeroBaseSrc(src, base = window.location.href) {
-  const url = new URL(src, base);
+  const normalizedBase = normalizeLocalDevMediaUrl(base, base);
+  const url = new URL(normalizeLocalDevMediaUrl(src, normalizedBase), normalizedBase);
   const sourceType = getMediaSourceType(src);
   if (sourceType === 'dynamic-media') {
     if (url.pathname.includes('/adobe/assets/')) {
@@ -292,7 +377,7 @@ export function getHeroBaseSrc(src, base = window.location.href) {
   } else {
     ['width', 'format', 'optimize', 'height'].forEach((p) => url.searchParams.delete(p));
   }
-  return url.toString();
+  return normalizeLocalDevMediaUrl(url.toString(), normalizedBase);
 }
 
 /**
@@ -304,25 +389,27 @@ export function getHeroBaseSrc(src, base = window.location.href) {
  * @returns {string}
  */
 export function buildHeroMediaUrl(src, width, options = {}) {
-  const base = options.base || window.location.href;
-  const sourceType = options.sourceType ?? getMediaSourceType(src);
-  const url = new URL(src, base);
+  const rawBase = options.base || window.location.href;
+  const base = normalizeLocalDevMediaUrl(rawBase, rawBase);
+  const normalizedSrc = normalizeLocalDevMediaUrl(src, base);
+  const sourceType = options.sourceType ?? getMediaSourceType(normalizedSrc);
+  const url = new URL(normalizedSrc, base);
 
   if (sourceType === 'dynamic-media') {
     if (url.pathname.includes('/adobe/assets/')) {
       url.searchParams.set('width', String(width));
       url.searchParams.set('format', 'webp');
-      return url.toString();
+      return normalizeLocalDevMediaUrl(url.toString(), base);
     }
     url.searchParams.set('wid', String(width));
     url.searchParams.set('qlt', String(options.qlt ?? 85));
     url.searchParams.set('fmt', 'webp');
-    return url.toString();
+    return normalizeLocalDevMediaUrl(url.toString(), base);
   }
 
   const quality = options.optimize ?? 'medium';
   const { origin, pathname } = url;
-  return `${origin}${pathname}?width=${width}&format=webply&optimize=${quality}`;
+  return normalizeLocalDevMediaUrl(`${origin}${pathname}?width=${width}&format=webply&optimize=${quality}`, base);
 }
 
 /**
@@ -411,6 +498,7 @@ export function applyPictureOptimizeLevel(picture, level) {
  * @returns {HTMLPictureElement|HTMLImageElement}
  */
 export function createHeroAdventurePicture(src, alt = '') {
+  if (!isValidImageSrc(src)) return null;
   const lcp = buildHeroAdventureLcpUrls(src);
   const picture = createResponsivePicture(src, alt, true, lcp.breakpoints, {
     loading: 'eager',
@@ -436,11 +524,14 @@ export function createHeroAdventurePicture(src, alt = '') {
  */
 export function optimizePictures(root, options = {}) {
   const { eagerSelector = HERO_SELECTOR, eagerAll = false } = options;
-  root.querySelectorAll('picture > img[src]').forEach((img) => {
+  root.querySelectorAll('picture > img').forEach((img) => {
     if (img.dataset.mediaOptimized === 'true') return;
 
     const picture = img.closest('picture');
     if (!picture) return;
+
+    const src = resolvePictureSrc(img);
+    if (!src || !isValidImageSrc(src)) return;
 
     const config = getPictureConfig(img, eagerSelector);
     const { breakpoints, sizes } = config;
@@ -453,7 +544,7 @@ export function optimizePictures(root, options = {}) {
       sizes,
     };
     picture.replaceWith(createResponsivePicture(
-      img.src,
+      src,
       img.alt || '',
       eager,
       breakpoints,

@@ -1,0 +1,15 @@
+name = "wknd-aero-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[[kv_namespaces]]
+binding = "WKND_AERO_CATALOG"
+id = "f7642f71bf8244d19d1b4749f0c3d48f"
+
+[vars]
+ALLOWED_ORIGINS = "https://main--wknd-aero--znikolovski.aem.page,https://main--wknd-aero--znikolovski.aem.live,https://main--masterclass-demo--znikolovski.aem.page,https://main--masterclass-demo--znikolovski.aem.live,http://localhost:3000"
+ADVENUTURES_INDEX_URL = "https://main--masterclass-demo--znikolovski.aem.live/query-index.json"
+AERO_SITE_HOST = "https://main--wknd-aero--znikolovski.aem.network"
+
+[triggers]
+crons = ["0 */6 * * *"]

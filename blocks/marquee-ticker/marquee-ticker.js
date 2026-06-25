@@ -1,6 +1,7 @@
 export default function decorate(block) {
   const section = block.closest('.section');
-  if (section) {
+  const isNested = Boolean(block.closest('.aero-pass-landing, .aero-hero, .aero-pass'));
+  if (section && !isNested) {
     section.classList.remove('section');
     section.style.padding = '0';
     section.style.margin = '0';

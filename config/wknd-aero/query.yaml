@@ -1,0 +1,25 @@
+version: 1
+indices:
+  default:
+    include:
+      - '/**'
+    exclude:
+      - '/drafts/**'
+      - '/fragments/**'
+      - '/blocks/**'
+      - '/templates/**'
+      - '/tools/**'
+    target: /query-index.json
+    properties:
+      lastModified:
+        select: none
+        value: parseTimestamp(headers["last-modified"], "ddd, DD MMM YYYY hh:mm:ss GMT")
+      title:
+        select: head meta[property="og:title"]
+        value: attribute(el, "content")
+      description:
+        select: head meta[property="og:description"]
+        value: attribute(el, "content")
+      image:
+        select: main picture img
+        value: attribute(el, "src")

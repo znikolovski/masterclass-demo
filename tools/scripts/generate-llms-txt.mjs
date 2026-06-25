@@ -17,18 +17,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
-const DEFAULT_INDEX_URL = 'https://main--masterclass-demo--znikolovski.aem.live/query-index.json';
-const DEFAULT_OUT = join(ROOT, 'llms.txt');
-
-const EXCLUDE_PREFIXES = [
-  '/drafts/',
-  '/fragments/',
-  '/reports/',
-  '/find-your-adventure/',
-  '/blocks/',
-  '/templates/',
-  '/tools/',
-];
 
 const CORE_ORDER = [
   '/',
@@ -42,6 +30,34 @@ const CORE_ORDER = [
   '/basecamp',
   '/sustainability',
   '/faq',
+];
+
+const SITE_CONFIG = {
+  'masterclass-demo': {
+    indexUrl: 'https://main--masterclass-demo--znikolovski.aem.live/query-index.json',
+    out: join(ROOT, 'llms.txt'),
+    title: '# WKND Adventures',
+    tagline: '> Bold Stories. Real Life. Wild Places. Structured markdown sources for WKND Adventures pages.',
+    coreOrder: CORE_ORDER,
+  },
+  'wknd-aero': {
+    indexUrl: 'https://main--wknd-aero--znikolovski.aem.live/query-index.json',
+    out: join(ROOT, 'llms-aero.txt'),
+    title: '# WKND Aero',
+    tagline: '> Flights to adventure. Structured markdown sources for WKND Aero pages and Product Bus adventure catalog.',
+    coreOrder: ['/', '/destinations', '/travel-inspiration', '/wknd-pass', '/book/flights'],
+    adventurePipelineHost: 'https://main--wknd-aero--znikolovski.aem.network',
+  },
+};
+
+const EXCLUDE_PREFIXES = [
+  '/drafts/',
+  '/fragments/',
+  '/reports/',
+  '/find-your-adventure/',
+  '/blocks/',
+  '/templates/',
+  '/tools/',
 ];
 
 /**
@@ -106,24 +122,36 @@ function appendSection(lines, heading, items) {
 /**
  * @param {ReturnType<typeof parseArgs>} opts
  * @param {Array<{ path: string, title?: string, description?: string }>} pages
+ * @param {object} siteCfg
  * @returns {string}
  */
-function buildLlmsTxt(opts, pages) {
+function buildLlmsTxt(opts, pages, siteCfg) {
   const byPath = new Map(pages.map((page) => [page.path, page]));
   const lines = [
-    '# WKND Adventures',
+    siteCfg.title,
     '',
-    '> Bold Stories. Real Life. Wild Places. Structured markdown sources for WKND Adventures pages.',
+    siteCfg.tagline,
     '',
     'Use the `.md` links below for LLM-friendly page content from Adobe Edge Delivery Services.',
     'HTML pages are available at the same paths without the `.md` suffix (homepage: `/index.md`).',
     '',
   ];
 
-  const core = CORE_ORDER
+  const coreOrder = siteCfg.coreOrder || CORE_ORDER;
+  const core = coreOrder
     .map((path) => byPath.get(path))
     .filter(Boolean);
   appendSection(lines, 'Core pages', core);
+
+  if (siteCfg.adventurePipelineHost) {
+    const adventures = pages
+      .filter((page) => page.path.startsWith('/adventures/'))
+      .map((page) => ({
+        ...page,
+        description: `${page.description || ''} Pipeline HTML: ${siteCfg.adventurePipelineHost}${page.path}`.trim(),
+      }));
+    appendSection(lines, 'Adventure catalog (Product Bus)', adventures);
+  }
 
   const blog = pages
     .filter((page) => page.path.startsWith('/blog/'))
@@ -146,9 +174,11 @@ function buildLlmsTxt(opts, pages) {
  */
 function parseArgs(argv) {
   const dryRun = argv.includes('--dry-run');
-  const url = argv.find((arg) => arg.startsWith('--url='))?.slice(6) || DEFAULT_INDEX_URL;
-  const out = argv.find((arg) => arg.startsWith('--out='))?.slice(6) || DEFAULT_OUT;
-  return { dryRun, url, out };
+  const site = argv.find((arg) => arg.startsWith('--site='))?.slice(7) || 'masterclass-demo';
+  const siteCfg = SITE_CONFIG[site] || SITE_CONFIG['masterclass-demo'];
+  const url = argv.find((arg) => arg.startsWith('--url='))?.slice(6) || siteCfg.indexUrl;
+  const out = argv.find((arg) => arg.startsWith('--out='))?.slice(6) || siteCfg.out;
+  return { dryRun, url, out, site, siteCfg };
 }
 
 async function main() {
@@ -167,7 +197,7 @@ async function main() {
       description: item.description,
     }));
 
-  const content = buildLlmsTxt(opts, pages);
+  const content = buildLlmsTxt(opts, pages, opts.siteCfg);
   if (opts.dryRun) {
     process.stdout.write(content);
     return;

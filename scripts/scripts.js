@@ -6,7 +6,6 @@ import {
   decorateBlock,
   getMetadata,
   waitForFirstImage,
-  loadBlock,
   loadCSS,
   readBlockConfig,
   toClassName,
@@ -27,23 +26,36 @@ import {
   shouldRequestNamedTargetScopes,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
-import { optimizePictures, buildHeroAdventureLcpUrls, enrichHeroPictureAfterLcp } from './media.js';
+import {
+  optimizePictures,
+  buildHeroAdventureLcpUrls,
+  enrichHeroPictureAfterLcp,
+  resolvePictureSrc,
+  fixDocumentMetaImageUrls,
+  isUsableMetaImageUrl,
+} from './media.js';
+import { DEFAULT_AERO_HERO_IMAGE } from './aero-catalog-images.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
   getLaunchUrls,
 } from './martech-config.js';
 import addMarkdownAlternateLink from './markdown-alternate.js';
+import {
+  loadSiteBlock,
+  getBlockStylesheetHref as getSiteBlockStylesheetHref,
+  isAeroBlock,
+} from './aero-blocks.js';
 
 /** Instrument Sans (body) + Syncopate (headings); Syncopate woff2 preloaded in head.html */
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@700&display=swap';
 
 const HERO_HEADING_FONT = 'Syncopate';
 
-const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero';
+const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero, .aero-hero';
 
 /** Blocks that must load before revealing the first section (LCP). */
-const EAGER_FIRST_BLOCK_NAMES = new Set(['hero-adventure', 'carousel-hero', 'hero']);
+const EAGER_FIRST_BLOCK_NAMES = new Set(['hero-adventure', 'carousel-hero', 'hero', 'aero-hero']);
 
 /** Section layout shells from inline fragments — not blocks (no blocks/{name}/ CSS). */
 const LAYOUT_CLASS_NAMES = new Set([
@@ -110,16 +122,34 @@ function decoratePageBlocks(main) {
  * Eager-load hero block CSS so above-fold layout is stable before block decoration.
  * @param {Element} main
  */
+function hasStylesheet(href) {
+  return Boolean(document.querySelector(`link[rel="stylesheet"][href="${href}"]`));
+}
+
+/**
+ * @param {string} href
+ */
+async function ensureHeroStylesheet(href) {
+  if (!hasStylesheet(href)) await loadCSS(href);
+}
+
 async function loadHeroBlockCss(main) {
   const codeBase = window.hlx.codeBasePath;
+  if (main.querySelector('.aero-hero')) {
+    await ensureHeroStylesheet(`${codeBase}/blocks/aero/aero-hero/aero-hero.css`);
+    await ensureHeroStylesheet(`${codeBase}/blocks/aero/flight-search/flight-search.css`);
+    return;
+  }
+  if (main.querySelector('.booking-journey')) {
+    await ensureHeroStylesheet(`${codeBase}/blocks/aero/booking-journey/booking-journey.css`);
+    return;
+  }
   if (main.querySelector('.hero-adventure, .carousel-hero')) {
-    const href = `${codeBase}/blocks/hero-adventure/hero-adventure.css`;
-    if (document.querySelector(`link[rel="stylesheet"][href="${href}"], link[rel="stylesheet"][href="/blocks/hero-adventure/hero-adventure.css"]`)) {
-      return;
-    }
-    await loadCSS(href);
-  } else if (main.querySelector('.hero')) {
-    await loadCSS(`${codeBase}/blocks/hero/hero.css`);
+    await ensureHeroStylesheet(`${codeBase}/blocks/hero-adventure/hero-adventure.css`);
+    return;
+  }
+  if (main.querySelector('.hero')) {
+    await ensureHeroStylesheet(`${codeBase}/blocks/hero/hero.css`);
   }
 }
 
@@ -138,7 +168,7 @@ function hasImagePreload(href) {
  */
 function preloadOgImage(doc = document) {
   const og = getMetadata('og:image', doc);
-  if (!og) return;
+  if (!og || !isUsableMetaImageUrl(og)) return;
   try {
     const { preloadHref } = buildHeroAdventureLcpUrls(
       og,
@@ -161,12 +191,16 @@ function preloadOgImage(doc = document) {
  * @param {ParentNode} root
  */
 function primeLcpImage(root) {
-  const img = root.querySelector(`${HERO_BLOCK_SELECTOR} picture img, .section:first-of-type picture img`);
+  const img = root.querySelector(
+    `${HERO_BLOCK_SELECTOR} picture img, ${HERO_BLOCK_SELECTOR} img, .section:first-of-type picture img`,
+  );
   if (!img || img.dataset.lcpPrimed) return;
+  const src = resolvePictureSrc(img);
+  if (!src) return;
   const picture = img.closest('picture');
   picture?.querySelectorAll('source').forEach((source) => source.remove());
   try {
-    const { preloadHref, heroBaseSrc } = buildHeroAdventureLcpUrls(img.src);
+    const { preloadHref, heroBaseSrc } = buildHeroAdventureLcpUrls(src);
     img.dataset.lcpPrimed = 'true';
     img.dataset.mediaOptimized = 'true';
     img.dataset.heroBaseSrc = heroBaseSrc;
@@ -187,9 +221,10 @@ function primeLcpImage(root) {
  */
 function preloadLcpHeroImage(section) {
   const img = section.querySelector(`${HERO_BLOCK_SELECTOR} picture img, picture img`);
-  if (!img?.src) return;
+  const src = resolvePictureSrc(img);
+  if (!src) return;
   try {
-    const { preloadHref } = buildHeroAdventureLcpUrls(img.src);
+    const { preloadHref } = buildHeroAdventureLcpUrls(src);
     if (hasImagePreload(preloadHref)) return;
     const link = document.createElement('link');
     link.rel = 'preload';
@@ -217,7 +252,7 @@ function preloadLcpHeroImage(section) {
  * @param {Element} section
  */
 async function waitForHeroHeadingFont(section) {
-  const h1 = section.querySelector('.hero-adventure h1, .hero h1');
+  const h1 = section.querySelector('.hero-adventure h1, .aero-hero h1, .hero h1');
   if (!h1) return;
 
   h1.classList.add('hero-heading-pending');
@@ -369,7 +404,7 @@ async function ensureStylesheet(href) {
  * @returns {string}
  */
 function getBlockStylesheetHref(blockName) {
-  return `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`;
+  return getSiteBlockStylesheetHref(blockName);
 }
 
 /**
@@ -520,7 +555,19 @@ function bindCtaAnalytics(main) {
 function isEmptySection(section) {
   const text = section.textContent.trim();
   const hasMedia = section.querySelector('img, picture, video, svg, iframe');
-  return !text && !hasMedia;
+  if (text || hasMedia) return false;
+  const blockRoot = section.querySelector(':scope > div[class]');
+  if (blockRoot) {
+    const name = blockRoot.classList[0];
+    if (name
+      && name !== 'section-metadata'
+      && name !== 'metadata'
+      && name !== 'richtext'
+      && name !== 'default-content-wrapper') {
+      return false;
+    }
+  }
+  return true;
 }
 
 function applySectionMetadata(section, sectionMeta) {
@@ -619,6 +666,9 @@ export function decorateMain(main) {
 function getPageMetadataValue(name, doc = document) {
   const fromHead = getMetadata(name, doc);
   if (fromHead) return fromHead;
+  const meta = [...doc.head.querySelectorAll('meta[name]')]
+    .find((m) => m.getAttribute('name')?.toLowerCase() === name.toLowerCase());
+  if (meta?.content) return meta.content;
   const block = doc.querySelector('main .metadata');
   if (!block) return '';
   const row = [...block.children].find((child) => {
@@ -632,10 +682,11 @@ function getPageMetadataValue(name, doc = document) {
 }
 
 /** Repoless sites with token overrides in styles/brands/{site}.css */
-const SITE_BRAND_OVERRIDES = new Set(['wknd-business']);
+const SITE_BRAND_OVERRIDES = new Set(['wknd-business', 'wknd-aero']);
 
 /**
- * Site slug from AEM preview/live hostname ({branch}--{site}--{org}.aem.page|.aem.live|.aem.network).
+ * Site slug from AEM preview/live hostname
+ * ({branch}--{site}--{org}.aem.page|.aem.live|.aem.network).
  * @param {Document} [doc]
  * @returns {string}
  */
@@ -645,6 +696,10 @@ function getRepolessSiteSlug(doc = document) {
 
   const brandMeta = getPageMetadataValue('brand', doc);
   if (brandMeta) return toClassName(brandMeta) || brandMeta;
+
+  const { pathname } = window.location;
+  if (/\/wknd-aero/i.test(pathname)) return 'wknd-aero';
+  if (/\/wknd-business/i.test(pathname)) return 'wknd-business';
 
   const { hostname } = window.location;
   if (hostname.endsWith('.aem.page') || hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network')) {
@@ -713,6 +768,8 @@ function isLibraryPreviewShell(doc = document) {
  * @returns {string|null} block name
  */
 function getLibraryBlockDocument() {
+  const aeroMatch = window.location.pathname.match(/^\/blocks\/aero\/([^/]+)\/\1\/?$/);
+  if (aeroMatch) return aeroMatch[1];
   const match = window.location.pathname.match(/^\/blocks\/([^/]+)\/([^/]+)\/?$/);
   if (!match || match[1] !== match[2]) return null;
   return match[1];
@@ -737,11 +794,14 @@ async function bootstrapLibraryBlockDocument(doc) {
   doc.body.classList.add('library-preview', 'sidekick-library', 'appear');
   doc.querySelector('header')?.remove();
   doc.querySelector('footer')?.remove();
+  const blockCss = isAeroBlock(blockName)
+    ? `${base}/blocks/aero/${blockName}/${blockName}.css`
+    : `${base}/blocks/${blockName}/${blockName}.css`;
   await Promise.all([
     loadCSS(`${base}/styles/library-preview.css`),
     loadCSS(`${base}/styles/library-sidekick-blocks.css`),
     loadCSS(`${base}/styles/lazy-styles.css`),
-    loadCSS(`${base}/blocks/${blockName}/${blockName}.css`),
+    loadCSS(blockCss),
   ]);
   doc.querySelector('main')?.querySelector(`.${blockName}`)?.classList.add('sidekick-library');
 }
@@ -864,7 +924,7 @@ function schedulePrimedHeroBlockLoad(section) {
   const heroBlock = section.querySelector(`${HERO_BLOCK_SELECTOR}.block`);
   if (!heroBlock || heroBlock.dataset.blockStatus === 'loaded') return;
 
-  const run = () => loadBlock(heroBlock).catch(() => {});
+  const run = () => loadSiteBlock(heroBlock).catch(() => {});
   if (typeof requestIdleCallback === 'function') {
     requestIdleCallback(run, { timeout: 5000 });
   } else {
@@ -899,10 +959,20 @@ async function loadEagerFirstSection(section) {
     }
     section.style.display = null;
     section.dataset.sectionStatus = 'loaded';
-    finishFirstSectionPaint(section).catch(() => {});
-    schedulePrimedHeroBlockLoad(section);
+    const heroBlock = section.querySelector(`${HERO_BLOCK_SELECTOR}.block`);
+    const bookingBlock = section.querySelector('.booking-journey.block');
+    const isAeroHero = heroBlock?.classList.contains('aero-hero');
+    if (isAeroHero && heroBlock) {
+      await loadSiteBlock(heroBlock);
+      await finishFirstSectionPaint(section);
+    } else if (bookingBlock) {
+      await loadSiteBlock(bookingBlock);
+    } else {
+      finishFirstSectionPaint(section).catch(() => {});
+      schedulePrimedHeroBlockLoad(section);
+    }
     if (postLcpBlocks.length) {
-      Promise.all(postLcpBlocks.map((block) => loadBlock(block))).catch(() => {});
+      Promise.all(postLcpBlocks.map((block) => loadSiteBlock(block))).catch(() => {});
     }
     return;
   }
@@ -910,7 +980,7 @@ async function loadEagerFirstSection(section) {
   // eslint-disable-next-line no-restricted-syntax
   for (const block of eagerBlocks) {
     // eslint-disable-next-line no-await-in-loop
-    await loadBlock(block);
+    await loadSiteBlock(block);
   }
 
   await finishFirstSectionPaint(section);
@@ -918,7 +988,7 @@ async function loadEagerFirstSection(section) {
   section.style.display = null;
 
   if (deferredBlocks.length) {
-    Promise.all(deferredBlocks.map((block) => loadBlock(block))).catch(() => {});
+    Promise.all(deferredBlocks.map((block) => loadSiteBlock(block))).catch(() => {});
   }
 }
 
@@ -948,7 +1018,7 @@ function prefetchBelowFoldStyles(main, doc) {
   prefetchStylesheet(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   main.querySelectorAll('.block[data-block-name]').forEach((block) => {
     const { blockName } = block.dataset;
-    if (!blockName || blockName === 'hero-adventure' || isLayoutClassName(blockName)) {
+    if (!blockName || blockName === 'hero-adventure' || blockName === 'aero-hero' || isLayoutClassName(blockName)) {
       return;
     }
     prefetchStylesheet(getBlockStylesheetHref(blockName));
@@ -971,7 +1041,7 @@ async function loadDeferredSection(section) {
     if (name && !isLayoutClassName(name)) {
       await ensureStylesheet(getBlockStylesheetHref(name));
     }
-    await loadBlock(block);
+    await loadSiteBlock(block);
   }));
   section.dataset.sectionStatus = 'loaded';
   section.style.display = null;
@@ -995,6 +1065,48 @@ async function loadDeferredSections(main) {
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
+async function loadSiteHeader(headerEl) {
+  if (!headerEl) return undefined;
+  if (getRepolessSiteSlug() === 'wknd-aero') {
+    const block = buildBlock('aero-header', '');
+    headerEl.append(block);
+    decorateBlock(block);
+    return loadSiteBlock(block);
+  }
+  return loadHeader(headerEl);
+}
+
+/**
+ * @returns {HTMLElement|null}
+ */
+function getSiteFooterEl(doc = document) {
+  const footers = [...doc.querySelectorAll('body > footer')];
+  if (!footers.length) return doc.querySelector('footer');
+  const target = footers[footers.length - 1];
+  footers.slice(0, -1).forEach((el) => el.remove());
+  return target;
+}
+
+/**
+ * @param {Element} footerEl
+ */
+async function loadSiteFooter(footerEl) {
+  const target = footerEl || getSiteFooterEl();
+  if (!target) return undefined;
+  if (getRepolessSiteSlug() === 'wknd-aero') {
+    const block = buildBlock('aero-footer', []);
+    target.textContent = '';
+    target.append(block);
+    decorateBlock(block);
+    return loadSiteBlock(block);
+  }
+  return loadFooter(target);
+}
+
+/**
+ * Loads everything needed to get to LCP.
+ * @param {Element} doc The container element
+ */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   doc.body?.classList.add('appear');
@@ -1002,6 +1114,11 @@ async function loadEager(doc) {
   if (!doc.querySelector('link[rel="alternate"][type="text/markdown"]')) {
     addMarkdownAlternateLink(doc);
   }
+  const siteSlug = getRepolessSiteSlug(doc);
+  fixDocumentMetaImageUrls(
+    doc,
+    siteSlug === 'wknd-aero' ? DEFAULT_AERO_HERO_IMAGE : '',
+  );
   preloadOgImage(doc);
   applyTemplateAndTheme(doc);
 
@@ -1009,15 +1126,16 @@ async function loadEager(doc) {
     await loadCSS(`${window.hlx.codeBasePath}/styles/blog.css`);
   }
 
-  loadSiteBrandCss(getRepolessSiteSlug(doc));
+  await loadSiteBrandCss(getRepolessSiteSlug(doc));
+  if (siteSlug === 'wknd-aero') doc.body.classList.add('wknd-aero');
 
   const main = doc.querySelector('main');
   if (main) {
     const primedHero = hasPrimedLcpHero(main);
     const lcpHero = primedHero || Boolean(main.querySelector(HERO_BLOCK_SELECTOR));
+    await loadHeroBlockCss(main);
     if (!lcpHero) {
       primeLcpImage(main);
-      await loadHeroBlockCss(main);
     }
     decorateMain(main);
     applyTemplateAndTheme(doc);
@@ -1060,7 +1178,11 @@ async function loadLazy(doc) {
   }
 
   if (!isLibraryPreview(doc)) {
-    loadHeader(doc.querySelector('header'));
+    loadSiteHeader(doc.querySelector('header'));
+    if (getRepolessSiteSlug(doc) === 'wknd-aero') {
+      import('./aero-analytics.js').catch(() => {});
+      loadSiteFooter(getSiteFooterEl(doc));
+    }
   }
 
   const main = doc.querySelector('main');
@@ -1071,7 +1193,7 @@ async function loadLazy(doc) {
     if (fragmentBlocks.length) {
       const loadLcpFragments = () => Promise.all(fragmentBlocks.map(async (block) => {
         await ensureStylesheet(getBlockStylesheetHref('fragment'));
-        await loadBlock(block);
+        await loadSiteBlock(block);
       })).catch(() => {});
       if (typeof requestIdleCallback === 'function') {
         requestIdleCallback(() => { loadLcpFragments(); }, { timeout: 2500 });
@@ -1153,8 +1275,8 @@ async function loadLazy(doc) {
  */
 function loadDelayed() {
   window.setTimeout(() => {
-    if (!isLibraryPreview(document)) {
-      loadFooter(document.querySelector('footer'));
+    if (!isLibraryPreview(document) && getRepolessSiteSlug() !== 'wknd-aero') {
+      loadSiteFooter(getSiteFooterEl());
     }
     if (martechLoadedPromise) {
       martechLoadedPromise.then(() => getMartechModule().then(async (m) => {
@@ -1182,7 +1304,9 @@ if (/\.(stage-ue|ue)\.da\.live$/.test(window.location.hostname)) {
   await import(`${window.hlx.codeBasePath}/ue/scripts/ue.js`).then(({ default: ue }) => ue());
 }
 
-loadPage();
+if (!window.hlx?.suppressLoadPage) {
+  loadPage();
+}
 
 (function da() {
   const { searchParams } = new URL(window.location.href);

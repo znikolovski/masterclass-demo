@@ -11,7 +11,7 @@ import {
   basename, dirname, join, relative,
 } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { wrapLibraryPreviewPage } from './wrap-library-preview.mjs';
+import { wrapLibraryPreviewPage, getPreviewOptionsForDaPath } from './wrap-library-preview.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const sidekickRoot = join(ROOT, 'tools/sidekick');
@@ -41,12 +41,12 @@ function extractLibraryFragment(html) {
 function writePreviewShell(daPath, fragment) {
   const label = basename(daPath, '.html').replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase()}${label.slice(1)} — Library preview`;
-  const blockName = basename(daPath, '.html');
+  const previewOptions = getPreviewOptionsForDaPath(daPath);
   const gitPath = join(ROOT, daPath);
   mkdirSync(dirname(gitPath), { recursive: true });
   writeFileSync(
     gitPath,
-    wrapLibraryPreviewPage(title, fragment, { blockName }),
+    wrapLibraryPreviewPage(title, fragment, previewOptions),
   );
   writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
 }
@@ -69,12 +69,12 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
   const label = basename(daPath, '.html').replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase()}${label.slice(1)} — Library preview`;
   const previewOptions = daPath.includes('templates/blog-article/')
-    ? { bodyClasses: ['blog-article'], stylesheets: ['/styles/blog.css'] }
-    : {};
+    ? { bodyClasses: ['blog-article'], stylesheets: ['/styles/blog.css'], ...getPreviewOptionsForDaPath(daPath) }
+    : getPreviewOptionsForDaPath(daPath);
+
   const isTemplate = daPath.startsWith('templates/');
-  const blockName = !isTemplate ? basename(daPath, '.html') : undefined;
-  const previewOptionsWithBlock = blockName
-    ? { ...previewOptions, blockName }
+  const previewOptionsWithBlock = isTemplate
+    ? previewOptions
     : previewOptions;
 
   const gitPath = join(ROOT, daPath);

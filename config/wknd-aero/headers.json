@@ -1,0 +1,18 @@
+{
+  "/fragments/**": [
+    {
+      "key": "access-control-allow-origin",
+      "value": "*"
+    },
+    {
+      "key": "access-control-allow-methods",
+      "value": "GET, OPTIONS"
+    }
+  ],
+  "/blocks/**/*.html": [
+    {
+      "key": "access-control-allow-origin",
+      "value": "*"
+    }
+  ]
+}

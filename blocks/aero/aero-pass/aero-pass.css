@@ -1,0 +1,678 @@
+.aero-pass {
+  background: transparent;
+  color: #fff;
+  padding: 0;
+}
+
+.aero-pass .aero-pass-inner {
+  max-width: 1216px;
+  margin: 0 auto;
+  display: grid;
+  gap: 48px;
+}
+
+.aero-pass .aero-pass-eyebrow {
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--aero-orange);
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+
+.aero-pass h2 {
+  margin: 0 0 40px;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.aero-pass .aero-pass-benefits {
+  list-style: none;
+  margin: 0 0 48px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.aero-pass .aero-pass-benefits li {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 24px 0;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.aero-pass .aero-pass-benefits li:last-child {
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.aero-pass .aero-pass-benefit-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--aero-orange);
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.aero-pass .aero-pass-benefit-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.aero-pass .aero-pass-benefit-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.aero-pass .aero-pass-benefit-text strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aero-pass .aero-pass-benefit-text span {
+  opacity: 0.75;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.aero-pass .aero-pass-cta:any-link {
+  display: inline-block;
+  background: var(--aero-orange);
+  color: #fff;
+  padding: 18px 40px;
+  text-decoration: none;
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.aero-pass .aero-pass-cta:any-link:hover,
+.aero-pass .aero-pass-cta:any-link:focus-visible {
+  background: var(--aero-orange-hover);
+  color: #fff;
+}
+
+.aero-pass .aero-pass-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 16px;
+}
+
+.aero-pass .aero-pass-image-frame {
+  position: relative;
+  width: 100%;
+  max-width: 576px;
+  border: 4px solid var(--aero-orange);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--aero-forest);
+}
+
+.aero-pass .aero-pass-image-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aero-pass .aero-pass-card {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgb(255 255 255 / 12%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 25%);
+  padding: 20px 32px;
+  text-align: center;
+  min-width: 220px;
+}
+
+.aero-pass .aero-pass-card-status span {
+  display: block;
+  font-family: var(--heading-font-family);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.aero-pass .aero-pass-card-status strong {
+  font-family: var(--heading-font-family);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (width >= 900px) {
+  .aero-pass .aero-pass-inner {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 64px;
+  }
+
+  .aero-pass .aero-pass-visual {
+    justify-content: flex-end;
+    padding-top: 0;
+  }
+}
+
+@media (width < 900px) {
+  .aero-pass .aero-pass-image-frame {
+    max-width: 100%;
+  }
+}
+
+/* Full landing page — Figma node 14-1408 */
+.aero-pass.landing {
+  background: #fbf9f6;
+  color: var(--aero-charcoal);
+}
+
+.aero-pass.landing .aero-pass-landing {
+  display: flex;
+  flex-direction: column;
+}
+
+.aero-pass-hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: var(--aero-forest);
+  color: #fff;
+}
+
+.aero-pass-hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.aero-pass-hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--aero-forest) 0%, rgb(15 26 20 / 0%) 50%);
+}
+
+.aero-pass-hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 80px 32px 96px;
+}
+
+.aero-pass-hero-eyebrow {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  border-left: 4px solid var(--aero-orange);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aero-orange);
+}
+
+.aero-pass-hero h1 {
+  margin: 0;
+  max-width: 896px;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.aero-pass-hero-intro {
+  margin: 16px 0 0;
+  max-width: 672px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--aero-body-muted);
+}
+
+.aero-pass-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.aero-pass-btn:any-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 40px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.aero-pass-btn--primary:any-link {
+  background: var(--aero-orange);
+  color: #fff;
+}
+
+.aero-pass-btn--primary:any-link:hover,
+.aero-pass-btn--primary:any-link:focus-visible {
+  background: var(--aero-orange-hover);
+  color: #fff;
+}
+
+.aero-pass-btn--outline:any-link {
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.aero-pass-btn--outline:any-link:hover,
+.aero-pass-btn--outline:any-link:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
+.aero-pass-btn--block:any-link {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.aero-pass-hero .marquee-ticker.aero-pass-hero-marquee {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  overflow: hidden;
+  background: var(--aero-orange);
+  border-top: 2px solid var(--aero-forest);
+  border-bottom: none;
+  padding: 10px 0 8px;
+  color: var(--aero-forest);
+}
+
+.aero-pass-hero .marquee-ticker.aero-pass-hero-marquee .marquee-ticker-item {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--aero-forest);
+}
+
+.aero-pass-hero .marquee-ticker.aero-pass-hero-marquee .marquee-ticker-sep {
+  opacity: 0.35;
+  color: var(--aero-forest);
+}
+
+.aero-pass-benefits-grid {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 96px 32px;
+}
+
+.aero-pass-benefits-header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.aero-pass-benefits-header h2 {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--aero-charcoal);
+}
+
+.aero-pass-benefits-header p {
+  margin: 16px 0 0;
+  max-width: 672px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--aero-label);
+}
+
+.aero-pass-benefits-badge {
+  font-size: 24px;
+  color: #9e3e00;
+}
+
+.aero-pass-benefits-cards {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+
+.aero-pass-benefit-card {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--aero-forest);
+}
+
+.aero-pass-benefit-card > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+}
+
+.aero-pass-benefit-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 32px;
+  background: linear-gradient(to top, var(--aero-forest) 0%, rgb(15 26 20 / 0%) 100%);
+  color: #fff;
+}
+
+.aero-pass-benefit-card-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 16px;
+  color: var(--aero-orange);
+}
+
+.aero-pass-benefit-card-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.aero-pass-benefit-card-overlay h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.aero-pass-benefit-card-overlay p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--aero-body-muted);
+}
+
+.aero-pass-protocol {
+  background: var(--aero-forest);
+  border-top: 4px solid var(--aero-orange);
+  border-bottom: 4px solid var(--aero-orange);
+  padding: 100px 32px;
+  color: #fff;
+}
+
+.aero-pass-protocol > h2 {
+  margin: 0 auto 80px;
+  max-width: 1280px;
+  font-family: var(--heading-font-family);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.aero-pass-protocol-steps {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  gap: 48px;
+}
+
+.aero-pass-protocol-step {
+  position: relative;
+}
+
+.aero-pass-protocol-num {
+  position: absolute;
+  top: -36px;
+  left: -12px;
+  font-family: var(--heading-font-family);
+  font-size: clamp(3rem, 8vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  color: rgb(255 255 255 / 8%);
+  pointer-events: none;
+}
+
+.aero-pass-protocol-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 16px;
+  color: var(--aero-orange);
+}
+
+.aero-pass-protocol-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.aero-pass-protocol-step h3 {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.aero-pass-protocol-step p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--aero-body-muted);
+}
+
+.aero-pass-pricing {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 128px 32px;
+  display: grid;
+  gap: 64px;
+}
+
+.aero-pass-pricing-copy h2 {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--aero-charcoal);
+}
+
+.aero-pass-pricing-copy h2 span {
+  display: block;
+}
+
+.aero-pass-pricing-copy > p {
+  margin: 32px 0 0;
+  max-width: 576px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--aero-label);
+}
+
+.aero-pass-pricing-features {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.aero-pass-pricing-features li {
+  position: relative;
+  padding-left: 32px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aero-charcoal);
+}
+
+.aero-pass-pricing-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--aero-orange);
+}
+
+.aero-pass-pricing-card {
+  background: var(--aero-forest);
+  border-left: 8px solid var(--aero-orange);
+  padding: 48px;
+  color: #fff;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
+}
+
+.aero-pass-pricing-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aero-orange);
+}
+
+.aero-pass-pricing-amount {
+  margin: 16px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.aero-pass-pricing-amount strong {
+  font-family: var(--heading-font-family);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.aero-pass-pricing-amount span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--aero-body-muted);
+}
+
+.aero-pass-pricing-note {
+  margin: 0 0 32px;
+  padding-top: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--aero-body-muted);
+}
+
+.aero-pass-pricing-spots {
+  margin: 24px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aero-body-muted);
+}
+
+.aero-pass-escape {
+  background: var(--aero-forest);
+  color: #fff;
+  text-align: center;
+  padding: 160px 32px;
+}
+
+.aero-pass-escape h2 {
+  margin: 0 0 32px;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.aero-pass-escape h2 span {
+  display: block;
+}
+
+.aero-pass-escape-accent {
+  color: var(--aero-orange);
+}
+
+.aero-pass-escape p {
+  margin: 0 auto;
+  max-width: 640px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--aero-body-muted);
+}
+
+@media (width >= 900px) {
+  .aero-pass-benefits-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .aero-pass-benefits-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .aero-pass-protocol-steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 80px;
+  }
+
+  .aero-pass-pricing {
+    grid-template-columns: 7fr 5fr;
+    align-items: center;
+  }
+}

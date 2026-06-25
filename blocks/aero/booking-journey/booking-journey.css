@@ -1,0 +1,961 @@
+/* WKND Aero booking journey — Figma Select Your Flight / Seats / Passengers / Review */
+.booking-journey {
+  --aero-forest: #0f1a14;
+  --aero-orange: #e8651a;
+  --aero-orange-hover: #d45a15;
+  --aero-cream: #f4f2ef;
+  --aero-border: rgb(27 28 26 / 10%);
+  --aero-label: #584238;
+  --aero-muted: #dbdad7;
+
+  min-height: 70vh;
+  padding: 0;
+  background: var(--aero-cream);
+  color: var(--aero-forest);
+}
+
+.booking-journey .booking-journey-mount {
+  max-width: 1216px;
+  margin: 0 auto;
+  padding: 48px 32px 96px;
+  box-sizing: border-box;
+}
+
+.booking-journey .booking-app {
+  display: grid;
+  gap: 32px;
+}
+
+@media (width >= 900px) {
+  .booking-journey .booking-app.has-sidebar {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+
+  .booking-journey .booking-sidebar {
+    position: sticky;
+    top: calc(var(--nav-height, 82px) + 24px);
+  }
+}
+
+/* Trip summary header */
+.booking-journey .booking-trip-bar {
+  grid-column: 1 / -1;
+  background: var(--aero-forest);
+  color: #fff;
+  padding: 24px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+}
+
+.booking-journey .booking-trip-route {
+  font-family: var(--heading-font-family);
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.booking-journey .booking-trip-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.booking-journey .booking-trip-meta span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.booking-journey .booking-trip-meta strong {
+  font-family: var(--heading-font-family);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Step indicator */
+.booking-journey .booking-steps {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--aero-border);
+}
+
+.booking-journey .booking-step {
+  flex: 1;
+  padding: 16px 12px;
+  font-family: var(--heading-font-family);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--aero-label);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.booking-journey .booking-step.active {
+  color: var(--aero-orange);
+  border-bottom-color: var(--aero-orange);
+}
+
+.booking-journey .booking-step.done {
+  color: var(--aero-forest);
+}
+
+.booking-journey .booking-main {
+  min-width: 0;
+}
+
+.booking-journey .booking-main h2 {
+  font-family: var(--heading-font-family);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+.booking-journey .booking-main .booking-lead {
+  margin: 0 0 32px;
+  color: var(--aero-label);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Flight result cards */
+.booking-journey .booking-flights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.booking-journey .flight-card {
+  background: #fff;
+  border: none;
+  border-left: 8px solid var(--aero-orange);
+  box-shadow: 0 4px 24px rgb(0 0 0 / 6%);
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: stretch;
+  gap: 0;
+}
+
+.booking-journey .flight-card-body {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.booking-journey .flight-card-time {
+  font-family: var(--heading-font-family);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.booking-journey .flight-card-route {
+  min-width: 0;
+}
+
+.booking-journey .flight-card-route strong {
+  display: block;
+  font-family: var(--heading-font-family);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.booking-journey .flight-card-route p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--aero-label);
+}
+
+.booking-journey .flight-card-aircraft {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--aero-label);
+}
+
+.booking-journey .flight-card-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: var(--aero-cream);
+  color: var(--aero-forest);
+  margin-top: 8px;
+}
+
+.booking-journey .flight-card-badge.eco {
+  background: rgb(15 26 20 / 8%);
+  color: var(--aero-forest);
+}
+
+.booking-journey .flight-card-price {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.booking-journey .flight-card-price strong {
+  display: block;
+  font-family: var(--heading-font-family);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.booking-journey .flight-card-price span {
+  font-size: 12px;
+  color: var(--aero-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.booking-journey .flight-card-action {
+  display: flex;
+  align-items: stretch;
+}
+
+.booking-journey .flight-card button,
+.booking-journey .booking-btn {
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+}
+
+.booking-journey .flight-card button {
+  background: var(--aero-orange);
+  color: #fff;
+  padding: 0 32px;
+  min-height: 100%;
+  white-space: nowrap;
+}
+
+.booking-journey .flight-card button:hover,
+.booking-journey .booking-btn-primary:hover {
+  background: var(--aero-orange-hover);
+}
+
+.booking-journey .booking-btn-primary {
+  background: var(--aero-orange);
+  color: #fff;
+  padding: 16px 32px;
+  margin-top: 24px;
+}
+
+.booking-journey .booking-btn-secondary {
+  background: transparent;
+  color: var(--aero-forest);
+  border: 2px solid var(--aero-forest);
+  padding: 14px 28px;
+  margin-top: 16px;
+  margin-right: 12px;
+}
+
+.booking-journey .booking-empty {
+  padding: 48px 24px;
+  text-align: center;
+  background: #fff;
+  border: 1px dashed var(--aero-border);
+  color: var(--aero-label);
+}
+
+/* Seat map */
+.booking-journey .seat-map {
+  background: #fff;
+  padding: 32px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 6%);
+}
+
+.booking-journey .seat-map-config {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--aero-forest);
+}
+
+.booking-journey .seat-map-progress {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--aero-label);
+}
+
+.booking-journey .seat-map-progress.complete {
+  color: var(--aero-forest);
+  font-weight: 600;
+}
+
+.booking-journey .seat-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: var(--aero-label);
+}
+
+.booking-journey .seat-map-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid var(--aero-border);
+}
+
+.booking-journey .seat-map-legend .available::before {
+  background: #fff;
+}
+
+.booking-journey .seat-map-legend .selected::before {
+  background: var(--aero-orange);
+  border-color: var(--aero-orange);
+}
+
+.booking-journey .seat-map-legend .taken::before {
+  background: var(--aero-muted);
+}
+
+.booking-journey .seat-map-cabin {
+  overflow: auto;
+  max-height: min(520px, 58vh);
+  padding: 16px 12px;
+  border: 1px solid var(--aero-border);
+  background: var(--aero-cream);
+}
+
+.booking-journey .seat-map-nose {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--aero-border);
+  font-family: var(--heading-font-family);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--aero-label);
+}
+
+.booking-journey .seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.booking-journey .seat-row--header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  background: var(--aero-cream);
+  border-bottom: 1px solid var(--aero-border);
+}
+
+.booking-journey .seat-row-num {
+  width: 28px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--aero-label);
+  text-align: right;
+}
+
+.booking-journey .seat-row-num--header {
+  visibility: hidden;
+}
+
+.booking-journey .seat-col-label {
+  width: 32px;
+  flex-shrink: 0;
+  font-family: var(--heading-font-family);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--aero-label);
+}
+
+.booking-journey .seat-aisle {
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.booking-journey .seat {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--heading-font-family);
+  border: 1px solid var(--aero-border);
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.booking-journey .seat.taken {
+  background: var(--aero-muted);
+  cursor: not-allowed;
+  color: var(--aero-label);
+}
+
+.booking-journey .seat.selected {
+  background: var(--aero-orange);
+  border-color: var(--aero-orange);
+  color: #fff;
+}
+
+.booking-journey .seat.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.booking-journey .seat-map-selection {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: var(--aero-label);
+}
+
+/* Passenger form */
+.booking-journey .booking-form {
+  background: #fff;
+  padding: 32px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 6%);
+}
+
+.booking-journey .booking-form-grid {
+  display: grid;
+  gap: 24px;
+}
+
+@media (width >= 600px) {
+  .booking-journey .booking-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .booking-journey .booking-form-grid .full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.booking-journey .booking-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aero-label);
+  margin-bottom: 8px;
+}
+
+.booking-journey .booking-field input,
+.booking-journey .booking-field select {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 2px solid var(--aero-forest);
+  border-radius: 0;
+  padding: 12px 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--aero-forest);
+  background: transparent;
+}
+
+.booking-journey .booking-field input:focus {
+  outline: none;
+  border-bottom-color: var(--aero-orange);
+}
+
+/* Sidebar summary */
+.booking-journey .booking-sidebar {
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 6%);
+}
+
+.booking-journey .booking-sidebar h3 {
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--aero-border);
+}
+
+.booking-journey .booking-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.booking-journey .booking-summary-row.total {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid var(--aero-forest);
+  font-family: var(--heading-font-family);
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.booking-journey .booking-pass-upsell {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--aero-cream);
+  border-left: 4px solid var(--aero-orange);
+  font-size: 14px;
+}
+
+.booking-journey .booking-pass-upsell strong {
+  display: block;
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* Confirmation */
+.booking-journey .booking-confirmation {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 64px 32px;
+  background: #fff;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 6%);
+}
+
+.booking-journey .booking-confirmation h2 {
+  font-family: var(--heading-font-family);
+  font-size: clamp(2rem, 5vw, 3rem);
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+
+.booking-journey .booking-confirmation .booking-ref {
+  font-family: var(--heading-font-family);
+  font-size: 1.25rem;
+  color: var(--aero-orange);
+  letter-spacing: 0.08em;
+  margin: 24px 0;
+}
+
+/* Payment step — Figma Payment & Review */
+.booking-journey .booking-app--payment .booking-main {
+  grid-column: 1 / -1;
+}
+
+.booking-journey .booking-payment-layout {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (width >= 900px) {
+  .booking-journey .booking-payment-layout {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.booking-journey .booking-payment-form-section h2 {
+  font-family: var(--heading-font-family);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0 0 32px;
+}
+
+.booking-journey .payment-method-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.booking-journey .payment-method-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 25px;
+  border: 1px solid var(--aero-border);
+  background: #fff;
+  color: var(--aero-forest);
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.booking-journey .payment-method-tab.active {
+  background: var(--aero-forest);
+  border-color: var(--aero-forest);
+  color: #fff;
+}
+
+.booking-journey .payment-tab-icon {
+  width: 20px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.booking-journey .payment-tab-icon--paypal {
+  width: 19px;
+  height: 18px;
+}
+
+.booking-journey .payment-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.booking-journey .payment-form-row {
+  display: grid;
+  gap: 32px;
+}
+
+@media (width >= 600px) {
+  .booking-journey .payment-form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.booking-journey .booking-payment-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aero-forest);
+  margin-bottom: 8px;
+}
+
+.booking-journey .booking-payment-field input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgb(27 28 26 / 20%);
+  border-bottom-width: 2px;
+  padding: 13px;
+  font: inherit;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  text-transform: uppercase;
+  color: var(--aero-forest);
+  background: #fff;
+}
+
+.booking-journey .booking-payment-field input::placeholder {
+  color: #6b7280;
+  text-transform: none;
+}
+
+.booking-journey .booking-payment-field input:focus {
+  outline: none;
+  border-color: var(--aero-orange);
+}
+
+.booking-journey .booking-payment-input-wrap {
+  position: relative;
+}
+
+.booking-journey .booking-payment-input-wrap input {
+  padding-right: 40px;
+}
+
+.booking-journey .payment-lock-icon {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 21px;
+  color: var(--aero-label);
+  pointer-events: none;
+}
+
+.booking-journey .payment-save-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding-top: 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgb(27 28 26 / 60%);
+  cursor: pointer;
+}
+
+.booking-journey .payment-save-card input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--aero-forest);
+}
+
+.booking-journey .payment-alt-method {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--aero-border);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--aero-label);
+}
+
+.booking-journey .booking-payment-back {
+  margin-top: 32px;
+}
+
+/* Dark flight summary aside */
+.booking-journey .booking-flight-summary {
+  background: var(--aero-forest);
+  color: #fff;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.booking-journey .booking-flight-summary h3 {
+  margin: 0;
+  padding-bottom: 17px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.booking-journey .booking-flight-summary-route {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.booking-journey .booking-flight-summary-path {
+  min-width: 0;
+}
+
+.booking-journey .booking-flight-summary-code {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  line-height: 1.3;
+}
+
+.booking-journey .booking-flight-summary-arrow {
+  margin: 0 8px;
+  color: var(--aero-orange);
+}
+
+.booking-journey .booking-flight-summary-meta {
+  margin: 4px 0 0;
+  font-size: 10px;
+  opacity: 0.4;
+}
+
+.booking-journey .booking-flight-summary-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.booking-journey .booking-flight-summary-pax {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 25px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.booking-journey .booking-flight-summary-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-bottom: 4px;
+}
+
+.booking-journey .booking-flight-summary-pax strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+.booking-journey .booking-flight-summary-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.5;
+  text-transform: none;
+  font-weight: 400;
+}
+
+.booking-journey .booking-flight-summary-fees {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 20%);
+}
+
+.booking-journey .booking-flight-summary-fee {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--heading-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.booking-journey .booking-flight-summary-fee span:first-child {
+  opacity: 0.6;
+}
+
+.booking-journey .booking-flight-summary-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 17px;
+  border-top: 1px solid rgb(232 101 26 / 30%);
+  font-family: var(--heading-font-family);
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  text-transform: uppercase;
+}
+
+.booking-journey .booking-flight-summary-total span:last-child {
+  color: var(--aero-orange);
+}
+
+.booking-journey .booking-complete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 24px;
+  border: none;
+  background: var(--aero-orange);
+  color: #fff;
+  font-family: var(--heading-font-family);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.booking-journey .booking-complete-btn:hover:not(:disabled) {
+  background: var(--aero-orange-hover);
+}
+
+.booking-journey .booking-complete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.booking-journey .booking-complete-arrow {
+  font-size: 1.1em;
+}
+
+.booking-journey .booking-payment-legal {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+@media (width < 900px) {
+  .booking-journey .booking-flight-summary {
+    order: -1;
+  }
+}
+
+@media (width < 900px) {
+  .booking-journey .booking-journey-mount {
+    padding: 32px 24px 64px;
+  }
+
+  .booking-journey .flight-card {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-journey .flight-card-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .booking-journey .flight-card-action button {
+    width: 100%;
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .booking-journey .booking-trip-bar {
+    padding: 20px 24px;
+  }
+
+  .booking-journey .booking-step {
+    font-size: 9px;
+    padding: 12px 6px;
+  }
+}

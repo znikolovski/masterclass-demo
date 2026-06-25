@@ -3,6 +3,8 @@
  * @see docs/ANALYTICS-LAUNCH-PLAN.md Phase 2
  */
 
+import { deriveAdventureCategory } from './adventure-category.js';
+
 const JOURNEY_STAGE_SEGMENTS = {
   inspiration: ['blog', 'field-notes'],
   discovery: ['adventures', 'destinations', 'find-your-adventure'],
@@ -10,15 +12,19 @@ const JOURNEY_STAGE_SEGMENTS = {
   community: ['community', 'sustainability', 'about'],
 };
 
-const ADVENTURE_CATEGORY_KEYWORDS = {
-  climbing: ['climbing', 'yosemite', 'ice-climbing'],
-  trekking: ['trek', 'backpacking', 'patagonia', 'hiking'],
-  'winter-alpine': ['winter', 'mountaineering', 'alpine'],
-  cycling: ['cycling', 'alpine-cycling'],
-  water: ['kayak', 'surfing', 'swimming', 'norway'],
-  desert: ['desert', 'survival'],
-  photography: ['photography', 'field-notes'],
-};
+/**
+ * @param {string} pathname
+ * @param {string} siteSection
+ * @returns {string}
+ */
+function deriveJourneyStage(pathname, siteSection) {
+  const path = pathname.toLowerCase();
+  if (siteSection === 'home') return 'inspiration';
+  const match = Object.entries(JOURNEY_STAGE_SEGMENTS).find(([, segments]) => (
+    segments.some((segment) => path.includes(`/${segment}`))
+  ));
+  return match ? match[0] : '';
+}
 
 /** Production EDS hosts (aem.network primary; aem.live retained during transition). */
 export function isAemProductionHost(hostname = window.location?.hostname || '') {
@@ -43,34 +49,6 @@ export function getAnalyticsEnvironment(hostname = window.location?.hostname || 
 function getSiteSection(pathname) {
   const segment = pathname.split('/').filter(Boolean)[0];
   return segment || 'home';
-}
-
-/**
- * @param {string} pathname
- * @param {string} siteSection
- * @returns {string}
- */
-function deriveJourneyStage(pathname, siteSection) {
-  const path = pathname.toLowerCase();
-  if (siteSection === 'home') return 'inspiration';
-  const match = Object.entries(JOURNEY_STAGE_SEGMENTS).find(([, segments]) => (
-    segments.some((segment) => path.includes(`/${segment}`))
-  ));
-  return match ? match[0] : '';
-}
-
-/**
- * @param {string} pathname
- * @returns {string}
- */
-function deriveAdventureCategory(pathname) {
-  const path = pathname.toLowerCase();
-  const match = Object.entries(ADVENTURE_CATEGORY_KEYWORDS).find(([, keywords]) => (
-    keywords.some((keyword) => path.includes(keyword))
-  ));
-  if (match) return match[0];
-  if (path.includes('/adventures') || getSiteSection(pathname) === 'home') return 'general-outdoor';
-  return '';
 }
 
 /**

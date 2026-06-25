@@ -2,6 +2,8 @@
  * Fetch and classify publishable paths from the live site query index.
  */
 
+import { deriveAdventureCategory } from '../../../scripts/adventure-category.js';
+
 const PATH_DENYLIST = [
   /^\/fragments\//,
   /^\/blocks\//,
@@ -22,16 +24,6 @@ const JOURNEY_STAGE_SEGMENTS = {
   discovery: ['adventures', 'destinations'],
   planning: ['expeditions', 'gear', 'faq', 'basecamp'],
   community: ['community', 'sustainability', 'about'],
-};
-
-const ADVENTURE_CATEGORY_KEYWORDS = {
-  climbing: ['climbing', 'yosemite', 'ice-climbing'],
-  trekking: ['trek', 'backpacking', 'patagonia', 'hiking'],
-  'winter-alpine': ['winter', 'mountaineering', 'alpine'],
-  cycling: ['cycling', 'alpine-cycling'],
-  water: ['kayak', 'surfing', 'swimming', 'norway'],
-  desert: ['desert', 'survival'],
-  photography: ['photography', 'field-notes'],
 };
 
 /**
@@ -80,12 +72,10 @@ export function classifyPath(pathname) {
     journeyStage = match ? match[0] : '';
   }
 
-  let adventureCategory = '';
-  const catMatch = Object.entries(ADVENTURE_CATEGORY_KEYWORDS).find(([, keywords]) => (
-    keywords.some((keyword) => path.includes(keyword))
-  ));
-  if (catMatch) adventureCategory = catMatch[0];
-  else if (path.includes('/adventures') || siteSection === 'home') adventureCategory = 'general-outdoor';
+  let adventureCategory = deriveAdventureCategory(path);
+  if (!adventureCategory && (path.includes('/adventures') || siteSection === 'home')) {
+    adventureCategory = 'general-outdoor';
+  }
 
   return { adventureCategory, journeyStage, siteSection };
 }

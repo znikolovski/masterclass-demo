@@ -1,0 +1,17 @@
+{
+  "paths": {
+    "mappings": [],
+    "includes": []
+  },
+  "mixerConfig": {
+    "patterns": {
+      "/adventures/*": "adobe_productbus"
+    },
+    "backends": {
+      "adobe_productbus": {
+        "origin": "https://wknd-aero-api.jaggah.workers.dev",
+        "pathPrefix": "/znikolovski/wknd-aero/main/"
+      }
+    }
+  }
+}

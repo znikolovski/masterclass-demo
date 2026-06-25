@@ -1,0 +1,18 @@
+{
+  "patagonia-trek": { "destinationIata": "PUQ", "adventureCategory": "trekking", "demoPrice": 899 },
+  "yosemite-rock-climbing": { "destinationIata": "FAT", "adventureCategory": "climbing", "demoPrice": 349 },
+  "wild-swimming-guide": { "destinationIata": "BRS", "adventureCategory": "water", "demoPrice": 499 },
+  "alpine-cycling": { "destinationIata": "GVA", "adventureCategory": "cycling", "demoPrice": 599 },
+  "kayaking-norway": { "destinationIata": "EVE", "adventureCategory": "water", "demoPrice": 749 },
+  "winter-mountaineering": { "destinationIata": "ZRH", "adventureCategory": "winter-alpine", "demoPrice": 799 },
+  "desert-survival-guide": { "destinationIata": "PHX", "adventureCategory": "desert", "demoPrice": 429 },
+  "coastal-hiking": { "destinationIata": "SFO", "adventureCategory": "trekking", "demoPrice": 299 },
+  "mountain-photography": { "destinationIata": "ZRH", "adventureCategory": "photography", "demoPrice": 449 },
+  "surfing-costa-rica": { "destinationIata": "LIR", "adventureCategory": "water", "demoPrice": 549 },
+  "ultralight-backpacking": { "destinationIata": "DEN", "adventureCategory": "trekking", "demoPrice": 379 },
+  "ohrid-city-of-thousand-churches": { "destinationIata": "OHD", "adventureCategory": "general-outdoor", "demoPrice": 429 },
+  "ohrid-north-macedonia": { "destinationIata": "OHD", "adventureCategory": "general-outdoor", "demoPrice": 449 },
+  "ohrid-macedonia": { "destinationIata": "OHD", "adventureCategory": "general-outdoor", "demoPrice": 449 },
+  "mekong-delta-vietnam": { "destinationIata": "VCA", "adventureCategory": "water", "demoPrice": 499 },
+  "ladakh-india": { "destinationIata": "IXL", "adventureCategory": "trekking", "demoPrice": 899 }
+}
