@@ -1,0 +1,41 @@
+name: DRY Analysis
+
+on:
+  pull_request:
+    paths:
+      - 'blocks/**'
+      - 'scripts/**'
+      - 'tools/scripts/**'
+      - '.github/workflows/pr-dry-analysis.yaml'
+      - 'tools/scripts/dry-analysis.mjs'
+
+jobs:
+  dry-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Run DRY analysis
+        id: dry
+        run: |
+          BASE="${{ github.event.pull_request.base.ref }}"
+          node tools/scripts/dry-analysis.mjs --base="origin/${BASE}" --output=dry-report.md
+          echo "report<<EOF" >> "$GITHUB_OUTPUT"
+          cat dry-report.md >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Publish report to job summary
+        run: cat dry-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload DRY report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-analysis-report
+          path: dry-report.md

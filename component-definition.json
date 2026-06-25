@@ -719,11 +719,11 @@
             "da": {
               "name": "adventure-map",
               "rows": 1,
-              "columns": 2,
+              "columns": 3,
               "fields": [
                 {
                   "name": "heading",
-                  "selector": "div h2"
+                  "selector": "div:nth-child(1) > div:nth-child(1) h2, div:nth-child(1) > div:nth-child(1)"
                 },
                 {
                   "name": "defaultZoom",

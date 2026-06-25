@@ -5,27 +5,58 @@ import {
   DEFAULT_MAP_ZOOM,
 } from '../../scripts/maps-config.js';
 import { pushInteractionEvent } from '../../scripts/analytics-acdl.js';
+import { isSafePath, stripWkndTitleSuffix } from '../../scripts/paths.js';
+import { fetchHelixIndex, helixIndexPath } from '../../scripts/index.js';
+import {
+  createAdventureCta,
+  createAdventureImage,
+} from '../../scripts/adventure-links.js';
+import {
+  bindCarouselNavigation,
+  updateCarouselSlide,
+} from '../../scripts/carousel.js';
 
 const MAPS_CALLBACK = 'wkndAdventureMapReady';
 
 const WKND_MAP_STYLES = [
-  { elementType: 'geometry', stylers: [{ color: '#f4f2ef' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#0f1a14' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#f4f2ef' }] },
+  { elementType: 'geometry', stylers: [{ color: '#0f1a14' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#8a8478' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0f1a14' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  {
+    featureType: 'administrative',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#2a2418' }],
+  },
+  {
+    featureType: 'landscape',
+    elementType: 'geometry',
+    stylers: [{ color: '#3a3228' }, { saturation: -40 }],
+  },
+  {
+    featureType: 'landscape.natural',
+    elementType: 'geometry',
+    stylers: [{ color: '#4a4032' }, { saturation: -30 }],
+  },
   {
     featureType: 'water',
     elementType: 'geometry',
-    stylers: [{ color: '#c5d4d0' }],
+    stylers: [{ color: '#0a100d' }],
   },
   {
     featureType: 'road',
     elementType: 'geometry',
-    stylers: [{ color: '#e8e6e3' }],
+    stylers: [{ color: '#2a2418' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'geometry.stroke',
+    stylers: [{ color: '#1a1612' }],
   },
   {
     featureType: 'road',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#0f1a14' }],
+    stylers: [{ color: '#6b6358' }],
   },
   {
     featureType: 'poi',
@@ -37,17 +68,9 @@ const WKND_MAP_STYLES = [
   },
 ];
 
-const PIN_SVG = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'40\' viewBox=\'0 0 32 40\'><path fill=\'#e8651a\' stroke=\'#0f1a14\' stroke-width=\'1.5\' d=\'M16 1C9.925 1 5 5.925 5 12c0 8.25 11 27 11 27s11-18.75 11-27c0-6.075-4.925-11-11-11z\'/><circle cx=\'16\' cy=\'12\' r=\'4\' fill=\'#f4f2ef\'/></svg>';
+const PIN_SVG = '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><defs><filter id=\'g\' x=\'-50%\' y=\'-50%\' width=\'200%\' height=\'200%\'><feDropShadow dx=\'0\' dy=\'4\' stdDeviation=\'4\' flood-color=\'#e8651a\' flood-opacity=\'0.55\'/></filter></defs><rect width=\'32\' height=\'32\' rx=\'12\' fill=\'#e8651a\' filter=\'url(#g)\'/><path fill=\'#fff\' d=\'M16 8.5a3.5 3.5 0 0 0-3.5 3.5c0 2.6 3.5 7.8 3.5 7.8s3.5-5.2 3.5-7.8A3.5 3.5 0 0 0 16 8.5zm0 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z\'/></svg>';
 
 const PIN_ICON_URL = `data:image/svg+xml,${encodeURIComponent(PIN_SVG)}`;
-
-/**
- * @param {string} path
- * @returns {boolean}
- */
-function isSafePath(path) {
-  return typeof path === 'string' && /^\/[a-z0-9\-/]*$/i.test(path);
-}
 
 /**
  * @param {string|number} lat
@@ -104,47 +127,18 @@ function parseConfig(block) {
 }
 
 /**
- * @param {string} path
- * @param {string} cid
- * @returns {string}
- */
-function buildAdventureUrl(path, cid) {
-  if (!isSafePath(path)) return '#';
-  const url = new URL(path, window.location.origin);
-  url.searchParams.set('cid', cid);
-  return `${url.pathname}${url.search}`;
-}
-
-/**
- * @param {string} category
- * @returns {string}
- */
-function formatCategory(category) {
-  if (!category) return 'Adventure';
-  return category
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-/**
  * @returns {Promise<object[]>}
  */
 async function fetchAdventures() {
-  const base = window.hlx.codeBasePath || '';
-  const indexPath = `${base}/adventures-map-index.json`;
   try {
-    const resp = await fetch(indexPath);
-    if (!resp.ok) return [];
-    const json = await resp.json();
-    const rows = Array.isArray(json?.data) ? json.data : [];
+    const rows = await fetchHelixIndex(helixIndexPath('adventures-map-index.json'));
     return rows
       .map((entry) => {
         const coords = parseCoordinates(entry.latitude, entry.longitude);
         if (!coords || !entry.title || !isSafePath(entry.path)) return null;
         return {
           path: entry.path,
-          title: entry.title.replace(/\s+—\s+WKND Adventures$/i, '').trim(),
+          title: stripWkndTitleSuffix(entry.title),
           description: entry.description || '',
           image: entry.image || '',
           category: entry.adventureCategory || '',
@@ -219,50 +213,118 @@ function createInfoWindowContent(adventure, analyticsCid) {
   const wrap = document.createElement('div');
   wrap.className = 'adventure-map-popup';
 
-  if (adventure.image) {
-    const img = document.createElement('img');
-    img.src = adventure.image;
-    img.alt = adventure.title;
-    img.loading = 'lazy';
-    img.width = 240;
-    img.height = 135;
-    wrap.append(img);
-  }
+  const imageEl = createAdventureImage({
+    image: adventure.image,
+    title: adventure.title,
+    wrapperClass: 'adventure-map-popup-image',
+  });
+  if (imageEl) wrap.append(imageEl);
 
-  const tag = document.createElement('p');
-  tag.className = 'adventure-map-popup-tag';
-  tag.textContent = formatCategory(adventure.category);
-  wrap.append(tag);
+  const body = document.createElement('div');
+  body.className = 'adventure-map-popup-body';
 
   const title = document.createElement('h3');
   title.className = 'adventure-map-popup-title';
-  title.textContent = adventure.title;
-  wrap.append(title);
+  title.textContent = adventure.title.toUpperCase();
+  body.append(title);
 
-  if (adventure.placeName) {
-    const place = document.createElement('p');
-    place.className = 'adventure-map-popup-place';
-    place.textContent = adventure.placeName;
-    wrap.append(place);
+  const description = adventure.description || adventure.placeName || '';
+  if (description) {
+    const desc = document.createElement('p');
+    desc.className = 'adventure-map-popup-description';
+    desc.textContent = description;
+    body.append(desc);
   }
 
-  const ctaWrap = document.createElement('p');
-  ctaWrap.className = 'button-container';
-  const cta = document.createElement('a');
-  cta.className = 'button';
-  cta.href = buildAdventureUrl(adventure.path, analyticsCid);
-  cta.textContent = 'View adventure';
-  cta.addEventListener('click', () => {
-    pushInteractionEvent('ctaClick', {
-      label: cta.textContent.trim(),
-      block: 'adventure-map',
-      detail: cta.getAttribute('href') || '',
-    });
-  });
-  ctaWrap.append(cta);
-  wrap.append(ctaWrap);
+  body.append(createAdventureCta({
+    path: adventure.path,
+    analyticsCid,
+    label: 'View adventure',
+    className: 'adventure-map-popup-cta',
+  }));
+  wrap.append(body);
 
   return wrap;
+}
+
+/**
+ * @returns {import('../../scripts/carousel.js').CarouselOptions}
+ */
+function getNearbyCarouselOptions() {
+  return {
+    selectors: {
+      slide: '.adventure-map-nearby-slide',
+      track: '.adventure-map-nearby-track',
+      prev: '.adventure-map-nearby-prev',
+      next: '.adventure-map-nearby-next',
+    },
+    respectReducedMotion: true,
+  };
+}
+
+/**
+ * @param {Element} nearby
+ * @param {number} slideIndex
+ */
+function updateNearbySlide(nearby, slideIndex) {
+  updateCarouselSlide(nearby, slideIndex, getNearbyCarouselOptions());
+}
+
+/**
+ * @param {Element} nearby
+ */
+function bindNearbyCarousel(nearby) {
+  if (nearby.dataset.carouselClickBound === 'true') return;
+  nearby.dataset.carouselClickBound = 'true';
+  bindCarouselNavigation(nearby, getNearbyCarouselOptions());
+}
+
+/**
+ * @param {object} adventure
+ * @param {string} analyticsCid
+ * @returns {HTMLLIElement}
+ */
+function createNearbyCard(adventure, analyticsCid) {
+  const li = document.createElement('li');
+  li.className = 'adventure-map-nearby-slide';
+
+  const card = document.createElement('article');
+  card.className = 'adventure-map-nearby-card';
+
+  const imageEl = createAdventureImage({
+    image: adventure.image,
+    title: adventure.title,
+    imageClass: 'adventure-map-nearby-card-bg',
+    placeholderClass: 'adventure-map-nearby-card-bg-placeholder',
+  });
+  if (imageEl) card.append(imageEl);
+
+  const copy = document.createElement('div');
+  copy.className = 'adventure-map-nearby-card-copy';
+
+  const title = document.createElement('h4');
+  title.className = 'adventure-map-nearby-card-title';
+  title.textContent = (adventure.placeName || adventure.title).toUpperCase();
+  copy.append(title);
+
+  const description = adventure.description || '';
+  if (description) {
+    const desc = document.createElement('p');
+    desc.className = 'adventure-map-nearby-card-description';
+    desc.textContent = description;
+    copy.append(desc);
+  }
+
+  copy.append(createAdventureCta({
+    path: adventure.path,
+    analyticsCid,
+    label: 'View details',
+    className: 'adventure-map-nearby-card-cta',
+  }));
+  card.append(copy);
+  li.append(card);
+
+  return li;
 }
 
 /**
@@ -273,7 +335,7 @@ function createInfoWindowContent(adventure, analyticsCid) {
  */
 function initMap(block, config, adventures, maps) {
   const canvas = block.querySelector('.adventure-map-canvas');
-  const list = block.querySelector('.adventure-map-list');
+  const list = block.querySelector('.adventure-map-nearby');
   const countEl = block.querySelector('.adventure-map-count');
   if (!canvas) return;
 
@@ -285,7 +347,9 @@ function initMap(block, config, adventures, maps) {
     styles: WKND_MAP_STYLES,
     mapTypeControl: false,
     streetViewControl: false,
-    fullscreenControl: true,
+    fullscreenControl: false,
+    zoomControl: true,
+    backgroundColor: '#0f1a14',
     gestureHandling: 'cooperative',
   };
 
@@ -314,8 +378,8 @@ function initMap(block, config, adventures, maps) {
       title: adventure.title,
       icon: {
         url: PIN_ICON_URL,
-        scaledSize: new maps.Size(32, 40),
-        anchor: new maps.Point(16, 40),
+        scaledSize: new maps.Size(32, 32),
+        anchor: new maps.Point(16, 16),
       },
     });
 
@@ -335,29 +399,69 @@ function initMap(block, config, adventures, maps) {
     return { marker, adventure };
   });
 
+  let lastVisibleKey = '';
+
   /**
    * @param {object[]} visible
    */
   function renderList(visible) {
     if (!list) return;
-    list.replaceChildren();
-    const heading = document.createElement('h3');
-    heading.className = 'adventure-map-list-heading';
-    heading.textContent = 'Adventures in this area';
-    list.append(heading);
 
-    const ul = document.createElement('ul');
+    const visibleKey = visible.map((adventure) => adventure.path).join('|');
+    if (visibleKey === lastVisibleKey) return;
+    lastVisibleKey = visibleKey;
+
+    list.replaceChildren();
+    list.classList.toggle('adventure-map-nearby-empty', visible.length === 0);
+    if (visible.length === 0) return;
+
+    list.dataset.activeSlide = '0';
+    list.setAttribute('role', 'region');
+    list.setAttribute('aria-roledescription', 'Carousel');
+    list.setAttribute('aria-label', 'Adventures in this area');
+
+    const header = document.createElement('div');
+    header.className = 'adventure-map-nearby-header';
+
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'adventure-map-nearby-eyebrow';
+    eyebrow.textContent = 'Local discoveries';
+
+    const heading = document.createElement('h3');
+    heading.className = 'adventure-map-nearby-heading';
+    heading.textContent = 'Adventures in this area';
+
+    header.append(eyebrow, heading);
+
+    if (visible.length > 1) {
+      const controls = document.createElement('div');
+      controls.className = 'adventure-map-nearby-controls';
+      controls.innerHTML = `
+        <div class="adventure-map-nearby-nav">
+          <button type="button" class="adventure-map-nearby-prev" aria-label="Previous adventure"></button>
+          <button type="button" class="adventure-map-nearby-next" aria-label="Next adventure"></button>
+        </div>
+      `;
+      header.append(controls);
+    }
+
+    list.append(header);
+
+    const trackWrap = document.createElement('div');
+    trackWrap.className = 'adventure-map-nearby-track-wrap';
+
+    const track = document.createElement('ul');
+    track.className = 'adventure-map-nearby-track';
     visible.forEach((adventure) => {
-      const li = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = buildAdventureUrl(adventure.path, config.analyticsCid);
-      link.textContent = adventure.placeName
-        ? `${adventure.title} — ${adventure.placeName}`
-        : adventure.title;
-      li.append(link);
-      ul.append(li);
+      track.append(createNearbyCard(adventure, config.analyticsCid));
     });
-    list.append(ul);
+
+    trackWrap.append(track);
+    list.append(trackWrap);
+
+    list.dataset.carouselClickBound = 'false';
+    bindNearbyCarousel(list);
+    updateNearbySlide(list, 0);
   }
 
   function updateVisibleMarkers() {
@@ -425,12 +529,22 @@ function buildMapShell(block, config) {
 
   const canvasWrap = document.createElement('div');
   canvasWrap.className = 'adventure-map-canvas-wrap';
+
+  const vignette = document.createElement('div');
+  vignette.className = 'adventure-map-vignette';
+  vignette.setAttribute('aria-hidden', 'true');
+
+  const brand = document.createElement('div');
+  brand.className = 'adventure-map-brand';
+  brand.setAttribute('aria-hidden', 'true');
+  brand.innerHTML = '<p class="adventure-map-brand-title">WKND Global Explorer</p><p class="adventure-map-brand-meta">V 2.4.0 // Live data feed</p>';
+
   const canvas = document.createElement('div');
   canvas.className = 'adventure-map-canvas';
-  canvasWrap.append(canvas);
+  canvasWrap.append(vignette, canvas, brand);
 
   const list = document.createElement('div');
-  list.className = 'adventure-map-list';
+  list.className = 'adventure-map-nearby adventure-map-nearby-empty';
 
   block.append(header, canvasWrap, list);
   block.setAttribute('role', 'region');
