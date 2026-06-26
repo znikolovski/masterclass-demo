@@ -145,12 +145,11 @@ function buildLibraryRows(existingRows = []) {
   const required = [
     {
       title: 'Blocks',
-      // EW fetchBlocks reads this index from the code bus (reliable); row.path points at content-bus block docs.
-      path: `${PREVIEW_BASE}/library/blocks.json`,
+      path: `${CONTENT_BASE}/library/blocks.json`,
     },
     {
       title: 'Templates',
-      path: `${PREVIEW_BASE}/library/templates.json`,
+      path: `${CONTENT_BASE}/library/templates.json`,
     },
     {
       // Not "AEM Assets" — that name is reserved for DA built-in (aem-assets).
