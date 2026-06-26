@@ -15,127 +15,127 @@
       {
         "name": "Adventure Facts",
         "path": "/blocks/adventure-facts/adventure-facts.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-facts/adventure-facts.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/adventure-facts/adventure-facts.html"
       },
       {
         "name": "Adventure Quiz",
         "path": "/blocks/adventure-quiz/adventure-quiz.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-quiz/adventure-quiz.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/adventure-quiz/adventure-quiz.html"
       },
       {
         "name": "Quiz Results",
         "path": "/blocks/quiz-results/quiz-results.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/quiz-results/quiz-results.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/quiz-results/quiz-results.html"
       },
       {
         "name": "Accordion FAQ",
         "path": "/blocks/accordion-faq/accordion-faq.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/accordion-faq/accordion-faq.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/accordion-faq/accordion-faq.html"
       },
       {
         "name": "Cards",
         "path": "/blocks/cards/cards.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards/cards.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/cards/cards.html"
       },
       {
         "name": "Cards Steps",
         "path": "/blocks/cards-steps/cards-steps.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/cards-steps/cards-steps.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/cards-steps/cards-steps.html"
       },
       {
         "name": "Carousel Blog",
         "path": "/blocks/carousel-blog/carousel-blog.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-blog/carousel-blog.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/carousel-blog/carousel-blog.html"
       },
       {
         "name": "Carousel Hero",
         "path": "/blocks/carousel-hero/carousel-hero.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/carousel-hero/carousel-hero.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/carousel-hero/carousel-hero.html"
       },
       {
         "name": "Columns",
         "path": "/blocks/columns/columns.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns/columns.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/columns/columns.html"
       },
       {
         "name": "Columns Article",
         "path": "/blocks/columns-article/columns-article.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-article/columns-article.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/columns-article/columns-article.html"
       },
       {
         "name": "Columns Featured",
         "path": "/blocks/columns-featured/columns-featured.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-featured/columns-featured.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/columns-featured/columns-featured.html"
       },
       {
         "name": "Columns Gallery",
         "path": "/blocks/columns-gallery/columns-gallery.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/columns-gallery/columns-gallery.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/columns-gallery/columns-gallery.html"
       },
       {
         "name": "Fragment",
         "path": "/blocks/fragment/fragment.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/fragment/fragment.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/fragment/fragment.html"
       },
       {
         "name": "Hero Adventure",
         "path": "/blocks/hero-adventure/hero-adventure.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/hero-adventure/hero-adventure.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/hero-adventure/hero-adventure.html"
       },
       {
         "name": "Marquee Ticker",
         "path": "/blocks/marquee-ticker/marquee-ticker.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/marquee-ticker/marquee-ticker.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/marquee-ticker/marquee-ticker.html"
       },
       {
         "name": "Section Metadata",
         "path": "/blocks/section-metadata/section-metadata.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/section-metadata/section-metadata.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/section-metadata/section-metadata.html"
       },
       {
         "name": "Tabs Activity",
         "path": "/blocks/tabs-activity/tabs-activity.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/tabs-activity/tabs-activity.html"
       },
       {
         "name": "Adventure Map",
         "path": "/blocks/adventure-map/adventure-map.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-map/adventure-map.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/adventure-map/adventure-map.html"
       },
       {
         "name": "Teaser",
         "path": "/blocks/teaser/teaser.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/teaser/teaser.html"
       },
       {
         "name": "YouTube Video",
         "path": "/blocks/youtube-video/youtube-video.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/youtube-video/youtube-video.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/youtube-video/youtube-video.html"
       },
       {
         "name": "Adaptive Form",
         "path": "/blocks/form/form.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/form/form.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/form/form.html"
       },
       {
         "name": "Business Register",
         "path": "/blocks/business-register/business-register.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-register/business-register.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/business-register/business-register.html"
       },
       {
         "name": "Business Login",
         "path": "/blocks/business-login/business-login.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-login/business-login.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/business-login/business-login.html"
       },
       {
         "name": "Business Dashboard",
         "path": "/blocks/business-dashboard/business-dashboard.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-dashboard/business-dashboard.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/business-dashboard/business-dashboard.html"
       },
       {
         "name": "Embed Adaptive Form",
         "path": "/blocks/embed-adaptive-form/embed-adaptive-form.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html"
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/embed-adaptive-form/embed-adaptive-form.html"
       },
       {
         "name": "Blog Article",

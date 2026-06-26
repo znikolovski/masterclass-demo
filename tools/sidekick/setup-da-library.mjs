@@ -145,11 +145,12 @@ function buildLibraryRows(existingRows = []) {
   const required = [
     {
       title: 'Blocks',
-      path: `${CONTENT_BASE}/library/blocks.json`,
+      // EW fetchBlocks reads this index from the code bus (reliable); row.path points at content-bus block docs.
+      path: `${PREVIEW_BASE}/library/blocks.json`,
     },
     {
       title: 'Templates',
-      path: `${CONTENT_BASE}/library/templates.json`,
+      path: `${PREVIEW_BASE}/library/templates.json`,
     },
     {
       // Not "AEM Assets" — that name is reserved for DA built-in (aem-assets).
@@ -338,7 +339,9 @@ function normalizeLibrarySheets(root) {
   blocks.columns = ['name', 'path', 'value'];
   blocks.data = blocks.data.map(({ name, path, value }) => {
     const previewUrl = `${PREVIEW_BASE}${toSidekickPreviewPath(path || value)}`;
-    return { name, path: previewUrl, value: toContentDaUrl(path || value) };
+    const contentUrl = toContentDaUrl(previewUrl);
+    // DA spec: path = content-bus block document; value = code-bus preview shell (EW fallback).
+    return { name, path: contentUrl, value: previewUrl };
   });
   writeFileSync(blocksPath, `${JSON.stringify(blocks, null, 2)}\n`);
 }
@@ -440,8 +443,7 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
     : getPreviewOptionsForDaPath(daPath);
 
   const isTemplate = daPath.startsWith('templates/');
-  const previewOptionsWithBlock = isTemplate ? previewOptions : previewOptions;
-  const daBody = isTemplate ? wrapDaTemplate(fragment) : fragment;
+  const daBody = isTemplate ? wrapDaTemplate(fragment) : wrapDaDocument(fragment);
 
   await putSource(token, daPath, daBody, 'text/html');
   await triggerPreview(token, daPath);
@@ -455,7 +457,7 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
     mkdirSync(dirname(gitPath), { recursive: true });
     writeFileSync(
       gitPath,
-      wrapLibraryPreviewPage(title, fragment, previewOptionsWithBlock),
+      wrapLibraryPreviewPage(title, fragment, previewOptions),
     );
     writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
     console.log(`  ✓ ${daPath} (DA ${isTemplate ? 'document' : 'fragment'} + git preview shell + .plain.html)`);
@@ -465,7 +467,7 @@ for (const abs of walkPlainHtml(sidekickRoot)) {
       mkdirSync(dirname(gitPath), { recursive: true });
       writeFileSync(
         gitPath,
-        wrapLibraryPreviewPage(title, fragment, previewOptionsWithBlock),
+        wrapLibraryPreviewPage(title, fragment, previewOptions),
       );
       writeFileSync(`${gitPath}.plain.html`, `${fragment.trim()}\n`);
     }
