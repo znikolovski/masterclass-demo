@@ -10,7 +10,7 @@
       "path",
       "value"
     ],
-    "total": 25,
+    "total": 28,
     "data": [
       {
         "name": "Adventure Facts",
@@ -98,6 +98,11 @@
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
       },
       {
+        "name": "Adventure Map",
+        "path": "/blocks/adventure-map/adventure-map.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-map/adventure-map.html"
+      },
+      {
         "name": "Teaser",
         "path": "/blocks/teaser/teaser.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
@@ -113,29 +118,39 @@
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/form/form.html"
       },
       {
+        "name": "Business Register",
+        "path": "/blocks/business-register/business-register.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-register/business-register.html"
+      },
+      {
+        "name": "Business Login",
+        "path": "/blocks/business-login/business-login.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-login/business-login.html"
+      },
+      {
+        "name": "Business Dashboard",
+        "path": "/blocks/business-dashboard/business-dashboard.html",
+        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-dashboard/business-dashboard.html"
+      },
+      {
         "name": "Embed Adaptive Form",
         "path": "/blocks/embed-adaptive-form/embed-adaptive-form.html",
         "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html"
       },
       {
-        "name": "AEM Embed",
-        "path": "/blocks/aem-embed/aem-embed.html",
-        "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/aem-embed/aem-embed.html"
-      },
-      {
         "name": "Blog Article",
         "path": "/templates/blog-article/blog-article.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/templates/blog-article/blog-article.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/templates/blog-article/blog-article.html"
       },
       {
         "name": "Field Notes",
         "path": "/templates/field-notes/field-notes.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/templates/field-notes/field-notes.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/templates/field-notes/field-notes.html"
       },
       {
         "name": "Landing Page",
         "path": "/templates/landing-page/landing-page.html",
-        "value": "https://content.da.live/znikolovski/wknd-aero/templates/landing-page/landing-page.html"
+        "value": "https://content.da.live/znikolovski/masterclass-demo/templates/landing-page/landing-page.html"
       }
     ]
   }

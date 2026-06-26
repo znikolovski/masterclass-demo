@@ -5,9 +5,9 @@
     "path",
     "value"
   ],
-  "total": 15,
+  "total": 16,
   "offset": 0,
-  "limit": 15,
+  "limit": 16,
   "data": [
     {
       "name": "Aero Header",
@@ -83,6 +83,11 @@
       "name": "Adaptive Form",
       "path": "https://main--wknd-aero--znikolovski.aem.page/blocks/form/form.html",
       "value": "https://content.da.live/znikolovski/wknd-aero/blocks/form/form.html"
+    },
+    {
+      "name": "AEM Embed",
+      "path": "https://main--wknd-aero--znikolovski.aem.page/blocks/aem-embed/aem-embed.html",
+      "value": "https://content.da.live/znikolovski/wknd-aero/blocks/aem-embed/aem-embed.html"
     }
   ]
 }

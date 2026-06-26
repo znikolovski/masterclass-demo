@@ -5,9 +5,9 @@
     "path",
     "value"
   ],
-  "total": 22,
+  "total": 25,
   "offset": 0,
-  "limit": 22,
+  "limit": 25,
   "data": [
     {
       "name": "Adventure Facts",
@@ -95,6 +95,11 @@
       "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
     },
     {
+      "name": "Adventure Map",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/adventure-map/adventure-map.html",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-map/adventure-map.html"
+    },
+    {
       "name": "Teaser",
       "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/teaser/teaser.html",
       "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"
@@ -110,14 +115,24 @@
       "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/form/form.html"
     },
     {
+      "name": "Business Register",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/business-register/business-register.html",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-register/business-register.html"
+    },
+    {
+      "name": "Business Login",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/business-login/business-login.html",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-login/business-login.html"
+    },
+    {
+      "name": "Business Dashboard",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/business-dashboard/business-dashboard.html",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/business-dashboard/business-dashboard.html"
+    },
+    {
       "name": "Embed Adaptive Form",
       "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/embed-adaptive-form/embed-adaptive-form.html",
       "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/embed-adaptive-form/embed-adaptive-form.html"
-    },
-    {
-      "name": "AEM Embed",
-      "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/aem-embed/aem-embed.html",
-      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/aem-embed/aem-embed.html"
     }
   ]
 }

@@ -377,26 +377,32 @@ for (const file of ['library/templates.json']) {
 }
 
 // 2a. Sync repo block previews referenced by library (form, B2B blocks, etc.)
-const repoBlockPreviews = [
-  'blocks/adventure-quiz/adventure-quiz.html',
-  'blocks/quiz-results/quiz-results.html',
-  'blocks/form/form.html',
-  'blocks/embed-adaptive-form/embed-adaptive-form.html',
-  'blocks/business-register/business-register.html',
-  'blocks/business-login/business-login.html',
-  'blocks/business-dashboard/business-dashboard.html',
-  'blocks/aem-embed/aem-embed.html',
-  'blocks/aero/aero-header/aero-header.html',
-  'blocks/aero/aero-footer/aero-footer.html',
-  'blocks/aero/aero-hero/aero-hero.html',
-  'blocks/aero/flight-search/flight-search.html',
-  'blocks/aero/adventures-bento/adventures-bento.html',
-  'blocks/aero/aero-pass/aero-pass.html',
-  'blocks/aero/aero-newsletter/aero-newsletter.html',
-  'blocks/aero/destinations-grid/destinations-grid.html',
-  'blocks/aero/travel-inspiration/travel-inspiration.html',
-  'blocks/aero/booking-journey/booking-journey.html',
-];
+const REPO_BLOCK_PREVIEWS_BY_SITE = {
+  'masterclass-demo': [
+    'blocks/adventure-quiz/adventure-quiz.html',
+    'blocks/quiz-results/quiz-results.html',
+    'blocks/form/form.html',
+    'blocks/embed-adaptive-form/embed-adaptive-form.html',
+    'blocks/business-register/business-register.html',
+    'blocks/business-login/business-login.html',
+    'blocks/business-dashboard/business-dashboard.html',
+  ],
+  'wknd-aero': [
+    'blocks/aem-embed/aem-embed.html',
+    'blocks/aero/aero-header/aero-header.html',
+    'blocks/aero/aero-footer/aero-footer.html',
+    'blocks/aero/aero-hero/aero-hero.html',
+    'blocks/aero/flight-search/flight-search.html',
+    'blocks/aero/adventures-bento/adventures-bento.html',
+    'blocks/aero/aero-pass/aero-pass.html',
+    'blocks/aero/aero-newsletter/aero-newsletter.html',
+    'blocks/aero/destinations-grid/destinations-grid.html',
+    'blocks/aero/travel-inspiration/travel-inspiration.html',
+    'blocks/aero/booking-journey/booking-journey.html',
+  ],
+};
+const repoBlockPreviews = REPO_BLOCK_PREVIEWS_BY_SITE[SITE]
+  || REPO_BLOCK_PREVIEWS_BY_SITE['masterclass-demo'];
 for (const rel of repoBlockPreviews) {
   const abs = join(ROOT, rel);
   if (!existsSync(abs)) continue;
