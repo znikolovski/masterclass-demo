@@ -306,6 +306,8 @@ For requirements and acceptance criteria, start with [analyze-and-plan](.agents/
 
 Follow [testing-blocks](.agents/skills/testing-blocks/SKILL.md) for validation steps and [code-review](.agents/skills/code-review/SKILL.md) before opening a PR. For accessibility remediation, use [accessibility-fix](.agents/skills/accessibility-fix/SKILL.md).
 
+Run `npm run dry:analysis` before opening a PR. CI runs `.github/workflows/pr-dry-analysis.yaml` on pull requests and posts an ephemeral DRY report comment (not stored in the repo).
+
 ### Performance
 - Follow AEM Edge Delivery performance best practices https://www.aem.live/developer/keeping-it-100
 - Images uploaded by authors are automatically optimized, all images and assets committed to git must be optimized and checked for size

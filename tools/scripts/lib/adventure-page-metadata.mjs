@@ -100,6 +100,63 @@ export const BLOG_ANALYTICS = {
 };
 
 /**
+ * Approximate coordinates for blog adventure map pins.
+ * @type {Record<string, { latitude: string, longitude: string, placeName: string }>}
+ */
+export const BLOG_GEO = {
+  'patagonia-trek': {
+    latitude: '-50.94',
+    longitude: '-73.00',
+    placeName: 'Torres del Paine, Chile',
+  },
+  'yosemite-rock-climbing': {
+    latitude: '37.87',
+    longitude: '-119.54',
+    placeName: 'Yosemite Valley, USA',
+  },
+  'wild-swimming-guide': {
+    latitude: '54.60',
+    longitude: '-3.07',
+    placeName: 'Lake District, UK',
+  },
+  'alpine-cycling': {
+    latitude: '45.92',
+    longitude: '6.87',
+    placeName: 'French Alps',
+  },
+  'kayaking-norway': {
+    latitude: '62.47',
+    longitude: '6.15',
+    placeName: 'Geirangerfjord, Norway',
+  },
+  'winter-mountaineering': {
+    latitude: '46.55',
+    longitude: '8.02',
+    placeName: 'Swiss Alps',
+  },
+  'desert-survival-guide': {
+    latitude: '36.27',
+    longitude: '-116.82',
+    placeName: 'Death Valley, USA',
+  },
+  'mountain-photography': {
+    latitude: '46.88',
+    longitude: '10.97',
+    placeName: 'Dolomites, Italy',
+  },
+  'ultralight-backpacking': {
+    latitude: '37.73',
+    longitude: '-119.57',
+    placeName: 'Sierra Nevada, USA',
+  },
+  'surfing-costa-rica': {
+    latitude: '9.62',
+    longitude: '-85.16',
+    placeName: 'Nosara, Costa Rica',
+  },
+};
+
+/**
  * @param {string} path
  */
 export function fieldsForPath(path) {
@@ -109,8 +166,10 @@ export function fieldsForPath(path) {
       adventureCategory: 'general-outdoor',
       journeyStage: 'inspiration',
     };
+    const geo = BLOG_GEO[slug] || {};
     return {
       ...blog,
+      ...geo,
       template: 'blog-article',
       theme: blog.theme || 'storytelling',
     };

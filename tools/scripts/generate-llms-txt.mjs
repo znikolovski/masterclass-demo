@@ -15,6 +15,7 @@
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripWkndTitleSuffix } from '../../scripts/paths.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -85,7 +86,7 @@ function toMarkdownPath(path) {
 function cleanTitle(title, path) {
   const raw = (title || '').trim();
   if (!raw) return path === '/' ? 'Homepage' : path.split('/').filter(Boolean).pop() || path;
-  return raw.replace(/\s*—\s*WKND Adventures\s*$/i, '').trim() || raw;
+  return stripWkndTitleSuffix(raw) || raw;
 }
 
 /**

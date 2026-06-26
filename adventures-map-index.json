@@ -1,0 +1,47 @@
+{
+  "total": 4,
+  "offset": 0,
+  "limit": 4,
+  "data": [
+    {
+      "path": "/drafts/blog/patagonia-trek",
+      "title": "Patagonia Trek — WKND Adventures",
+      "description": "Planning a self-supported trek through Torres del Paine and the surrounding wild country.",
+      "image": "https://wknd-adventures.com/images/adventures/adobestock-257541512.jpeg",
+      "adventureCategory": "trekking",
+      "latitude": "-50.94",
+      "longitude": "-73.00",
+      "placeName": "Torres del Paine, Chile"
+    },
+    {
+      "path": "/drafts/blog/yosemite-rock-climbing",
+      "title": "Yosemite Rock Climbing — WKND Adventures",
+      "description": "Multi-pitch classics and valley culture for aspiring wall climbers.",
+      "image": "https://wknd-adventures.com/images/adventures/adobestock-140634652.jpeg",
+      "adventureCategory": "climbing",
+      "latitude": "37.87",
+      "longitude": "-119.54",
+      "placeName": "Yosemite Valley, USA"
+    },
+    {
+      "path": "/drafts/blog/alpine-cycling",
+      "title": "Alpine Cycling — WKND Adventures",
+      "description": "Ride the cols of the Alps with a lightweight kit list and a plan for weather windows.",
+      "image": "https://wknd-adventures.com/images/adventures/adobestock-140634652.jpeg",
+      "adventureCategory": "cycling",
+      "latitude": "45.92",
+      "longitude": "6.87",
+      "placeName": "French Alps"
+    },
+    {
+      "path": "/drafts/blog/wild-swimming-guide",
+      "title": "Wild Swimming Guide — WKND Adventures",
+      "description": "Cold water, quiet lakes, and the kit that makes wild swimming safe and joyful.",
+      "image": "https://wknd-adventures.com/images/adventures/adobestock-257541512.jpeg",
+      "adventureCategory": "water",
+      "latitude": "54.60",
+      "longitude": "-3.07",
+      "placeName": "Lake District, UK"
+    }
+  ]
+}

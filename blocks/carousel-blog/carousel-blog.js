@@ -1,50 +1,25 @@
 import { createResponsivePicture } from '../../scripts/media.js';
 import { pushCarouselChange } from '../../scripts/analytics-acdl.js';
+import { isSafePath, stripWkndTitleSuffix } from '../../scripts/paths.js';
+import { fetchHelixIndex, helixIndexPath } from '../../scripts/index.js';
+import {
+  bindCarouselNavigation,
+  updateCarouselSlide,
+} from '../../scripts/carousel.js';
+
+const CAROUSEL_BLOG_OPTIONS = {
+  selectors: {
+    slide: '.carousel-blog-slide',
+    track: '.carousel-blog-slides',
+    prev: '.slide-prev',
+    next: '.slide-next',
+    indicator: '.carousel-blog-slide-indicator',
+  },
+  onSlideChange: (block, index) => pushCarouselChange(block, index, 'carousel-blog'),
+};
 
 function updateActiveSlide(block, slideIndex) {
-  const slides = block.querySelectorAll('.carousel-blog-slide');
-  let index = slideIndex;
-  if (index < 0) index = slides.length - 1;
-  if (index >= slides.length) index = 0;
-  block.dataset.activeSlide = index;
-
-  slides.forEach((aSlide, idx) => {
-    aSlide.setAttribute('aria-hidden', idx !== index);
-    aSlide.querySelectorAll('a').forEach((link) => {
-      if (idx !== index) link.setAttribute('tabindex', '-1');
-      else link.removeAttribute('tabindex');
-    });
-  });
-
-  block.querySelectorAll('.carousel-blog-slide-indicator').forEach((indicator, idx) => {
-    const btn = indicator.querySelector('button');
-    if (idx !== index) btn.removeAttribute('disabled');
-    else btn.setAttribute('disabled', 'true');
-  });
-
-  pushCarouselChange(block, index, 'carousel-blog');
-}
-
-function showSlide(block, slideIndex = 0) {
-  const slides = block.querySelectorAll('.carousel-blog-slide');
-  if (!slides.length) return;
-
-  let index = slideIndex;
-  if (index < 0) index = slides.length - 1;
-  if (index >= slides.length) index = 0;
-
-  const track = block.querySelector('.carousel-blog-slides');
-  const slide = slides[index];
-  track.scrollTo({
-    top: 0,
-    left: slide.offsetLeft - track.offsetLeft,
-    behavior: 'smooth',
-  });
-  updateActiveSlide(block, index);
-}
-
-function isSafePath(path) {
-  return typeof path === 'string' && /^\/[a-z0-9\-/]*$/i.test(path);
+  updateCarouselSlide(block, slideIndex, CAROUSEL_BLOG_OPTIONS);
 }
 
 function isSlideRow(row) {
@@ -149,20 +124,15 @@ function parseFallbackSlides(rows) {
 }
 
 async function fetchBlogPosts(limit) {
-  const base = window.hlx.codeBasePath || '';
-  const indexPaths = [`${base}/blog-index.json`, `${base}/query-index.json`];
-
-  const loadIndex = async (indexPath) => {
-    const resp = await fetch(indexPath);
-    if (!resp.ok) return [];
-    const { data } = await resp.json();
-    return Array.isArray(data) ? data : [];
-  };
+  const indexPaths = [
+    helixIndexPath('blog-index.json'),
+    helixIndexPath('query-index.json'),
+  ];
 
   try {
-    let data = await loadIndex(indexPaths[0]);
+    let data = await fetchHelixIndex(indexPaths[0]);
     if (data.length === 0) {
-      const all = await loadIndex(indexPaths[1]);
+      const all = await fetchHelixIndex(indexPaths[1]);
       data = all.filter((entry) => entry.path?.startsWith('/blog/')
         || entry.path?.startsWith('/drafts/blog/'));
     }
@@ -214,7 +184,7 @@ function createSlideContent(post, slideIndex, carouselId) {
   title.classList.add('carousel-blog-slide-title');
   const titleLink = document.createElement('a');
   titleLink.href = post.path;
-  titleLink.textContent = post.title.replace(/\s+—\s+WKND Adventures$/i, '').trim();
+  titleLink.textContent = stripWkndTitleSuffix(post.title);
   title.append(titleLink);
   slide.setAttribute('aria-labelledby', titleId);
 
@@ -247,45 +217,7 @@ function createSlideContent(post, slideIndex, carouselId) {
 }
 
 function bindEvents(block) {
-  const track = block.querySelector('.carousel-blog-slides');
-  const slideIndicators = block.querySelector('.carousel-blog-slide-indicators');
-  if (!track || !slideIndicators) return;
-
-  slideIndicators.querySelectorAll('button').forEach((button) => {
-    button.addEventListener('click', (e) => {
-      const slideIndicator = e.currentTarget.parentElement;
-      showSlide(block, parseInt(slideIndicator.dataset.targetSlide, 10));
-    });
-  });
-
-  block.querySelector('.slide-prev')?.addEventListener('click', () => {
-    showSlide(block, parseInt(block.dataset.activeSlide, 10) - 1);
-  });
-  block.querySelector('.slide-next')?.addEventListener('click', () => {
-    showSlide(block, parseInt(block.dataset.activeSlide, 10) + 1);
-  });
-
-  let scrollTicking = false;
-  track.addEventListener('scroll', () => {
-    if (scrollTicking) return;
-    scrollTicking = true;
-    window.requestAnimationFrame(() => {
-      const slides = [...block.querySelectorAll('.carousel-blog-slide')];
-      const trackCenter = track.scrollLeft + track.clientWidth / 2;
-      let closest = 0;
-      let minDist = Infinity;
-      slides.forEach((slide, idx) => {
-        const slideCenter = slide.offsetLeft - track.offsetLeft + slide.offsetWidth / 2;
-        const dist = Math.abs(slideCenter - trackCenter);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = idx;
-        }
-      });
-      updateActiveSlide(block, closest);
-      scrollTicking = false;
-    });
-  }, { passive: true });
+  bindCarouselNavigation(block, CAROUSEL_BLOG_OPTIONS);
 }
 
 let carouselId = 0;

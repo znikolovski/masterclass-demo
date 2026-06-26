@@ -26,4 +26,5 @@ tools/scripts/output/
 tools/aem-assets/staging/
 .playwright-cli/
 tools/scripts/test-analytics-acdl-results.json
+dry-report.md
 .claude-plugin/

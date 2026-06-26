@@ -1,0 +1,57 @@
+name: DRY Analysis
+
+on:
+  pull_request:
+    paths:
+      - 'blocks/**'
+      - 'scripts/**'
+      - 'tools/scripts/**'
+      - '.github/workflows/pr-dry-analysis.yaml'
+      - 'tools/scripts/dry-analysis.mjs'
+
+jobs:
+  dry-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Run DRY analysis
+        run: |
+          BASE="${{ github.event.pull_request.base.ref }}"
+          node tools/scripts/dry-analysis.mjs --base="origin/${BASE}" --output=dry-report.md
+
+      - name: Publish report to job summary
+        run: cat dry-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post or update DRY report on PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MARKER='<!-- dry-analysis-report -->'
+          PR="${{ github.event.pull_request.number }}"
+          BODY="${MARKER}
+          ## DRY analysis (automated)
+
+          $(cat dry-report.md)"
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/${PR}/comments" \
+            --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" | head -1)
+          if [ -n "$EXISTING" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/${EXISTING}" \
+              -f body="$BODY"
+          else
+            gh pr comment "$PR" --body "$BODY"
+          fi
+
+      - name: Remove ephemeral report file
+        if: always()
+        run: rm -f dry-report.md

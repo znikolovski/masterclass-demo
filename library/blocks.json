@@ -95,6 +95,11 @@
       "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/tabs-activity/tabs-activity.html"
     },
     {
+      "name": "Adventure Map",
+      "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/adventure-map/adventure-map.html",
+      "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/adventure-map/adventure-map.html"
+    },
+    {
       "name": "Teaser",
       "path": "https://main--masterclass-demo--znikolovski.aem.page/blocks/teaser/teaser.html",
       "value": "https://content.da.live/znikolovski/masterclass-demo/blocks/teaser/teaser.html"

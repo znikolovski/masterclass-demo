@@ -8,6 +8,7 @@
     "lint:css": "stylelint \"blocks/**/*.css\" \"styles/*.css\"",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
+    "dry:analysis": "node tools/scripts/dry-analysis.mjs",
     "simulate:traffic": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index",
     "simulate:traffic:dry": "node tools/scripts/simulate-live-audience-traffic.mjs --dry-run --from-index",
     "simulate:traffic:daily": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index --hits=10000 --concurrency=6",

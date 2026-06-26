@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable import/extensions, no-restricted-syntax, no-await-in-loop, no-continue */
 /**
- * Add adventureInterest, adventureCategory, and journeyStage to pages in DA.
+ * Add adventureInterest, adventureCategory, journeyStage, latitude, longitude, and placeName to pages in DA.
  * Usage: node tools/scripts/patch-analytics-metadata.mjs [--dry-run] [--preview] [--publish]
  */
 
