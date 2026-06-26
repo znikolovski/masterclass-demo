@@ -205,7 +205,8 @@ Open EW block picker → hard refresh → preview should match live page styling
 | `PreviewBlock` TypeError | Upstream `event.details` typo | `library-patch.js` before upstream in `library.html` |
 | EW picker stale | Content bus not preview-published | `npm run library:setup` |
 | Sidekick works, EW doesn't | Only updated `tools/sidekick/library.json` | `npm run library:setup` (content-bus `library/blocks.json`) |
-| EW shows templates, not blocks | One block in index 404s / bad HTML → `parseDom` crash | Remove bad row from `blocks-adventures.json`, republish; check `.plain.html` shells |
+| EW shows templates, not blocks | Index fetch fails or rows missing `name`/`path` | DA config index → code-bus `library/blocks.json`; row `path` → content-bus block doc |
+| Console `parseDom` / `window.view.state` | Classic `da-library` eagerly parses all block variants (e.g. image focal point) before the editor view is ready, or bad block HTML | Usually non-fatal for EW Blocks panel; hard-refresh; remove 404 rows; fix content-bus block docs via `library:setup` |
 | B2B block missing brand.css | Skipped regen (full doc existed) | Add to `REPO_BLOCK_PREVIEWS`, regen |
 
 ## Related skills
