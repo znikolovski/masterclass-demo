@@ -17,14 +17,17 @@ Ensure every new block renders **fully styled** in EW block picker and Sidekick 
 
 **Invoke after** [building-blocks](.agents/skills/building-blocks/SKILL.md) implementation (Step 5 or as a library-only follow-up).
 
-## Two library indexes (do not conflate)
+## Three surfaces (do not conflate)
 
-| Index | Bus | Consumer |
-|-------|-----|----------|
-| `library/blocks.json` | Content (DA) | EW slash menu / in-editor block picker |
-| `tools/sidekick/library.json` | Code | Sidekick panel (`config/sidekick.json`) |
+| Surface | Index / config | Bus | Consumer |
+|---------|----------------|-----|----------|
+| **Experience Workspace** Library → Blocks | `library/blocks.json` | Content (`content.da.live`) | EW block picker with previews (`fetchLibraryConfig` → `getBlockVariants`) |
+| **Sidekick Library** plugin | `tools/sidekick/library.json` | Code (`.aem.page`) | Sidekick extension (`config/sidekick.json`) — not EW |
+| **Universal Editor** Add component | `component-definition.json` | Code | UE component rail (no library previews) |
 
-Fixes to one index **do not** fix the other. Update both when shipping a new block.
+EW and classic DA **share** the content-bus `library/blocks.json` registered in DA site config (`setup-da-library.mjs` → Library tab → Blocks). Sidekick uses a **separate** code-bus index.
+
+Fixing `tools/sidekick/library.json` **does not** fix EW. Run `npm run library:setup` to publish `library/blocks-adventures.json` → content bus.
 
 ## Why previews break (learned patterns)
 
@@ -201,7 +204,8 @@ Open EW block picker → hard refresh → preview should match live page styling
 | Buttons/typography missing | `lazy-styles.css` not loaded early | In shell `<head>` + `bootstrapLibraryBlockDocument` |
 | `PreviewBlock` TypeError | Upstream `event.details` typo | `library-patch.js` before upstream in `library.html` |
 | EW picker stale | Content bus not preview-published | `npm run library:setup` |
-| Sidekick works, EW doesn't | Only updated `library.json` | Update `library/blocks.json` + setup |
+| Sidekick works, EW doesn't | Only updated `tools/sidekick/library.json` | `npm run library:setup` (content-bus `library/blocks.json`) |
+| EW shows templates, not blocks | One block in index 404s / bad HTML → `parseDom` crash | Remove bad row from `blocks-adventures.json`, republish; check `.plain.html` shells |
 | B2B block missing brand.css | Skipped regen (full doc existed) | Add to `REPO_BLOCK_PREVIEWS`, regen |
 
 ## Related skills

@@ -263,7 +263,7 @@ function toSidekickPreviewPath(daPath) {
   return pathname;
 }
 
-/** EW Sidekick library panel reads /tools/sidekick/library.json (not library/blocks.json). */
+/** Sidekick Library plugin reads /tools/sidekick/library.json (config/sidekick.json). */
 function syncSidekickLibrary(root, site = SITE) {
   const blocks = JSON.parse(readFileSync(getLibraryBlocksPath(site), 'utf8'));
   const templates = JSON.parse(readFileSync(join(root, 'library/templates.json'), 'utf8'));
@@ -353,17 +353,23 @@ console.log('Setting up DA Library…\n');
 
 normalizeLibrarySheets(ROOT);
 syncSidekickLibrary(ROOT, SITE);
-console.log(`  ✓ tools/sidekick/library.json (EW Sidekick library, ${SITE})`);
+console.log(`  ✓ tools/sidekick/library.json (Sidekick plugin, ${SITE})`);
 
-// 1. Library index sheets (DA sheet format)
+// 1. Library index sheets (DA sheet format) — EW Library panel + classic DA Library tab
 {
-  let blocksBody = readFileSync(getLibraryBlocksPath(SITE), 'utf8');
+  const blocksSourcePath = getLibraryBlocksPath(SITE);
+  let blocksBody = readFileSync(blocksSourcePath, 'utf8');
   if (SITE !== 'masterclass-demo') {
     blocksBody = blocksBody.replaceAll('znikolovski/masterclass-demo', `znikolovski/${SITE}`);
   }
   await putSource(token, 'library/blocks.json', blocksBody);
   await triggerPreview(token, 'library/blocks.json');
-  console.log(`  ✓ library/blocks.json (from ${relative(ROOT, getLibraryBlocksPath(SITE))})`);
+  console.log(`  ✓ library/blocks.json → content bus (from ${relative(ROOT, blocksSourcePath)})`);
+  // Keep git mirror in sync for preview host fallback (EW reads content bus via DA config).
+  if (SITE === 'masterclass-demo') {
+    writeFileSync(join(ROOT, 'library/blocks.json'), blocksBody);
+    console.log('  ✓ library/blocks.json (git mirror synced)');
+  }
 }
 for (const file of ['library/templates.json']) {
   let body = readFileSync(join(ROOT, file), 'utf8');
