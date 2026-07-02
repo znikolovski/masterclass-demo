@@ -5,7 +5,7 @@ import {
   fetchAdventureCatalog,
   getCatalogItems,
 } from '../../../scripts/aero-catalog.js';
-import { getCatalogItemImage, normalizeLocalDevMediaUrl } from '../../../scripts/aero-catalog-images.js';
+import { getCatalogItemImage, DEFAULT_AERO_HERO_IMAGE, normalizeLocalDevMediaUrl } from '../../../scripts/aero-catalog-images.js';
 import { pushInteractionEvent } from '../../../scripts/analytics-acdl.js';
 
 /**
@@ -198,7 +198,7 @@ export default async function decorate(block) {
       </div>
     </header>`;
 
-  const coverImg = coverRowData?.[coverOffset] || 'https://content.da.live/znikolovski/masterclass-demo/.index/hero-mountain-83c7a2a5.jpeg';
+  const coverImg = coverRowData?.[coverOffset] || DEFAULT_AERO_HERO_IMAGE;
   const coverEyebrow = cellText(coverRowData?.[coverOffset + 1]) || 'COVER STORY';
   const coverTitle = cellText(coverRowData?.[coverOffset + 2]) || 'THE ULTIMATE HIKING TRAILS';
   const coverDesc = cellText(coverRowData?.[coverOffset + 3])
@@ -265,7 +265,7 @@ export default async function decorate(block) {
   const seasonalBody = cellText(seasonalRow?.[seasonalOffset + 2])
     || 'Forget the crowds of Oahu. We\'re taking you to the secret barrels of the Azores and the rugged breaks of Namibia\'s Skeleton Coast. This is surfing at its most primitive.';
   const seasonalImg = seasonalRow?.[seasonalOffset + 3]
-    || 'https://content.da.live/znikolovski/masterclass-demo/.index/hero-mountain-83c7a2a5.jpeg';
+    || DEFAULT_AERO_HERO_IMAGE;
   const seasonalBadge = cellText(seasonalRow?.[seasonalOffset + 4]) || '02';
   const stat1Label = cellText(seasonalRow?.[seasonalOffset + 5]) || 'DESTINATION';
   const stat1Value = cellText(seasonalRow?.[seasonalOffset + 6]) || 'PONTA DELGADA';

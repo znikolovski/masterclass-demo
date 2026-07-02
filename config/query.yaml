@@ -37,3 +37,34 @@ indices:
       image:
         select: main picture img
         value: attribute(el, "src")
+  adventures-map:
+    include:
+      - '/blog/**'
+      - '/destinations/**'
+      - '/drafts/blog/**'
+    target: /adventures-map-index.json
+    properties:
+      lastModified:
+        select: none
+        value: parseTimestamp(headers["last-modified"], "ddd, DD MMM YYYY hh:mm:ss GMT")
+      title:
+        select: head meta[property="og:title"]
+        value: attribute(el, "content")
+      description:
+        select: head meta[property="og:description"]
+        value: attribute(el, "content")
+      image:
+        select: main picture img
+        value: attribute(el, "src")
+      adventureCategory:
+        select: head > meta[name="adventurecategory"]
+        value: attribute(el, "content")
+      latitude:
+        select: head > meta[name="latitude"]
+        value: attribute(el, "content")
+      longitude:
+        select: head > meta[name="longitude"]
+        value: attribute(el, "content")
+      placeName:
+        select: head > meta[name="placename"]
+        value: attribute(el, "content")

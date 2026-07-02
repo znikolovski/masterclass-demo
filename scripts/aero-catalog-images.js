@@ -1,8 +1,17 @@
 /** Adventures site origin for catalog images (Media Bus paths from query-index). */
 export const ADVENTURES_IMAGE_ORIGIN = 'https://main--masterclass-demo--znikolovski.aem.live';
 
+/** WKND Aero delivery origin — use for hero fallbacks, never content.da.live/.index (401 cross-site). */
+export const AERO_IMAGE_ORIGIN = 'https://main--wknd-aero--znikolovski.aem.live';
+
+/** Shared hero media hash (available on both Adventures and Aero delivery buses). */
+export const DEFAULT_AERO_HERO_MEDIA_PATH = '/media_137e525a8479336997a84917d2ad521f873e4df22.jpg?width=1280';
+
 /** Fallback LCP hero when authored or resolved image URL is missing or invalid. */
-export const DEFAULT_AERO_HERO_IMAGE = 'https://content.da.live/znikolovski/masterclass-demo/.index/hero-mountain-83c7a2a5.jpeg';
+export const DEFAULT_AERO_HERO_IMAGE = `${AERO_IMAGE_ORIGIN}${DEFAULT_AERO_HERO_MEDIA_PATH}`;
+
+/** Relative hero path for DA-authored markup (resolves on the active site’s Media Bus). */
+export const DEFAULT_AERO_HERO_MEDIA_RELATIVE = './media_137e525a8479336997a84917d2ad521f873e4df22.jpg';
 
 /**
  * @param {string} [raw]

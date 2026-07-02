@@ -27,7 +27,7 @@ Ensure every new block renders **fully styled** in EW block picker and Sidekick 
 
 EW and classic DA **share** the content-bus `library/blocks.json` registered in DA site config (`setup-da-library.mjs` → Library tab → Blocks). Sidekick uses a **separate** code-bus index.
 
-**EW does not show a “Blocks” tab in the Library tool panel** — upstream `da-live` filters `blocks` out of `getCanvasToolPanelViews()`. Blocks are inserted via the **Insert block** modal (editor UI, uses `fetchBlocks` + `library/blocks.json`). The Library panel lists Templates, Icons, Placeholders, and AEM Assets only.
+**As of da-live PR #1020 (2026-06-23), EW no longer lists Blocks in the Library tool panel** — upstream `getCanvasToolPanelViews()` filters `blocks` out and opens them in a **2-column “Insert block” modal** instead (page-outline section “+”, slash menu, or editor command). Templates, Icons, Placeholders, and AEM Assets remain in the right-hand Library section.
 
 Fixing `tools/sidekick/library.json` **does not** fix EW. Run `npm run library:setup` to publish `library/blocks-adventures.json` → content bus.
 
