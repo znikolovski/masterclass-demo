@@ -1,0 +1,14 @@
+kind: 'CDN'
+version: '1'
+data:
+  originSelectors:
+    rules:
+      - name: route-faq-inline
+        when: 
+          anyOf:
+            - { reqProperty: tier, in: ["publish", "preview"] }
+            - { reqProperty: domain, equals: "wknd-adventures.run.place" }
+            - { reqProperty: originalPath, matches: '(/[^./]+|\.html|/)$' } # routed extensions, with .html extension or without extension
+        action:
+          type: selectAemOrigin
+          originName: edgefunction-faq-inline

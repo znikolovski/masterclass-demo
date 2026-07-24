@@ -1,0 +1,6 @@
+kind: "EdgeFunctions"
+version: "1"
+data:
+  functions:
+    - name: faq-inline
+    # add advanced configuration under here
