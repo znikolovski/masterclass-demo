@@ -5,7 +5,7 @@ data:
     rules:
       - name: route-faq-inline
         when: 
-          anyOf:
+          allOf:
             - { reqProperty: tier, in: ["publish", "preview"] }
             - { reqProperty: domain, equals: "wknd-adventures.run.place" }
             - { reqProperty: originalPath, matches: '(/[^./]+|\.html|/)$' } # routed extensions, with .html extension or without extension
