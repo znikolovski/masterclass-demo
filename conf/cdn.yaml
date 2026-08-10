@@ -12,3 +12,12 @@ data:
         action:
           type: selectAemOrigin
           originName: edgefunction-faq-inline
+      - name: route-rates-injector
+        when: 
+          allOf:
+            - { reqProperty: tier, in: ["publish", "preview"] }
+            - { reqProperty: domain, equals: "securbank.run.place" }
+            - { reqProperty: originalPath, matches: '(/[^./]+|\.html|/)$' } # routed extensions, with .html extension or without extension
+        action:
+          type: selectAemOrigin
+          originName: edgefunction-rates-injector

@@ -3,4 +3,5 @@ version: "1"
 data:
   functions:
     - name: faq-inline
+    - name: rates-injector
     # add advanced configuration under here
