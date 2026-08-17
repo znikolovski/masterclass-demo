@@ -16,7 +16,7 @@ data:
         when: 
           allOf:
             - { reqProperty: tier, in: ["publish", "preview"] }
-            - { reqProperty: domain, equals: "securbank.run.place" }
+            - { reqProperty: domain, equals: "www.securbank.run.place" }
             - { reqProperty: originalPath, matches: '(/[^./]+|\.html|/)$' } # routed extensions, with .html extension or without extension
         action:
           type: selectAemOrigin
