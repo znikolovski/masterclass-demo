@@ -21,3 +21,4 @@ data:
         action:
           type: selectAemOrigin
           originName: edgefunction-rates-injector
+          skipCache: true

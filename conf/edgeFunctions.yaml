@@ -4,4 +4,9 @@ data:
   functions:
     - name: faq-inline
     - name: rates-injector
+  origins:
+    - name: eds-content
+      domain: main--kynetic-trust--znikolovski.aem.live
+    - name: aem-graphql
+      domain: publish-p115476-e1135027.adobeaemcloud.com
     # add advanced configuration under here
