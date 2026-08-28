@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Required for correct iframe sizing — AEM section margins inflate shadow body */
+main > div,
+main > .section,
+main > .section:first-of-type {
+  margin: 0;
+}
+main > .section > div {
+  max-width: none;
+  padding: 0;
+}
+body {
+  overflow: auto;
+}
+
+main .get-destination-details {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 8px;
+  max-width: 645px;
+  box-sizing: border-box;
+}
+
+main .get-destination-details .gdd-card {
+  display: flex;
+  flex-direction: row;
+  min-height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+main .get-destination-details .gdd-image {
+  flex: 0 0 300px;
+  height: 100%;
+  overflow: hidden;
+}
+
+main .get-destination-details .gdd-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+main .get-destination-details .gdd-content {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+main .get-destination-details .gdd-badge {
+  align-self: flex-start;
+  background: #e8651a;
+  color: #0f1a14;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+main .get-destination-details .gdd-title {
+  margin: 0 !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 700;
+  color: inherit;
+}
+
+main .get-destination-details .gdd-desc {
+  margin: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: inherit;
+  opacity: 0.82;
+}
+
+main .get-destination-details .gdd-cta {
+  margin-top: auto;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: #0f1a14;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+main .get-destination-details .gdd-cta:hover {
+  opacity: 0.88;
+}
+
+main .get-destination-details .gdd-empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+/* Mobile — stack image on top */
+@media (max-width: 576px) {
+  main .get-destination-details .gdd-card {
+    flex-direction: column;
+    height: auto;
+  }
+  main .get-destination-details .gdd-image {
+    flex: 0 0 160px;
+    width: 100%;
+    height: 160px;
+  }
+}
+
+/* Dark theme — dim outer widget background only; keep palette-colored content panel */
+@media (prefers-color-scheme: dark) {
+  main .get-destination-details { background: #111; }
+  main .get-destination-details .gdd-cta { background: #e8651a; color: #0f1a14; }
+  main .get-destination-details .gdd-empty { color: #bbb; }
+}
+body.dark main .get-destination-details { background: #111; }
+body.dark main .get-destination-details .gdd-cta { background: #e8651a; }
+body.dark main .get-destination-details .gdd-empty { color: #bbb; }
