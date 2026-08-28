@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Widget Preview</title>
+  <!--
+    Content-less widget preview harness.
+
+    This is a static file served directly from the EDS *code bus*
+    (https://<branch>--<repo>--<org>.aem.page/tools/widget-preview.html), so it
+    is available on every branch with NO content document and NO da.live upload.
+
+    It mounts a single EDS block by slug (?block=<name>) using only code-bus
+    assets (/styles, /blocks/<name>/<name>.{css,js}) and a tiny inline "preview
+    bridge" — so the block renders its built-in SAMPLE_DATA exactly as it would
+    standalone. The bridge is defined here (not in the SDK): it sets
+    `hostContext.preview === true` and turns every outbound host call into a
+    safe no-op, so no MCP host / postMessage handshake is needed and the LLM
+    Apps SDK does not have to change.
+
+    Security: the ?block= value flows into a path + dynamic import, so it is
+    validated against a strict slug allowlist before use (prevents path
+    traversal / loading arbitrary URLs). See SLUG_RE below.
+  -->
+  <!-- Match the platform CSP (see head.html / 404.html): aem.page enforces
+       `script-src 'nonce-aem' 'strict-dynamic'`, so all scripts on a served
+       page — including this static one — must carry nonce="aem". -->
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="script-src 'nonce-aem' 'strict-dynamic' 'unsafe-inline' http: https:; base-uri 'self'; object-src 'none';"
+    move-to-http-header="true"
+  >
+  <link rel="stylesheet" href="/styles/styles.css">
+  <link rel="stylesheet" href="/styles/fonts.css">
+  <style>
+    body {
+      margin: 0;
+    }
+
+    .wp-error {
+      max-width: 640px;
+      margin: 48px auto;
+      padding: 16px 20px;
+      border: 1px solid #f3b1b1;
+      background: #fff4f4;
+      color: #a40000;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wp-stage" id="wp-stage"></div>
+
+  <script type="module" nonce="aem">
+    // Strict slug allowlist — the ?block= value is used to build a filesystem
+    // path and a dynamic import() URL, so it must not contain "/" or ".." etc.
+    const SLUG_RE = /^[a-z][a-z0-9-]{0,63}$/;
+
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('block');
+
+    const stage = document.getElementById('wp-stage');
+
+    function showError(msg) {
+      const box = document.createElement('div');
+      box.className = 'wp-error';
+      box.textContent = msg;
+      stage.replaceChildren(box);
+      document.body.classList.add('appear');
+    }
+
+    // A standalone preview bridge — same shape a block sees from the SDK, but
+    // with no host: `hostContext.preview === true` makes blocks render their
+    // built-in SAMPLE_DATA, and every outbound host call is a safe no-op. This
+    // keeps the LLM Apps SDK unchanged; the harness owns the preview wiring.
+    function createPreviewBridge() {
+      const prefersDark = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      const noop = () => {};
+      const asyncNoop = () => Promise.resolve(null);
+
+      return {
+        hostContext: {
+          preview: true,
+          theme: prefersDark ? 'dark' : 'light',
+          locale: navigator.language || 'en-US',
+          displayMode: 'inline',
+        },
+        hostCapabilities: {},
+        hostInfo: {},
+        isEmbedded: false,
+        isConnected: false,
+        // Promises blocks may await — resolved up-front so nothing hangs.
+        toolResult: Promise.resolve({ structuredContent: {} }),
+        toolInput: Promise.resolve({}),
+        toolCancelled: new Promise(() => {}),
+        // Lifecycle / outbound host calls — all safe no-ops in preview.
+        connect() { return Promise.resolve(this); },
+        destroy: noop,
+        applyHostStyles: noop,
+        applyContainerDimensions: noop,
+        reportSize: noop,
+        autoResize: noop,
+        sendMessage: asyncNoop,
+        updateModelContext: asyncNoop,
+        callTool: asyncNoop,
+        openLink: asyncNoop,
+        requestDisplayMode: asyncNoop,
+        readResource: asyncNoop,
+        log: noop,
+        onContextChange: () => noop,
+        onToolInputPartial: () => noop,
+      };
+    }
+
+    if (!slug) {
+      showError('No block specified. Add ?block=<name> to the URL, e.g. ?block=hero.');
+    } else if (!SLUG_RE.test(slug)) {
+      showError(`Invalid block name "${slug}". Allowed: lowercase letters, digits and hyphens.`);
+    } else {
+      renderPreview(slug);
+    }
+
+    async function renderPreview(name) {
+      // Block CSS — code bus, same branch.
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = `/blocks/${name}/${name}.css`;
+      document.head.appendChild(css);
+
+      // Reproduce the EDS decorated DOM: main > section > "<name> block".
+      const main = document.createElement('main');
+      const section = document.createElement('div');
+      section.className = 'section';
+      section.dataset.sectionStatus = 'loaded';
+      const block = document.createElement('div');
+      block.className = `${name} block`;
+      block.dataset.blockName = name;
+      block.dataset.blockStatus = 'loaded';
+      section.appendChild(block);
+      main.appendChild(section);
+      stage.replaceChildren(main);
+
+      const bridge = createPreviewBridge();
+      await bridge.connect();
+
+      try {
+        const mod = await import(`/blocks/${name}/${name}.js`);
+        if (typeof mod.default !== 'function') {
+          throw new Error('block has no default decorate() export');
+        }
+        await mod.default(block, bridge);
+        // EDS styles.css keeps <body> hidden until `.appear` is set (normally
+        // added by scripts.js/aem-embed). Reveal it now that the block is in.
+        document.body.classList.add('appear');
+      } catch (err) {
+        showError(`Failed to load block "${name}": ${err && err.message ? err.message : err}`);
+      }
+    }
+  </script>
+</body>
+
+</html>
