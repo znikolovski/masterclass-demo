@@ -1,0 +1,355 @@
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+/* Required for correct iframe sizing — AEM section margins inflate shadow body */
+main > div,
+main > .section,
+main > .section:first-of-type {
+  margin: 0;
+}
+main > .section > div {
+  max-width: none;
+  padding: 0;
+}
+body {
+  overflow: auto;
+}
+
+main .build-route-briefing {
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 8px;
+  max-width: 780px;
+  box-sizing: border-box;
+  color: #0f1a14;
+}
+
+main .build-route-briefing h1,
+main .build-route-briefing h2,
+main .build-route-briefing h3,
+main .build-route-briefing [class*="title"],
+main .build-route-briefing [class*="label"] {
+  font-family: 'Syncopate', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+main .build-route-briefing-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+main .build-route-briefing-empty {
+  font-size: 14px;
+  color: #0f1a14;
+  padding: 16px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+main .build-route-briefing-header {
+  background: #0f1a14;
+  color: #fff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+main .build-route-briefing-title {
+  margin: 0 !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+main .build-route-briefing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+main .build-route-briefing-meta-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+main .build-route-briefing-meta-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #e8651a;
+}
+
+main .build-route-briefing-meta-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+main .build-route-briefing-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  align-self: flex-start;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(232, 101, 26, 0.16);
+}
+
+main .build-route-briefing-verified-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8651a;
+  flex: 0 0 auto;
+}
+
+main .build-route-briefing-verified-text,
+main .build-route-briefing-verified-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f4f2ef;
+}
+
+main .build-route-briefing-verified-date {
+  opacity: 0.75;
+}
+
+/* ── Section label ────────────────────────────────────────────────────────────── */
+main .build-route-briefing-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+main .build-route-briefing-section-label,
+main .build-route-briefing-panel-label,
+main .build-route-briefing-flag-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: #5c5346;
+}
+
+/* ── Stage timeline (horizontal scroll) ─────────────────────────────────────────── */
+main .build-route-briefing-timeline {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+main .build-route-briefing-timeline::-webkit-scrollbar {
+  display: none;
+}
+
+main .build-route-briefing-step {
+  flex: 0 0 168px;
+  scroll-snap-align: start;
+  background: #f4f2ef;
+  border-left: 3px solid #e8651a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-sizing: border-box;
+}
+
+main .build-route-briefing-step-day {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #993f08;
+}
+
+main .build-route-briefing-step-text {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #0f1a14;
+}
+
+/* ── Confirmed detail panels ────────────────────────────────────────────────────── */
+main .build-route-briefing-panels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+main .build-route-briefing-panel {
+  background: #f4f2ef;
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+main .build-route-briefing-panel-text {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  color: #33403a;
+}
+
+main .build-route-briefing-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+main .build-route-briefing-chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(15, 26, 20, 0.12);
+  color: #0f1a14;
+}
+
+/* ── Verify / missing flags (visually separated from confirmed detail) ───────────── */
+main .build-route-briefing-flags {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+main .build-route-briefing-flag {
+  border: 1px dashed rgba(232, 101, 26, 0.5);
+  background: rgba(232, 101, 26, 0.06);
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+main .build-route-briefing-flag-label {
+  color: #993f08;
+}
+
+main .build-route-briefing-flag-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+main .build-route-briefing-flag-item {
+  position: relative;
+  padding-left: 15px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #33403a;
+}
+
+main .build-route-briefing-flag-item::before {
+  content: '!';
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  color: #e8651a;
+}
+
+/* ── CTAs ─────────────────────────────────────────────────────────────────────── */
+main .build-route-briefing-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+main .build-route-briefing-cta {
+  flex: 1 1 auto;
+  padding: 10px 14px;
+  border: 1px solid rgba(15, 26, 20, 0.18);
+  border-radius: 8px;
+  background: #fff;
+  color: #0f1a14;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+main .build-route-briefing-cta:hover,
+main .build-route-briefing-cta:focus-visible {
+  border-color: #e8651a;
+  color: #c2540f;
+  outline: none;
+}
+
+main .build-route-briefing-cta.is-primary {
+  background: #c2540f;
+  border-color: #c2540f;
+  color: #fff;
+}
+
+main .build-route-briefing-cta.is-primary:hover,
+main .build-route-briefing-cta.is-primary:focus-visible {
+  background: #9e4409;
+  border-color: #9e4409;
+  color: #fff;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  main .build-route-briefing-panels,
+  main .build-route-briefing-flags {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Dark mode ────────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  main .build-route-briefing { color: #f4f2ef; background: #12201a; }
+  main .build-route-briefing-empty { color: #f4f2ef; }
+  main .build-route-briefing-step-day { color: #f2925a; }
+  main .build-route-briefing-step { background: #1a2620; }
+  main .build-route-briefing-step-text { color: #e6ebe8; }
+  main .build-route-briefing-panel { background: #1a2620; }
+  main .build-route-briefing-panel-text { color: #cdd6d1; }
+  main .build-route-briefing-chip { background: #0f1a14; border-color: rgba(255,255,255,0.14); color: #f4f2ef; }
+  main .build-route-briefing-section-label,
+  main .build-route-briefing-panel-label { color: #a7b0aa; }
+  main .build-route-briefing-flag { background: rgba(232,101,26,0.1); border-color: rgba(232,101,26,0.55); }
+  main .build-route-briefing-flag-label { color: #f2925a; }
+  main .build-route-briefing-flag-item { color: #cdd6d1; }
+  main .build-route-briefing-cta { background: #1a2620; border-color: rgba(255,255,255,0.16); color: #f4f2ef; }
+  main .build-route-briefing-cta:hover,
+  main .build-route-briefing-cta:focus-visible { border-color: #f2925a; color: #f2925a; }
+  main .build-route-briefing-cta.is-primary { background: #c2540f; border-color: #c2540f; color: #fff; }
+}
+
+body.dark main .build-route-briefing { color: #f4f2ef; background: #12201a; }
+body.dark main .build-route-briefing-step-day { color: #f2925a; }
+body.dark main .build-route-briefing-empty { color: #f4f2ef; }
+body.dark main .build-route-briefing-step { background: #1a2620; }
+body.dark main .build-route-briefing-step-text { color: #e6ebe8; }
+body.dark main .build-route-briefing-panel { background: #1a2620; }
+body.dark main .build-route-briefing-panel-text { color: #cdd6d1; }
+body.dark main .build-route-briefing-chip { background: #0f1a14; border-color: rgba(255,255,255,0.14); color: #f4f2ef; }
+body.dark main .build-route-briefing-section-label,
+body.dark main .build-route-briefing-panel-label { color: #a7b0aa; }
+body.dark main .build-route-briefing-flag { background: rgba(232,101,26,0.1); border-color: rgba(232,101,26,0.55); }
+body.dark main .build-route-briefing-flag-label { color: #f2925a; }
+body.dark main .build-route-briefing-flag-item { color: #cdd6d1; }
+body.dark main .build-route-briefing-cta { background: #1a2620; border-color: rgba(255,255,255,0.16); color: #f4f2ef; }
+body.dark main .build-route-briefing-cta:hover,
+body.dark main .build-route-briefing-cta:focus-visible { border-color: #f2925a; color: #f2925a; }
+body.dark main .build-route-briefing-cta.is-primary { background: #c2540f; border-color: #c2540f; color: #fff; }
