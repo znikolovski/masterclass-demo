@@ -1,0 +1,256 @@
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+/* Required for correct iframe sizing — AEM section margins inflate shadow body */
+main > div,
+main > .section,
+main > .section:first-of-type {
+  margin: 0;
+}
+main > .section > div {
+  max-width: none;
+  padding: 0;
+}
+body {
+  overflow: auto;
+}
+
+main .audit-pack-weight {
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 12px;
+  color: #0f1a14;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+main .audit-pack-weight *,
+main .audit-pack-weight *::before,
+main .audit-pack-weight *::after {
+  box-sizing: border-box;
+}
+
+main .audit-pack-weight .audit-pack-weight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- Summary stats --- */
+main .audit-pack-weight .apw-summary {
+  display: flex;
+  gap: 8px;
+}
+main .audit-pack-weight .apw-stat {
+  flex: 1 1 0;
+  min-width: 0;
+  background: #f4f2ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+main .audit-pack-weight .apw-stat-num {
+  font-family: 'Syncopate', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+main .audit-pack-weight .apw-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+main .audit-pack-weight .apw-stat--savings {
+  background: rgba(232, 101, 26, 0.12);
+}
+main .audit-pack-weight .apw-stat--savings .apw-stat-num {
+  color: #bf4e0c;
+}
+
+/* --- Section title --- */
+main .audit-pack-weight .apw-section-title {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+
+/* --- Bar chart --- */
+main .audit-pack-weight .apw-chart {
+  background: #f4f2ef;
+  border-radius: 10px;
+  padding: 12px;
+}
+main .audit-pack-weight .apw-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+main .audit-pack-weight .apw-bar-row:last-child {
+  margin-bottom: 0;
+}
+main .audit-pack-weight .apw-bar-label {
+  flex: 0 0 118px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+main .audit-pack-weight .apw-bar-track {
+  flex: 1 1 auto;
+  height: 12px;
+  background: rgba(15, 26, 20, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+main .audit-pack-weight .apw-bar-fill {
+  height: 100%;
+  background: #e8651a;
+  border-radius: 6px;
+  transition: width 0.2s ease;
+}
+main .audit-pack-weight .apw-bar-val {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* --- Lists --- */
+main .audit-pack-weight .apw-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+main .audit-pack-weight .apw-list {
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 26, 20, 0.1);
+}
+main .audit-pack-weight .apw-list-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+main .audit-pack-weight .apw-list-glyph {
+  font-size: 13px;
+  line-height: 1;
+}
+main .audit-pack-weight .apw-list-title {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+main .audit-pack-weight .apw-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+main .audit-pack-weight .apw-list-item {
+  font-size: 13px;
+  padding-left: 14px;
+  position: relative;
+}
+main .audit-pack-weight .apw-list-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* Cut / swap accents */
+main .audit-pack-weight .apw-list--cut .apw-list-glyph { color: #bf4e0c; }
+main .audit-pack-weight .apw-list--swap .apw-list-glyph { color: #bf4e0c; }
+
+/* Safety-critical — distinct protected treatment, never grouped with cuts */
+main .audit-pack-weight .apw-list--safety {
+  background: rgba(15, 26, 20, 0.04);
+  border: 1px solid rgba(15, 26, 20, 0.18);
+  border-left: 4px solid #0f1a14;
+}
+main .audit-pack-weight .apw-list--safety .apw-list-glyph {
+  color: #0f1a14;
+}
+
+/* --- CTAs --- */
+main .audit-pack-weight .apw-ctas {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+main .audit-pack-weight .apw-cta {
+  flex: 1 1 auto;
+  min-width: 160px;
+  border: none;
+  border-radius: 6px;
+  background: #bf4e0c;
+  color: #fff;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+main .audit-pack-weight .apw-cta:hover,
+main .audit-pack-weight .apw-cta:focus-visible {
+  background: #a84208;
+  opacity: 1;
+  outline: 2px solid rgba(232, 101, 26, 0.5);
+  outline-offset: 2px;
+}
+
+main .audit-pack-weight .apw-empty {
+  font-size: 14px;
+  opacity: 0.7;
+  padding: 24px;
+  text-align: center;
+}
+
+/* --- Dark mode --- */
+@media (prefers-color-scheme: dark) {
+  main .audit-pack-weight { background: #0f1a14; color: #f4f2ef; }
+  main .audit-pack-weight .apw-stat { background: rgba(255, 255, 255, 0.06); }
+  main .audit-pack-weight .apw-chart { background: rgba(255, 255, 255, 0.06); }
+  main .audit-pack-weight .apw-bar-track { background: rgba(255, 255, 255, 0.12); }
+  main .audit-pack-weight .apw-list { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.14); }
+  main .audit-pack-weight .apw-list--safety { background: rgba(255, 255, 255, 0.08); border-color: rgba(244, 242, 239, 0.4); border-left-color: #f4f2ef; }
+  main .audit-pack-weight .apw-list--safety .apw-list-glyph { color: #f4f2ef; }
+  main .audit-pack-weight .apw-stat--savings { background: rgba(232, 101, 26, 0.22); }
+  main .audit-pack-weight .apw-stat--savings .apw-stat-num { color: #ff8a4c; }
+}
+body.dark main .audit-pack-weight { background: #0f1a14; color: #f4f2ef; }
+body.dark main .audit-pack-weight .apw-stat { background: rgba(255, 255, 255, 0.06); }
+body.dark main .audit-pack-weight .apw-chart { background: rgba(255, 255, 255, 0.06); }
+body.dark main .audit-pack-weight .apw-bar-track { background: rgba(255, 255, 255, 0.12); }
+body.dark main .audit-pack-weight .apw-list { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.14); }
+body.dark main .audit-pack-weight .apw-list--safety { background: rgba(255, 255, 255, 0.08); border-color: rgba(244, 242, 239, 0.4); border-left-color: #f4f2ef; }
+body.dark main .audit-pack-weight .apw-list--safety .apw-list-glyph { color: #f4f2ef; }
+body.dark main .audit-pack-weight .apw-stat--savings { background: rgba(232, 101, 26, 0.22); }
+body.dark main .audit-pack-weight .apw-stat--savings .apw-stat-num { color: #ff8a4c; }
+@media (prefers-color-scheme: dark) {
+  main .audit-pack-weight .apw-list--cut .apw-list-glyph,
+  main .audit-pack-weight .apw-list--swap .apw-list-glyph { color: #ff8a4c; }
+}
+body.dark main .audit-pack-weight .apw-list--cut .apw-list-glyph,
+body.dark main .audit-pack-weight .apw-list--swap .apw-list-glyph { color: #ff8a4c; }
