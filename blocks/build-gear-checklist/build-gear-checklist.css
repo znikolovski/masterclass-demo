@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+/* Required for correct iframe sizing — AEM section margins inflate shadow body */
+main > div,
+main > .section,
+main > .section:first-of-type {
+  margin: 0;
+}
+main > .section > div {
+  max-width: none;
+  padding: 0;
+}
+body {
+  overflow: auto;
+}
+
+main .build-gear-checklist {
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 8px;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+
+main .build-gear-checklist .bgc-card {
+  background: #ffffff;
+  color: #0f1a14;
+  border: 1px solid rgba(15, 26, 20, 0.12);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+main .build-gear-checklist .bgc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+main .build-gear-checklist .bgc-title {
+  font-family: 'Syncopate', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 18px !important;
+  font-weight: 700;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  color: #0f1a14;
+  letter-spacing: -0.5px;
+}
+
+main .build-gear-checklist .bgc-weight-pill {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b0480c;
+  white-space: nowrap;
+}
+
+main .build-gear-checklist .bgc-unresolved {
+  background: rgba(232, 101, 26, 0.10);
+  border-left: 3px solid #b0480c;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+main .build-gear-checklist .bgc-unresolved-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #b0480c;
+  margin-bottom: 4px;
+}
+
+main .build-gear-checklist .bgc-unresolved-item {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #0f1a14;
+  margin: 2px 0;
+}
+
+main .build-gear-checklist .bgc-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+main .build-gear-checklist .bgc-group {
+  margin-bottom: 12px;
+}
+
+main .build-gear-checklist .bgc-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.6;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(15, 26, 20, 0.10);
+  padding-bottom: 3px;
+}
+
+main .build-gear-checklist .bgc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+main .build-gear-checklist .bgc-item {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0f1a14;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+main .build-gear-checklist .bgc-badge {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+main .build-gear-checklist .bgc-badge-required {
+  background: #b0480c;
+  color: #ffffff;
+}
+
+main .build-gear-checklist .bgc-badge-conditional {
+  background: transparent;
+  border: 1px solid #b0480c;
+  color: #b0480c;
+}
+
+main .build-gear-checklist .bgc-cta {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 26, 20, 0.10);
+}
+
+main .build-gear-checklist .bgc-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+main .build-gear-checklist .bgc-btn-primary {
+  background: #b0480c;
+  color: #ffffff;
+  border: 1px solid #b0480c;
+}
+
+main .build-gear-checklist .bgc-btn-primary:hover,
+main .build-gear-checklist .bgc-btn-primary:focus-visible {
+  background: #8b3d10;
+  border-color: #8b3d10;
+}
+
+main .build-gear-checklist .bgc-btn-secondary {
+  background: transparent;
+  color: #b0480c;
+  border: 1px solid #b0480c;
+}
+
+main .build-gear-checklist .bgc-btn-secondary:hover,
+main .build-gear-checklist .bgc-btn-secondary:focus-visible {
+  background: rgba(232, 101, 26, 0.10);
+}
+
+main .build-gear-checklist .bgc-empty {
+  font-size: 14px;
+  color: #0f1a14;
+  padding: 16px;
+  text-align: center;
+}
+
+main .build-gear-checklist .bgc-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+main .build-gear-checklist .bgc-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 26, 20, 0.2);
+  border-radius: 3px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  main .build-gear-checklist .bgc-card {
+    background: #0f1a14;
+    color: #f4f2ef;
+    border-color: rgba(244, 242, 239, 0.14);
+  }
+  main .build-gear-checklist .bgc-title { color: #f4f2ef; }
+  main .build-gear-checklist .bgc-unresolved-item { color: #f4f2ef; }
+  main .build-gear-checklist .bgc-item { color: #f4f2ef; }
+  main .build-gear-checklist .bgc-group-label { border-bottom-color: rgba(244, 242, 239, 0.14); }
+  main .build-gear-checklist .bgc-cta { border-top-color: rgba(244, 242, 239, 0.14); }
+  main .build-gear-checklist .bgc-weight-pill { color: #f0834a; }
+  main .build-gear-checklist .bgc-unresolved-label { color: #f0834a; }
+  main .build-gear-checklist .bgc-badge-conditional { color: #f0834a; border-color: #f0834a; }
+  main .build-gear-checklist .bgc-btn-secondary { color: #f0834a; border-color: #f0834a; }
+}
+
+body.dark main .build-gear-checklist .bgc-card {
+  background: #0f1a14;
+  color: #f4f2ef;
+  border-color: rgba(244, 242, 239, 0.14);
+}
+body.dark main .build-gear-checklist .bgc-title { color: #f4f2ef; }
+body.dark main .build-gear-checklist .bgc-unresolved-item { color: #f4f2ef; }
+body.dark main .build-gear-checklist .bgc-item { color: #f4f2ef; }
+body.dark main .build-gear-checklist .bgc-group-label { border-bottom-color: rgba(244, 242, 239, 0.14); }
+body.dark main .build-gear-checklist .bgc-cta { border-top-color: rgba(244, 242, 239, 0.14); }
+body.dark main .build-gear-checklist .bgc-weight-pill { color: #f0834a; }
+body.dark main .build-gear-checklist .bgc-unresolved-label { color: #f0834a; }
+body.dark main .build-gear-checklist .bgc-badge-conditional { color: #f0834a; border-color: #f0834a; }
+body.dark main .build-gear-checklist .bgc-btn-secondary { color: #f0834a; border-color: #f0834a; }
