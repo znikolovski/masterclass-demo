@@ -19,20 +19,24 @@ const PALETTE = ['#e8651a', '#f4f2ef', '#0f1a14', '#ffffff'];
 const ACCENT = '#e8651a';
 const CARD_COLORS = ['#378ef0', '#9256d9', '#0fb5ae', '#e68619', '#d83790', '#2dca72', '#4046ca', '#72b340'];
 
+// Uses the brand color as-is (never darkened) and picks whichever foreground —
+// light or dark — gives better contrast, so small text (11px meta/reason lines)
+// stays WCAG-readable without shifting the card off-brand.
 function getThemedCardBg(palette) {
   if (!palette || !palette[0]) return null;
   let hex = palette[0].replace('#', '');
   if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
   if (hex.length !== 6) return null;
-  let [r, g, b] = [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return null;
-  const lum = (c) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4); };
-  const relLum = (rr, gg, bb) => 0.2126 * lum(rr) + 0.7152 * lum(gg) + 0.0722 * lum(bb);
-  if (relLum(r, g, b) <= 0.12) return { bg: `#${hex}`, fg: '#ffffff' };
-  let lo = 0; let hi = 1;
-  for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (relLum(Math.round(r * m), Math.round(g * m), Math.round(b * m)) > 0.12) hi = m; else lo = m; }
-  const dr = Math.round(r * lo); const dg = Math.round(g * lo); const db = Math.round(b * lo);
-  return { bg: `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`, fg: '#ffffff' };
+  const [r, g, b] = [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return null;
+  const lum = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const bgLum = (0.2126 * lum(r)) + (0.7152 * lum(g)) + (0.0722 * lum(b));
+  const whiteContrast = 1.05 / (bgLum + 0.05);
+  const blackContrast = (bgLum + 0.05) / 0.05;
+  return { bg: `#${hex}`, fg: whiteContrast >= blackContrast ? '#ffffff' : (palette[2] || '#0f1a14') };
 }
 const theme = getThemedCardBg(PALETTE);
 
