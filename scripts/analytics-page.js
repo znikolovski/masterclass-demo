@@ -13,6 +13,69 @@ const JOURNEY_STAGE_SEGMENTS = {
 };
 
 /**
+ * AI-assistant referring domains (humans clicking a citation out of an AI answer).
+ * Matched as a suffix of the referrer hostname. Keep in sync with the AI Assistants
+ * marketing-channel rule in docs/LLM-TRAFFIC-TRACKING-PLAN.md.
+ */
+const AI_ASSISTANT_DOMAINS = {
+  'chatgpt.com': 'chatgpt',
+  'chat.openai.com': 'chatgpt',
+  'perplexity.ai': 'perplexity',
+  'gemini.google.com': 'gemini',
+  'copilot.microsoft.com': 'copilot',
+  'claude.ai': 'claude',
+  'you.com': 'you',
+};
+
+const AI_REFERRAL_STORAGE_KEY = 'wknd:aiReferral';
+
+/**
+ * Resolve an AI-assistant name from a referrer hostname, or '' when none matches.
+ * @param {string} referrer
+ * @returns {string}
+ */
+function matchAiAssistant(referrer) {
+  if (!referrer) return '';
+  let hostname = '';
+  try {
+    hostname = new URL(referrer).hostname.toLowerCase();
+  } catch {
+    return '';
+  }
+  const entry = Object.entries(AI_ASSISTANT_DOMAINS).find(
+    ([domain]) => hostname === domain || hostname.endsWith(`.${domain}`),
+  );
+  return entry ? entry[1] : '';
+}
+
+/**
+ * Detect AI-assistant referral for this visit. The referrer is only present on the
+ * landing hit, so the first match is persisted to sessionStorage (first-touch) and
+ * reused for subsequent in-session page views.
+ * @returns {{ aiSource: string, aiChannel: string }|null}
+ */
+export function detectAiReferral() {
+  if (typeof window === 'undefined') return null;
+
+  let stored = '';
+  try {
+    stored = window.sessionStorage?.getItem(AI_REFERRAL_STORAGE_KEY) || '';
+  } catch {
+    stored = '';
+  }
+  if (stored) return { aiSource: stored, aiChannel: 'ai-assistant' };
+
+  const aiSource = matchAiAssistant(document.referrer || '');
+  if (!aiSource) return null;
+  try {
+    window.sessionStorage?.setItem(AI_REFERRAL_STORAGE_KEY, aiSource);
+  } catch {
+    /* sessionStorage unavailable — attribution holds for this hit only */
+  }
+  return { aiSource, aiChannel: 'ai-assistant' };
+}
+
+/**
  * @param {string} pathname
  * @param {string} siteSection
  * @returns {string}
@@ -73,9 +136,12 @@ export function buildPageContext(doc, getMetadataValue) {
   const siteSection = getMetadataValue('siteSection', doc) || getSiteSection(pathname);
   const template = getMetadataValue('template', doc);
   const title = getMetadataValue('title', doc);
+  const aiReferral = detectAiReferral();
 
   return {
     pageName: title || doc.title || '',
+    aiSource: aiReferral?.aiSource || '',
+    aiChannel: aiReferral?.aiChannel || '',
     template,
     theme: getMetadataValue('theme', doc),
     contentType: getMetadataValue('contentType', doc) || deriveContentType(template, pathname),
@@ -140,7 +206,7 @@ export function pushErrorPageContext() {
 }
 
 /**
- * Maps ACDL page state to legacy Analytics variables on each Web SDK hit.
+ * Maps ACDL page state to Analytics variables on each Web SDK hit.
  * @param {Object} content Web SDK onBeforeEventSend payload
  * @returns {boolean}
  */
@@ -164,6 +230,13 @@ export function mapPageToAnalytics(content) {
   if (page.theme) s.prop2 = page.theme;
   if (page.siteSection) s.prop4 = page.siteSection;
   if (page.targetEnabled === 'yes') s.prop9 = 'target-on';
+
+  // AI-assistant referral (LLM traffic): prop12 = channel flag, eVar9 = assistant name.
+  const aiReferral = detectAiReferral();
+  const aiChannel = page.aiChannel || aiReferral?.aiChannel;
+  const aiSource = page.aiSource || aiReferral?.aiSource;
+  if (aiChannel) s.prop12 = aiChannel;
+  if (aiSource) s.eVar9 = aiSource;
 
   s.prop1 = page.environment || getAnalyticsEnvironment();
 

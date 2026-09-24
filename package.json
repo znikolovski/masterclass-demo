@@ -13,6 +13,8 @@
     "simulate:traffic:dry": "node tools/scripts/simulate-live-audience-traffic.mjs --dry-run --from-index",
     "simulate:traffic:daily": "node tools/scripts/simulate-live-audience-traffic.mjs --from-index --hits=10000 --concurrency=6",
     "simulate:traffic:backfill": "node tools/scripts/batch-traffic-backfill.mjs",
+    "simulate:crawlers": "node tools/scripts/simulate-ai-crawler-traffic.mjs",
+    "simulate:crawlers:dry": "node tools/scripts/simulate-ai-crawler-traffic.mjs --dry-run",
     "inventory:images": "node tools/scripts/inventory-content-images.mjs",
     "setup:dam": "node tools/aem-assets/setup-wknd-dam.mjs",
     "migrate:manifest": "node tools/aem-assets/build-migration-manifest.mjs",

@@ -7,16 +7,17 @@ import { createRng } from './traffic-visitors.mjs';
 
 /** @typedef {{ id: string, label: string, referer?: string, cid?: string, utm?: Record<string, string> }} SessionChannel */
 
-export const CHANNEL_IDS = ['direct', 'organic', 'social', 'email', 'referral', 'paid'];
+export const CHANNEL_IDS = ['direct', 'organic', 'social', 'email', 'referral', 'paid', 'ai'];
 
 /** @type {Record<string, number>} */
 export const DEFAULT_CHANNEL_MIX = {
-  direct: 0.35,
-  organic: 0.25,
+  direct: 0.32,
+  organic: 0.23,
   email: 0.15,
   social: 0.12,
-  referral: 0.10,
+  referral: 0.09,
   paid: 0.03,
+  ai: 0.06,
 };
 
 const CHANNEL_LABELS = {
@@ -26,6 +27,7 @@ const CHANNEL_LABELS = {
   email: 'Email (cid + mail client referrer)',
   referral: 'Referral (outdoor / publisher sites)',
   paid: 'Paid Search (utm + Google referrer)',
+  ai: 'AI Assistants (ChatGPT/Perplexity/Gemini/Copilot/Claude)',
 };
 
 const ORGANIC_REFERRERS = [
@@ -56,6 +58,16 @@ const PAID_CAMPAIGNS = [
   'wknd-google-climbing',
   'wknd-google-trekking',
   'wknd-google-winter',
+];
+
+// AI-assistant referrers — humans clicking a citation/link out of an AI answer.
+// The referring domain is what Analytics classifies as "AI Assistants".
+const AI_REFERRERS = [
+  'https://chatgpt.com/',
+  'https://www.perplexity.ai/',
+  'https://gemini.google.com/',
+  'https://copilot.microsoft.com/',
+  'https://claude.ai/',
 ];
 
 /**
@@ -159,6 +171,12 @@ export function resolveSessionChannel(channelId, rng) {
         id: 'referral',
         label: CHANNEL_LABELS.referral,
         referer: pick(REFERRAL_REFERRERS),
+      };
+    case 'ai':
+      return {
+        id: 'ai',
+        label: CHANNEL_LABELS.ai,
+        referer: pick(AI_REFERRERS),
       };
     case 'paid':
       return {

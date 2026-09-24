@@ -36,8 +36,12 @@ Reuse these slots (rename descriptions in **Admin → Report suites → Edit set
 | prop3 | Custom Insight 3 | **Journey stage** (`inspiration`, `discovery`, `planning`, `community`) |
 | prop4 | Custom Insight 4 | Site section (URL bucket) |
 | prop5 | Custom Insight 5 | Interaction block / URL on link hits; fragment path on page views (optional) |
+| prop12 | Custom Insight 12 | **AI-assistant channel flag** (`ai-assistant`) on AI-referred visits — see [LLM-TRAFFIC-TRACKING-PLAN.md](./LLM-TRAFFIC-TRACKING-PLAN.md) |
+| eVar9 | Custom Conversion 9 | **AI-assistant source** (`chatgpt`, `perplexity`, `gemini`, `copilot`, `claude`) — see [LLM-TRAFFIC-TRACKING-PLAN.md](./LLM-TRAFFIC-TRACKING-PLAN.md) |
 
 Standard dimensions (Page, Page URL, Referrer, Device, Marketing channel) need no Launch mapping.
+
+**LLM / AI traffic:** see [LLM-TRAFFIC-TRACKING-PLAN.md](./LLM-TRAFFIC-TRACKING-PLAN.md) for the AI Assistants marketing-channel rule, the `prop12`/`eVar9` mapping (set client-side in [scripts/analytics-page.js](../scripts/analytics-page.js)), and AI-crawler (edge-log) tracking.
 
 ---
 
