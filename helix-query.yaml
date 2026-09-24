@@ -19,6 +19,39 @@ indices:
       image:
         select: main picture img
         value: attribute(el, "src")
+      adventureCategory:
+        select: head > meta[name="adventurecategory"]
+        value: attribute(el, "content")
+      experienceLevel:
+        select: head > meta[name="experiencelevel"]
+        value: attribute(el, "content")
+      pace:
+        select: head > meta[name="pace"]
+        value: attribute(el, "content")
+      priority:
+        select: head > meta[name="priority"]
+        value: attribute(el, "content")
+      landscape:
+        select: head > meta[name="landscape"]
+        value: attribute(el, "content")
+      region:
+        select: head > meta[name="region"]
+        value: attribute(el, "content")
+      country:
+        select: head > meta[name="country"]
+        value: attribute(el, "content")
+      duration:
+        select: head > meta[name="duration"]
+        value: attribute(el, "content")
+      tripLengthDays:
+        select: head > meta[name="triplengthdays"]
+        value: attribute(el, "content")
+      verifiedStatus:
+        select: head > meta[name="verifiedstatus"]
+        value: attribute(el, "content")
+      placeName:
+        select: head > meta[name="placename"]
+        value: attribute(el, "content")
   blog:
     include:
       - '/blog/**'
