@@ -24,8 +24,9 @@ export class AEMEmbed extends HTMLElement {
    * @param {Element} block
    * @param {string} blockName
    * @param {string} origin
+   * @param {object} [bridge] LLM Apps SDK bridge (undefined outside a widget host)
    */
-  async loadBlock(body, block, blockName, origin) {
+  async loadBlock(body, block, blockName, origin, bridge) {
     const prefix = AERO_BLOCKS.has(blockName) ? 'blocks/aero' : 'blocks';
     const blockCss = `${origin}${window.hlx.codeBasePath}/${prefix}/${blockName}/${blockName}.css`;
     if (!body.querySelector(`link[href="${blockCss}"]`)) {
@@ -43,7 +44,7 @@ export class AEMEmbed extends HTMLElement {
     try {
       const blockScriptUrl = `${origin}${window.hlx.codeBasePath}/${prefix}/${blockName}/${blockName}.js`;
       const decorateBlock = await import(blockScriptUrl);
-      if (decorateBlock.default) await decorateBlock.default(block);
+      if (decorateBlock.default) await decorateBlock.default(block, bridge);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('aem-embed block load failed', blockName, e);
@@ -66,8 +67,19 @@ export class AEMEmbed extends HTMLElement {
     const blockElements = main.querySelectorAll('.block');
     if (blockElements.length > 0) {
       const blocks = Array.from(blockElements).map((b) => b.classList.item(0));
+
+      // Widget blocks (loaded via the LLM Apps runtime's <aem-embed> wrapper)
+      // expect a second `bridge` argument implementing the ui/* postMessage
+      // protocol with their MCP host — see scripts/llmapps-sdk.js. `connect()`
+      // degrades to a safe standalone no-op when this element isn't actually
+      // running inside a host iframe (e.g. the generic WKND Aero content-embed
+      // use of this same custom element), so it's always safe to create it.
+      const { LLMApp } = await import('./llmapps-sdk.js');
+      const bridge = new LLMApp({ appInfo: { name: blocks[0] || 'aem-embed', version: '1.0.0' } });
+      await bridge.connect();
+
       for (let i = 0; i < blockElements.length; i += 1) {
-        await this.loadBlock(body, blockElements[i], blocks[i], origin);
+        await this.loadBlock(body, blockElements[i], blocks[i], origin, bridge);
       }
     }
 
