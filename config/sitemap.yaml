@@ -1,0 +1,7 @@
+version: 1
+sitemaps:
+  WKND Adventures Sitemap:
+    origin: https://wknd-adventures.run.place
+    source: /query-index.json
+    destination: /sitemap.xml
+    lastmod: YYYY-MM-DD

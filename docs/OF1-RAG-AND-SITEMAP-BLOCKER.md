@@ -4,6 +4,14 @@
 **Branch:** `llm-traffic-tracking`
 **Date checked:** 2026-10-05
 
+**Sitemap/robots resolution:** The missing sitemap origin was corrected in
+Configuration Service, robots now advertises the custom-domain sitemap, and
+the production host was registered as Adobe Managed CDN for cache
+invalidation. Local configuration mirrors are `config/sitemap.yaml`,
+`config/robots.txt`, and `config/cdn.json`. The historical findings below
+describe the state before this fix; the OF1 retrieval blocker remains open.
+Sitemap membership and the shared query index were not changed.
+
 ## Executive summary
 
 The OF1 page and header search are available on the feature branch, and the
