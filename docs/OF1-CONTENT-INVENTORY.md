@@ -62,14 +62,29 @@ remain grounded in these captured pages, and the two DA-only blog entries
 should stay excluded unless their published status and intended use are
 confirmed.
 
-No DA content was modified or published as part of this inventory. The worker
-still reports the `main--masterclass-demo--znikolovski` tenant as not ready,
-and published `/of1` returns 404. Do not expose the header search form on a
-deployed page until the `/of1` page and worker configuration are available and
-verified.
+## Feature-branch rollout status
 
-The OF1 worker reported the `main--masterclass-demo--znikolovski` tenant as not
-ready: no knowledge, suggestions, endpoint, CTA template, or templates were
-configured. The published `/of1` route currently returns 404. Do not expose the
-header search form on a deployed page until `/of1` and the worker configuration
-are published and verified.
+After explicit feature-branch-only authorization, `/of1`, 17 knowledge
+documents, and five response templates were previewed and published to the
+`llm-traffic-tracking` feature tier. They were not published to `main`; no PR
+was opened. The feature `/of1` page and its header search were checked at 375,
+768, 900, and 1280 px on both `.aem.page` and `.aem.live`: all returned HTTP
+200, with no horizontal overflow or browser-console errors.
+
+The feature worker reports `ready: true`, with knowledge, suggestions, the
+endpoint, CTA template, and templates available. However, this does **not**
+yet establish reliable content grounding:
+
+- `POST /api/tenants/llm-traffic-tracking--masterclass-demo--znikolovski/sync`
+  returns Cloudflare error 1101 / HTTP 500, including with the documented
+  no-body request.
+- Generation returns HTTP 200, but debug data for both a general Sonoran water
+  question and an exact-title source question reports `rag-vectorize` with
+  `matched: 0`, `products: 0`, and `content: 0`.
+- One response produced unsupported details and did not preserve the source's
+  explicit 4 L minimum; an exact-title query later repeated 4 L but still had
+  zero RAG matches. Treat these as model output, not verified retrieval.
+
+Do not promote the feature to `main` or present OF1 answers as source-grounded
+until worker sync/indexing is repaired and generation debug shows relevant
+retrieval matches. The main tenant and main `/of1` route remain unchanged.
