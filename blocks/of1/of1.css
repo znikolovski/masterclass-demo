@@ -99,6 +99,7 @@
 }
 
 .of1-input {
+  box-sizing: border-box;
   width: 100%;
   font-family: var(--font-body);
   font-size: 15px;
