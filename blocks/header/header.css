@@ -346,6 +346,12 @@ header nav .nav-tools {
   grid-area: tools;
 }
 
+@media (width < 600px) {
+  header nav[aria-expanded='false'] .nav-tools {
+    display: none;
+  }
+}
+
 header nav .nav-tools a {
   display: inline-flex;
   align-items: center;
