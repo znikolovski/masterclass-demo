@@ -1,0 +1,657 @@
+{
+  "generatedAt": "2026-10-05T04:23:56.812Z",
+  "source": "DA Admin API /list (read-only; filenames and directory structure only)",
+  "repository": {
+    "owner": "znikolovski",
+    "name": "masterclass-demo"
+  },
+  "entryCount": 160,
+  "counts": {
+    "html": 106,
+    "directory": 50,
+    "json": 3,
+    "md": 1
+  },
+  "entries": [
+    {
+      "path": "about.html",
+      "kind": "html"
+    },
+    {
+      "path": "adventures.html",
+      "kind": "html"
+    },
+    {
+      "path": "basecamp.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/accordion-faq",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/accordion-faq/accordion-faq.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/adventure-facts",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/adventure-facts/adventure-facts.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/adventure-map",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/adventure-map/adventure-map.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/adventure-quiz",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/adventure-quiz/adventure-quiz.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/adventures-bento",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/adventures-bento/adventures-bento.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/aero-footer",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/aero-footer/aero-footer.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/aero-header",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/aero-header/aero-header.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/aero-hero",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/aero-hero/aero-hero.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/aero-newsletter",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/aero-newsletter/aero-newsletter.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/aero-pass",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/aero-pass/aero-pass.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/booking-journey",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/booking-journey/booking-journey.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/destinations-grid",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/destinations-grid/destinations-grid.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/flight-search",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/flight-search/flight-search.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/aero/travel-inspiration",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/aero/travel-inspiration/travel-inspiration.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/business-dashboard",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/business-dashboard/business-dashboard.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/business-login",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/business-login/business-login.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/business-register",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/business-register/business-register.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/cards",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/cards-steps",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/cards-steps/cards-steps.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/cards/cards.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/carousel-blog",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/carousel-blog/carousel-blog.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/carousel-hero",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/carousel-hero/carousel-hero.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/columns",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/columns-article",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/columns-article/columns-article.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/columns-featured",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/columns-featured/columns-featured.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/columns-gallery",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/columns-gallery/columns-gallery.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/columns/columns.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/embed-adaptive-form",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/embed-adaptive-form/embed-adaptive-form.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/form",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/form/form.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/fragment",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/fragment/fragment.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/hero-adventure",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/hero-adventure/hero-adventure.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/marquee-ticker",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/marquee-ticker/marquee-ticker.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/quiz-results",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/quiz-results/quiz-results.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/section-metadata",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/section-metadata/section-metadata.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/tabs-activity",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/tabs-activity/tabs-activity.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/teaser",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/teaser/teaser.html",
+      "kind": "html"
+    },
+    {
+      "path": "blocks/youtube-video",
+      "kind": "directory"
+    },
+    {
+      "path": "blocks/youtube-video/youtube-video.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog",
+      "kind": "directory"
+    },
+    {
+      "path": "blog/alpine-cycling.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/desert-survival-guide.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/food-safari-melbourne.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/kayaking-norway.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/ladakh-india.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/mekong-delta-vietnam.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/mountain-photography.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/ohrid-macedonia.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/ohrid-north-macedonia.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/patagonia-trek.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/surfing-costa-rica.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/test.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/ultralight-backpacking.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/wild-swimming-guide.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/winter-mountaineering.html",
+      "kind": "html"
+    },
+    {
+      "path": "blog/yosemite-rock-climbing.html",
+      "kind": "html"
+    },
+    {
+      "path": "community.html",
+      "kind": "html"
+    },
+    {
+      "path": "destinations.html",
+      "kind": "html"
+    },
+    {
+      "path": "drafts",
+      "kind": "directory"
+    },
+    {
+      "path": "drafts/blog-article-starter.html",
+      "kind": "html"
+    },
+    {
+      "path": "drafts/ew-template-test.html",
+      "kind": "html"
+    },
+    {
+      "path": "drafts/hr-section-test.html",
+      "kind": "html"
+    },
+    {
+      "path": "eds-widgets",
+      "kind": "directory"
+    },
+    {
+      "path": "eds-widgets/audit-pack-weight-demo.html",
+      "kind": "html"
+    },
+    {
+      "path": "eds-widgets/build-gear-checklist-demo.html",
+      "kind": "html"
+    },
+    {
+      "path": "eds-widgets/build-route-briefing-demo.html",
+      "kind": "html"
+    },
+    {
+      "path": "eds-widgets/discover-adventures-demo.html",
+      "kind": "html"
+    },
+    {
+      "path": "eds-widgets/plan-permits-and-access-demo.html",
+      "kind": "html"
+    },
+    {
+      "path": "eds-widgets/prepare-field-submission-demo.html",
+      "kind": "html"
+    },
+    {
+      "path": "expeditions.html",
+      "kind": "html"
+    },
+    {
+      "path": "faq.html",
+      "kind": "html"
+    },
+    {
+      "path": "field-notes.html",
+      "kind": "html"
+    },
+    {
+      "path": "find-your-adventure",
+      "kind": "directory"
+    },
+    {
+      "path": "find-your-adventure/results.html",
+      "kind": "html"
+    },
+    {
+      "path": "footer.html",
+      "kind": "html"
+    },
+    {
+      "path": "forms",
+      "kind": "directory"
+    },
+    {
+      "path": "forms/wknd-adventure-interest.html",
+      "kind": "html"
+    },
+    {
+      "path": "forms/wknd-contact-b2b.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments",
+      "kind": "directory"
+    },
+    {
+      "path": "fragments/adventure-quiz.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/columns-featured.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/homepage-hero-control.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/homepage-hero-ohrid.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/inline",
+      "kind": "directory"
+    },
+    {
+      "path": "fragments/inline/adventure-quiz.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-adv-discovery-browsers.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-adv-photography-story.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-adv-trekker-planner.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-adv-trekking-hiking.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-cf-discovery-browsers.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-cf-photography-story.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-cf-trekker-planner.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ladakh-india-cf-trekking-hiking.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/mekong-delta-cf-community-values.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/mekong-delta-cf-discovery-browsers.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/mekong-delta-cf-planners-prep.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/mekong-delta-cf-water-adventurers.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-cf-aspiring-climber.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-cf-community-regular.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-cf-new-discoverer.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-cf-trekking-planner.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-macedonia-cf-aspiring-climber.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-macedonia-cf-community-regular.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-macedonia-cf-new-discoverer.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/ohrid-macedonia-cf-trekking-planner.html",
+      "kind": "html"
+    },
+    {
+      "path": "fragments/wknd-adventure-interest.html",
+      "kind": "html"
+    },
+    {
+      "path": "gear.html",
+      "kind": "html"
+    },
+    {
+      "path": "index.html",
+      "kind": "html"
+    },
+    {
+      "path": "library",
+      "kind": "directory"
+    },
+    {
+      "path": "library/blocks.json",
+      "kind": "json"
+    },
+    {
+      "path": "library/icons.json",
+      "kind": "json"
+    },
+    {
+      "path": "library/templates.json",
+      "kind": "json"
+    },
+    {
+      "path": "nav.html",
+      "kind": "html"
+    },
+    {
+      "path": "reports",
+      "kind": "directory"
+    },
+    {
+      "path": "reports/executive-briefing-jun-2026.html",
+      "kind": "html"
+    },
+    {
+      "path": "sustainability.html",
+      "kind": "html"
+    },
+    {
+      "path": "templates",
+      "kind": "directory"
+    },
+    {
+      "path": "templates/blog-article",
+      "kind": "directory"
+    },
+    {
+      "path": "templates/blog-article/blog-article.html",
+      "kind": "html"
+    },
+    {
+      "path": "templates/blog-article/blog-article.md",
+      "kind": "md"
+    },
+    {
+      "path": "templates/field-notes",
+      "kind": "directory"
+    },
+    {
+      "path": "templates/field-notes/field-notes.html",
+      "kind": "html"
+    },
+    {
+      "path": "templates/landing-page",
+      "kind": "directory"
+    },
+    {
+      "path": "templates/landing-page/landing-page.html",
+      "kind": "html"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "personality": "Field-tested, candid outdoor journalism with a wry, welcoming sense of humour.",
+  "tone": "Specific and honest about uncertainty and risk; adventurous without glamorising unsafe decisions.",
+  "vocabulary": [
+    "field notes",
+    "route",
+    "conditions",
+    "gear",
+    "plan",
+    "turn around",
+    "leave it wilder"
+  ],
+  "avoidWords": [
+    "guaranteed safe",
+    "risk-free",
+    "officially guided",
+    "best price"
+  ]
+}

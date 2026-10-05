@@ -1,0 +1,13 @@
+{
+  "html": "<aside style=\"background:#0f1a14;color:#fff;padding:64px 32px;text-align:center;margin:40px 0\"><h2 style=\"font-family:Syncopate,sans-serif;font-size:28px;font-weight:700;line-height:1.2;margin:0 auto 16px;max-width:760px\">{{title}}</h2><p style=\"font-family:Instrument Sans,sans-serif;font-size:18px;line-height:1.5;margin:0 auto 28px;max-width:640px;color:#f4f2ef\">{{description}}</p><a href=\"{{href}}\" style=\"display:inline-block;background:#e8651a;color:#0f1a14;font-family:Syncopate,sans-serif;font-size:12px;font-weight:700;letter-spacing:.07em;padding:14px 24px;border-radius:9999px;text-decoration:none;text-transform:uppercase\">{{buttonText}}</a></aside>",
+  "slots": [
+    "title",
+    "description",
+    "buttonText"
+  ],
+  "fallback": {
+    "title": "Find Your Next WKND Adventure",
+    "description": "Explore real routes, field notes, and practical advice from people who have been there.",
+    "buttonText": "Ask WKND"
+  }
+}

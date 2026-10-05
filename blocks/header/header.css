@@ -364,6 +364,72 @@ header nav .nav-tools a {
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
+header nav .nav-search-item form {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  border: 2px solid var(--text-color);
+  border-radius: 9999px;
+  background-color: var(--background-color);
+}
+
+header nav .nav-search-item input {
+  box-sizing: border-box;
+  width: clamp(110px, 16vw, 190px);
+  min-width: 0;
+  border: 0;
+  border-radius: 9999px 0 0 9999px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--body-font-family);
+  font-size: 14px;
+}
+
+header nav .nav-search-item button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--text-color);
+  color: var(--background-color);
+  cursor: pointer;
+}
+
+header nav .nav-search-item input:focus-visible,
+header nav .nav-search-item button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+header nav .nav-sections > ul > li.nav-search-item::after {
+  display: none;
+}
+
+header nav .nav-search-icon {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+@media (width < 900px) {
+  header nav .nav-search-item form {
+    width: min(100%, 320px);
+  }
+
+  header nav .nav-search-item input {
+    width: 100%;
+  }
+}
+
 header nav .nav-tools a:hover {
   box-shadow: 5px 5px 0 0 var(--accent-color);
   transform: translate(-2px, -2px);

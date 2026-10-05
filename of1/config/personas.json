@@ -1,0 +1,138 @@
+[
+  {
+    "id": "trekking-planner",
+    "name": "Trekking planner",
+    "keywords": [
+      "trek",
+      "trekking",
+      "hiking",
+      "backpacking",
+      "trail",
+      "multi-day",
+      "patagonia",
+      "permits",
+      "campsite",
+      "elevation"
+    ],
+    "description": "Plans multi-day hikes and wants grounded route, conditions, and preparation advice.",
+    "priorities": [
+      "route detail",
+      "permits",
+      "gear"
+    ],
+    "intentProfile": {
+      "explore": 0.45,
+      "research": 0.85,
+      "compare": 0.6,
+      "purchase": 0.15,
+      "deals": 0.15,
+      "support": 0.25
+    },
+    "recommendedProducts": [
+      "patagonia-trek",
+      "ultralight-backpacking",
+      "ohrid-city-of-thousand-churches",
+      "ohrid-north-macedonia",
+      "ohrid-macedonia",
+      "ladakh-india"
+    ]
+  },
+  {
+    "id": "beginner-climber",
+    "name": "Beginner climber",
+    "keywords": [
+      "beginner",
+      "climbing",
+      "climb",
+      "bouldering",
+      "yosemite",
+      "granite",
+      "belay",
+      "route",
+      "first-timer",
+      "skills"
+    ],
+    "description": "Building climbing skills and looking for beginner-oriented route guidance.",
+    "priorities": [
+      "skill progression",
+      "route context"
+    ],
+    "intentProfile": {
+      "explore": 0.65,
+      "research": 0.8,
+      "compare": 0.35,
+      "purchase": 0.1,
+      "deals": 0.1,
+      "support": 0.25
+    },
+    "recommendedProducts": [
+      "yosemite-rock-climbing"
+    ]
+  },
+  {
+    "id": "cold-water-surfer",
+    "name": "Cold-water surfer",
+    "keywords": [
+      "surf",
+      "surfing",
+      "cold water",
+      "lofoten",
+      "norway",
+      "costa rica",
+      "waves",
+      "wetsuit",
+      "swell",
+      "ocean"
+    ],
+    "description": "Explores surf destinations and practical cold-water preparation.",
+    "priorities": [
+      "surf conditions",
+      "cold-water kit"
+    ],
+    "intentProfile": {
+      "explore": 0.85,
+      "research": 0.65,
+      "compare": 0.4,
+      "purchase": 0.1,
+      "deals": 0.1,
+      "support": 0.2
+    },
+    "recommendedProducts": [
+      "kayaking-norway",
+      "surfing-costa-rica"
+    ]
+  },
+  {
+    "id": "alpine-traveler",
+    "name": "Alpine traveler",
+    "keywords": [
+      "alpine",
+      "cycling",
+      "mountaineering",
+      "winter",
+      "mountains",
+      "mountain",
+      "passes",
+      "bike",
+      "high-alpine",
+      "snow"
+    ],
+    "description": "Interested in alpine routes, cycling, or winter mountain travel.",
+    "priorities": [
+      "route character",
+      "seasonal safety"
+    ],
+    "intentProfile": {
+      "explore": 0.5,
+      "research": 0.7,
+      "compare": 0.8,
+      "purchase": 0.1,
+      "deals": 0.15,
+      "support": 0.2
+    },
+    "recommendedProducts": [
+      "alpine-cycling",
+      "winter-mountaineering"
+    ]
+  }
+]

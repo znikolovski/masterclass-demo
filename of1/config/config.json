@@ -1,0 +1,15 @@
+{
+  "domain": "llm-traffic-tracking--masterclass-demo--znikolovski",
+  "owner": "znikolovski",
+  "repo": "masterclass-demo",
+  "branch": "llm-traffic-tracking",
+  "knowledgeMode": "da-document",
+  "contentIngestion": {
+    "enabled": true,
+    "includePaths": [
+      "/of1/knowledge/**"
+    ],
+    "maxChunkTokens": 400,
+    "contentTopK": 4
+  }
+}
