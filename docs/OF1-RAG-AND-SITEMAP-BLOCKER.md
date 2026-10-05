@@ -1,8 +1,19 @@
 # OF1 Retrieval and Sitemap Blocker
 
-**Status:** Feature-branch investigation; not ready for promotion to `main`.
+**Status:** Retrieval blocker resolved; feature-branch validation continues.
 **Branch:** `llm-traffic-tracking`
 **Date checked:** 2026-10-05
+
+**Rechecked:** 2026-10-06. After the OF1 maintainer's repair, the feature
+tenant sync returns HTTP 200 with `ok: true`, no errors,
+`vectors.indexed: 40`, and `content.indexed: 283`. A fresh question about the
+Alpine cycling guide reports `rag-vectorize` with `matched: 6` and
+`content: 4`. An immediate post-sync comparison initially still reported
+zero matches, so allow indexing to become searchable and verify retrieval
+separately from sync success. The worker-side root cause and repair were not
+available in this repository.
+
+The diagnostics below preserve the historical 2026-10-05 failure evidence.
 
 **Sitemap/robots resolution:** The missing sitemap origin was corrected in
 Configuration Service, robots now advertises the custom-domain sitemap, and
@@ -19,7 +30,7 @@ worker reports the feature tenant as ready. That readiness flag only confirms
 that required configuration is present. It does not confirm that any content
 was vectorized or can be retrieved.
 
-The sync endpoint returns HTTP 500 with Cloudflare error 1101. Generation
+On 2026-10-05, the sync endpoint returned HTTP 500 with Cloudflare error 1101. Generation
 requests nevertheless return HTTP 200, but their debug payload reports zero
 RAG matches, including for an exact-title question about the indexed Sonoran
 source. One response supplied unsupported details; a later response repeated
@@ -188,4 +199,5 @@ shared area to inspect, not proof of a shared root cause.
 
 The OF1 page, knowledge documents, and templates were published only to the
 `llm-traffic-tracking` feature tier after authorization. No `main` content was
-published and no PR was opened. Do not promote OF1 until retrieval is verified.
+published and no PR was opened. Retrieval was verified on 2026-10-06 as recorded above. Promotion to `main`
+remains a separate approval; this work stays on the feature branch.

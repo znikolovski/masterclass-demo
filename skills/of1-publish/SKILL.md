@@ -121,6 +121,12 @@ node "$SKILL_DIR/assets/fill-demo-hub.mjs" . "${DOMAIN}"
 
 This reads all config, finds prototypes, discovers EDS pages from `/tmp/da-pages.txt`, lists DA templates from `/tmp/da-templates.txt` for the authoring showcase, and writes `deliverables/index.html`. Do NOT hand-write the hub HTML.
 
+For an existing integration with no retained pipeline state, the fill script
+can read owner/repo/branch from the served `of1/config/config.json` instead;
+it logs this choice and fails if any required field is missing. Page lists
+preserve nested paths, and template names are relative to `/templates`
+(for example, `of1/comparison` for `/templates/of1/comparison`).
+
 ### 4. Commit and push
 
 ```bash

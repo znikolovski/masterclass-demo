@@ -223,7 +223,7 @@ function findEdsPages(repoDir, branch, owner, repo) {
     for (const rawLine of text.split('\n')) {
       const line = rawLine.trim();
       if (!line) continue;
-      const name = path.basename(line, path.extname(line));
+      const name = line.replace(/\.html$/, '').replace(/^\/+/, '');
       if (name === 'nav' || name === 'footer') continue;
       const label = titleCase(name.replace(/-/g, ' ').replace('prototype ', ''));
       const url = name === 'index' ? previewBase : `${previewBase}/${name}`;
@@ -307,13 +307,13 @@ function main() {
   const domain = process.argv[3];
 
   const stateDir = process.env.OF1_STATE_DIR || '/shared/of1-demo-orchestrator';
-  const repoConfigPath = path.join(stateDir, 'repo-config.json');
-  const repoConfig = loadJson(repoConfigPath);
+  let repoConfigPath = path.join(stateDir, 'repo-config.json');
+  let repoConfig = loadJson(repoConfigPath);
   if (!repoConfig || Object.keys(repoConfig).length === 0) {
-    console.error(
-      `ERROR: ${repoConfigPath} is missing or empty. Run of1-check-dependencies first to write it.`,
-    );
-    return 1;
+    const configPath = path.join(repoDir, 'of1', 'config', 'config.json');
+    repoConfig = loadJson(configPath);
+    console.error(`WARN: ${repoConfigPath} is missing or empty; using served tenant metadata from ${configPath}.`);
+    repoConfigPath = configPath;
   }
   const missing = ['owner', 'repo', 'branch'].filter((k) => !repoConfig[k]);
   if (missing.length) {

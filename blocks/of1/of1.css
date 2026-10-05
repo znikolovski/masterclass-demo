@@ -263,7 +263,8 @@
 
 /* ─── Follow-up Suggestions ───────────────────────────────── */
 
-.generative-suggestions {
+.section.generative-suggestions {
+  box-sizing: border-box;
   padding: 40px 24px;
   text-align: center;
 }
@@ -273,12 +274,14 @@
   pointer-events: none;
 }
 
-.suggestion-input-row {
+.section.generative-suggestions > .suggestion-input-row {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   width: 100%;
+  padding: 0;
 }
 
 .suggestions-header {
@@ -297,7 +300,8 @@
   max-width: 100%;
 }
 
-.suggestion-input {
+.generative-suggestions .suggestion-input {
+  box-sizing: border-box;
   width: 100%;
   font-family: var(--font-body);
   font-size: 15px;

@@ -85,8 +85,33 @@ yet establish reliable content grounding:
   explicit 4 L minimum; an exact-title query later repeated 4 L but still had
   zero RAG matches. Treat these as model output, not verified retrieval.
 
-Do not promote the feature to `main` or present OF1 answers as source-grounded
-until worker sync/indexing is repaired and generation debug shows relevant
-retrieval matches. The main tenant and main `/of1` route remain unchanged. See
+The retrieval blocker was rechecked on 2026-10-06 after the maintainer's
+repair: sync returned HTTP 200 with 40 entity vectors and 283 content chunks
+indexed, and an Alpine cycling question returned six retrieval matches,
+including four content matches. These counts establish that ingestion and
+retrieval now work, not that every generated claim has been fact-checked.
+The failure evidence above is historical. The main tenant and main `/of1`
+route remain unchanged. See
 [`OF1-RAG-AND-SITEMAP-BLOCKER.md`](OF1-RAG-AND-SITEMAP-BLOCKER.md) for detailed
 reproduction evidence and the separate sitemap/robots investigation.
+
+## Integration completion follow-up (2026-10-06)
+
+The config-review page and demo hub are generated under `deliverables/`.
+The review page reads the current `knowledge.json` model (15 adventures and
+25 FAQs), along with brand voice, personas, suggestions, CTA, template
+routing, and the OF1 endpoint. The hub links the published content and five
+response templates under `/templates/of1/`; nested paths are preserved.
+
+The generated-result sizing fixes keep padded containers and follow-up
+inputs within the viewport. Streamed hero headings are visible, responsive,
+and no longer reserve the initial page's heading-height placeholder.
+Generated responses and both deliverables were checked at 375, 768, and
+1280 px with no horizontal overflow. The canonical `blocks/of1/of1.js` is
+unchanged.
+
+One worker-side UI issue remains: `/api/suggest` returns only suggestions,
+not the title, subtitle, or placeholder from `suggestions.json`. The client
+therefore shows generic search copy despite the served WKND configuration.
+This requires a shared worker/API fix rather than patching the canonical
+client block.

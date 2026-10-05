@@ -173,6 +173,11 @@ Once `of1-extract-brand-voice` + `of1-extract-content` + `of1-build-quick-sugges
 
 Copy it into the repo and push it **together with the config JSONs** — the page fetches them at review time, but otherwise only `of1-publish` pushes `of1/config/`, and that runs later, so the page would be blank at the approval gate:
 
+The review asset supports both `knowledge.json` entities and legacy
+products/features/FAQs files. It also displays template routing and the OF1
+endpoint. Optional legacy files returning 404 do not mark a knowledge-only
+tenant incomplete; unreadable required configuration is still reported.
+
 ```bash
 cd "$OF1_DEMO_REPO"
 cp "<of1-integration skill dir>/assets/config-review.html" deliverables/config-review.html
