@@ -87,4 +87,6 @@ yet establish reliable content grounding:
 
 Do not promote the feature to `main` or present OF1 answers as source-grounded
 until worker sync/indexing is repaired and generation debug shows relevant
-retrieval matches. The main tenant and main `/of1` route remain unchanged.
+retrieval matches. The main tenant and main `/of1` route remain unchanged. See
+[`OF1-RAG-AND-SITEMAP-BLOCKER.md`](OF1-RAG-AND-SITEMAP-BLOCKER.md) for detailed
+reproduction evidence and the separate sitemap/robots investigation.
