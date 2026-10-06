@@ -69,6 +69,7 @@ export function renderContentDoc(entry, imageMap = {}) {
   const parts = [`<h1>${escapeHtml(entry.title || '')}</h1>`];
   const blocks = Array.isArray(entry.blocks) ? entry.blocks : [];
   let liRun = [];
+  let sourceCitation = '';
   const flushLi = () => {
     if (liRun.length) { parts.push(`<ul>${liRun.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`); liRun = []; }
   };
@@ -78,18 +79,37 @@ export function renderContentDoc(entry, imageMap = {}) {
       const url = Array.isArray(mapped) ? mapped[0] : mapped;
       if (!url) continue; // rehost failed/absent → drop the image, keep the doc
       flushLi();
-      // Wrap in <p> like EDS default-content so the worker chunker (which reads
-      // <img> from inside a matched block) picks it up.
-      parts.push(`<p><img src="${escapeHtml(url)}" alt="${escapeHtml(b.alt || '')}"></p>`);
+      // Keep the image in a text-bearing paragraph so content chunkers do not
+      // discard it as an empty block.
+      const description = String(b.alt || '').trim();
+      const img = `<img src="${escapeHtml(url)}" alt="${escapeHtml(description)}">`;
+      const caption = description ? ` ${escapeHtml(description)}` : '';
+      const source = sourceCitation ? ` ${sourceCitation}` : '';
+      parts.push(`<p>${img}${caption}${source}</p>`);
       continue;
     }
     const text = String(b?.text || '').trim();
     if (!text) continue;
-    if (text === title) continue; // drop captured block that repeats the title (no duplicate h1)
-    const tag = HEADINGS.has(b.tag) ? b.tag : (b.tag === 'li' ? 'li' : 'p');
-    if (tag === 'li') { liRun.push(text); continue; }
-    flushLi();
-    parts.push(`<${tag}>${escapeHtml(text)}</${tag}>`);
+    if (b.tag === 'a') {
+      if (typeof b.href !== 'string' || !b.href.trim()) {
+        throw new Error('Knowledge links require a non-empty href.');
+      }
+      const href = new URL(b.href, entry.url);
+      if (!['http:', 'https:'].includes(href.protocol) || href.username || href.password) {
+        throw new Error(`Invalid knowledge link: ${b.href}`);
+      }
+      flushLi();
+      const destination = escapeHtml(href.href);
+      // Retain the URL in retrieved text even when anchor attributes are stripped.
+      sourceCitation = `<a href="${destination}">${escapeHtml(text)}</a> (${destination})`;
+      parts.push(`<p>${sourceCitation}</p>`);
+    } else {
+      if (text === title) continue; // drop captured block that repeats the title (no duplicate h1)
+      const tag = HEADINGS.has(b.tag) ? b.tag : (b.tag === 'li' ? 'li' : 'p');
+      if (tag === 'li') { liRun.push(text); continue; }
+      flushLi();
+      parts.push(`<${tag}>${escapeHtml(text)}</${tag}>`);
+    }
   }
   flushLi();
   return `<body>\n<header></header>\n<main>\n<div>\n${parts.join('\n')}\n</div>\n</main>\n<footer></footer>\n</body>`;
@@ -177,9 +197,18 @@ async function main() {
   if (!fs.existsSync(manifestPath)) throw new Error(`${manifestPath} not found — capture step must run first`);
   const entries = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   if (!Array.isArray(entries) || entries.length === 0) throw new Error('knowledge-pages.json is empty or not an array');
-  const imageMap = args.imageMap && fs.existsSync(args.imageMap)
-    ? JSON.parse(fs.readFileSync(args.imageMap, 'utf8'))
-    : {};
+  const imageBlocks = entries.flatMap((entry) => entry.blocks || []).filter((b) => b?.tag === 'img');
+  if (imageBlocks.length && !args.imageMap) {
+    throw new Error('Captured images require --image-map; refusing to publish text-only knowledge pages.');
+  }
+  const imageMap = args.imageMap ? JSON.parse(fs.readFileSync(args.imageMap, 'utf8')) : {};
+  const missingImages = imageBlocks.filter((b) => {
+    const mapped = imageMap[hashSrc(b.src)];
+    return !(Array.isArray(mapped) ? mapped[0] : mapped);
+  });
+  if (missingImages.length) {
+    process.stderr.write(`WARNING: ${missingImages.length} unmapped knowledge image(s) will be omitted.\n`);
+  }
 
   const results = [];
   const seen = new Set();

@@ -10,6 +10,6 @@
       "/of1/knowledge/**"
     ],
     "maxChunkTokens": 400,
-    "contentTopK": 4
+    "contentTopK": 8
   }
 }

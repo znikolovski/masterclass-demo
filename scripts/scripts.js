@@ -646,6 +646,21 @@ function decorateSections(main) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  const tenant = getMetadata('domain').replace(/\.aem\.(page|live)$/, '');
+  if (!main.isConnected && document.querySelector('.of1.block')
+    && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant)) {
+    // Resolve paths before the SDK mistakes the tenant identifier for a hostname.
+    const origin = `https://${tenant}.aem.live`;
+    main.querySelectorAll('a[href]').forEach((link) => {
+      const href = link.getAttribute('href');
+      if ((href.startsWith('/') && !href.startsWith('//'))
+        || href.startsWith(`https://${tenant}/`)) {
+        const url = new URL(href, origin);
+        url.hostname = `${tenant}.aem.live`;
+        link.href = url.href;
+      }
+    });
+  }
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateIcons(main);

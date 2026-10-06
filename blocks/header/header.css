@@ -371,9 +371,11 @@ header nav .nav-tools a {
 }
 
 header nav .nav-search-item form {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   min-width: 0;
+  padding: 4px;
   border: 2px solid var(--text-color);
   border-radius: 9999px;
   background-color: var(--background-color);
@@ -394,6 +396,7 @@ header nav .nav-search-item input {
 
 header nav .nav-search-item button {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 36px;

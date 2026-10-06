@@ -136,6 +136,47 @@ Cross-origin EDS Media Bus images also retain responsive optimization on
 localhost rather than becoming single fallback images.
 
 After tenant sync, real `ohrid` generation returned the new image hashes.
-Image relevance is a separate unresolved worker issue: this response still
+At that point image relevance was unresolved: this response still
 retained template images and links despite replacing their accompanying
 text with Ohrid copy. Higher-resolution sources do not repair that mismatch.
+
+## Knowledge imagery and article destinations
+
+The 17 captured knowledge pages were initially text-only. The extraction skill
+already required capturing images and publishing them inline; the capture
+omitted those steps. The pages now include 95 image placements using 91 native
+article assets and links to all 17 original sources, preserving the existing
+headings, paragraphs, and lists. Author portraits, unrelated recommendation
+images, duplicate assets, and a broken `about:error` image were excluded.
+Existing same-tenant Media Bus originals were reused rather than downloaded at
+a smaller delivery size and uploaded again.
+
+Image-only paragraphs were discarded by retrieval chunking. The publisher now
+keeps each image with its descriptive caption and preceding article citation
+in a text-bearing paragraph. Citation destinations also appear as readable
+URLs because anchor attributes do not survive text extraction. This associates
+each retrieved photograph with its actual source article, even when the
+article's opening passage is not retrieved. Real Ohrid generation used Ohrid
+photography after captioned sources were published.
+
+Knowledge entity URLs and source citations now use the fully qualified feature
+`.aem.live` origin. The shared SDK also rewrites relative links using the tenant
+identifier as a hostname, dropping the required `.aem.live` suffix. The site's
+normal decoration hook resolves relative and bare-tenant links to the feature
+live origin before that rewrite. This applies only to detached OF1 results;
+ordinary authored-page links, fragment anchors, and external destinations are
+unchanged. The canonical OF1 block and shared SDK were not forked.
+
+The header search submit button has an inset from the pill border. The
+follow-up submit arrow inherits a white foreground normally and a dark
+foreground on orange hover, fixing the previous black-on-black appearance.
+
+## Comparison retrieval follow-up
+
+An exact `Compare Patagonia and Yosemite` request selected the comparison
+template correctly, but all four retrieved passages came from Patagonia.
+Yosemite was omitted from the cards or replaced with an unsupported five-day
+80 km trek. This is a grounding problem, not just sparse styling. The content
+retrieval budget has been increased from four passages to eight; both requested
+destinations must still be checked in actual retrieved context and final
+rendered output before considering a comparison reliable.

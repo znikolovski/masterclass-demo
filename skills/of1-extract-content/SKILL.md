@@ -120,14 +120,22 @@ for ((i=0; i<${#PRODUCT_URLS[@]}; i+=BATCH_SIZE)); do
       root.querySelectorAll('h1,h2,h3,p,li,img').forEach((el) => {
         if (el.closest('nav,header,footer,aside')) return;
         if (el.tagName.toLowerCase() === 'img') {
-          const src = el.currentSrc || el.src || '';
-          if (src) blocks.push({ tag: 'img', src, alt: (el.alt || '').trim() });
+          const src = el.getAttribute('src') || el.currentSrc || el.src || '';
+          if (src) {
+            const url = new URL(src, location.href);
+            if (/\/media_[a-f0-9]+\./i.test(url.pathname)) {
+              ['width', 'height', 'format', 'optimize'].forEach(key => url.searchParams.delete(key));
+            }
+            blocks.push({ tag: 'img', src: url.href, alt: (el.alt || '').trim() });
+          }
           return;
         }
         const text = el.innerText.replace(/\s+/g, ' ').trim();
         if (text) blocks.push({ tag: el.tagName.toLowerCase(), text });
       });
-      return { url: location.href, title, blocks };
+      const sourceUrl = document.querySelector('link[rel=\"canonical\"]')?.href || location.href;
+      blocks.splice(1, 0, { tag: 'a', href: sourceUrl, text: title });
+      return { url: sourceUrl, title, blocks };
     }"
     # Append each captured page to of1/config/knowledge-pages.json — use jq so
     # the array stays valid JSON (never hand-concatenate); skip empty-blocks
@@ -150,6 +158,14 @@ for ((i=0; i<${#PRODUCT_URLS[@]}; i+=BATCH_SIZE)); do
   done
 done
 ```
+
+Review the capture before publishing: pages with relevant source photographs
+must contain `tag:"img"` blocks, not just image arrays in `knowledge.json`.
+Exclude author portraits, navigation assets, and unrelated recommendation-card
+images. Preserve image order, descriptive alt text, and existing captions near
+the passages they illustrate. Use original Media Bus assets, not a 750 px
+delivery rendition copied into a new asset. A source article link is captured
+as `{tag:"a", href, text}` and published as a real anchor, not flattened text.
 
 For each product (cap at 20 in pipeline mode), extract: name, price, currency, category, features (bullets), description (2–3 sentences), specifications, use cases, target audience, image URLs, related products, tags.
 
@@ -370,6 +386,31 @@ node "$SKILL_DIR/assets/publish-knowledge-da.mjs" \
   --owner "$OWNER" --repo "$REPO" --branch "$BRANCH" \
   --image-map /tmp/knowledge-image-mapping.json
 ```
+
+For an existing EDS site, already-ingested same-tenant Media Bus originals
+can be reused without downloading or uploading another copy. Verify that each
+URL serves an image, then provide an image map from `hashSrc(originalUrl)` to
+that same original URL. External images still require the rehosting steps
+above. The publisher refuses an image-bearing capture without `--image-map`
+and warns about unmapped images; do not accept those warnings without reviewing
+the affected sources.
+
+Keep images in text-bearing paragraphs: the publisher repeats their alt
+descriptions as captions so an image-only paragraph is not discarded by the
+content chunker. Source links also include their destination in readable text,
+because stripped anchor attributes otherwise leave the generation prompt
+without the canonical article URL.
+The publisher also repeats the preceding source citation alongside each image,
+so a retrieved image-bearing passage retains its article destination even when
+the page's opening passage was not retrieved. Use fully qualified published
+article URLs for both citations and knowledge entity URLs. An EDS tenant
+identifier such as `branch--repo--owner` is not a hostname: its content origin
+must include `.aem.live` (or `.aem.page` for explicitly preview-only content).
+
+After publishing, verify the rendered knowledge pages still contain the
+expected images, alt text, and source links. Re-sync OF1 and inspect an actual
+generation's retrieved content and image/link slot values. Successful upload
+or sync alone does not prove that the generator received or used the images.
 
 `of1-check-dependencies` enables `contentIngestion` for `/of1/knowledge/**`
 and `of1-publish`'s sync indexes them. Do NOT convert these to EDS blocks.

@@ -41,7 +41,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-alpine-cycling-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-alpine-cycling-4.jpg"
     ],
-    "url": "/blog/alpine-cycling",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/alpine-cycling",
     "category": "cycling",
     "placeName": "French Alps"
   },
@@ -87,7 +87,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-kayaking-norway-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-kayaking-norway-4.jpg"
     ],
-    "url": "/blog/kayaking-norway",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/kayaking-norway",
     "category": "water",
     "placeName": "Geirangerfjord, Norway"
   },
@@ -133,7 +133,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-desert-survival-guide-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-desert-survival-guide-4.jpg"
     ],
-    "url": "/blog/desert-survival-guide",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/desert-survival-guide",
     "category": "desert",
     "placeName": "Death Valley, USA"
   },
@@ -179,7 +179,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-mountain-photography-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-mountain-photography-4.jpg"
     ],
-    "url": "/blog/mountain-photography",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/mountain-photography",
     "category": "photography",
     "placeName": "Dolomites, Italy"
   },
@@ -225,7 +225,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-patagonia-trek-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-patagonia-trek-4.jpg"
     ],
-    "url": "/blog/patagonia-trek",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/patagonia-trek",
     "category": "trekking",
     "placeName": "Torres del Paine, Chile"
   },
@@ -271,7 +271,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-surfing-costa-rica-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-surfing-costa-rica-4.jpg"
     ],
-    "url": "/blog/surfing-costa-rica",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/surfing-costa-rica",
     "category": "water",
     "placeName": "Nosara, Costa Rica"
   },
@@ -317,7 +317,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ultralight-backpacking-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ultralight-backpacking-4.jpg"
     ],
-    "url": "/blog/ultralight-backpacking",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/ultralight-backpacking",
     "category": "trekking",
     "placeName": "Sierra Nevada, USA"
   },
@@ -363,7 +363,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-wild-swimming-guide-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-wild-swimming-guide-4.jpg"
     ],
-    "url": "/blog/wild-swimming-guide",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/wild-swimming-guide",
     "category": "water",
     "placeName": "Lake District, UK"
   },
@@ -409,7 +409,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-winter-mountaineering-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-winter-mountaineering-4.jpg"
     ],
-    "url": "/blog/winter-mountaineering",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/winter-mountaineering",
     "category": "winter-alpine",
     "placeName": "Swiss Alps"
   },
@@ -455,7 +455,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-yosemite-rock-climbing-3.jpg",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-yosemite-rock-climbing-4.jpg"
     ],
-    "url": "/blog/yosemite-rock-climbing",
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/yosemite-rock-climbing",
     "category": "climbing",
     "placeName": "Yosemite Valley, USA"
   },
@@ -499,7 +499,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ohrid-city-of-thousand-churches-3.png",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ohrid-city-of-thousand-churches-4.png"
     ],
-    "url": "/blog/ohrid-city-of-thousand-churches"
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/ohrid-city-of-thousand-churches"
   },
   {
     "id": "ohrid-north-macedonia",
@@ -541,7 +541,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ohrid-north-macedonia-3.png",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ohrid-north-macedonia-4.png"
     ],
-    "url": "/blog/ohrid-north-macedonia"
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/ohrid-north-macedonia"
   },
   {
     "id": "ohrid-macedonia",
@@ -583,7 +583,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ohrid-macedonia-3.png",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ohrid-macedonia-4.png"
     ],
-    "url": "/blog/ohrid-macedonia"
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/ohrid-macedonia"
   },
   {
     "id": "mekong-delta-vietnam",
@@ -625,7 +625,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-mekong-delta-vietnam-3.png",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-mekong-delta-vietnam-4.png"
     ],
-    "url": "/blog/mekong-delta-vietnam"
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/mekong-delta-vietnam"
   },
   {
     "id": "ladakh-india",
@@ -667,7 +667,7 @@
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ladakh-india-3.png",
       "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/media/product-ladakh-india-4.png"
     ],
-    "url": "/blog/ladakh-india"
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/ladakh-india"
   },
   {
     "id": "faq-what-fitness-level-do-your-adventures-assume-be-honest-i-skip-leg-day",

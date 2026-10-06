@@ -69,7 +69,7 @@ test('renderContentDoc rewrites image blocks to rehosted DA urls, in order', () 
       { tag: 'p', text: 'Great hikes.' },
     ],
   }, map);
-  assert.match(html, /<p><img src="https:\/\/main--r--o\.aem\.page\/media\/product-abc-1\.png" alt="A trail"><\/p>/);
+  assert.match(html, /<p><img src="https:\/\/main--r--o\.aem\.page\/media\/product-abc-1\.png" alt="A trail"> A trail<\/p>/);
   // image appears before the paragraph (document order preserved)
   assert.ok(html.indexOf('/media/product-abc-1.png') < html.indexOf('Great hikes.'));
 });
@@ -101,4 +101,55 @@ test('renderKnowledgeDoc still emits text-only (backward compat, image blocks dr
   });
   assert.ok(html.includes('Ship it back.'));
   assert.ok(!html.includes('<img'));
+});
+
+test('renderContentDoc preserves an article link and its destination in readable text', () => {
+  const html = renderContentDoc({
+    title: 'Ohrid',
+    url: 'https://site.example/blog/ohrid',
+    blocks: [
+      { tag: 'li', text: 'A lakeside route' },
+      { tag: 'a', href: '/blog/ohrid?view=full&lang=en', text: 'Ohrid & its lake' },
+    ],
+  });
+  assert.match(html, /<a href="https:\/\/site\.example\/blog\/ohrid\?view=full&amp;lang=en">Ohrid &amp; its lake<\/a>/);
+  assert.match(html, /<\/a> \(https:\/\/site\.example\/blog\/ohrid\?view=full&amp;lang=en\)<\/p>/);
+  assert.ok(html.indexOf('</ul>') < html.indexOf('<a '));
+});
+
+test('renderContentDoc rejects unsafe and credential-bearing links', () => {
+  // eslint-disable-next-line no-script-url -- exercising rejection of unsafe input
+  ['javascript:alert(1)', 'data:text/html,test', 'https://user:password@site.example/'].forEach((href) => {
+    assert.throws(() => renderContentDoc({
+      title: 'Ohrid',
+      url: 'https://site.example/blog/ohrid',
+      blocks: [{ tag: 'a', href, text: 'Article' }],
+    }), /Invalid knowledge link/);
+  });
+});
+
+test('renderContentDoc rejects a missing article destination', () => {
+  [undefined, '', '   '].forEach((href) => {
+    assert.throws(() => renderContentDoc({
+      title: 'Ohrid',
+      url: 'https://site.example/blog/ohrid',
+      blocks: [{ tag: 'a', href, text: 'Article' }],
+    }), /non-empty href/);
+  });
+});
+
+test('renderContentDoc keeps each image with the preceding article citation', () => {
+  const src = 'https://site.example/lake.jpg';
+  const html = renderContentDoc({
+    title: 'Ohrid',
+    url: 'https://site.example/blog/ohrid',
+    blocks: [
+      { tag: 'a', href: '/blog/ohrid', text: 'Ohrid guide' },
+      { tag: 'img', src, alt: 'Lake Ohrid' },
+      { tag: 'a', href: '/blog/another-guide', text: 'Another guide' },
+      { tag: 'img', src, alt: 'Another view' },
+    ],
+  }, { [hashSrc(src)]: [src] });
+  assert.match(html, /alt="Lake Ohrid"> Lake Ohrid <a href="https:\/\/site\.example\/blog\/ohrid"/);
+  assert.match(html, /alt="Another view"> Another view <a href="https:\/\/site\.example\/blog\/another-guide"/);
 });

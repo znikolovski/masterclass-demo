@@ -334,6 +334,7 @@ main > .section.generated-section > div {
   top: 50%;
   transform: translateY(-50%);
   background: var(--primary);
+  color: var(--surface);
   border: none;
   border-radius: 50%;
   width: 36px;
@@ -347,6 +348,7 @@ main > .section.generated-section > div {
 
 .suggestion-submit:hover {
   background: var(--primary-hover);
+  color: var(--text);
 }
 
 .suggestion-submit svg {
