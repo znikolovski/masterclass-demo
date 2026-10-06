@@ -144,8 +144,8 @@ text with Ohrid copy. Higher-resolution sources do not repair that mismatch.
 
 The 17 captured knowledge pages were initially text-only. The extraction skill
 already required capturing images and publishing them inline; the capture
-omitted those steps. The pages now include 95 image placements using 91 native
-article assets and links to all 17 original sources, preserving the existing
+omitted those steps. The original pages now include 95 image placements using
+91 native article assets and links to all 17 original sources, preserving the existing
 headings, paragraphs, and lists. Author portraits, unrelated recommendation
 images, duplicate assets, and a broken `about:error` image were excluded.
 Existing same-tenant Media Bus originals were reused rather than downloaded at
@@ -177,6 +177,29 @@ An exact `Compare Patagonia and Yosemite` request selected the comparison
 template correctly, but all four retrieved passages came from Patagonia.
 Yosemite was omitted from the cards or replaced with an unsupported five-day
 80 km trek. This is a grounding problem, not just sparse styling. The content
-retrieval budget has been increased from four passages to eight; both requested
-destinations must still be checked in actual retrieved context and final
-rendered output before considering a comparison reliable.
+retrieval budget was increased to eight passages, but still supplied no Yosemite
+source for that query. A separate Ohrid/Ladakh comparison did retrieve both
+destinations at this budget: coverage is query-dependent, not universally broken.
+A dedicated sourced comparison primer adds both activities, two image placements,
+and original article citations together for the demo. There are now 18 knowledge
+documents with 97 image placements. The public FAQ and its knowledge capture
+remain unchanged. Even after the primer appeared in the query index and sync
+indexed 292 chunks, the exact comparison query still retrieved only Patagonia:
+the source exists, but the worker does not reliably select it.
+
+All five response templates were enriched and feature-published. Comparison
+uses two substantive HTML columns covering activity, preparation, and conditions,
+plus both original field notes. The other intents also use richer route and
+preparation columns rather than two short blurbs; recommendation and budget
+have three available card rows, and discovery has six. Multi-paragraph card
+content supports source-specific detail instead of repeating the same intro.
+Existing block decorators and styles are reused, and unknown prices or
+itinerary details must not be invented.
+Generated wrappers allow long words in the richer headings to wrap rather than
+overflow on narrow screens; ordinary authored headings are unaffected.
+
+These are demo/content mitigations, not a general worker retrieval repair.
+The richer comparison produced substantive activity/preparation/conditions
+columns, but still dropped Yosemite's source card when its evidence was absent.
+See [`OF1-GENERATED-CONTENT-QUALITY.md`](OF1-GENERATED-CONTENT-QUALITY.md)
+for engineering reproduction evidence and acceptance criteria.

@@ -651,6 +651,11 @@ export function decorateMain(main) {
     && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant)) {
     // Resolve paths before the SDK mistakes the tenant identifier for a hostname.
     const origin = `https://${tenant}.aem.live`;
+    const repo = tenant.split('--')[1];
+    const normalizeSrcset = (srcset) => srcset.replace(
+      /https:\/\/[a-z0-9-]+\.aem\.(?:page|live)/gi,
+      (host) => (host.includes(`--${repo}--`) ? origin : host),
+    );
     main.querySelectorAll('a[href]').forEach((link) => {
       const href = link.getAttribute('href');
       if ((href.startsWith('/') && !href.startsWith('//'))
@@ -658,6 +663,20 @@ export function decorateMain(main) {
         const url = new URL(href, origin);
         url.hostname = `${tenant}.aem.live`;
         link.href = url.href;
+      }
+    });
+    main.querySelectorAll('img[src]').forEach((image) => {
+      const url = new URL(image.getAttribute('src'), origin);
+      if (/\.aem\.(page|live)$/.test(url.hostname)
+        && url.hostname.includes(`--${repo}--`)
+        && /\/media_[a-f0-9]+\.(?:jpe?g|png|webp|avif)$/i.test(url.pathname)) {
+        // Keep native assets on this site's origin even if generation misspells the host.
+        url.hostname = `${tenant}.aem.live`;
+        image.src = url.href;
+        if (image.srcset) image.srcset = normalizeSrcset(image.srcset);
+        image.closest('picture')?.querySelectorAll('source[srcset]').forEach((source) => {
+          source.srcset = normalizeSrcset(source.srcset);
+        });
       }
     });
   }

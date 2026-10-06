@@ -4572,5 +4572,43 @@
         "text": "Browse Adventures"
       }
     ]
+  },
+  {
+    "url": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/of1/knowledge/comparison-patagonia-yosemite",
+    "title": "Compare Patagonia and Yosemite: trekking and granite climbing",
+    "blocks": [
+      {
+        "tag": "h1",
+        "text": "Compare Patagonia and Yosemite: trekking and granite climbing"
+      },
+      {
+        "tag": "p",
+        "text": "Patagonia versus Yosemite is a comparison of different activities in these field notes, not two equivalent treks. The Patagonia article describes a 9-day, 115 km W Circuit journey in Torres del Paine, Chile. Yosemite's article is a beginner's granite-climbing guide in California, including Guide Crack (5.6) and Grant's Crack (5.7) at Swan Slab near Camp 4. It does not describe a five-day, 80 km trek."
+      },
+      {
+        "tag": "p",
+        "text": "Preparation differs: the Patagonia account carries a tent, a sleeping bag rated to -10 C, trekking poles and waterproof layers for wind, rain and water crossings. Yosemite's guide lists a 60 m rope, harness, belay device, helmet and appropriate protection; it recommends professional instruction for gear placements and natural anchors. Yosemite climbing is described as best in late spring and fall, with hot, crowded summer conditions. Compare endurance and camping with technical climbing skills, and check current conditions before either trip."
+      },
+      {
+        "tag": "a",
+        "href": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/patagonia-trek",
+        "text": "Patagonia field notes"
+      },
+      {
+        "tag": "img",
+        "src": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1e4b49be43a70d306b1c312d0d78dd369b5ccce40.jpg",
+        "alt": "Trekker on a high mountain trail, dramatic peaks behind"
+      },
+      {
+        "tag": "a",
+        "href": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live/blog/yosemite-rock-climbing",
+        "text": "Yosemite climbing guide"
+      },
+      {
+        "tag": "img",
+        "src": "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_18526c1cc7c4f4127e7c88f934614bc041b1645b4.jpg",
+        "alt": "Reading the crack system - Yosemite granite demands a different vocabulary from sport climbing"
+      }
+    ]
   }
 ]

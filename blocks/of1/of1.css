@@ -251,6 +251,7 @@
 
 main > .section.generated-section > div {
   box-sizing: border-box;
+  overflow-wrap: anywhere;
 }
 
 @keyframes of1-fade-in {
