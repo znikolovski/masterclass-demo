@@ -249,6 +249,10 @@
   animation: of1-fade-in 0.4s ease-out both;
 }
 
+main > .section.generated-section > div {
+  box-sizing: border-box;
+}
+
 @keyframes of1-fade-in {
   from {
     opacity: 0;

@@ -25,3 +25,12 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
+
+.generated-section .cards > ul {
+  grid-template-columns: repeat(auto-fit, minmax(min(257px, 100%), 1fr));
+}
+
+.generated-section .cards > ul:has(> li:only-child) {
+  max-width: 480px;
+  margin-inline: auto;
+}

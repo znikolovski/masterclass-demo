@@ -115,3 +115,27 @@ not the title, subtitle, or placeholder from `suggestions.json`. The client
 therefore shows generic search copy despite the served WKND configuration.
 This requires a shared worker/API fix rather than patching the canonical
 client block.
+
+## Wide-desktop layout and image quality follow-up
+
+Streamed sections are decorated in a detached `main`, one section at a
+time. Only an attached page's first section should receive the first-section
+LCP treatment; otherwise every streamed section inherits full-bleed hero
+styling. Non-hero results now retain the normal centered, padded section
+layout. Generated card grids collapse unused tracks and center a single
+card at a maximum width of 480 px; ordinary authored card grids are unchanged.
+
+The primary OF1 adventure images were 750 px delivery renditions copied as
+new assets. The knowledge configuration now references the original article
+Media Bus assets without resize parameters, and all five DA templates were
+updated and previewed/published on `llm-traffic-tracking` only. Their hero
+originals are now 1379-1600 px wide instead of 750 px. Preserve original
+image URLs when regenerating configuration or templates: requesting a larger
+delivery width cannot recover detail from a previously resized source.
+Cross-origin EDS Media Bus images also retain responsive optimization on
+localhost rather than becoming single fallback images.
+
+After tenant sync, real `ohrid` generation returned the new image hashes.
+Image relevance is a separate unresolved worker issue: this response still
+retained template images and links despite replacing their accompanying
+text with Ohrid copy. Higher-resolution sources do not repair that mismatch.

@@ -626,7 +626,7 @@ function decorateSections(main) {
     }
     const primedHero = hasPrimedLcpHero(section);
     const lcpHero = primedHero || Boolean(section.querySelector(HERO_BLOCK_SELECTOR));
-    const isFirstSection = index === 0;
+    const isFirstSection = index === 0 && main.isConnected;
     if (lcpHero || isFirstSection) {
       section.classList.add('lcp-section');
       section.style.display = null;
