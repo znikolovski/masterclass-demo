@@ -1290,6 +1290,12 @@ async function loadLazy(doc) {
  */
 function loadDelayed() {
   window.setTimeout(() => {
+    if (!isLibraryPreview(document) && !/\.(stage-ue|ue)\.da\.live$/.test(window.location.hostname)) {
+      import('./concierge.js').then(({ default: initConcierge }) => initConcierge()).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Could not load WKND Sherpa:', error);
+      });
+    }
     if (!isLibraryPreview(document) && getRepolessSiteSlug() !== 'wknd-aero') {
       loadSiteFooter(getSiteFooterEl());
     }

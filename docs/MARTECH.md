@@ -64,3 +64,69 @@ node tools/scripts/simulate-live-audience-traffic.mjs --skip-engagement --hits=1
 Martech does not initialize until `scripts/martech-config.js` placeholders are replaced, so baseline PSI should match pre-martech behavior.
 
 For Launch setup, variable mapping, and corrected domain configuration, see [ANALYTICS-LAUNCH-PLAN.md](./ANALYTICS-LAUNCH-PLAN.md).
+
+## WKND Sherpa (Brand Concierge)
+
+Every site sharing this code gets a small **WKND Sherpa** launcher in the bottom-right
+corner. It is installed in the delayed page-loading phase, alongside footer loading,
+but does not depend on a footer fragment being available. Library previews and Universal
+Editor hosts omit it. No new authored block or metadata is required.
+
+Clicking the launcher opens an accessible modal panel and loads Adobe's hosted Brand
+Concierge client on demand. Escape, the close button, or clicking outside the panel closes
+it; reopening preserves the mounted conversation for the current page.
+
+- [`scripts/concierge.js`](../scripts/concierge.js) owns the launcher and modal.
+- [`tools/concierge/index.html`](../tools/concierge/index.html) and
+  [`scripts/concierge-frame.js`](../scripts/concierge-frame.js) host the client in a
+  same-origin iframe, isolated from the parent page's SDK and Launch.
+- [`scripts/concierge-config.js`](../scripts/concierge-config.js) contains the WKND UI
+  export, with Sherpa naming, the approved `/privacy-and-terms` links, and compact-panel
+  typography, contrast and touch-target adjustments. Controls use WKND's dark green
+  (`#0f1a14`) with orange (`#e8651a`) accents rather than the export's purple. The launcher
+  matches the site's pill CTA styling and offset orange shadow. Headings and button text
+  use Syncopate, with Instrument Sans for conversational text; the frame loads the same
+  font families as the website. Update this module when exporting
+  a new configuration; do not include secrets.
+- [`styles/concierge.css`](../styles/concierge.css) scopes panel and launcher styling;
+  [`styles/concierge-frame.css`](../styles/concierge-frame.css) includes the supplied
+  `contain`/no-repeat card-image override inside the isolated client document.
+
+The frame uses Web SDK **2.35.0**, with IDs from `martech-config.js` and
+`conversation.region: 'aus5'` for the WKND sandbox. This supported SDK configuration
+routes conversations to `https://edge.adobedc.net/brand-concierge/aus5/conversations`;
+upgrading the SDK alone does not select the sandbox region automatically.
+Isolation is necessary: the Launch library replaces the page's `alloy` with a custom
+SDK build that does not include `sendConversationEvent`. Loading another SDK or
+configuring `alloy` again in the parent page would break analytics/personalization.
+The frame has no site page-loading scripts, Launch embed or extra empty `sendEvent`,
+so it does not generate a duplicate analytics page view.
+
+The frame defaults to **pending** consent and shares the same-origin Adobe consent
+cookie with the website; it does not grant consent or change the site's consent policy.
+Production debugging is off, third-party cookies and ID migration are disabled, and
+no personalization prehiding style is added. The supplied `stickySession: false` is
+passed through to bootstrap, but the current client ignores it. The supported SDK
+setting `conversation.stickyConversationSession: false` implements a new session on
+page navigation, while close/reopen retains the current frame and conversation.
+
+To check locally, open `/` and `/adventures`, launch Sherpa, send a question, close/reopen
+the panel, and check narrow/mobile layouts. A blocked client script displays an explicit
+unavailable message and a retry button; loading times out after 30 seconds. The live Adobe
+datastream must have Brand Concierge enabled for conversation responses, and its allowed
+web surfaces must cover each deployment host (including `/tools/concierge/index.html`);
+UI bootstrap alone does not validate backend delivery.
+
+Run deterministic browser checks with `node tools/scripts/test-concierge.mjs`. These
+stub Adobe's network scripts to cover SDK isolation, responsive bounds, keyboard/focus
+behavior, repeated initialization, blocked scripts, retry and timeout; they do not
+claim that the Adobe backend is configured.
+
+**Regional delivery verified October 6, 2026:** SDK 2.35.0 with `conversation.region:
+'aus5'` returned HTTP 200 and a completed streamed answer to a weekend-adventure question,
+including follow-up suggestions. The previous `BRANDCON-0002-400` / `Concierge not found`
+error came from the unregionalized endpoint. The tested web surface was
+`web://localhost:3000/tools/concierge/index.html`. One earlier question returned the
+agent's temporary-unavailable message, so HTTP 200 alone is not proof of a useful answer.
+The successful answer referred to the brand as "Adobe Production Demo - AGS050"; review
+the Concierge's server-side brand instructions if it should consistently say WKND.
