@@ -306,3 +306,30 @@ Ordinary authored cards and the canonical OF1 block/SDK are unchanged.
 
 Run `node tools/scripts/test-of1-aero.mjs http://localhost:3000` for source,
 placement, matching, follow-up/restart, responsive and error-state coverage.
+
+## Main release (2026-10-06)
+
+All committed `llm-traffic-tracking` changes were merged into `main`. OF1 now uses
+the `main--masterclass-demo--znikolovski` tenant, and its configuration, original
+article citations, image URLs, search page and demo hub use the main environment.
+The prior feature-only rollout descriptions above are historical.
+
+All 30 authored release documents were verified in DA and previewed/published on
+main: `/of1`, the editable knowledge configuration, 23 knowledge documents and
+five response templates. The 117 captured image placements were preserved.
+DA's existing 40 knowledge records were retained and the five missing Aero
+records appended, bringing the editable configuration to 45 records.
+The live main query index lists all 23 knowledge documents.
+
+The main worker sync fetched all eight configuration files and indexed 45 entity
+vectors. However, its content phase still fails with the documented Cloudflare
+subrequest-limit error and `content: null`. `ready: true` therefore does not
+establish full document ingestion or reliable generated claims. This remains an
+upstream worker blocker; no knowledge documents were dropped to bypass it.
+
+Production browser regressions passed for Sherpa prompt/auto-send links, OF1
+card actions and the separate source-backed Aero section. The deployment's
+repository-wide lint workflow also exposed existing failures in other blocks,
+the shared SDK and martech plugin. The new OF1 scaffold asset is excluded from
+runtime lint because its relative imports resolve only after copying it into
+`blocks/of1`; the actual block remains linted.
