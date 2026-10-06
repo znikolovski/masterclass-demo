@@ -77,6 +77,18 @@ live origin. Other repositories and ordinary authored pages are unaffected.
 The worker should validate full asset URLs against their canonical provenance,
 not allow a correct image hash to mask an invalid host.
 
+The exact `ohrid` query also reproduced **asset-ID corruption** on localhost.
+Both the hero and card used
+`media_13959b15a585224ec329fd1f593db0e5da597b8.avif` (HTTP 404), whereas the
+captured Ohrid source is
+`media_13959b15a585224ec329fd4f1f593db0e5da597b8.avif` (HTTP 200).
+The unchanged caption identified that original asset unambiguously.
+Site-side recovery now restores failed native images through an exact,
+unique captured-caption match, including responsive sources. It does not
+guess from edit distance, substitute another destination's image, or repair
+missing/ambiguous captions. The worker must preserve and validate immutable
+asset IDs as well as origins; this recovery is not a general generation fix.
+
 ## Partial slot output can retain the wrong source
 
 `Recommend hiking and climbing adventures` returned card titles for Patagonia
@@ -121,8 +133,9 @@ anecdotal estimates from becoming general conditions or guarantees.
 
 ## Rendered examples after template enrichment
 
-Real worker responses were rendered through the site's shared SDK and normal
-decoration at 375, 768, and 1774 px. All five shapes remain within the viewport,
+Before adding Sherpa actions and Aero sources, real worker responses were rendered
+through the site's shared SDK and normal decoration at 375, 768, and 1774 px.
+All five shapes remain within the viewport,
 including long headings, and native images load after canonicalization.
 
 | Intent | Example | Words | Cards |
@@ -177,9 +190,9 @@ Record selected template, source paths in the prompt, final HTML, and
 | Link fallback | Make rejection reasons observable and avoid unrelated template destinations under newly generated titles | Rejected proposals cannot leave a misleading source link |
 | Partial slot output | Validate required image and destination slots whenever card identity changes | Missing fields cannot inherit unrelated example imagery or links while reporting a fully matched block |
 | Shared client origin | Separate tenant identifiers from published content origins | Localhost and both EDS tiers produce valid full article URLs with the configured content hostname |
-| Asset validation | Keep full canonical asset origins when filling image slots | Correct hashes cannot be emitted under misspelled or unverified hosts; images load successfully in the browser |
+| Asset validation | Preserve full canonical asset origins and immutable IDs when filling image slots | Neither hostnames nor asset hashes are invented or altered; emitted images exist and load successfully in the browser |
 | Output quality | Validate the rendered, spliced response rather than only model proposals | Both compared options, useful distinctions, source-matched images, and correct clickable destinations survive into the browser |
 
-The sync endpoint returning HTTP 200 and indexing 40 entity vectors and
-292 content chunks proves ingestion is available; it does not
+In the pre-Aero evidence above, the sync endpoint returning HTTP 200 and indexing
+40 entity vectors and 292 content chunks proves ingestion is available; it does not
 prove these output-quality criteria.

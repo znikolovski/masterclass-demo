@@ -647,11 +647,16 @@ function decorateSections(main) {
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
   const tenant = getMetadata('domain').replace(/\.aem\.(page|live)$/, '');
-  if (!main.isConnected && document.querySelector('.of1.block')
-    && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant)) {
+  const isGeneratedOf1 = !main.isConnected && document.querySelector('.of1.block')
+    && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant);
+  if (isGeneratedOf1) {
     // Resolve paths before the SDK mistakes the tenant identifier for a hostname.
     const origin = `https://${tenant}.aem.live`;
-    const repo = tenant.split('--')[1];
+    const [, repo, owner] = tenant.split('--');
+    const isAeroLink = (link) => (
+      ['page', 'live'].some((tier) => link.hostname.endsWith(`--wknd-aero--${owner}.aem.${tier}`))
+      && /^\/(?:adventures\/[^/]+|book\/flights)\/?$/.test(link.pathname)
+    );
     const normalizeSrcset = (srcset) => srcset.replace(
       /https:\/\/[a-z0-9-]+\.aem\.(?:page|live)/gi,
       (host) => (host.includes(`--${repo}--`) ? origin : host),
@@ -679,6 +684,35 @@ export function decorateMain(main) {
         });
       }
     });
+    main.querySelectorAll('.cards > div').forEach((row) => {
+      const title = row.querySelector('h2, h3, h4, h5, h6')?.textContent.replace(/\s+/g, ' ').trim();
+      const sourceLink = [...row.querySelectorAll(':scope > div:last-child a[href]')]
+        .filter((link) => (
+          ['http:', 'https:'].includes(link.protocol)
+          && (link.pathname.startsWith('/blog/') || isAeroLink(link))
+        )).at(-1);
+      if (!title || !sourceLink || row.querySelector('.cards-card-actions')) return;
+
+      const actions = document.createElement('span');
+      actions.className = 'cards-card-actions';
+      const chat = document.createElement('a');
+      const prompt = `Help me plan this adventure: ${title}. What should I prepare?`;
+      chat.href = `#sherpa?prompt=${encodeURIComponent(prompt)}&send=true`;
+      chat.className = 'button primary';
+      chat.textContent = 'Chat with WKND Sherpa';
+      chat.setAttribute('aria-label', `Chat with WKND Sherpa about ${title}`);
+      chat.setAttribute('aria-haspopup', 'dialog');
+      chat.setAttribute('aria-controls', 'wknd-sherpa-dialog');
+      if (isAeroLink(sourceLink)) {
+        sourceLink.textContent = sourceLink.pathname.startsWith('/book/')
+          ? 'Find flights with WKND Aero' : 'View WKND Aero experience';
+        sourceLink.setAttribute('aria-label', `${sourceLink.textContent} about ${title}`);
+      }
+      sourceLink.classList.remove('primary', 'accent');
+      sourceLink.classList.add('button', 'secondary');
+      sourceLink.replaceWith(actions);
+      actions.append(sourceLink, chat);
+    });
   }
   // hopefully forward compatible button decoration
   decorateButtons(main);
@@ -689,6 +723,23 @@ export function decorateMain(main) {
   hoistTargetLocationToSection(main);
   decorateButtonGroups(main);
   getTargetZones(main).forEach(markTargetZone);
+  if (isGeneratedOf1) {
+    // Section listeners survive block decorators replacing their pictures.
+    main.querySelectorAll(':scope > div').forEach((section) => {
+      section.addEventListener('error', (event) => {
+        const image = event.target;
+        if (!(image instanceof HTMLImageElement)) return;
+        const failedSrc = image.currentSrc || image.src;
+        if (!failedSrc.startsWith(`https://${tenant}.aem.live/`)
+          || !/\/media_[a-f0-9]+\.(?:jpe?g|png|webp|avif)(?:\?|$)/i.test(failedSrc)) return;
+        import('./of1-images.js').then(({ restoreGeneratedImage }) => restoreGeneratedImage(image))
+          .catch((error) => {
+            // eslint-disable-next-line no-console -- surface failed provenance-based recovery
+            console.error('Unable to restore generated OF1 image:', image.src, error);
+          });
+      }, true);
+    });
+  }
 }
 
 /**

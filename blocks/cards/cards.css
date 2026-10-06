@@ -26,11 +26,33 @@
   object-fit: cover;
 }
 
+.cards .cards-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cards .cards-card-actions a.button {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: normal;
+}
+
 .generated-section .cards > ul {
-  grid-template-columns: repeat(auto-fit, minmax(min(257px, 100%), 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .generated-section .cards > ul:has(> li:only-child) {
+  grid-template-columns: minmax(0, 1fr);
   max-width: 480px;
   margin-inline: auto;
+}
+
+@media (width >= 600px) {
+  .generated-section .cards > ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

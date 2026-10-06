@@ -1418,5 +1418,195 @@
       "For Field Notes photo essays we want eight+ frames that sequence like a story, plus 200–300 words so we're not guessing your plot. Send five samples and a teaser; if it's magic, we'll nag you gently for the rest. Random pretty clouds: lovely, not a narrative."
     ],
     "images": []
+  },
+  {
+    "id": "aero-ohrid-macedonia",
+    "type": "product",
+    "title": "WKND Aero flight-linked experience: Ohrid lakeside adventure",
+    "description": "Explore WKND Aero's flight finder for Ohrid lakeside adventure, with destination airport OHD and a published starting fare from $449. Lake Ohrid is older than almost any lake on Earth — somewhere between two and three million years — and it shows in the clarity of the water and the depth of the culture on its shores.",
+    "keywords": [
+      "wknd aero",
+      "aero",
+      "flights",
+      "flight",
+      "airport",
+      "ohd",
+      "booking",
+      "flight experience",
+      "ohrid",
+      "north macedonia",
+      "lake",
+      "heritage"
+    ],
+    "facts": [
+      "WKND Aero links Ohrid lakeside adventure to its flight finder. Destination airport listed by Aero: OHD.",
+      "The published Aero starting flight fare is from $449; this is a from-fare label, not an origin/date-specific quote or a complete trip cost.",
+      "Aero experience page: https://main--wknd-aero--znikolovski.aem.live/adventures/ohrid-macedonia",
+      "Find flights for destination OHD and adventure ohrid-macedonia: https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=OHD&adv=ohrid-macedonia",
+      "Original WKND Adventures field notes: https://main--masterclass-demo--znikolovski.aem.live/blog/ohrid-macedonia",
+      "The Aero experience page does not specify a departure origin, travel dates or seat availability. Its starting flight fare is not a full adventure budget and does not establish that accommodation, guides, transfers or activities are included. Check the linked flight finder for current options and final pricing."
+    ],
+    "images": [
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_13959b15a585224ec329fd4f1f593db0e5da597b8.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1a403b356948245ad909d57c1a7210c0ad64a6870.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1f990606adb19415a429f4a170e65ffa907f14a29.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_15e97bb5fbfc0dfc49315334c40feaee11a190f31.avif"
+    ],
+    "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/ohrid-macedonia",
+    "category": "flight-linked adventure",
+    "placeName": "Ohrid, North Macedonia",
+    "persona": "trekking-planner"
+  },
+  {
+    "id": "aero-yosemite-rock-climbing",
+    "type": "product",
+    "title": "WKND Aero flight-linked experience: Yosemite granite climbing",
+    "description": "Explore WKND Aero's flight finder for Yosemite granite climbing, with destination airport FAT and a published starting fare from $349. A beginner's guide to climbing in Yosemite Valley — where to start, what to expect, and how to build competence on granite.",
+    "keywords": [
+      "wknd aero",
+      "aero",
+      "flights",
+      "flight",
+      "airport",
+      "fat",
+      "booking",
+      "flight experience",
+      "yosemite",
+      "granite",
+      "climbing",
+      "california"
+    ],
+    "facts": [
+      "WKND Aero links Yosemite granite climbing to its flight finder. Destination airport listed by Aero: FAT.",
+      "The published Aero starting flight fare is from $349; this is a from-fare label, not an origin/date-specific quote or a complete trip cost.",
+      "Aero experience page: https://main--wknd-aero--znikolovski.aem.live/adventures/yosemite-rock-climbing",
+      "Find flights for destination FAT and adventure yosemite-rock-climbing: https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=FAT&adv=yosemite-rock-climbing",
+      "Original WKND Adventures field notes: https://main--masterclass-demo--znikolovski.aem.live/blog/yosemite-rock-climbing",
+      "The Aero experience page does not specify a departure origin, travel dates or seat availability. Its starting flight fare is not a full adventure budget and does not establish that accommodation, guides, transfers or activities are included. Check the linked flight finder for current options and final pricing."
+    ],
+    "images": [
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_13abc2aa7399e068d346e9f883c5be81f0bdfabf5.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_137e525a8479336997a84917d2ad521f873e4df22.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_18526c1cc7c4f4127e7c88f934614bc041b1645b4.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1c37d8ad0844a03cf8e141ea7efdd4f1c93bcf906.jpg"
+    ],
+    "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/yosemite-rock-climbing",
+    "category": "flight-linked adventure",
+    "placeName": "Yosemite, California",
+    "persona": "beginner-climber"
+  },
+  {
+    "id": "aero-kayaking-norway",
+    "type": "product",
+    "title": "WKND Aero flight-linked experience: Lofoten Arctic surfing",
+    "description": "Explore WKND Aero's flight finder for Lofoten Arctic surfing, with destination airport EVE and a published starting fare from $749. Arctic surfing in the Lofoten Islands — cold water preparation, swell windows, neoprene essentials, the best breaks, and what it means to surf under a sky that never goes dark.",
+    "keywords": [
+      "wknd aero",
+      "aero",
+      "flights",
+      "flight",
+      "airport",
+      "eve",
+      "booking",
+      "flight experience",
+      "lofoten",
+      "norway",
+      "arctic",
+      "surfing"
+    ],
+    "facts": [
+      "WKND Aero links Lofoten Arctic surfing to its flight finder. Destination airport listed by Aero: EVE.",
+      "The published Aero starting flight fare is from $749; this is a from-fare label, not an origin/date-specific quote or a complete trip cost.",
+      "Aero experience page: https://main--wknd-aero--znikolovski.aem.live/adventures/kayaking-norway",
+      "Find flights for destination EVE and adventure kayaking-norway: https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=EVE&adv=kayaking-norway",
+      "Original WKND Adventures field notes: https://main--masterclass-demo--znikolovski.aem.live/blog/kayaking-norway",
+      "The Aero experience page does not specify a departure origin, travel dates or seat availability. Its starting flight fare is not a full adventure budget and does not establish that accommodation, guides, transfers or activities are included. Check the linked flight finder for current options and final pricing."
+    ],
+    "images": [
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1bd10685af4f3d38127de55d4da60d4ef86518b8d.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_105a7bf63325289ed49f1e9a74a1dfd1885008de0.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_15c8b7cdd7e8e9f095f427182bcefbd4e650e2229.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1be586d69308beff574f2ca3c1bf401b7f4a9372d.jpg"
+    ],
+    "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/kayaking-norway",
+    "category": "flight-linked adventure",
+    "placeName": "Lofoten Islands, Norway",
+    "persona": "cold-water-surfer"
+  },
+  {
+    "id": "aero-patagonia-trek",
+    "type": "product",
+    "title": "WKND Aero flight-linked experience: Patagonia W Circuit trekking",
+    "description": "Explore WKND Aero's flight finder for Patagonia W Circuit trekking, with destination airport PUQ and a published starting fare from $899. A day-by-day journal of the W Circuit in Torres del Paine — 9 days, 115 km, and everything the guidebook doesn't tell you.",
+    "keywords": [
+      "wknd aero",
+      "aero",
+      "flights",
+      "flight",
+      "airport",
+      "puq",
+      "booking",
+      "flight experience",
+      "patagonia",
+      "chile",
+      "w circuit",
+      "trekking"
+    ],
+    "facts": [
+      "WKND Aero links Patagonia W Circuit trekking to its flight finder. Destination airport listed by Aero: PUQ.",
+      "The published Aero starting flight fare is from $899; this is a from-fare label, not an origin/date-specific quote or a complete trip cost.",
+      "Aero experience page: https://main--wknd-aero--znikolovski.aem.live/adventures/patagonia-trek",
+      "Find flights for destination PUQ and adventure patagonia-trek: https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=PUQ&adv=patagonia-trek",
+      "Original WKND Adventures field notes: https://main--masterclass-demo--znikolovski.aem.live/blog/patagonia-trek",
+      "The Aero experience page does not specify a departure origin, travel dates or seat availability. Its starting flight fare is not a full adventure budget and does not establish that accommodation, guides, transfers or activities are included. Check the linked flight finder for current options and final pricing."
+    ],
+    "images": [
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1e4b49be43a70d306b1c312d0d78dd369b5ccce40.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1a8e6feb0bc33b3691c7054b262fc662b62215d24.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_151f24b0b4c8d9098015083137a863c7cc38e5490.jpg",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1407c58c521768aca9faca99a823aa828854ad730.jpg"
+    ],
+    "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/patagonia-trek",
+    "category": "flight-linked adventure",
+    "placeName": "Torres del Paine, Chile",
+    "persona": "trekking-planner"
+  },
+  {
+    "id": "aero-ladakh-india",
+    "type": "product",
+    "title": "WKND Aero flight-linked experience: Ladakh Himalayan trekking",
+    "description": "Explore WKND Aero's flight finder for Ladakh Himalayan trekking, with destination airport IXL and a published starting fare from $899. There is a moment, usually on the second morning in Leh, when the altitude releases its grip and the world comes into focus. The sky above is a blue that doesn't exist at sea level. The mountains are bare — no forest, no softening of any kind — and they go on in every direction without apology. Ladakh does not ease you in. It simply reveals itself, and what it reveals is unlike anywhere else on earth.",
+    "keywords": [
+      "wknd aero",
+      "aero",
+      "flights",
+      "flight",
+      "airport",
+      "ixl",
+      "booking",
+      "flight experience",
+      "ladakh",
+      "india",
+      "himalayas",
+      "trekking"
+    ],
+    "facts": [
+      "WKND Aero links Ladakh Himalayan trekking to its flight finder. Destination airport listed by Aero: IXL.",
+      "The published Aero starting flight fare is from $899; this is a from-fare label, not an origin/date-specific quote or a complete trip cost.",
+      "Aero experience page: https://main--wknd-aero--znikolovski.aem.live/adventures/ladakh-india",
+      "Find flights for destination IXL and adventure ladakh-india: https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=IXL&adv=ladakh-india",
+      "Original WKND Adventures field notes: https://main--masterclass-demo--znikolovski.aem.live/blog/ladakh-india",
+      "The Aero experience page does not specify a departure origin, travel dates or seat availability. Its starting flight fare is not a full adventure budget and does not establish that accommodation, guides, transfers or activities are included. Check the linked flight finder for current options and final pricing."
+    ],
+    "images": [
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1edc969a8c132e40c5178b0460c5dd89171ee6b72.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_195e966361e2fc6363298d96cc22ed12f884fb46a.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1129434371a61edf23093da9a935b1d12e92ae786.avif",
+      "https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.page/blog/media_1576f654e26efe4ed4fec4d6e4c00a24e7ccb71a2.avif"
+    ],
+    "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/ladakh-india",
+    "category": "flight-linked adventure",
+    "placeName": "Ladakh, India",
+    "persona": "trekking-planner"
   }
 ]

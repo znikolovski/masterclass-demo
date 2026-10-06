@@ -181,9 +181,9 @@ retrieval budget was increased to eight passages, but still supplied no Yosemite
 source for that query. A separate Ohrid/Ladakh comparison did retrieve both
 destinations at this budget: coverage is query-dependent, not universally broken.
 A dedicated sourced comparison primer adds both activities, two image placements,
-and original article citations together for the demo. There are now 18 knowledge
-documents with 97 image placements. The public FAQ and its knowledge capture
-remain unchanged. Even after the primer appeared in the query index and sync
+and original article citations together for the demo. This brought the corpus to
+18 knowledge documents with 97 image placements. The public FAQ and its knowledge
+capture remain unchanged. Even after the primer appeared in the query index and sync
 indexed 292 chunks, the exact comparison query still retrieved only Patagonia:
 the source exists, but the worker does not reliably select it.
 
@@ -203,3 +203,66 @@ The richer comparison produced substantive activity/preparation/conditions
 columns, but still dropped Yosemite's source card when its evidence was absent.
 See [`OF1-GENERATED-CONTENT-QUALITY.md`](OF1-GENERATED-CONTENT-QUALITY.md)
 for engineering reproduction evidence and acceptance criteria.
+
+### Adventure-card handoff to WKND Sherpa
+
+Generated adventure cards with a heading and an original `/blog/` article link
+offer two actions: the existing field-notes link as a secondary button, and
+**Chat with WKND Sherpa** as a primary button. Labels wrap on narrow cards.
+Cards pointing to the same owner's WKND Aero site instead use
+**View WKND Aero experience** or **Find flights with WKND Aero**, preserving the
+full external URL and airport/adventure query parameters.
+Generated grids show one column below 600 px and at most two columns above it;
+additional cards wrap into new rows, and a single card stays centered.
+The chat action uses the existing same-page `#sherpa?prompt=...&send=true`
+deep link to automatically send
+`Help me plan this adventure: {card title}. What should I prepare?`.
+The prompt uses the visible title, not a potentially mismatched fallback article
+destination.
+
+Site decoration adds these actions consistently without a new model-generated
+slot or changes to the authored template contract, canonical OF1 client, or
+concierge implementation. Ordinary authored cards remain unchanged.
+Run `node tools/scripts/test-of1-actions.mjs` against the local server to check
+the handoff, prompt encoding, responsive actions, and authored-card isolation.
+
+### Recovery of corrupted native image IDs
+
+The worker can also alter characters inside an immutable Media Bus asset ID.
+Failed native images in generated sections are recovered only when their
+caption matches exactly one asset in the published knowledge capture.
+Recovery preserves responsive sizes and formats and does not substitute
+images based on a guessed topic or similar hash. Captures are fetched only
+after an image fails and shared across recovery attempts. Each image gets one
+attempt; missing or ambiguous captions and failed canonical assets surface
+explicit errors. Ordinary authored images are unaffected.
+
+### Curated WKND Aero flight-linked experiences
+
+Five rendered Aero experience pages were captured from the source site. Their source
+HTML contains only an `adventure-detail` identifier, so ingestion uses their
+rendered destination-airport, starting-fare, and flight-finder information.
+These are flight-linked adventures, not evidence of an all-inclusive package.
+
+| Experience | Destination airport | Published starting flight fare | Aero source |
+|---|---|---|---|
+| Ohrid lakeside adventure | OHD | from $449 | [Ohrid](https://main--wknd-aero--znikolovski.aem.live/adventures/ohrid-macedonia) |
+| Yosemite granite climbing | FAT | from $349 | [Yosemite](https://main--wknd-aero--znikolovski.aem.live/adventures/yosemite-rock-climbing) |
+| Lofoten Arctic surfing | EVE | from $749 | [Lofoten](https://main--wknd-aero--znikolovski.aem.live/adventures/kayaking-norway) |
+| Patagonia W Circuit trekking | PUQ | from $899 | [Patagonia](https://main--wknd-aero--znikolovski.aem.live/adventures/patagonia-trek) |
+| Ladakh Himalayan trekking | IXL | from $899 | [Ladakh](https://main--wknd-aero--znikolovski.aem.live/adventures/ladakh-india) |
+
+Fares retain the site's displayed currency symbol and are captured demo
+from-fare labels, not origin/date-specific quotes or total adventure costs.
+The pages do not establish that hotels, guides, transfers, or activities are
+included. The linked Aero flight finder is the destination for current options
+and final pricing.
+
+Each addition has four verified, already-ingested photographs from its linked
+original WKND field notes. The original 18 captures, existing entities, and
+persona recommendations are unchanged. Five `aero-*` slugs prevent collisions
+with the original destination guides. The corpus now contains 23 documents
+with 117 image placements using the same 91 verified native image URLs
+(86 distinct asset filenames; some original URLs are path aliases).
+Only the five new knowledge documents were previewed and published, on the
+`llm-traffic-tracking` tier; Aero's own content and `main` were not modified.
