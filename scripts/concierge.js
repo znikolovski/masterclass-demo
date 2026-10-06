@@ -114,7 +114,9 @@ export default async function initConcierge() {
       frame.hidden = false;
       prefill();
     } else if (event.data.type === 'error' && loading) {
-      showError('WKND Sherpa is unavailable right now. Please try again.');
+      showError(event.data.reason === 'identityUnavailable'
+        ? 'WKND Sherpa could not start a chat. Please review your consent settings and try again.'
+        : 'WKND Sherpa is unavailable right now. Please try again.');
     } else if (event.data.type === 'prefilled' && pendingRequest
       && event.data.requestId === pendingRequest.id) {
       pendingRequest = undefined;

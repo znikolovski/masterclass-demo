@@ -51,7 +51,8 @@ async function initialize() {
   await window.alloy('configure', {
     datastreamId,
     orgId,
-    defaultConsent: 'pending',
+    // Opening Sherpa opts into chat; saved Adobe consent still overrides this default.
+    defaultConsent: 'in',
     edgeDomain: 'edge.adobedc.net',
     edgeBasePath: 'ee',
     debugEnabled: window.location.hostname === 'localhost',
@@ -59,6 +60,13 @@ async function initialize() {
     thirdPartyCookiesEnabled: false,
     conversation: { stickyConversationSession: false, region: 'aus5' },
   });
+  // The vendor continues bootstrap even when getIdentity returns {} after an opt-out.
+  const { identity } = await window.alloy('getIdentity', { namespaces: ['ECID'] });
+  if (!identity?.ECID) {
+    const error = new Error('The SDK did not provide a chat identity. Check consent settings.');
+    error.code = 'identityUnavailable';
+    throw error;
+  }
   await loadScript('https://experience.adobe.net/solutions/experience-platform-brand-concierge-web-agent/static-assets/main.js');
   if (typeof window.adobe?.concierge?.bootstrap !== 'function') {
     throw new Error('The Brand Concierge client is not available.');
@@ -83,5 +91,5 @@ document.addEventListener('keydown', (event) => {
 initialize().catch((error) => {
   // eslint-disable-next-line no-console
   console.error('WKND Sherpa initialization failed:', error);
-  notify('error');
+  notify('error', { reason: error?.code });
 });

@@ -141,8 +141,16 @@ configuring `alloy` again in the parent page would break analytics/personalizati
 The frame has no site page-loading scripts, Launch embed or extra empty `sendEvent`,
 so it does not generate a duplicate analytics page view.
 
-The frame defaults to **pending** consent and shares the same-origin Adobe consent
-cookie with the website; it does not grant consent or change the site's consent policy.
+The frame defaults to **in** consent, matching Adobe's supplied integration snippet.
+Opening Sherpa (including an authored Sherpa question link) opts into the on-demand chat.
+The frame requires a successful SDK `getIdentity` before loading the hosted client:
+Adobe's client can otherwise continue bootstrap after the SDK returns an empty result
+for a saved opt-out. An unavailable identity displays a consent-settings message without
+starting a conversation or auto-sending a linked question. The frame does
+not call `setConsent`, write a shared consent preference, or change the parent site's
+analytics consent, which still defaults to **pending**. Do not revert the chat default
+to **pending** without wiring a consent integration: Adobe's client awaits `getIdentity`
+before rendering and otherwise stalls until the launcher's 30-second timeout.
 Production debugging is off, third-party cookies and ID migration are disabled, and
 no personalization prehiding style is added. The supplied `stickySession: false` is
 passed through to bootstrap, but the current client ignores it. The supported SDK
