@@ -167,6 +167,8 @@ live origin before that rewrite. This applies only to detached OF1 results;
 ordinary authored-page links, fragment anchors, and external destinations are
 unchanged. The canonical OF1 block and shared SDK were not forked.
 
+The Ask WKND header submit button uses a decorative generative-AI sparkle icon;
+its accessible label and GET `/of1?q=...` submission are unchanged.
 The header search submit button has an inset from the pill border. The
 follow-up submit arrow inherits a white foreground normally and a dark
 foreground on orange hover, fixing the previous black-on-black appearance.

@@ -175,13 +175,10 @@ export default async function decorate(block) {
     searchIcon.classList.add('nav-search-icon');
     searchIcon.setAttribute('viewBox', '0 0 24 24');
     searchIcon.setAttribute('aria-hidden', 'true');
-    const searchCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    searchCircle.setAttribute('cx', '10.8');
-    searchCircle.setAttribute('cy', '10.8');
-    searchCircle.setAttribute('r', '6.8');
-    const searchHandle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    searchHandle.setAttribute('d', 'm16 16 5 5');
-    searchIcon.append(searchCircle, searchHandle);
+    searchIcon.setAttribute('focusable', 'false');
+    const sparkles = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    sparkles.setAttribute('d', 'M12 7l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z M5 2v6 M2 5h6 M20 3v4 M18 5h4');
+    searchIcon.append(sparkles);
     searchButton.append(searchIcon);
     searchForm.append(searchInput, searchButton);
     searchItem.append(searchForm);
