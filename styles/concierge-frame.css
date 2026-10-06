@@ -1,0 +1,57 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+#brand-concierge-mount {
+  --body-font-family: "Instrument Sans", sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#brand-concierge-mount :is(h1, h2, h3, h4, h5, h6, .example-heading, button) {
+  font-family: Syncopate, sans-serif;
+}
+
+#brand-concierge-mount .bc-prompt-pill-button,
+#brand-concierge-mount .bc-prompt-suggestion-button {
+  min-height: 44px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Adobe's public BEM selector; preserve the supplied image-fit override. */
+/* stylelint-disable-next-line selector-class-pattern */
+#brand-concierge-mount .bc-card__image {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+}
+
+#brand-concierge-mount .bc-prompt-pill-button,
+/* stylelint-disable-next-line selector-class-pattern -- Adobe's public BEM selectors */
+#brand-concierge-mount .bc-button--primary,
+/* stylelint-disable-next-line selector-class-pattern -- Adobe's public BEM selectors */
+#brand-concierge-mount .action-button--send:not([aria-disabled="true"]) {
+  box-shadow: 3px 3px 0 0 #e8651a;
+}
+
+#brand-concierge-mount .bc-prompt-pill-button:hover,
+/* stylelint-disable-next-line selector-class-pattern -- Adobe's public BEM selectors */
+#brand-concierge-mount .bc-button--primary:hover {
+  box-shadow: 5px 5px 0 0 #e8651a;
+}
+
+/* stylelint-disable-next-line selector-class-pattern -- Adobe's public BEM selector */
+#brand-concierge-mount .bc-prompt-pill-button__icon {
+  color: #fff;
+}
+
+#brand-concierge-mount button:focus-visible,
+#brand-concierge-mount a:focus-visible {
+  outline: 2px solid #e8651a;
+  outline-offset: 3px;
+}

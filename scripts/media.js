@@ -143,6 +143,8 @@ export function getMediaSourceType(src) {
   try {
     const url = new URL(src, window.location.href);
     if (isDynamicMediaUrl(url)) return 'dynamic-media';
+    if (/\.(?:aem|hlx)\.(?:page|live|network)$/i.test(url.hostname)
+      && /\/media_[a-f0-9]+\./i.test(url.pathname)) return 'media-bus';
     if (url.hostname === window.location.hostname) {
       if (url.pathname.includes('/media_')) return 'media-bus';
       if (url.pathname.startsWith('/assets/')) return 'aem-assets';

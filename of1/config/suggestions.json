@@ -1,0 +1,57 @@
+{
+  "title": "Find your next WKND adventure",
+  "subtitle": "Ask about real routes, field notes, gear, and the details that help you plan.",
+  "placeholder": "Ask about an adventure, route, or gear...",
+  "suggestions": [
+    {
+      "type": "comparison",
+      "label": "Compare Patagonia and Yosemite",
+      "query": "Compare the WKND guides to the W Circuit in Patagonia and beginner climbing in Yosemite."
+    },
+    {
+      "type": "recommendation",
+      "label": "Suggest a beginner climb",
+      "query": "Which WKND guide is best for someone beginning to climb, and what should I know first?"
+    },
+    {
+      "type": "deep-dive",
+      "label": "Tell me about the W Circuit",
+      "query": "Give me a detailed overview of the W Circuit guide, including its route and planning considerations."
+    },
+    {
+      "type": "discovery",
+      "label": "Show me water adventures",
+      "query": "What water and surf adventures are covered in the WKND guides?"
+    },
+    {
+      "type": "budget",
+      "label": "Plan without pricey gear",
+      "query": "What does the WKND gear guide recommend about avoiding unnecessary or expensive gear?"
+    },
+    {
+      "type": "recommendation",
+      "label": "Find an alpine bike route",
+      "query": "Tell me about the Alpine cycling route and the passes it covers."
+    },
+    {
+      "type": "deep-dive",
+      "label": "Prepare for cold-water surf",
+      "query": "What preparation does the Lofoten surf guide describe for cold-water conditions?"
+    },
+    {
+      "type": "discovery",
+      "label": "How should I judge difficulty?",
+      "query": "According to WKND, how should I decide whether a route difficulty is within my ability?"
+    },
+    {
+      "type": "deep-dive",
+      "label": "What about permits?",
+      "query": "What does WKND recommend about planning permits for popular routes?"
+    },
+    {
+      "type": "comparison",
+      "label": "Compare water destinations",
+      "query": "Compare the WKND guides to Lofoten surfing and surfing in Costa Rica."
+    }
+  ]
+}

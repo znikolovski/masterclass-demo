@@ -144,7 +144,50 @@ export default async function decorate(block) {
     }
   }
 
-  const navSections = nav.querySelector('.nav-sections');
+  let navSections = nav.querySelector('.nav-sections');
+  if (!navSections) {
+    navSections = document.createElement('div');
+    navSections.className = 'nav-sections';
+    navSections.append(document.createElement('ul'));
+    nav.append(navSections);
+  }
+
+  const navSectionList = navSections.querySelector(':scope > ul');
+  if (navSectionList && !navSectionList.querySelector('[data-of1-search-form]')) {
+    const searchItem = document.createElement('li');
+    searchItem.className = 'nav-search-item';
+    const searchForm = document.createElement('form');
+    searchForm.action = '/of1';
+    searchForm.method = 'get';
+    searchForm.dataset.of1SearchForm = 'true';
+    searchForm.setAttribute('role', 'search');
+    const searchInput = document.createElement('input');
+    searchInput.type = 'search';
+    searchInput.name = 'q';
+    searchInput.placeholder = 'Ask WKND';
+    searchInput.setAttribute('aria-label', 'Search WKND adventures');
+    searchInput.required = true;
+    const searchButton = document.createElement('button');
+    searchButton.type = 'submit';
+    searchButton.setAttribute('aria-label', 'Submit search');
+
+    const searchIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    searchIcon.classList.add('nav-search-icon');
+    searchIcon.setAttribute('viewBox', '0 0 24 24');
+    searchIcon.setAttribute('aria-hidden', 'true');
+    const searchCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    searchCircle.setAttribute('cx', '10.8');
+    searchCircle.setAttribute('cy', '10.8');
+    searchCircle.setAttribute('r', '6.8');
+    const searchHandle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    searchHandle.setAttribute('d', 'm16 16 5 5');
+    searchIcon.append(searchCircle, searchHandle);
+    searchButton.append(searchIcon);
+    searchForm.append(searchInput, searchButton);
+    searchItem.append(searchForm);
+    navSectionList.prepend(searchItem);
+  }
+
   if (navSections) {
     navSections.querySelectorAll(':scope > ul > li').forEach((navSection) => {
       if (navSection.querySelector('ul')) {

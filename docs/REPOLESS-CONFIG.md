@@ -7,6 +7,8 @@ This project uses the **Configuration Service** (API mode) instead of distribute
 | `helix-query.yaml` in Git | `config/query.yaml` → pushed to admin API |
 | `tools/sidekick/config.json` | `config/sidekick.json` → pushed to admin API |
 | `robots.txt` in Git | `config/robots.txt` → pushed to admin API |
+| `helix-sitemap.yaml` in Git | `config/sitemap.yaml` → scoped sitemap configuration |
+| Production CDN settings | `config/cdn.json` → scoped CDN configuration |
 | (none) | `config/headers.json` → optional CORS for library preview HTML shells (`/blocks/**/*.html`) |
 | Implicit org/repo = site | `config/repoless.site.json` → explicit code + DA content |
 
@@ -46,6 +48,37 @@ Edit files under `config/` before running `--apply`. The migration script POSTs/
 
 EW Sidekick library previews use CSS-only styling in `styles/library-sidekick-blocks.css` because Config Service headers do not apply to static code-bus `.js` files (module scripts cannot load in srcdoc iframes).
 - `/config/znikolovski/sites/masterclass-demo/robots.txt`
+
+## Production sitemap, robots, and cache invalidation
+
+The canonical production domain is `https://wknd-adventures.run.place`.
+`config/sitemap.yaml` explicitly sets this origin for `/sitemap.xml`, and
+`config/robots.txt` advertises that custom-domain sitemap while preserving the
+existing path restrictions. The sitemap continues to use `/query-index.json`;
+its membership and the shared OF1 index are unchanged.
+
+`config/cdn.json` registers the production host as Adobe Managed CDN so
+Admin Service cache purges can also invalidate the custom-domain cache.
+This is separate from the routing rules in `conf/cdn.yaml`.
+
+The migration script does **not** upload `config/sitemap.yaml` or
+`config/cdn.json`. Manage them through these scoped Configuration Service
+endpoints, reading the current configuration before replacing either section:
+
+- `/config/znikolovski/sites/masterclass-demo/content/sitemap.yaml`
+- `/config/znikolovski/sites/masterclass-demo/cdn.json`
+
+After changing the sitemap configuration, regenerate it with
+`POST /sitemap/znikolovski/masterclass-demo/main/sitemap.xml`. After changing
+sitemap or robots, purge the corresponding paths with
+`POST /cache/znikolovski/masterclass-demo/main/sitemap.xml` and
+`POST /cache/znikolovski/masterclass-demo/main/robots.txt`.
+Authenticate these requests with a valid Admin Service token.
+
+Verify the public custom-domain endpoints, not just Configuration Service
+readback: all sitemap `loc` hosts must be `wknd-adventures.run.place`, and
+robots must contain the single custom-domain sitemap reference. Default
+crawler exclusion on the Adobe-owned hosts is intentional and should remain.
 
 ## Spawning additional repoless sites (same codebase)
 

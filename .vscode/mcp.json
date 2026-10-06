@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "da-prod-mcp": {
+      "type": "http",
+      "url": "https://mcp.adobeaemcloud.com/adobe/mcp/da"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "prod": {
+    "host": "wknd-adventures.run.place",
+    "type": "managed"
+  }
+}
