@@ -150,11 +150,16 @@ VECTORS=$(echo "$RESPONSE" | jq -r '.vectors.indexed')
 
 echo "Sync result: ok=$OK, synced=$SYNCED files, errors=$ERRORS, vectors=$VECTORS"
 
-if [ "$OK" != "true" ]; then
+if [ "$OK" != "true" ] || [ "$ERRORS" -gt 0 ]; then
   echo "ERROR: Sync failed!" >&2
   echo "$RESPONSE" | jq '.errors'
+  exit 1
 fi
 ```
+
+An HTTP-200 response or `ok: true` can accompany a failed content phase.
+Require an empty `errors` collection as well as successful ingestion; tenant
+readiness and generated sections can still reflect previously indexed content.
 
 **Verify knowledge ingestion.** The sync response includes `content.indexed`
 (page chunks embedded into the RAG). If knowledge pages were captured
@@ -164,7 +169,8 @@ fi
 INDEXED=$(jq -r '.content.indexed // 0' <<<"$RESPONSE")
 PAGES=$( [ -f of1/config/knowledge-pages.json ] && jq 'length' of1/config/knowledge-pages.json || echo 0 )
 if [ "$PAGES" -gt 0 ] && [ "$INDEXED" -eq 0 ]; then
-  echo "✗ ${PAGES} knowledge page(s) published but content.indexed=0 — the pages aren't in the query-index the worker reads. Fix: confirm /of1/knowledge/** isn't excluded from the site index (of1-check-dependencies Step 6b), and that previews propagated." >&2
+  echo "✗ ${PAGES} knowledge page(s) published but content.indexed=0 — ingestion is not verified. Inspect phase errors, confirm /of1/knowledge/** is included in the worker's query index, and check preview propagation before proceeding." >&2
+  exit 1
 else
   echo "✓ content RAG: ${INDEXED} chunk(s) indexed from ${PAGES} knowledge page(s)"
 fi

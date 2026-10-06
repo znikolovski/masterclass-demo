@@ -179,10 +179,56 @@ Exercise discovery, recommendation, deep-dive, and budget queries too.
 Record selected template, source paths in the prompt, final HTML, and
 `slotResolution`, not just the model's raw slot proposals.
 
+## Aero additions: worker sync exceeds the subrequest limit
+
+Feature commit `f0ecc72` adds five curated Aero flight-linked captures and
+entities, preserving the previous corpus. Both `.aem.page` and `.aem.live`
+serve 45 entities and 23 captures. The preview query index includes all five
+`/of1/knowledge/aero-*` documents, with four verified source photographs each.
+
+Two subsequent calls to
+`POST /api/tenants/llm-traffic-tracking--masterclass-demo--znikolovski/sync`
+returned HTTP 200 and `ok: true`, but also:
+
+```json
+{
+  "errors": [{
+    "content": "phase",
+    "error": "Too many subrequests by single Worker invocation. To configure this limit, refer to https://developers.cloudflare.com/workers/wrangler/configuration/#limits"
+  }],
+  "vectors": { "indexed": 40 },
+  "content": null
+}
+```
+
+The status endpoint still reports `ready: true`. Neither that value nor the
+sync's success flag proves the new content was ingested.
+
+Actual debug generations for `WKND Aero flights to Ohrid`, `WKND Aero flights
+to Yosemite`, and `WKND Aero flights to Lofoten` returned four sections each.
+Their complete system prompts contained only older knowledge paths, no Aero
+captures, and their final HTML contained no Aero experience or booking URLs.
+The Ohrid response invented seasonal Aero services from London, Zurich, and
+Amsterdam and July/August schedules. Those claims are not present in the
+published Aero sources and must not be treated as real flight information.
+
+Upstream needs to increase the appropriate invocation budget or split/batch
+sync work across invocations, and report required ingestion failures explicitly.
+Do not work around this by dropping existing knowledge or treating partial
+sync as complete. Worker source and deployment access are not available in
+this project. Once repaired, rerun the sync and the three queries; verify the
+actual Aero source paths, listed airports/from-fares, and full booking URLs
+before presenting these results as grounded.
+
+The deployed site-side card/Sherpa handoff, `send=true`, two-column grids, and
+unique-caption image recovery pass independently of this ingestion failure.
+Their deterministic browser checks do not prove live Aero retrieval.
+
 ## Requested engineering changes and acceptance criteria
 
 | Area | Request | Acceptance criterion |
 |---|---|---|
+| Sync completeness | Budget or batch larger syncs and report required ingestion errors instead of HTTP-200 success flags | All 45 entities and 23 source documents are accounted for without phase errors; Aero queries retrieve their new sources |
 | Comparison retrieval | Resolve each requested entity independently and balance/rerank context across their source documents | Both named options receive substantive source passages; one document cannot consume the entire context budget |
 | Exploratory retrieval | Diversify relevant source documents instead of returning several adjacent passages from one article | Discovery and recommendation can offer distinct grounded options |
 | Generation grounding | Handle missing evidence explicitly | No invented route, distance, duration, price, or silently omitted comparison option |

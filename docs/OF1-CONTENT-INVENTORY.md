@@ -266,3 +266,14 @@ with 117 image placements using the same 91 verified native image URLs
 (86 distinct asset filenames; some original URLs are path aliases).
 Only the five new knowledge documents were previewed and published, on the
 `llm-traffic-tracking` tier; Aero's own content and `main` were not modified.
+
+**Worker ingestion is currently blocked.** Both EDS tiers serve all 45
+knowledge entities and 23 captures, and the preview query index lists all five
+Aero documents. Two sync attempts nevertheless returned a content-phase
+subrequest-limit error, 40 indexed entity vectors, and `content: null`.
+Actual Ohrid, Yosemite, and Lofoten flight queries retrieved only older
+knowledge and emitted no Aero source or booking links. Do not treat the
+published additions as verified Aero results until the shared worker completes
+ingestion; see [`OF1-GENERATED-CONTENT-QUALITY.md`](OF1-GENERATED-CONTENT-QUALITY.md)
+for the exact failure and
+unsupported flight claims.
