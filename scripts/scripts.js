@@ -650,6 +650,11 @@ export function decorateMain(main) {
   const isGeneratedOf1 = !main.isConnected && document.querySelector('.of1.block')
     && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant);
   if (isGeneratedOf1) {
+    if (main.querySelector('.adventure-facts') && !main.querySelector('.aero-options')) {
+      const section = document.createElement('div');
+      section.append(buildBlock('aero-options', [['<h2>WKND Aero flight options</h2>']]));
+      main.append(section);
+    }
     // Resolve paths before the SDK mistakes the tenant identifier for a hostname.
     const origin = `https://${tenant}.aem.live`;
     const [, repo, owner] = tenant.split('--');
@@ -1223,6 +1228,11 @@ async function loadEager(doc) {
       primeLcpImage(main);
     }
     decorateMain(main);
+    const of1 = main.querySelector('.of1.block');
+    if (of1 && !isLibraryPreview(doc)) {
+      const { initAeroQuery } = await import('./of1-aero.js');
+      initAeroQuery(of1);
+    }
     applyTemplateAndTheme(doc);
 
     const needsEagerMartech = isMartechConfigured()

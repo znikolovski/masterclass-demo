@@ -224,6 +224,14 @@ The deployed site-side card/Sherpa handoff, `send=true`, two-column grids, and
 unique-caption image recovery pass independently of this ingestion failure.
 Their deterministic browser checks do not prove live Aero retrieval.
 
+The site now also renders a separate source-backed **WKND Aero flight options**
+section after Planning notes. It reads structured fields from the five published
+Aero entities and matches the current query/result headings. Airports,
+starting-fare caveats, and experience/booking links in that section are
+deterministic, not model proposals. This makes the dedicated panel available
+despite the ingestion blocker; it does **not** repair or validate unsupported
+flight claims elsewhere in the worker-generated response.
+
 ## Requested engineering changes and acceptance criteria
 
 | Area | Request | Acceptance criterion |

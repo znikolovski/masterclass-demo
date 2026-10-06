@@ -1455,6 +1455,12 @@
     "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/ohrid-macedonia",
     "category": "flight-linked adventure",
     "placeName": "Ohrid, North Macedonia",
+    "flightOptions": {
+      "destinationTerms": ["ohrid", "north macedonia"],
+      "airport": "OHD",
+      "startingFare": "$449",
+      "bookingUrl": "https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=OHD&adv=ohrid-macedonia"
+    },
     "persona": "trekking-planner"
   },
   {
@@ -1493,6 +1499,12 @@
     "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/yosemite-rock-climbing",
     "category": "flight-linked adventure",
     "placeName": "Yosemite, California",
+    "flightOptions": {
+      "destinationTerms": ["yosemite"],
+      "airport": "FAT",
+      "startingFare": "$349",
+      "bookingUrl": "https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=FAT&adv=yosemite-rock-climbing"
+    },
     "persona": "beginner-climber"
   },
   {
@@ -1531,6 +1543,12 @@
     "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/kayaking-norway",
     "category": "flight-linked adventure",
     "placeName": "Lofoten Islands, Norway",
+    "flightOptions": {
+      "destinationTerms": ["lofoten", "unstad"],
+      "airport": "EVE",
+      "startingFare": "$749",
+      "bookingUrl": "https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=EVE&adv=kayaking-norway"
+    },
     "persona": "cold-water-surfer"
   },
   {
@@ -1569,6 +1587,12 @@
     "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/patagonia-trek",
     "category": "flight-linked adventure",
     "placeName": "Torres del Paine, Chile",
+    "flightOptions": {
+      "destinationTerms": ["patagonia", "torres del paine", "w circuit"],
+      "airport": "PUQ",
+      "startingFare": "$899",
+      "bookingUrl": "https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=PUQ&adv=patagonia-trek"
+    },
     "persona": "trekking-planner"
   },
   {
@@ -1607,6 +1631,12 @@
     "url": "https://main--wknd-aero--znikolovski.aem.live/adventures/ladakh-india",
     "category": "flight-linked adventure",
     "placeName": "Ladakh, India",
+    "flightOptions": {
+      "destinationTerms": ["ladakh", "leh"],
+      "airport": "IXL",
+      "startingFare": "$899",
+      "bookingUrl": "https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=IXL&adv=ladakh-india"
+    },
     "persona": "trekking-planner"
   }
 ]
