@@ -12,15 +12,20 @@ const sdkUrl = 'https://cdn1.adoberesources.net/alloy/2.35.0/alloy.min.js';
 const clientUrl = 'https://experience.adobe.net/solutions/experience-platform-brand-concierge-web-agent/static-assets/main.js';
 const sdk = `
   const queue = window.alloy.q;
+  window.testSdkCommands = [];
   const execute = ([resolve, reject, [command, options]]) => {
+    window.testSdkCommands.push(command);
     if (command === 'configure') window.testSdkConfig = options;
-    resolve({});
+    if (command === 'getIdentity' && window.testSdkConfig.defaultConsent === 'pending') return;
+    resolve(command === 'getIdentity' && !window.testDeclinedConsent
+      ? { identity: { ECID: 'test-ecid' } } : {});
   };
   queue.push = execute;
   queue.forEach(execute);
 `;
 const client = `
   window.adobe = { concierge: { bootstrap: async (options) => {
+    await window.alloy('getIdentity', { namespaces: ['ECID'] });
     window.testBootstrapCount = (window.testBootstrapCount || 0) + 1;
     window.testBootstrapOptions = options;
     const mount = document.querySelector(options.selector);
@@ -55,13 +60,20 @@ const client = `
 `;
 const browser = await chromium.launch();
 
-async function createPage({ failClient = false, emptyClient = false, hangSdk = false } = {}) {
+async function createPage({
+  failClient = false, emptyClient = false, hangSdk = false, declineConsent = false,
+} = {}) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   let clientRequests = 0;
   let sdkRequests = 0;
   await page.route(sdkUrl, async (route) => {
     sdkRequests += 1;
-    if (!hangSdk) await route.fulfill({ contentType: 'text/javascript', body: sdk });
+    if (!hangSdk) {
+      await route.fulfill({
+        contentType: 'text/javascript',
+        body: `window.testDeclinedConsent = ${declineConsent};${sdk}`,
+      });
+    }
   });
   await page.route(clientUrl, async (route) => {
     clientRequests += 1;
@@ -104,10 +116,12 @@ try {
   assert(await page.evaluate(() => window.testOriginalAlloy === window.alloy));
   const frameState = await page.locator('.wknd-sherpa-frame').evaluate((frame) => ({
     config: frame.contentWindow.testSdkConfig,
+    commands: frame.contentWindow.testSdkCommands,
     bootstrap: frame.contentWindow.testBootstrapOptions,
   }));
   assert.equal(frameState.config.datastreamId, '56dee4fc-21a9-4e37-83ab-bdd874957aba');
-  assert.equal(frameState.config.defaultConsent, 'pending');
+  assert.equal(frameState.config.defaultConsent, 'in');
+  assert.deepEqual(frameState.commands, ['configure', 'getIdentity', 'getIdentity']);
   assert.equal(frameState.config.thirdPartyCookiesEnabled, false);
   assert.equal(frameState.config.idMigrationEnabled, false);
   assert.equal(frameState.config.conversation.stickyConversationSession, false);
@@ -352,6 +366,16 @@ try {
   assert.equal(await links.page.locator('.wknd-sherpa-panel').evaluate((dialog) => dialog.open), false);
   await links.page.close();
   process.stdout.write('PASS authored/repeated links, conversation inputs, drafts, hash changes, source/length/busy errors and normal browser navigation\n');
+
+  const declined = await createPage({ declineConsent: true });
+  await declined.page.goto(`${base}/${hash}&send=true`);
+  await declined.page.getByText('WKND Sherpa could not start a chat. Please review your consent settings and try again.').waitFor();
+  assert.equal(declined.clientRequests(), 0);
+  assert(await declined.page.locator('.wknd-sherpa-frame').evaluate((frame) => frame.hidden));
+  assert.deepEqual(await declined.page.locator('.wknd-sherpa-frame')
+    .evaluate((frame) => frame.contentWindow.testSdkCommands), ['configure', 'getIdentity']);
+  await declined.page.close();
+  process.stdout.write('PASS saved opt-out blocks client bootstrap and auto-send without changing consent\n');
 
   const failure = await createPage({ failClient: true });
   await failure.page.goto(`${base}/${hash}&send=true`);
