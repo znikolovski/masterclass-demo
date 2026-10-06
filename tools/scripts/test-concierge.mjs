@@ -27,8 +27,29 @@ const client = `
     const container = document.createElement('div');
     container.className = 'brand-concierge-container';
     const input = document.createElement('input');
+    input.className = 'chat-input';
     input.setAttribute('aria-label', 'Type your message');
-    container.append(input);
+    window.testInputEvents = 0;
+    window.testSubmissions = 0;
+    window.testSentQuestions = [];
+    const send = document.createElement('button');
+    send.type = 'button';
+    send.className = 'action-button--send';
+    send.setAttribute('aria-label', 'Send message');
+    send.setAttribute('aria-disabled', 'true');
+    container.addEventListener('input', (event) => {
+      window.testInputEvents += 1;
+      send.setAttribute('aria-disabled', String(!event.target.value.trim()));
+    });
+    send.addEventListener('click', () => {
+      if (send.getAttribute('aria-disabled') === 'true') return;
+      window.testSubmissions += 1;
+      const active = container.querySelector('.chat-input:not([disabled])');
+      window.testSentQuestions.push(active.value);
+      active.value = '';
+    });
+    container.addEventListener('submit', () => { window.testSubmissions += 1; });
+    container.append(input, send);
     mount.append(container);
   } } };
 `;
@@ -144,12 +165,202 @@ try {
   }));
   process.stdout.write('PASS secondary page, shared sites and idempotent initialization\n');
 
+  const question = 'Help me plan a hike & pack + snacks #WKND <b>please</b>';
+  const hash = `#sherpa?prompt=${encodeURIComponent(question)}`;
+  await Promise.all([[1440, 900], [768, 1024], [375, 667]].map(async ([width, height]) => {
+    const test = await createPage();
+    await test.page.setViewportSize({ width, height });
+    await test.page.goto(`${base}/adventures${hash}`);
+    await waitFor(test.page, () => document.querySelector('.wknd-sherpa-frame')
+      ?.contentDocument?.querySelector('.chat-input')?.value.startsWith('Help me plan'));
+    const textbox = test.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox');
+    assert.equal(await textbox.inputValue(), question);
+    assert.equal(await textbox.evaluate((element) => element === document.activeElement), true);
+    assert.equal(await textbox.evaluate(() => window.testInputEvents), 1);
+    assert.equal(await textbox.evaluate(() => window.testSubmissions), 0);
+    const bounds = await test.page.locator('.wknd-sherpa-panel').boundingBox();
+    assert(bounds.x >= 0 && bounds.y >= 0);
+    assert(bounds.x + bounds.width <= width && bounds.y + bounds.height <= height);
+    await test.page.close();
+  }));
+  process.stdout.write('PASS shareable deep links, exact encoded text, focus and no submission across viewports\n');
+
+  await Promise.all([
+    {
+      width: 1440, height: 900, send: 'true', count: 1,
+    },
+    {
+      width: 768, height: 1024, send: 'true', count: 1,
+    },
+    {
+      width: 375, height: 667, send: 'true', count: 1,
+    },
+    {
+      width: 1440, height: 900, send: 'false', count: 0,
+    },
+    {
+      width: 1440, height: 900, send: 'TRUE', count: 0,
+    },
+  ].map(async ({
+    width, height, send, count,
+  }) => {
+    const test = await createPage();
+    await test.page.setViewportSize({ width, height });
+    await test.page.goto(`${base}/adventures${hash}&send=${send}`);
+    await waitFor(test.page, () => document.querySelector('.wknd-sherpa-frame')
+      ?.contentWindow?.testInputEvents === 1);
+    const textbox = test.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox');
+    assert.equal(await textbox.evaluate(() => window.testSubmissions), count);
+    assert.equal(await textbox.inputValue(), count ? '' : question);
+    assert.deepEqual(
+      await textbox.evaluate(() => window.testSentQuestions),
+      count ? [question] : [],
+    );
+    await textbox.press('Escape');
+    await waitFor(test.page, () => !document.querySelector('.wknd-sherpa-panel').open);
+    await test.page.getByRole('button', { name: 'Chat with WKND Sherpa' }).click();
+    await test.page.waitForTimeout(100);
+    assert.equal(await textbox.evaluate(() => window.testSubmissions), count);
+    assert.equal(test.clientRequests(), 1);
+    await test.page.close();
+  }));
+  process.stdout.write('PASS explicit send=true, prefill-only alternatives, single submission and reopen across viewports\n');
+
+  const sending = await createPage();
+  await sending.page.goto(`${base}/adventures${hash}&send=true`);
+  await waitFor(sending.page, () => document.querySelector('.wknd-sherpa-frame')
+    ?.contentWindow?.testSubmissions === 1);
+  const sendingInput = sending.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox');
+  await sendingInput.press('Escape');
+  await waitFor(sending.page, () => !document.querySelector('.wknd-sherpa-panel').open);
+  await sending.page.evaluate((href) => {
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.textContent = 'Send another Sherpa question';
+    document.querySelector('main').prepend(anchor);
+  }, `${hash}&send=true`);
+  await sending.page.getByRole('link', { name: 'Send another Sherpa question' }).click();
+  await waitFor(sending.page, () => document.querySelector('.wknd-sherpa-frame')
+    .contentWindow.testSubmissions === 2);
+  assert.equal(await sendingInput.evaluate(() => window.testBootstrapCount), 1);
+  await sendingInput.evaluate(() => {
+    const send = document.querySelector('button.action-button--send');
+    send.disabled = true;
+  });
+  await sending.page.evaluate(() => { window.location.hash = '#sherpa?prompt=Not%20sent&send=true'; });
+  await sending.page.getByText('WKND Sherpa could not send this question automatically. The question is ready to edit or send when Sherpa is available.').waitFor();
+  assert.equal(await sendingInput.inputValue(), 'Not sent');
+  assert.equal(await sendingInput.evaluate(() => window.testSubmissions), 2);
+  await sending.page.close();
+  process.stdout.write('PASS repeated auto-send links, preserved conversation and explicit disabled-send error\n');
+
+  const links = await createPage();
+  await links.page.goto(`${base}/adventures`);
+  await links.page.getByRole('button', { name: 'Chat with WKND Sherpa' }).waitFor({ timeout: 60000 });
+  await links.page.evaluate((href) => {
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.textContent = 'Ask Sherpa about hiking';
+    document.querySelector('main').prepend(anchor);
+  }, hash);
+  await links.page.getByRole('link', { name: 'Ask Sherpa about hiking' }).click();
+  await waitFor(links.page, () => document.querySelector('.wknd-sherpa-frame')
+    ?.contentDocument?.querySelector('.chat-input')?.value.startsWith('Help me plan'));
+  const linkedInput = links.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox', { name: 'Type your message' });
+  assert.equal(await linkedInput.inputValue(), question);
+  assert.equal(new URL(links.page.url()).hash, hash);
+  await linkedInput.fill('Existing draft');
+  await linkedInput.press('Escape');
+  await waitFor(links.page, () => !document.querySelector('.wknd-sherpa-panel').open);
+  await links.page.getByRole('link', { name: 'Ask Sherpa about hiking' }).click();
+  await waitFor(links.page, () => document.querySelector('.wknd-sherpa-frame')
+    .contentDocument.querySelector('.chat-input').value.startsWith('Help me plan'));
+  assert.equal(await linkedInput.inputValue(), question);
+  assert.equal(links.clientRequests(), 1);
+  assert.equal(await linkedInput.evaluate(() => window.testBootstrapCount), 1);
+  await linkedInput.fill('Preserve this draft');
+  await linkedInput.press('Escape');
+  await waitFor(links.page, () => !document.querySelector('.wknd-sherpa-panel').open);
+  await links.page.evaluate(() => { window.location.hash = '#sherpa'; });
+  await waitFor(links.page, () => document.querySelector('.wknd-sherpa-panel').open);
+  assert.equal(await linkedInput.inputValue(), 'Preserve this draft');
+  await links.page.evaluate(() => { window.location.hash = '#sherpa?prompt=New%20question'; });
+  await waitFor(links.page, () => document.querySelector('.wknd-sherpa-frame')
+    .contentDocument.querySelector('.chat-input').value === 'New question');
+  await linkedInput.evaluate((element) => {
+    window.postMessage({ source: 'wknd-sherpa', type: 'prefill', prompt: 'Untrusted' }, window.location.origin);
+    element.maxLength = 5;
+  });
+  await links.page.waitForTimeout(100);
+  assert.equal(await linkedInput.inputValue(), 'New question');
+  await links.page.evaluate(() => { window.location.hash = '#sherpa?prompt=Too%20long'; });
+  await links.page.getByText("This question exceeds WKND Sherpa's 5-character limit. Please use a shorter question.").waitFor();
+  assert.equal(await linkedInput.inputValue(), 'New question');
+  await linkedInput.evaluate((element) => { element.removeAttribute('maxlength'); });
+  await links.page.evaluate(() => { window.location.hash = '#sherpa?prompt=Short'; });
+  await waitFor(links.page, () => document.querySelector('.wknd-sherpa-frame')
+    .contentDocument.querySelector('.chat-input').value === 'Short');
+  assert(await links.page.locator('.wknd-sherpa-notice').evaluate((element) => element.hidden));
+  assert.equal(await linkedInput.evaluate(() => window.testSubmissions), 0);
+  await linkedInput.evaluate((element) => {
+    element.disabled = true;
+    const textarea = document.createElement('textarea');
+    textarea.className = 'chat-input';
+    textarea.setAttribute('aria-label', 'Conversation message');
+    element.after(textarea);
+  });
+  await links.page.evaluate(() => { window.location.hash = '#sherpa?prompt=Follow%20up'; });
+  await waitFor(links.page, () => document.querySelector('.wknd-sherpa-frame')
+    .contentDocument.querySelector('textarea').value === 'Follow up');
+  assert.equal(await linkedInput.inputValue(), 'Short');
+  const activeInput = links.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox', { name: 'Conversation message' });
+  await activeInput.evaluate((element) => { element.readOnly = true; });
+  await links.page.evaluate(() => { window.location.hash = '#sherpa?prompt=Wait'; });
+  await links.page.getByText('WKND Sherpa is not ready for a new question. Please try the link again when it is ready.').waitFor();
+  assert.equal(await activeInput.inputValue(), 'Follow up');
+  await activeInput.press('Escape');
+  await waitFor(links.page, () => !document.querySelector('.wknd-sherpa-panel').open);
+  const handled = await links.page.evaluate(() => [
+    { ctrlKey: true },
+    { metaKey: true },
+    { shiftKey: true },
+    { altKey: true },
+    { button: 1 },
+    { target: '_blank' },
+    { download: true },
+    { href: '/other-page#sherpa?prompt=Other' },
+    { href: 'https://example.com/#sherpa?prompt=Other' },
+    { href: '#ordinary-anchor' },
+  ].map(({
+    target, download, href, ...options
+  }) => {
+    const anchor = document.createElement('a');
+    anchor.href = href || '#sherpa?prompt=Ignored';
+    if (target) anchor.target = target;
+    if (download) anchor.download = '';
+    document.body.append(anchor);
+    let intercepted;
+    document.addEventListener('click', (event) => {
+      intercepted = event.defaultPrevented;
+      event.preventDefault();
+    }, { once: true });
+    anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ...options }));
+    anchor.remove();
+    return intercepted;
+  }));
+  assert(handled.every((intercepted) => intercepted === false));
+  assert.equal(await links.page.locator('.wknd-sherpa-panel').evaluate((dialog) => dialog.open), false);
+  await links.page.close();
+  process.stdout.write('PASS authored/repeated links, conversation inputs, drafts, hash changes, source/length/busy errors and normal browser navigation\n');
+
   const failure = await createPage({ failClient: true });
-  await failure.page.goto(base);
-  await failure.page.getByRole('button', { name: 'Chat with WKND Sherpa' }).click({ timeout: 60000 });
+  await failure.page.goto(`${base}/${hash}&send=true`);
   await failure.page.getByText('WKND Sherpa is unavailable right now. Please try again.').waitFor();
   await failure.page.getByRole('button', { name: 'Try again', exact: true }).click();
   await failure.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox', { name: 'Type your message' }).waitFor();
+  await waitFor(failure.page, () => document.querySelector('.wknd-sherpa-frame')
+    .contentWindow.testSubmissions === 1);
+  assert.deepEqual(await failure.page.frameLocator('.wknd-sherpa-frame').getByRole('textbox').evaluate(() => window.testSentQuestions), [question]);
   assert.equal(failure.clientRequests(), 2);
   await failure.page.close();
   process.stdout.write('PASS blocked client script and successful retry\n');

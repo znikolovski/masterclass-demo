@@ -76,6 +76,45 @@ Clicking the launcher opens an accessible modal panel and loads Adobe's hosted B
 Concierge client on demand. Escape, the close button, or clicking outside the panel closes
 it; reopening preserves the mounted conversation for the current page.
 
+### Links that prefill a question
+
+Authors can use an ordinary link or CTA with this destination:
+
+```text
+#sherpa?prompt=Help%20me%20plan%20a%20weekend%20hike
+```
+
+It opens Sherpa and fills the message input without submitting anything. The visitor
+can edit the question and press Send. To open Sherpa **and send the question automatically**,
+explicitly add `send=true`:
+
+```text
+#sherpa?prompt=Help%20me%20plan%20a%20weekend%20hike&send=true
+```
+
+Only the exact value `true` enables automatic sending; omitting it or using `send=false`
+keeps the prefill-only behavior. Auto-send uses the client's normal Send action, preserves
+the conversation, and does not send again when the launcher reopens the panel. Clicking
+an auto-send question link again intentionally sends a new question. Opening or reloading
+a shareable URL with `send=true` also sends its question, so label these links accordingly.
+If the Send action is unavailable, an explicit message is shown and the question remains
+in the input for manual sending. In authored HTML, escape the separator as `&amp;send=true`.
+
+Use `encodeURIComponent(question)` when generating
+links in code, so punctuation such as `&`, `#` and `+` remains part of the question.
+A full page URL such as `/adventures#sherpa?prompt=What%20should%20I%20pack%3F`
+also opens and prefills Sherpa after navigation. `#sherpa` opens without changing the draft.
+
+Question links replace the current unsent draft, but do not reset the conversation.
+Clicking the same link again still works after closing the panel. Modified clicks,
+downloads and links targeting another tab retain normal browser behavior. Loading
+failures retain the question for retry; an unavailable input or overlong question
+displays an explicit message rather than silently losing or truncating the question.
+Questions in URLs are visible in browser history and shareable links; do not put
+sensitive or personal information in them.
+
+### Implementation
+
 - [`scripts/concierge.js`](../scripts/concierge.js) owns the launcher and modal.
 - [`tools/concierge/index.html`](../tools/concierge/index.html) and
   [`scripts/concierge-frame.js`](../scripts/concierge-frame.js) host the client in a

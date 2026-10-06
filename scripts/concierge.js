@@ -42,6 +42,27 @@ export default async function initConcierge() {
   let loading = false;
   let ready = false;
   let timeout;
+  let pendingRequest;
+  let requestId = 0;
+
+  function readDeepLink(url) {
+    if (url.hash !== '#sherpa' && !url.hash.startsWith('#sherpa?')) return null;
+    const params = new URLSearchParams(url.hash.slice(8));
+    return { prompt: params.get('prompt')?.trim() || undefined, send: params.get('send') === 'true' };
+  }
+
+  function prefill() {
+    if (!ready || !pendingRequest || pendingRequest.delivered) return;
+    pendingRequest.delivered = true;
+    frame.contentWindow.postMessage({
+      source: 'wknd-sherpa',
+      type: 'prefill',
+      requestId: pendingRequest.id,
+      prompt: pendingRequest.prompt,
+      send: pendingRequest.send,
+      focus: dialog.open,
+    }, window.location.origin);
+  }
 
   function showError(message) {
     clearTimeout(timeout);
@@ -66,6 +87,22 @@ export default async function initConcierge() {
     }, 30000);
   }
 
+  function openConcierge(prompt, send = false) {
+    if (prompt !== undefined) {
+      requestId += 1;
+      pendingRequest = { id: requestId, prompt, send };
+    }
+    if (!dialog.open) dialog.showModal();
+    launcher.setAttribute('aria-expanded', 'true');
+    initialize();
+    prefill();
+  }
+
+  function openFromHash() {
+    const link = readDeepLink(new URL(window.location.href));
+    if (link) openConcierge(link.prompt, link.send);
+  }
+
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin || event.source !== frame.contentWindow
       || event.data?.source !== 'wknd-sherpa') return;
@@ -75,17 +112,40 @@ export default async function initConcierge() {
       ready = true;
       notice.hidden = true;
       frame.hidden = false;
+      prefill();
     } else if (event.data.type === 'error' && loading) {
       showError('WKND Sherpa is unavailable right now. Please try again.');
+    } else if (event.data.type === 'prefilled' && pendingRequest
+      && event.data.requestId === pendingRequest.id) {
+      pendingRequest = undefined;
+      notice.hidden = true;
+    } else if (event.data.type === 'prefill-error' && pendingRequest
+      && event.data.requestId === pendingRequest.id) {
+      pendingRequest = undefined;
+      notice.hidden = false;
+      status.textContent = event.data.message;
+      retry.hidden = true;
     } else if (event.data.type === 'close') {
       dialog.close();
     }
   });
-  launcher.addEventListener('click', () => {
-    dialog.showModal();
-    launcher.setAttribute('aria-expanded', 'true');
-    initialize();
+  launcher.addEventListener('click', () => openConcierge());
+  document.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0
+      || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const anchor = event.target.closest?.('a[href]');
+    if (!anchor || anchor.hasAttribute('download')
+      || (anchor.target && anchor.target !== '_self')) return;
+    const url = new URL(anchor.href);
+    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname
+      || url.search !== window.location.search) return;
+    const link = readDeepLink(url);
+    if (!link) return;
+    event.preventDefault();
+    if (url.hash !== window.location.hash) window.history.pushState(null, '', url);
+    openConcierge(link.prompt, link.send);
   });
+  window.addEventListener('hashchange', openFromHash);
   retry.addEventListener('click', initialize);
   wrapper.querySelector('.wknd-sherpa-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', (event) => {
@@ -98,4 +158,5 @@ export default async function initConcierge() {
     launcher.setAttribute('aria-expanded', 'false');
     launcher.focus({ preventScroll: true });
   });
+  openFromHash();
 }
