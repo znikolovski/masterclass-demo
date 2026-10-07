@@ -187,6 +187,17 @@ main .discover-adventures .da-cta-secondary:focus-visible {
   background: rgba(255, 255, 255, 0.12);
 }
 
+main .discover-adventures .da-cta-tertiary {
+  background: transparent;
+  color: var(--light-color);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+main .discover-adventures .da-cta-tertiary:hover,
+main .discover-adventures .da-cta-tertiary:focus-visible {
+  background: var(--dark-color);
+}
+
 main .discover-adventures .da-nav {
   position: absolute;
   top: 50%;
