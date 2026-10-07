@@ -189,7 +189,7 @@ function buildCard(item, i, bridge, isTop, intent) {
   tertiary.className = 'da-cta da-cta-tertiary';
   tertiary.type = 'button';
   tertiary.textContent = 'Explore on WKND';
-  if (bridge) tertiary.addEventListener('click', () => { window.open(`https://wknd-adventures.run.place/of1?llm_app_ctx=${intent}`, '_blank'); });
+  if (bridge) tertiary.addEventListener('click', () => { window.open(`https://wknd-adventures.run.place/of1?llm_app_ctx=${encodeURIComponent(intent)}`, '_blank'); });
   actions.appendChild(tertiary);
 
   content.appendChild(actions);
