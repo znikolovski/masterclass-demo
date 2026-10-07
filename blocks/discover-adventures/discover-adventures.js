@@ -50,6 +50,7 @@ function hasCoords(item) {
 
 export default async function decorate(block, bridge) {
   let items;
+  let intent = '';
 
   if (bridge) {
     bridge.applyHostStyles();
@@ -61,13 +62,14 @@ export default async function decorate(block, bridge) {
       const structuredContent = _result?.structuredContent || {};
       // structuredContent.adventures — bare array outputSchema; key derived from actionName "discover_adventures"
       items = structuredContent?.adventures || [];
+      intent = structuredContent?.intent || '';
     }
   } else {
     items = SAMPLE_DATA;
   }
 
   block.textContent = '';
-  renderWidget(block, items || [], bridge);
+  renderWidget(block, items || [], bridge, intent);
 
   if (bridge) {
     bridge.reportSize(block.offsetWidth, block.offsetHeight);
@@ -87,7 +89,7 @@ function makeChip(label, value) {
   return chip;
 }
 
-function buildCard(item, i, bridge, isTop) {
+function buildCard(item, i, bridge, isTop, intent) {
   const card = document.createElement('article');
   card.className = 'da-card';
 
@@ -183,12 +185,19 @@ function buildCard(item, i, bridge, isTop) {
   if (bridge) secondary.addEventListener('click', () => bridge.sendMessage(`Compare adventures: ${name}`));
   actions.appendChild(secondary);
 
+  const tertiary = document.createElement('button');
+  tertiary.className = 'da-cta da-cta-tertiary';
+  tertiary.type = 'button';
+  tertiary.textContent = 'Explore on WKND';
+  if (bridge) tertiary.addEventListener('click', () => { window.open(`https://wknd-adventures.run.place/of1?llm_app_ctx=${intent}`, '_blank'); });
+  actions.appendChild(tertiary);
+
   content.appendChild(actions);
   card.appendChild(content);
   return card;
 }
 
-function renderWidget(block, items, bridge) {
+function renderWidget(block, items, bridge, intent) {
   const root = document.createElement('div');
   root.className = 'da-root';
 
@@ -208,7 +217,7 @@ function renderWidget(block, items, bridge) {
   track.className = 'da-track';
 
   const shown = items.slice(0, 8);
-  shown.forEach((item, i) => track.appendChild(buildCard(item, i, bridge, i === 0)));
+  shown.forEach((item, i) => track.appendChild(buildCard(item, i, bridge, i === 0, intent)));
   wrapper.appendChild(track);
 
   const fade = document.createElement('div');
