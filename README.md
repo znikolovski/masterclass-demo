@@ -34,6 +34,9 @@ stylesheets. It shares the site's font and colour tokens with standalone fallbac
 Syncopate headings and action buttons, Instrument Sans body text, forest pill
 buttons with orange offset shadows, and white/cream surfaces. Fonts retain the
 existing Google Fonts source; the embed host must permit that source in its CSP.
+`aem-embed` loads `styles/llmapp-fonts.css` into the host document for these widgets,
+since font faces declared only inside a shadow root are not registered by the browser.
+It waits for the fonts before decorating the block and reporting its dimensions.
 
 Widget-specific layouts and safety/status treatments remain in each block.
 Light, system-dark, and `body.dark` host themes are supported. Shared layout resets

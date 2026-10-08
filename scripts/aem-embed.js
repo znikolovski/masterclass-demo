@@ -9,6 +9,12 @@ const AERO_BLOCKS = new Set([
   'aero-pass', 'aero-newsletter', 'destinations-grid', 'travel-inspiration', 'booking-journey', 'adventure-detail',
 ]);
 
+const LLM_WIDGET_BLOCKS = new Set([
+  'discover-adventures', 'build-route-briefing', 'build-gear-checklist',
+  'plan-permits-and-access', 'audit-pack-weight', 'prepare-field-submission',
+]);
+const widgetFontLoads = new Map();
+
 export class AEMEmbed extends HTMLElement {
   constructor() {
     super();
@@ -19,6 +25,30 @@ export class AEMEmbed extends HTMLElement {
     [window.hlx.codeBasePath] = new URL(import.meta.url).pathname.split('/scripts/');
   }
 
+  async loadWidgetFonts(origin) {
+    const href = `${origin}${window.hlx.codeBasePath}/styles/llmapp-fonts.css`;
+    if (!widgetFontLoads.has(href)) {
+      const loaded = new Promise((resolve, reject) => {
+        // Font faces inside a shadow root are not registered in document.fonts.
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.onload = resolve;
+        link.onerror = () => reject(new Error(`Unable to load widget fonts from ${href}`));
+        document.head.append(link);
+      }).then(() => Promise.all([
+        document.fonts.load('700 14px "Syncopate"'),
+        ...[400, 500, 600, 700].map((weight) => document.fonts.load(`${weight} 14px "Instrument Sans"`)),
+      ])).then((fonts) => {
+        if (fonts.some((faces) => faces.length === 0)) {
+          throw new Error('Required WKND widget fonts are unavailable; check the host font CSP');
+        }
+      });
+      widgetFontLoads.set(href, loaded);
+    }
+    await widgetFontLoads.get(href);
+  }
+
   /**
    * @param {HTMLBodyElement} body
    * @param {Element} block
@@ -27,6 +57,7 @@ export class AEMEmbed extends HTMLElement {
    * @param {object} [bridge] LLM Apps SDK bridge (undefined outside a widget host)
    */
   async loadBlock(body, block, blockName, origin, bridge) {
+    if (LLM_WIDGET_BLOCKS.has(blockName)) await this.loadWidgetFonts(origin);
     const prefix = AERO_BLOCKS.has(blockName) ? 'blocks/aero' : 'blocks';
     const blockCss = `${origin}${window.hlx.codeBasePath}/${prefix}/${blockName}/${blockName}.css`;
     if (!body.querySelector(`link[href="${blockCss}"]`)) {

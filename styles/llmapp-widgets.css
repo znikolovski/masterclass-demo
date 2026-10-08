@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+@import url('./llmapp-fonts.css');
 
 main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
   --widget-ink: var(--dark-color, #0f1a14);
