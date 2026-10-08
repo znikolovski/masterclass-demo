@@ -2,39 +2,37 @@
 // Sample data for standalone/preview mode.
 // In production, data comes dynamically from bridge.toolResult.
 const SAMPLE_DATA = [
-  { adventure_id: 'patagonia-trek', title: 'W Circuit: 9 Days, 115 km', image_url: 'https://wknd-adventures.run.place/media_1e4b49be43a70d306b1c312d0d78dd369b5ccce40.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Hiking', region: 'Americas', experience_level: 'Advanced', duration: '9 days · 115 km', verified_status: 'Verified · February 2026', match_reason: 'A demanding multi-day mountain expedition for experienced parties who want documented permit and stage detail.', physical_demand: 5, technical_skill: 3, remoteness: 4 },
-  { adventure_id: 'kayaking-norway', title: 'Lofoten Islands: Arctic Surfing at the Top of the World', image_url: 'https://wknd-adventures.run.place/media_1bd10685af4f3d38127de55d4da60d4ef86518b8d.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Surfing', region: 'Europe', experience_level: 'Advanced', duration: '7 days', verified_status: 'Verified · November 2025', match_reason: 'Cold-water surf expedition for confident surfers comfortable in serious neoprene and remote conditions.', physical_demand: 4, technical_skill: 4, remoteness: 5 },
-  { adventure_id: 'alpine-cycling', title: 'Six Days Through the High Alps by Bike', image_url: 'https://wknd-adventures.run.place/media_1e56ff87aeb7dc7d3d4eb4acd41d468f583a00303.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Cycling', region: 'Europe', experience_level: 'Advanced', duration: '6 days', verified_status: '', match_reason: 'High-pass road cycling for fit riders who want climb-by-climb resupply and surface beta.', physical_demand: 5, technical_skill: 2, remoteness: 3 },
-  { adventure_id: 'surfing-costa-rica', title: "Pavones and Playa Negra: Finding Your Feet on Costa Rica's Breaks", image_url: 'https://wknd-adventures.run.place/media_168d4df680b92c68b36d08772450bd3d2ec2d19ce.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Surfing', region: 'Americas', experience_level: 'Intermediate', duration: 'Flexible', verified_status: '', match_reason: 'Warm-water point-break guide suited to intermediate surfers wanting break selection and etiquette detail.', physical_demand: 3, technical_skill: 3, remoteness: 2 },
-  { adventure_id: 'winter-mountaineering', title: 'Why Cold Routes Demand Warm Minds', image_url: 'https://wknd-adventures.run.place/media_12bab1a689efff46698aae2d4591400d1208853ff.avif?width=1200&format=pjpg&optimize=medium', activity: 'Winter Mountaineering', region: 'Alpine', experience_level: 'Advanced', duration: '1–3 days', verified_status: '', match_reason: 'Steep-snow and mixed-terrain guidance for experienced mountaineers heading into winter conditions.', physical_demand: 5, technical_skill: 5, remoteness: 4 },
-  { adventure_id: 'yosemite-rock-climbing', title: 'First Light on the Valley', image_url: 'https://wknd-adventures.run.place/media_13abc2aa7399e068d346e9f883c5be81f0bdfabf5.avif?width=1200&format=pjpg&optimize=medium', activity: 'Climbing', region: 'Americas', experience_level: 'Beginner', duration: 'Flexible', verified_status: '', match_reason: 'Introductory Valley cragging for first-time climbers building rock skills on bolted terrain.', physical_demand: 3, technical_skill: 4, remoteness: 2 },
-  { adventure_id: 'wild-swimming-guide', title: 'Reading a River', image_url: 'https://wknd-adventures.run.place/media_183099ae6d06ddd8bbd52f5416f41782c6d9af77c.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Wild Swimming', region: 'Mountains', experience_level: 'Beginner', duration: 'Day trip', verified_status: '', match_reason: 'Approachable water-safety guidance for newcomers to cold-water and river swimming.', physical_demand: 2, technical_skill: 2, remoteness: 3 },
-  { adventure_id: 'desert-survival-guide', title: '48 Hours in the Sonoran', image_url: 'https://wknd-adventures.run.place/media_13f721df562523f0924be582404e750aaffab42e1.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Desert Trekking', region: 'Americas', experience_level: 'Intermediate', duration: '48 hours', verified_status: '', match_reason: 'Hot-desert travel skills for prepared trekkers managing heat and scarce water.', physical_demand: 4, technical_skill: 3, remoteness: 4 },
-  { adventure_id: 'mountain-photography', title: 'The Camera on Your Back', image_url: 'https://wknd-adventures.run.place/media_1133e47f59378ddc186f3a3f410745aa74c3102bd.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Photography', region: 'Alpine', experience_level: 'Intermediate', duration: 'Flexible', verified_status: '', match_reason: 'For photographers weighing image-making against the physical burden of gear on the trail.', physical_demand: 3, technical_skill: 2, remoteness: 3 },
-  { adventure_id: 'ultralight-backpacking', title: 'Sub-10 lb: What to Cut, What to Keep', image_url: 'https://wknd-adventures.run.place/media_11fea14b0a8da0dcbcde423d0b4a86d48016fed3b.avif?width=1200&format=pjpg&optimize=medium', activity: 'Backpacking', region: 'General', experience_level: 'Intermediate', duration: 'Multi-day', verified_status: '', match_reason: 'Weight-optimization principles for backpackers refining a multi-day kit.', physical_demand: 4, technical_skill: 2, remoteness: 3 },
+  {
+    adventure_id: 'patagonia-trek', title: 'W Circuit: 9 Days, 115 km', image_url: 'https://wknd-adventures.run.place/media_1e4b49be43a70d306b1c312d0d78dd369b5ccce40.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Hiking', region: 'Americas', experience_level: 'Advanced', duration: '9 days · 115 km', verified_status: 'Verified · February 2026', match_reason: 'A demanding multi-day mountain expedition for experienced parties who want documented permit and stage detail.', physical_demand: 5, technical_skill: 3, remoteness: 4,
+  },
+  {
+    adventure_id: 'kayaking-norway', title: 'Lofoten Islands: Arctic Surfing at the Top of the World', image_url: 'https://wknd-adventures.run.place/media_1bd10685af4f3d38127de55d4da60d4ef86518b8d.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Surfing', region: 'Europe', experience_level: 'Advanced', duration: '7 days', verified_status: 'Verified · November 2025', match_reason: 'Cold-water surf expedition for confident surfers comfortable in serious neoprene and remote conditions.', physical_demand: 4, technical_skill: 4, remoteness: 5,
+  },
+  {
+    adventure_id: 'alpine-cycling', title: 'Six Days Through the High Alps by Bike', image_url: 'https://wknd-adventures.run.place/media_1e56ff87aeb7dc7d3d4eb4acd41d468f583a00303.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Cycling', region: 'Europe', experience_level: 'Advanced', duration: '6 days', verified_status: '', match_reason: 'High-pass road cycling for fit riders who want climb-by-climb resupply and surface beta.', physical_demand: 5, technical_skill: 2, remoteness: 3,
+  },
+  {
+    adventure_id: 'surfing-costa-rica', title: "Pavones and Playa Negra: Finding Your Feet on Costa Rica's Breaks", image_url: 'https://wknd-adventures.run.place/media_168d4df680b92c68b36d08772450bd3d2ec2d19ce.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Surfing', region: 'Americas', experience_level: 'Intermediate', duration: 'Flexible', verified_status: '', match_reason: 'Warm-water point-break guide suited to intermediate surfers wanting break selection and etiquette detail.', physical_demand: 3, technical_skill: 3, remoteness: 2,
+  },
+  {
+    adventure_id: 'winter-mountaineering', title: 'Why Cold Routes Demand Warm Minds', image_url: 'https://wknd-adventures.run.place/media_12bab1a689efff46698aae2d4591400d1208853ff.avif?width=1200&format=pjpg&optimize=medium', activity: 'Winter Mountaineering', region: 'Alpine', experience_level: 'Advanced', duration: '1–3 days', verified_status: '', match_reason: 'Steep-snow and mixed-terrain guidance for experienced mountaineers heading into winter conditions.', physical_demand: 5, technical_skill: 5, remoteness: 4,
+  },
+  {
+    adventure_id: 'yosemite-rock-climbing', title: 'First Light on the Valley', image_url: 'https://wknd-adventures.run.place/media_13abc2aa7399e068d346e9f883c5be81f0bdfabf5.avif?width=1200&format=pjpg&optimize=medium', activity: 'Climbing', region: 'Americas', experience_level: 'Beginner', duration: 'Flexible', verified_status: '', match_reason: 'Introductory Valley cragging for first-time climbers building rock skills on bolted terrain.', physical_demand: 3, technical_skill: 4, remoteness: 2,
+  },
+  {
+    adventure_id: 'wild-swimming-guide', title: 'Reading a River', image_url: 'https://wknd-adventures.run.place/media_183099ae6d06ddd8bbd52f5416f41782c6d9af77c.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Wild Swimming', region: 'Mountains', experience_level: 'Beginner', duration: 'Day trip', verified_status: '', match_reason: 'Approachable water-safety guidance for newcomers to cold-water and river swimming.', physical_demand: 2, technical_skill: 2, remoteness: 3,
+  },
+  {
+    adventure_id: 'desert-survival-guide', title: '48 Hours in the Sonoran', image_url: 'https://wknd-adventures.run.place/media_13f721df562523f0924be582404e750aaffab42e1.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Desert Trekking', region: 'Americas', experience_level: 'Intermediate', duration: '48 hours', verified_status: '', match_reason: 'Hot-desert travel skills for prepared trekkers managing heat and scarce water.', physical_demand: 4, technical_skill: 3, remoteness: 4,
+  },
+  {
+    adventure_id: 'mountain-photography', title: 'The Camera on Your Back', image_url: 'https://wknd-adventures.run.place/media_1133e47f59378ddc186f3a3f410745aa74c3102bd.jpg?width=1200&format=pjpg&optimize=medium', activity: 'Photography', region: 'Alpine', experience_level: 'Intermediate', duration: 'Flexible', verified_status: '', match_reason: 'For photographers weighing image-making against the physical burden of gear on the trail.', physical_demand: 3, technical_skill: 2, remoteness: 3,
+  },
+  {
+    adventure_id: 'ultralight-backpacking', title: 'Sub-10 lb: What to Cut, What to Keep', image_url: 'https://wknd-adventures.run.place/media_11fea14b0a8da0dcbcde423d0b4a86d48016fed3b.avif?width=1200&format=pjpg&optimize=medium', activity: 'Backpacking', region: 'General', experience_level: 'Intermediate', duration: 'Multi-day', verified_status: '', match_reason: 'Weight-optimization principles for backpackers refining a multi-day kit.', physical_demand: 4, technical_skill: 2, remoteness: 3,
+  },
 ];
-
-// Brand colors from DESIGN_TOKENS' color tier.
-const PALETTE = ['#e8651a', '#f4f2ef', '#0f1a14', '#ffffff'];
-const ACCENT = '#e8651a';
-const CARD_COLORS = ['#378ef0', '#9256d9', '#0fb5ae', '#e68619', '#d83790', '#2dca72', '#4046ca', '#72b340'];
-
-function getThemedCardBg(palette) {
-  if (!palette || !palette[0]) return null;
-  let hex = palette[0].replace('#', '');
-  if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-  if (hex.length !== 6) return null;
-  let [r, g, b] = [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return null;
-  const lum = (c) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4); };
-  const relLum = (rr, gg, bb) => 0.2126 * lum(rr) + 0.7152 * lum(gg) + 0.0722 * lum(bb);
-  if (relLum(r, g, b) <= 0.12) return { bg: `#${hex}`, fg: '#ffffff' };
-  let lo = 0; let hi = 1;
-  for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (relLum(Math.round(r * m), Math.round(g * m), Math.round(b * m)) > 0.12) hi = m; else lo = m; }
-  const dr = Math.round(r * lo); const dg = Math.round(g * lo); const db = Math.round(b * lo);
-  return { bg: `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`, fg: '#ffffff' };
-}
-const theme = getThemedCardBg(PALETTE);
 
 function num(v) {
   if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -46,40 +44,6 @@ function hasCoords(item) {
   const lat = num(item.latitude ?? item.lat);
   const lng = num(item.longitude ?? item.lng ?? item.lon);
   return lat !== null && lng !== null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-}
-
-export default async function decorate(block, bridge) {
-  let items;
-  let intent = '';
-
-  if (bridge) {
-    bridge.applyHostStyles();
-    const isPreview = bridge.hostContext?.preview === true;
-    if (isPreview) {
-      items = SAMPLE_DATA;
-    } else {
-      const _result = await bridge.toolResult;
-      const structuredContent = _result?.structuredContent || {};
-      // structuredContent.adventures — bare array outputSchema; key derived from actionName "discover_adventures"
-      items = structuredContent?.adventures || [];
-      intent = structuredContent?.intent || '';
-    }
-  } else {
-    items = SAMPLE_DATA;
-  }
-
-  block.textContent = '';
-  renderWidget(block, items || [], bridge, intent);
-
-  if (bridge) {
-    bridge.reportSize(block.offsetWidth, block.offsetHeight);
-    let resizeTimer;
-    const ro = new ResizeObserver(() => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
-    });
-    ro.observe(block);
-  }
 }
 
 function makeChip(label, value) {
@@ -96,10 +60,9 @@ function buildCard(item, i, bridge, isTop, intent) {
   const imageWrap = document.createElement('div');
   imageWrap.className = 'da-card-image';
 
-  const fallbackColor = CARD_COLORS[i % CARD_COLORS.length];
   const colorDiv = () => {
     const d = document.createElement('div');
-    d.style.cssText = `width:100%;height:100%;background-color:${fallbackColor};`;
+    d.className = 'da-image-placeholder';
     return d;
   };
   if (item.image_url) {
@@ -123,7 +86,6 @@ function buildCard(item, i, bridge, isTop, intent) {
 
   const content = document.createElement('div');
   content.className = 'da-card-content';
-  content.style.cssText = `background:${theme?.bg ?? '#1a1a1a'};color:${theme?.fg ?? '#fff'}`;
 
   const title = document.createElement('h3');
   title.className = 'da-title';
@@ -222,7 +184,6 @@ function renderWidget(block, items, bridge, intent) {
 
   const fade = document.createElement('div');
   fade.className = 'da-fade';
-  fade.style.cssText = `position:absolute;top:0;right:0;height:100%;width:60px;background:linear-gradient(to right,transparent,${theme?.bg ?? '#1a1a1a'}cc);pointer-events:none;`;
   wrapper.appendChild(fade);
 
   const leftBtn = document.createElement('button');
@@ -267,5 +228,39 @@ function renderWidget(block, items, bridge, intent) {
   if (mappable.length) {
     // Coordinates present — a map view could be mounted lazily here.
     // Left intentionally minimal: no coordinates in this action's schema.
+  }
+}
+
+export default async function decorate(block, bridge) {
+  let items;
+  let intent = '';
+
+  if (bridge) {
+    bridge.applyHostStyles();
+    const isPreview = bridge.hostContext?.preview === true;
+    if (isPreview) {
+      items = SAMPLE_DATA;
+    } else {
+      const result = await bridge.toolResult;
+      const structuredContent = result?.structuredContent || {};
+      // The action returns the adventure array under structuredContent.adventures.
+      items = structuredContent?.adventures || [];
+      intent = structuredContent?.intent || '';
+    }
+  } else {
+    items = SAMPLE_DATA;
+  }
+
+  block.textContent = '';
+  renderWidget(block, items || [], bridge, intent);
+
+  if (bridge) {
+    bridge.reportSize(block.offsetWidth, block.offsetHeight);
+    let resizeTimer;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
+    });
+    ro.observe(block);
   }
 }

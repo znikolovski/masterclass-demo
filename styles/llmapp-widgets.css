@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+  --widget-ink: var(--dark-color, #0f1a14);
+  --widget-accent: var(--accent-color, #e8651a);
+  --widget-paper: var(--light-color, #f4f2ef);
+  --widget-surface: #fff;
+  --widget-text: var(--widget-ink);
+  --widget-border: rgb(15 26 20 / 18%);
+  --widget-body-font: var(--body-font-family, "Instrument Sans", sans-serif);
+  --widget-heading-font: var(--heading-font-family, "Syncopate", sans-serif);
+
+  width: 100%;
+  color: var(--widget-text);
+  font-family: var(--widget-body-font);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Only widget sections lose their gutters; other page sections stay untouched. */
+main > :is(div, .section):has(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+  margin: 0;
+  padding-block: 0;
+}
+
+main > .section > div:has(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+  max-width: none;
+  padding: 0;
+}
+
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) button {
+  min-height: 44px;
+  max-width: 100%;
+}
+
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) :is(.da-cta, .build-route-briefing-cta, .bgc-btn, .ppa-cta, .apw-cta, .pfs-btn) {
+  border: 1px solid var(--widget-ink);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: var(--widget-ink);
+  color: #fff;
+  font-family: var(--widget-heading-font);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  box-shadow: 3px 3px 0 var(--widget-accent);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) :is(.da-cta, .build-route-briefing-cta, .bgc-btn, .ppa-cta, .apw-cta, .pfs-btn):hover {
+  box-shadow: 5px 5px 0 var(--widget-accent);
+  transform: translate(-1px, -1px);
+}
+
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) button:focus-visible {
+  outline: 2px solid var(--widget-accent);
+  outline-offset: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+    --widget-surface: #0f1a14;
+    --widget-text: #f4f2ef;
+    --widget-border: rgb(244 242 239 / 25%);
+  }
+}
+
+body.dark main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+  --widget-surface: #0f1a14;
+  --widget-text: #f4f2ef;
+  --widget-border: rgb(244 242 239 / 25%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) button {
+    transition: none;
+  }
+}

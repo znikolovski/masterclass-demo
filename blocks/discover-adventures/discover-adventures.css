@@ -1,21 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-
-/* Required for correct iframe sizing — AEM section margins inflate shadow body */
-main > div,
-main > .section,
-main > .section:first-of-type {
-  margin: 0;
-}
-main > .section > div {
-  max-width: none;
-  padding: 0;
-}
-body {
-  overflow: auto;
-}
+@import url('../../styles/llmapp-widgets.css');
 
 main .discover-adventures {
-  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--widget-body-font);
   padding: 8px;
   max-width: 780px;
   box-sizing: border-box;
@@ -25,11 +11,21 @@ main .discover-adventures h1,
 main .discover-adventures h2,
 main .discover-adventures h3,
 main .discover-adventures [class*="title"] {
-  font-family: 'Syncopate', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--widget-heading-font);
 }
 
 main .discover-adventures .da-carousel-wrap {
   position: relative;
+}
+
+main .discover-adventures .da-fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 60px;
+  background: linear-gradient(to right, transparent, var(--widget-surface));
+  pointer-events: none;
 }
 
 main .discover-adventures .da-track {
@@ -57,7 +53,8 @@ main .discover-adventures .da-card {
   flex-direction: column;
   scroll-snap-align: start;
   box-sizing: border-box;
-  background: #1a1a1a;
+  background: var(--widget-surface);
+  border: 1px solid var(--widget-accent);
 }
 
 main .discover-adventures .da-card-image {
@@ -68,12 +65,18 @@ main .discover-adventures .da-card-image {
   overflow: hidden;
 }
 
+main .discover-adventures .da-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--widget-paper);
+}
+
 main .discover-adventures .da-ribbon {
   position: absolute;
   top: 8px;
   left: 8px;
-  background: #b84e0e;
-  color: #fff;
+  background: var(--widget-accent);
+  color: var(--widget-ink);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -89,6 +92,8 @@ main .discover-adventures .da-card-content {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  background: var(--widget-surface);
+  color: var(--widget-text);
 }
 
 main .discover-adventures .da-title {
@@ -118,7 +123,7 @@ main .discover-adventures .da-duration {
 
 main .discover-adventures .da-verified {
   font-size: 10.5px;
-  color: #ffe0cf;
+  color: inherit;
   font-weight: 600;
 }
 
@@ -141,62 +146,44 @@ main .discover-adventures .da-chip {
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: inherit;
+  background: var(--widget-paper);
+  color: var(--widget-ink);
   white-space: nowrap;
 }
 
 main .discover-adventures .da-actions {
   margin-top: auto;
   padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--widget-border);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 
 main .discover-adventures .da-cta {
   width: 100%;
-  border: none;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 6px;
-  cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
-}
-
-main .discover-adventures .da-cta-primary {
-  background: #b04a0c;
-  color: #fff;
-}
-
-main .discover-adventures .da-cta-primary:hover,
-main .discover-adventures .da-cta-primary:focus-visible {
-  background: #933d0a;
 }
 
 main .discover-adventures .da-cta-secondary {
   background: transparent;
-  color: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--widget-text);
+  border-color: var(--widget-text);
 }
 
 main .discover-adventures .da-cta-secondary:hover,
 main .discover-adventures .da-cta-secondary:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--widget-paper);
+  color: var(--widget-ink);
 }
 
 main .discover-adventures .da-cta-tertiary {
-  background: transparent;
-  color: var(--light-color);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: var(--widget-ink);
+  color: #fff;
 }
 
 main .discover-adventures .da-cta-tertiary:hover,
 main .discover-adventures .da-cta-tertiary:focus-visible {
-  background: var(--dark-color);
+  box-shadow: 5px 5px 0 var(--widget-accent);
 }
 
 main .discover-adventures .da-nav {
@@ -207,7 +194,7 @@ main .discover-adventures .da-nav {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: rgba(15, 26, 20, 0.82);
+  background: var(--widget-ink);
   color: #fff;
   font-size: 12px;
   cursor: pointer;
@@ -215,7 +202,7 @@ main .discover-adventures .da-nav {
   align-items: center;
   justify-content: center;
   z-index: 5;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
 }
 
 main .discover-adventures .da-nav-left {
@@ -228,7 +215,7 @@ main .discover-adventures .da-nav-right {
 }
 
 main .discover-adventures .da-nav:focus-visible {
-  outline: 2px solid #e8651a;
+  outline: 2px solid var(--widget-accent);
   outline-offset: 2px;
 }
 
@@ -242,8 +229,3 @@ main .discover-adventures .da-empty {
 main .discover-adventures [hidden] {
   display: none !important;
 }
-
-@media (prefers-color-scheme: dark) {
-  main .discover-adventures { background: #111; }
-}
-body.dark main .discover-adventures { background: #111; }
