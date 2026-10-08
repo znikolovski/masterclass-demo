@@ -220,6 +220,7 @@ function renderWidget(block, items, bridge, intent) {
   root.appendChild(wrapper);
   block.appendChild(root);
   requestAnimationFrame(updateNav);
+  new ResizeObserver(updateNav).observe(track);
 
   // Map view is only meaningful when items carry coordinates. The sample payload
   // has none, so no toggle renders in preview; a live tool result with coordinates
