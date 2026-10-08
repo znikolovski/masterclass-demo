@@ -44,6 +44,10 @@ only affect sections containing these widgets, not the rest of the website.
 Preview each widget at `/eds-widgets/{block-name}-demo`; use the LLM app host to
 check real tool results and follow-up actions.
 
+Discovery shows one card in narrow embeds and two cards when its content area is
+at least 600px wide. Additional results remain accessible through the carousel.
+Its centered action buttons are capped at 280px with 44px minimum touch targets.
+
 ## Local development
 
 1. Create a new repository based on the `aem-boilerplate` template
