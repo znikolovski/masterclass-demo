@@ -1,21 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-
-/* Required for correct iframe sizing — AEM section margins inflate shadow body */
-main > div,
-main > .section,
-main > .section:first-of-type {
-  margin: 0;
-}
-main > .section > div {
-  max-width: none;
-  padding: 0;
-}
-body {
-  overflow: auto;
-}
+@import url('../../styles/llmapp-widgets.css');
 
 main .plan-permits-and-access {
-  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--widget-body-font);
   padding: 8px;
   max-width: 640px;
   box-sizing: border-box;
@@ -25,12 +11,12 @@ main .plan-permits-and-access {
 main .plan-permits-and-access h3,
 main .plan-permits-and-access h4,
 main .plan-permits-and-access [class*="title"] {
-  font-family: 'Syncopate', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--widget-heading-font);
 }
 
 main .plan-permits-and-access .ppa-card {
-  background: #ffffff;
-  border: 1px solid rgba(15, 26, 20, 0.12);
+  background: #fff;
+  border: 1px solid rgb(15 26 20 / 12%);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -41,7 +27,7 @@ main .plan-permits-and-access .ppa-card {
 /* Header */
 main .plan-permits-and-access .ppa-header {
   padding: 14px 16px 12px;
-  border-bottom: 1px solid rgba(15, 26, 20, 0.08);
+  border-bottom: 1px solid rgb(15 26 20 / 8%);
 }
 
 main .plan-permits-and-access .ppa-title {
@@ -57,7 +43,7 @@ main .plan-permits-and-access .ppa-subtitle {
   margin: 0 0 8px !important;
   font-size: 13px !important;
   line-height: 1.35 !important;
-  color: rgba(15, 26, 20, 0.7);
+  color: rgb(15 26 20 / 70%);
 }
 
 main .plan-permits-and-access .ppa-chip {
@@ -66,7 +52,7 @@ main .plan-permits-and-access .ppa-chip {
   font-weight: 600;
   letter-spacing: 0.02em;
   color: #b8480d;
-  background: rgba(232, 101, 26, 0.12);
+  background: rgb(232 101 26 / 12%);
   border-radius: 999px;
   padding: 3px 10px;
 }
@@ -88,7 +74,7 @@ main .plan-permits-and-access .ppa-section-title {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(15, 26, 20, 0.55);
+  color: rgb(15 26 20 / 55%);
 }
 
 /* Timeline */
@@ -110,7 +96,7 @@ main .plan-permits-and-access .ppa-step:not(:last-child)::before {
   top: 12px;
   bottom: -2px;
   width: 2px;
-  background: rgba(15, 26, 20, 0.14);
+  background: rgb(15 26 20 / 14%);
 }
 
 main .plan-permits-and-access .ppa-node {
@@ -120,8 +106,8 @@ main .plan-permits-and-access .ppa-node {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #ffffff;
-  border: 2px solid rgba(15, 26, 20, 0.3);
+  background: #fff;
+  border: 2px solid rgb(15 26 20 / 30%);
   box-sizing: border-box;
 }
 
@@ -156,7 +142,7 @@ main .plan-permits-and-access .ppa-step-body {
   margin: 0 !important;
   font-size: 13px !important;
   line-height: 1.4 !important;
-  color: rgba(15, 26, 20, 0.82);
+  color: rgb(15 26 20 / 82%);
 }
 
 /* Badges */
@@ -172,18 +158,18 @@ main .plan-permits-and-access .ppa-badge {
 }
 
 main .plan-permits-and-access .ppa-badge--urgent {
-  background: #bf4d0d;
-  color: #ffffff;
+  background: var(--widget-accent);
+  color: var(--widget-ink);
 }
 
 main .plan-permits-and-access .ppa-badge--confirm {
-  background: rgba(232, 101, 26, 0.14);
+  background: rgb(232 101 26 / 14%);
   color: #b8480d;
 }
 
 main .plan-permits-and-access .ppa-badge--planned {
-  background: rgba(15, 26, 20, 0.08);
-  color: rgba(15, 26, 20, 0.6);
+  background: rgb(15 26 20 / 8%);
+  color: rgb(15 26 20 / 60%);
 }
 
 /* Permits list */
@@ -201,7 +187,7 @@ main .plan-permits-and-access .ppa-permit {
 }
 
 main .plan-permits-and-access .ppa-permit + .ppa-permit {
-  border-top: 1px solid rgba(15, 26, 20, 0.06);
+  border-top: 1px solid rgb(15 26 20 / 6%);
 }
 
 main .plan-permits-and-access .ppa-permit-marker {
@@ -216,98 +202,80 @@ main .plan-permits-and-access .ppa-permit-marker {
 main .plan-permits-and-access .ppa-permit-text {
   font-size: 13px;
   line-height: 1.4;
-  color: rgba(15, 26, 20, 0.82);
+  color: rgb(15 26 20 / 82%);
 }
 
 /* CTAs */
 main .plan-permits-and-access .ppa-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px 14px;
-  border-top: 1px solid rgba(15, 26, 20, 0.08);
+  gap: 12px;
+  padding: 12px 16px 18px;
+  border-top: 1px solid rgb(15 26 20 / 8%);
 }
 
 main .plan-permits-and-access .ppa-cta {
   width: 100%;
-  border: none;
-  border-radius: 6px;
-  background: #bf4d0d;
-  color: #ffffff;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-main .plan-permits-and-access .ppa-cta:hover,
-main .plan-permits-and-access .ppa-cta:focus-visible {
-  background: #a8440c;
-  outline: none;
-}
-
-main .plan-permits-and-access .ppa-cta:focus-visible {
-  outline: 2px solid rgba(232, 101, 26, 0.5);
-  outline-offset: 2px;
 }
 
 main .plan-permits-and-access .ppa-empty {
   padding: 24px 16px;
   text-align: center;
   font-size: 13px;
-  color: rgba(15, 26, 20, 0.6);
+  color: rgb(15 26 20 / 60%);
 }
 
 /* Scrollbar */
 main .plan-permits-and-access .ppa-scroll::-webkit-scrollbar {
   width: 6px;
 }
+
 main .plan-permits-and-access .ppa-scroll::-webkit-scrollbar-thumb {
-  background: rgba(15, 26, 20, 0.2);
+  background: rgb(15 26 20 / 20%);
   border-radius: 3px;
 }
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   main .plan-permits-and-access { color: #f4f2ef; }
+
   main .plan-permits-and-access .ppa-card {
     background: #141d18;
-    border-color: rgba(244, 242, 239, 0.14);
+    border-color: rgb(244 242 239 / 14%);
   }
-  main .plan-permits-and-access .ppa-header { border-bottom-color: rgba(244, 242, 239, 0.1); }
+  main .plan-permits-and-access .ppa-header { border-bottom-color: rgb(244 242 239 / 10%); }
   main .plan-permits-and-access .ppa-title { color: #f4f2ef; }
-  main .plan-permits-and-access .ppa-subtitle { color: rgba(244, 242, 239, 0.72); }
-  main .plan-permits-and-access .ppa-chip { color: #ff8a4c; background: rgba(232, 101, 26, 0.18); }
-  main .plan-permits-and-access .ppa-section-title { color: rgba(244, 242, 239, 0.6); }
-  main .plan-permits-and-access .ppa-step:not(:last-child)::before { background: rgba(244, 242, 239, 0.18); }
-  main .plan-permits-and-access .ppa-node { background: #141d18; border-color: rgba(244, 242, 239, 0.35); }
+  main .plan-permits-and-access .ppa-subtitle { color: rgb(244 242 239 / 72%); }
+  main .plan-permits-and-access .ppa-chip { color: #ff8a4c; background: rgb(232 101 26 / 18%); }
+  main .plan-permits-and-access .ppa-section-title { color: rgb(244 242 239 / 60%); }
+  main .plan-permits-and-access .ppa-step:not(:last-child)::before { background: rgb(244 242 239 / 18%); }
+  main .plan-permits-and-access .ppa-node { background: #141d18; border-color: rgb(244 242 239 / 35%); }
   main .plan-permits-and-access .ppa-step-lead { color: #f4f2ef; }
-  main .plan-permits-and-access .ppa-step-body { color: rgba(244, 242, 239, 0.82); }
-  main .plan-permits-and-access .ppa-badge--confirm { color: #ff8a4c; background: rgba(232, 101, 26, 0.22); }
-  main .plan-permits-and-access .ppa-badge--planned { background: rgba(244, 242, 239, 0.12); color: rgba(244, 242, 239, 0.7); }
-  main .plan-permits-and-access .ppa-permit + .ppa-permit { border-top-color: rgba(244, 242, 239, 0.1); }
-  main .plan-permits-and-access .ppa-permit-text { color: rgba(244, 242, 239, 0.82); }
-  main .plan-permits-and-access .ppa-actions { border-top-color: rgba(244, 242, 239, 0.1); }
+  main .plan-permits-and-access .ppa-step-body { color: rgb(244 242 239 / 82%); }
+  main .plan-permits-and-access .ppa-badge--confirm { color: #ff8a4c; background: rgb(232 101 26 / 22%); }
+  main .plan-permits-and-access .ppa-badge--planned { background: rgb(244 242 239 / 12%); color: rgb(244 242 239 / 70%); }
+  main .plan-permits-and-access .ppa-permit + .ppa-permit { border-top-color: rgb(244 242 239 / 10%); }
+  main .plan-permits-and-access .ppa-permit-text { color: rgb(244 242 239 / 82%); }
+  main .plan-permits-and-access .ppa-actions { border-top-color: rgb(244 242 239 / 10%); }
 }
 
 body.dark main .plan-permits-and-access { color: #f4f2ef; }
+
 body.dark main .plan-permits-and-access .ppa-card {
   background: #141d18;
-  border-color: rgba(244, 242, 239, 0.14);
+  border-color: rgb(244 242 239 / 14%);
 }
-body.dark main .plan-permits-and-access .ppa-header { border-bottom-color: rgba(244, 242, 239, 0.1); }
+body.dark main .plan-permits-and-access .ppa-header { border-bottom-color: rgb(244 242 239 / 10%); }
 body.dark main .plan-permits-and-access .ppa-title { color: #f4f2ef; }
-body.dark main .plan-permits-and-access .ppa-subtitle { color: rgba(244, 242, 239, 0.72); }
-body.dark main .plan-permits-and-access .ppa-chip { color: #ff8a4c; background: rgba(232, 101, 26, 0.18); }
-body.dark main .plan-permits-and-access .ppa-section-title { color: rgba(244, 242, 239, 0.6); }
-body.dark main .plan-permits-and-access .ppa-step:not(:last-child)::before { background: rgba(244, 242, 239, 0.18); }
-body.dark main .plan-permits-and-access .ppa-node { background: #141d18; border-color: rgba(244, 242, 239, 0.35); }
+body.dark main .plan-permits-and-access .ppa-subtitle { color: rgb(244 242 239 / 72%); }
+body.dark main .plan-permits-and-access .ppa-chip { color: #ff8a4c; background: rgb(232 101 26 / 18%); }
+body.dark main .plan-permits-and-access .ppa-section-title { color: rgb(244 242 239 / 60%); }
+body.dark main .plan-permits-and-access .ppa-step:not(:last-child)::before { background: rgb(244 242 239 / 18%); }
+body.dark main .plan-permits-and-access .ppa-node { background: #141d18; border-color: rgb(244 242 239 / 35%); }
 body.dark main .plan-permits-and-access .ppa-step-lead { color: #f4f2ef; }
-body.dark main .plan-permits-and-access .ppa-step-body { color: rgba(244, 242, 239, 0.82); }
-body.dark main .plan-permits-and-access .ppa-badge--confirm { color: #ff8a4c; background: rgba(232, 101, 26, 0.22); }
-body.dark main .plan-permits-and-access .ppa-badge--planned { background: rgba(244, 242, 239, 0.12); color: rgba(244, 242, 239, 0.7); }
-body.dark main .plan-permits-and-access .ppa-permit + .ppa-permit { border-top-color: rgba(244, 242, 239, 0.1); }
-body.dark main .plan-permits-and-access .ppa-permit-text { color: rgba(244, 242, 239, 0.82); }
-body.dark main .plan-permits-and-access .ppa-actions { border-top-color: rgba(244, 242, 239, 0.1); }
+body.dark main .plan-permits-and-access .ppa-step-body { color: rgb(244 242 239 / 82%); }
+body.dark main .plan-permits-and-access .ppa-badge--confirm { color: #ff8a4c; background: rgb(232 101 26 / 22%); }
+body.dark main .plan-permits-and-access .ppa-badge--planned { background: rgb(244 242 239 / 12%); color: rgb(244 242 239 / 70%); }
+body.dark main .plan-permits-and-access .ppa-permit + .ppa-permit { border-top-color: rgb(244 242 239 / 10%); }
+body.dark main .plan-permits-and-access .ppa-permit-text { color: rgb(244 242 239 / 82%); }
+body.dark main .plan-permits-and-access .ppa-actions { border-top-color: rgb(244 242 239 / 10%); }

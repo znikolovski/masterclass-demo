@@ -25,6 +25,22 @@ npm i
 npm run lint
 ```
 
+## LLM app widget branding
+
+The six action widgets (`discover-adventures`, `build-route-briefing`,
+`build-gear-checklist`, `plan-permits-and-access`, `audit-pack-weight`, and
+`prepare-field-submission`) import `styles/llmapp-widgets.css` through their block
+stylesheets. It shares the site's font and colour tokens with standalone fallbacks:
+Syncopate headings and action buttons, Instrument Sans body text, forest pill
+buttons with orange offset shadows, and white/cream surfaces. Fonts retain the
+existing Google Fonts source; the embed host must permit that source in its CSP.
+
+Widget-specific layouts and safety/status treatments remain in each block.
+Light, system-dark, and `body.dark` host themes are supported. Shared layout resets
+only affect sections containing these widgets, not the rest of the website.
+Preview each widget at `/eds-widgets/{block-name}-demo`; use the LLM app host to
+check real tool results and follow-up actions.
+
 ## Local development
 
 1. Create a new repository based on the `aem-boilerplate` template

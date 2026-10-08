@@ -1,21 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-
-/* Required for correct iframe sizing — AEM section margins inflate shadow body */
-main > div,
-main > .section,
-main > .section:first-of-type {
-  margin: 0;
-}
-main > .section > div {
-  max-width: none;
-  padding: 0;
-}
-body {
-  overflow: auto;
-}
+@import url('../../styles/llmapp-widgets.css');
 
 main .build-route-briefing {
-  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--widget-body-font);
   padding: 8px;
   max-width: 780px;
   box-sizing: border-box;
@@ -27,7 +13,7 @@ main .build-route-briefing h2,
 main .build-route-briefing h3,
 main .build-route-briefing [class*="title"],
 main .build-route-briefing [class*="label"] {
-  font-family: 'Syncopate', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--widget-heading-font);
 }
 
 main .build-route-briefing-dash {
@@ -95,7 +81,7 @@ main .build-route-briefing-verified {
   align-self: flex-start;
   padding: 5px 11px;
   border-radius: 999px;
-  background: rgba(232, 101, 26, 0.16);
+  background: rgb(232 101 26 / 16%);
 }
 
 main .build-route-briefing-verified-dot {
@@ -215,7 +201,7 @@ main .build-route-briefing-chip {
   padding: 3px 9px;
   border-radius: 999px;
   background: #fff;
-  border: 1px solid rgba(15, 26, 20, 0.12);
+  border: 1px solid rgb(15 26 20 / 12%);
   color: #0f1a14;
 }
 
@@ -227,8 +213,8 @@ main .build-route-briefing-flags {
 }
 
 main .build-route-briefing-flag {
-  border: 1px dashed rgba(232, 101, 26, 0.5);
-  background: rgba(232, 101, 26, 0.06);
+  border: 1px dashed rgb(232 101 26 / 50%);
+  background: rgb(232 101 26 / 6%);
   border-radius: 10px;
   padding: 11px 13px;
   display: flex;
@@ -270,45 +256,24 @@ main .build-route-briefing-flag-item::before {
 main .build-route-briefing-ctas {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
-main .build-route-briefing-cta {
+main .build-route-briefing .build-route-briefing-cta {
   flex: 1 1 auto;
-  padding: 10px 14px;
-  border: 1px solid rgba(15, 26, 20, 0.18);
-  border-radius: 8px;
-  background: #fff;
-  color: #0f1a14;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  background: transparent;
+  color: var(--widget-text);
+  border-color: var(--widget-text);
 }
 
-main .build-route-briefing-cta:hover,
-main .build-route-briefing-cta:focus-visible {
-  border-color: #e8651a;
-  color: #c2540f;
-  outline: none;
-}
-
-main .build-route-briefing-cta.is-primary {
-  background: #c2540f;
-  border-color: #c2540f;
+main .build-route-briefing .build-route-briefing-cta.is-primary {
+  background: var(--widget-ink);
   color: #fff;
-}
-
-main .build-route-briefing-cta.is-primary:hover,
-main .build-route-briefing-cta.is-primary:focus-visible {
-  background: #9e4409;
-  border-color: #9e4409;
-  color: #fff;
+  border-color: var(--widget-ink);
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────────── */
-@media (max-width: 560px) {
+@media (width <= 560px) {
   main .build-route-briefing-panels,
   main .build-route-briefing-flags {
     grid-template-columns: 1fr;
@@ -324,16 +289,13 @@ main .build-route-briefing-cta.is-primary:focus-visible {
   main .build-route-briefing-step-text { color: #e6ebe8; }
   main .build-route-briefing-panel { background: #1a2620; }
   main .build-route-briefing-panel-text { color: #cdd6d1; }
-  main .build-route-briefing-chip { background: #0f1a14; border-color: rgba(255,255,255,0.14); color: #f4f2ef; }
+  main .build-route-briefing-chip { background: #0f1a14; border-color: rgb(255 255 255 / 14%); color: #f4f2ef; }
+
   main .build-route-briefing-section-label,
   main .build-route-briefing-panel-label { color: #a7b0aa; }
-  main .build-route-briefing-flag { background: rgba(232,101,26,0.1); border-color: rgba(232,101,26,0.55); }
+  main .build-route-briefing-flag { background: rgb(232 101 26 / 10%); border-color: rgb(232 101 26 / 55%); }
   main .build-route-briefing-flag-label { color: #f2925a; }
   main .build-route-briefing-flag-item { color: #cdd6d1; }
-  main .build-route-briefing-cta { background: #1a2620; border-color: rgba(255,255,255,0.16); color: #f4f2ef; }
-  main .build-route-briefing-cta:hover,
-  main .build-route-briefing-cta:focus-visible { border-color: #f2925a; color: #f2925a; }
-  main .build-route-briefing-cta.is-primary { background: #c2540f; border-color: #c2540f; color: #fff; }
 }
 
 body.dark main .build-route-briefing { color: #f4f2ef; background: #12201a; }
@@ -343,13 +305,10 @@ body.dark main .build-route-briefing-step { background: #1a2620; }
 body.dark main .build-route-briefing-step-text { color: #e6ebe8; }
 body.dark main .build-route-briefing-panel { background: #1a2620; }
 body.dark main .build-route-briefing-panel-text { color: #cdd6d1; }
-body.dark main .build-route-briefing-chip { background: #0f1a14; border-color: rgba(255,255,255,0.14); color: #f4f2ef; }
+body.dark main .build-route-briefing-chip { background: #0f1a14; border-color: rgb(255 255 255 / 14%); color: #f4f2ef; }
+
 body.dark main .build-route-briefing-section-label,
 body.dark main .build-route-briefing-panel-label { color: #a7b0aa; }
-body.dark main .build-route-briefing-flag { background: rgba(232,101,26,0.1); border-color: rgba(232,101,26,0.55); }
+body.dark main .build-route-briefing-flag { background: rgb(232 101 26 / 10%); border-color: rgb(232 101 26 / 55%); }
 body.dark main .build-route-briefing-flag-label { color: #f2925a; }
 body.dark main .build-route-briefing-flag-item { color: #cdd6d1; }
-body.dark main .build-route-briefing-cta { background: #1a2620; border-color: rgba(255,255,255,0.16); color: #f4f2ef; }
-body.dark main .build-route-briefing-cta:hover,
-body.dark main .build-route-briefing-cta:focus-visible { border-color: #f2925a; color: #f2925a; }
-body.dark main .build-route-briefing-cta.is-primary { background: #c2540f; border-color: #c2540f; color: #fff; }
