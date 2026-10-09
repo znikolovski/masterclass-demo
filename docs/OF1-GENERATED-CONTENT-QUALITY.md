@@ -190,7 +190,7 @@ Exercise discovery, recommendation, deep-dive, and budget queries too.
 Record selected template, source paths in the prompt, final HTML, and
 `slotResolution`, not just the model's raw slot proposals.
 
-## Aero additions: worker sync exceeds the subrequest limit
+## Aero additions: earlier worker sync exceeded the subrequest limit
 
 Feature commit `f0ecc72` adds five curated Aero flight-linked captures and
 entities, preserving the previous corpus. Both `.aem.page` and `.aem.live`
@@ -243,11 +243,42 @@ deterministic, not model proposals. This makes the dedicated panel available
 despite the ingestion blocker; it does **not** repair or validate unsupported
 flight claims elsewhere in the worker-generated response.
 
+### Planning enrichment recheck
+
+After adding five planning feature entities and extending five existing captures,
+the feature sync returned HTTP 200, `ok: true`, `errors: []`, and
+`content.indexed: 331`. Authored knowledge now has 50 records; the corpus
+remains 23 documents. The publisher appended only the new records and planning
+sections to current DA sources, preserving the original author content and
+images.
+
+A real feature-tenant request for
+`What gear and access checks should I prepare for the Patagonia W Circuit?`
+returned three sections and retrieved the new **Gear checklist**,
+**Permits & access**, **Route briefing**, and **Source-backed adventure planning**
+passages from `/of1/knowledge/patagonia-trek`. Both the labeled summary and its
+self-contained planning facts appeared in the complete generation system
+prompt. This verifies ingestion and actual retrieval of the enrichment, not
+every generated claim.
+
+The three previous Aero queries were repeated. Ohrid now retrieves
+`/of1/knowledge/aero-ohrid-macedonia`; Yosemite and Lofoten still retrieve
+other source passages instead of their Aero captures. None of the three
+generated HTML responses contains Aero experience/booking URLs. Ingestion is
+no longer blocked in this recheck, but balanced retrieval and emitted booking
+links are still unproven. The deterministic Aero panel remains independently
+available.
+
+The feature page's authored domain currently points to the main tenant.
+The page was also exercised with a real Ohrid search and displayed the new
+planning section, but the successful sync and detailed retrieval evidence above
+use the feature tenant explicitly; they do not establish a main tenant update.
+
 ## Requested engineering changes and acceptance criteria
 
 | Area | Request | Acceptance criterion |
 |---|---|---|
-| Sync completeness | Budget or batch larger syncs and report required ingestion errors instead of HTTP-200 success flags | All 45 entities and 23 source documents are accounted for without phase errors; Aero queries retrieve their new sources |
+| Sync completeness | Budget or batch larger syncs and report required ingestion errors instead of HTTP-200 success flags | All 50 authored records and 23 source documents are accounted for without phase errors; Aero queries retrieve their new sources |
 | Comparison retrieval | Resolve each requested entity independently and balance/rerank context across their source documents | Both named options receive substantive source passages; one document cannot consume the entire context budget |
 | Exploratory retrieval | Diversify relevant source documents instead of returning several adjacent passages from one article | Discovery and recommendation can offer distinct grounded options |
 | Generation grounding | Handle missing evidence explicitly | No invented route, distance, duration, price, or silently omitted comparison option |
