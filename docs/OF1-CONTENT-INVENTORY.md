@@ -269,7 +269,7 @@ with 117 image placements using the same 91 verified native image URLs
 Only the five new knowledge documents were previewed and published, on the
 `llm-traffic-tracking` tier; Aero's own content and `main` were not modified.
 
-**Worker ingestion is currently blocked.** Both EDS tiers serve all 45
+**Earlier Aero ingestion was blocked.** Both EDS tiers served all 45
 knowledge entities and 23 captures, and the preview query index lists all five
 Aero documents. Two sync attempts nevertheless returned a content-phase
 subrequest-limit error, 40 indexed entity vectors, and `content: null`.
@@ -279,6 +279,15 @@ model-generated Aero claims as verified until the shared worker completes
 ingestion; see [`OF1-GENERATED-CONTENT-QUALITY.md`](OF1-GENERATED-CONTENT-QUALITY.md)
 for the exact failure and
 unsupported flight claims.
+
+After the planning enrichment below, feature sync completed with HTTP 200,
+`errors: []`, and **331 indexed content chunks**. All 50 authored knowledge
+records and the five extended documents were published and verified without
+replacing existing author content or images. Real feature-tenant Patagonia generation retrieved
+the new gear, route and permits/access passages. Aero retrieval remains
+query-dependent: the Ohrid flight query selected Aero sources, but Yosemite and
+Lofoten did not, and none of those three generated HTML responses included Aero
+booking links. The independent flight-options panel remains necessary.
 
 ### Dedicated source-backed Aero section
 
@@ -368,6 +377,12 @@ images are introduced, and original capture blocks are preserved. DA knowledge
 records use the derived facts; the site panel reads the structured git JSON.
 Updating local files alone does not update authored DA records or worker
 retrieval: publication and a successfully completed tenant sync are separate.
+
+The enrichment is published on the `llm-traffic-tracking` feature site. Its
+authored `/of1` page currently sends generation requests to the **main tenant**;
+the dedicated panel still reads the feature site's committed data. The successful
+sync and retrieval evidence above are for the **feature tenant**, not a main
+tenant sync or a main code promotion.
 
 The summaries link published field notes and relevant official references.
 They do not establish live permit rules, closures, forecasts or bookings.
