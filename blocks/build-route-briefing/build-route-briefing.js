@@ -158,6 +158,7 @@ function renderBriefing(block, item, bridge) {
   const listDefs = [
     ['Hazards', item.hazards],
     ['Essential gear', item.essential_gear],
+    ['Key facts', item.key_facts],
   ];
   const hasPanels = panelDefs.some(([, v]) => v)
     || listDefs.some(([, v]) => Array.isArray(v) && v.length);
