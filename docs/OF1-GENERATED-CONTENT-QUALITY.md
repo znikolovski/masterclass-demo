@@ -121,6 +121,17 @@ source identity instead of inheriting unrelated examples.
 
 These mitigations do not establish reliable arbitrary-pair retrieval.
 
+The dedicated **Plan your adventure** panel additionally supplies curated gear,
+route and permits/access summaries for Patagonia, Yosemite, Lofoten, Ohrid and
+Ladakh. It reads source-backed structured git data and cites the original
+articles and official references, independently of model retrieval. The same
+summaries extend five existing captures and add five feature entities without
+adding documents or images. Their derived facts still require DA publication
+and successful worker sync before retrieval can use them. A correct planning
+panel does not prove that the generated text is grounded, or that historical
+permit descriptions are current. Source limitations and the need to verify
+local rules and suitable equipment remain visible.
+
 The exact comparison was rechecked after the primer appeared in both query
 indexes and sync indexed 292 chunks. It still received only Patagonia passages
 and dropped Yosemite's card (`rowsDropped: 1`). The richer response contained

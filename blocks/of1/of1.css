@@ -249,6 +249,10 @@
   animation: of1-fade-in 0.4s ease-out both;
 }
 
+main > .section.generated-section:not(.hero-adventure-container) {
+  padding-block: 24px;
+}
+
 main > .section.generated-section > div {
   box-sizing: border-box;
   overflow-wrap: anywhere;

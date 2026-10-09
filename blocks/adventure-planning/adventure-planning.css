@@ -1,0 +1,105 @@
+.adventure-planning {
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.adventure-planning .adventure-planning-panel {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 12px;
+}
+
+.adventure-planning h2 {
+  margin: 0 0 8px;
+  font-size: var(--heading-font-size-m);
+}
+
+.adventure-planning .adventure-planning-lead,
+.adventure-planning .adventure-planning-note,
+.adventure-planning .adventure-planning-caveat {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(61 79 69);
+}
+
+.adventure-planning .adventure-planning-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  margin: 20px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adventure-planning .adventure-planning-list > li {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.adventure-planning h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.adventure-planning details {
+  border-top: 1px solid rgb(0 0 0 / 8%);
+}
+
+.adventure-planning summary {
+  padding: 12px 0;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.adventure-planning summary:focus-visible,
+.adventure-planning a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.adventure-planning details ul {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.adventure-planning .adventure-planning-list details li + li {
+  margin-top: 8px;
+}
+
+.adventure-planning .adventure-planning-caveat {
+  margin-top: 12px;
+}
+
+.adventure-planning .adventure-planning-sources {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.adventure-planning .adventure-planning-sources a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+@media (width >= 600px) {
+  .adventure-planning .adventure-planning-list:has(> li:nth-child(2)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width >= 900px) {
+  .adventure-planning .adventure-planning-panel {
+    padding: 24px 28px;
+  }
+}

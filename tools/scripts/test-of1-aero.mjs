@@ -79,7 +79,8 @@ try {
     }));
     assert(await panel.evaluate((block) => (
       !block.closest('.cards')
-      && block.closest('.section').previousElementSibling.querySelector('.adventure-facts')
+      && block.closest('.section').previousElementSibling.querySelector('.adventure-planning')
+      && block.closest('.section').previousElementSibling.previousElementSibling.querySelector('.adventure-facts')
       && block.closest('.section').nextElementSibling.classList.contains('generative-suggestions')
     )));
   };

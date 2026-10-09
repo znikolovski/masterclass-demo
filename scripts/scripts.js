@@ -650,6 +650,11 @@ export function decorateMain(main) {
   const isGeneratedOf1 = !main.isConnected && document.querySelector('.of1.block')
     && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant);
   if (isGeneratedOf1) {
+    if (main.querySelector('.adventure-facts') && !main.querySelector('.adventure-planning')) {
+      const section = document.createElement('div');
+      section.append(buildBlock('adventure-planning', [['<h2>Plan your adventure</h2>']]));
+      main.append(section);
+    }
     if (main.querySelector('.adventure-facts') && !main.querySelector('.aero-options')) {
       const section = document.createElement('div');
       section.append(buildBlock('aero-options', [['<h2>WKND Aero flight options</h2>']]));
@@ -1230,8 +1235,8 @@ async function loadEager(doc) {
     decorateMain(main);
     const of1 = main.querySelector('.of1.block');
     if (of1 && !isLibraryPreview(doc)) {
-      const { initAeroQuery } = await import('./of1-aero.js');
-      initAeroQuery(of1);
+      const { initOf1Query } = await import('./of1-context.js');
+      initOf1Query(of1);
     }
     applyTemplateAndTheme(doc);
 
