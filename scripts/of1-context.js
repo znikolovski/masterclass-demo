@@ -3,7 +3,7 @@ import { readBlockConfig } from './aem.js';
 let initialQuery = '';
 const initialized = new WeakSet();
 
-export function initAeroQuery(block) {
+export function initOf1Query(block) {
   if (initialized.has(block)) return;
   initialized.add(block);
   const params = new URLSearchParams(window.location.search);
@@ -23,7 +23,7 @@ export function initAeroQuery(block) {
   }, true);
 }
 
-export function getAeroContext() {
+export function getOf1Context() {
   const main = document.querySelector('main');
   const anchor = [...main.querySelectorAll('.of1-turn-anchor')].at(-1);
   // Breadcrumb titles retain the complete follow-up query, even when its label is truncated.
@@ -38,4 +38,19 @@ export function getAeroContext() {
     }
   }
   return { query: topic?.title || initialQuery, headings };
+}
+
+export function normalizeOf1Text(text) {
+  return ` ${text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()} `;
+}
+
+export function selectOf1Entries(entries, getTerms) {
+  const context = getOf1Context();
+  const matches = (text) => entries.filter((entry) => (
+    getTerms(entry).some((term) => normalizeOf1Text(text).includes(normalizeOf1Text(term)))
+  ));
+  const selected = matches(context.query);
+  return selected.length ? selected : matches(context.headings.join(' '));
 }

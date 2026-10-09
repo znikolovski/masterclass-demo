@@ -1,12 +1,6 @@
-import { getAeroContext } from '../../scripts/of1-aero.js';
+import { normalizeOf1Text, selectOf1Entries } from '../../scripts/of1-context.js';
 
 let catalog;
-
-function normalize(text) {
-  return ` ${text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim()} `;
-}
 
 async function getCatalog() {
   if (!catalog) {
@@ -24,7 +18,7 @@ async function getCatalog() {
           if (typeof entry.title !== 'string' || !entry.title.trim()
             || !Array.isArray(flight?.destinationTerms) || !flight.destinationTerms.length
             || !flight.destinationTerms.every((term) => (
-              typeof term === 'string' && normalize(term).trim()
+              typeof term === 'string' && normalizeOf1Text(term).trim()
             ))
             || !/^[A-Z]{3}$/.test(flight.airport) || !/^\$\d+$/.test(flight.startingFare)
             || source.protocol !== 'https:' || booking.origin !== source.origin
@@ -53,7 +47,6 @@ function element(tag, text, className) {
 }
 
 export default async function decorate(block) {
-  const context = getAeroContext();
   let entries;
   try {
     entries = await getCatalog();
@@ -65,11 +58,7 @@ export default async function decorate(block) {
     console.error('Unable to load verified WKND Aero options:', error);
     return;
   }
-  const matches = (text) => entries.filter((entry) => (
-    entry.flightOptions.destinationTerms.some((term) => normalize(text).includes(normalize(term)))
-  ));
-  let selected = matches(context.query);
-  if (!selected.length) selected = matches(context.headings.join(' '));
+  const selected = selectOf1Entries(entries, (entry) => entry.flightOptions.destinationTerms);
   if (!selected.length) {
     block.closest('.section').hidden = true;
     return;
