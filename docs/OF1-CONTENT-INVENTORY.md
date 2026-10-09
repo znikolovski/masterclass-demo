@@ -378,11 +378,11 @@ records use the derived facts; the site panel reads the structured git JSON.
 Updating local files alone does not update authored DA records or worker
 retrieval: publication and a successfully completed tenant sync are separate.
 
-The enrichment is published on the `llm-traffic-tracking` feature site. Its
-authored `/of1` page currently sends generation requests to the **main tenant**;
+The initial enrichment was published on the `llm-traffic-tracking` feature site. Its
+authored `/of1` page sends generation requests to the **main tenant**;
 the dedicated panel still reads the feature site's committed data. The successful
 sync and retrieval evidence above are for the **feature tenant**, not a main
-tenant sync or a main code promotion.
+tenant sync or a main code promotion. The subsequent main release is recorded below.
 
 The summaries link published field notes and relevant official references.
 They do not establish live permit rules, closures, forecasts or bookings.
@@ -400,3 +400,26 @@ retain their existing spacing.
 Run `node tools/scripts/test-of1-planning.mjs http://localhost:3000` for all five
 destinations/templates, exact summary text and citations, placement, matching,
 disclosures, responsive spacing, authored-page isolation and error/recovery.
+
+## Planning main release (2026-10-09)
+
+The planning and spacing commits were promoted onto the latest main code,
+preserving the main tenant configuration and previous release fixes. The 45
+existing git knowledge entities, 23 captures and all 117 image placements were
+retained. The editable 50-record knowledge configuration and five extended
+knowledge documents were previewed and published on main without replacing
+author-owned content.
+
+Main worker sync completed with `ok: true`, `errors: []`, and
+`content.indexed: 331`; the tenant reports ready. An explicit Patagonia
+source-backed planning query retrieved the new summary, gear checklist,
+route briefing and permits/access passages from the published original
+knowledge document, with the planning facts present in the complete system
+prompt. Broader query selection remains variable, not universally repaired.
+
+The production planning and Aero browser regressions passed. Real Ohrid
+generation displayed the planning panel, native images loaded, and the new
+24 px generated-section padding rendered without horizontal overflow at
+375, 768 and 1200 px. Authored-page spacing and full-bleed heroes are unchanged.
+Production search, navigation/footer, five response templates and existing
+deliverables remain available.
