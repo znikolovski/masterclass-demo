@@ -1,8 +1,10 @@
 /* eslint-disable import/no-unresolved, import/prefer-default-export, max-len */
 import { h, render } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { pushBookingEvent } from '../../../../scripts/aero-analytics.js';
 import { DEFAULT_FLIGHT_ORIGIN } from '../../../../scripts/aero-blocks.js';
+import { getJourney } from '../../../../scripts/journey-analytics.js';
+import { JOURNEY_ID_PATTERN } from '../../../../scripts/journey-context.js';
 
 const STEPS = ['Flights', 'Seats', 'Passengers', 'Payment'];
 const STORAGE_KEY = 'wknd:booking:state';
@@ -489,7 +491,7 @@ function PaymentFormFields({ method, payment, onChange }) {
  * @param {object} props
  */
 function FlightSummaryAside({
-  flight, seats, passenger, pax, depart, pricing, onComplete, canComplete,
+  flight, seats, passenger, pax, depart, pricing, onComplete, canComplete, submitting, bookingError,
 }) {
   const flightNo = flight?.id ? `WKND ${flight.id.replace(/\D/g, '')}` : 'WKND';
   const aircraft = flight?.aircraft ? flight.aircraft.toUpperCase() : 'AIRCRAFT';
@@ -540,11 +542,13 @@ function FlightSummaryAside({
       type: 'button',
       class: 'booking-complete-btn',
       disabled: !canComplete,
+      'aria-busy': submitting ? 'true' : 'false',
       onClick: onComplete,
     }, [
-      'Complete booking',
+      submitting ? 'Confirming booking...' : 'Complete booking',
       h('span', { class: 'booking-complete-arrow', 'aria-hidden': 'true' }, '→'),
     ]),
+    bookingError && h('p', { class: 'booking-empty', role: 'alert' }, bookingError),
     h('p', { class: 'booking-payment-legal' }, [
       'By clicking Complete booking, you agree to the WKND Aero conditions of ',
       'carriage and privacy policy.',
@@ -568,6 +572,10 @@ function BookingApp({ mount }) {
     name: '', number: '', expiry: '', cvv: '', saveCard: false,
   });
   const [confirmed, setConfirmed] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState('');
+  const submittingRef = useRef(false);
+  const bookingRequestId = useRef(crypto.randomUUID());
   const {
     api, origin, dest, depart, passengers,
   } = mount.dataset;
@@ -592,6 +600,13 @@ function BookingApp({ mount }) {
     if (!params.get('dest') && dest) params.set('dest', dest);
     if (!params.get('depart') && depart) params.set('depart', depart);
     if (!params.get('passengers') && passengers) params.set('passengers', passengers);
+    const submittedSearch = params.get('fsid');
+    const searchId = JOURNEY_ID_PATTERN.test(submittedSearch)
+      ? submittedSearch : bookingRequestId.current;
+    if (!JOURNEY_ID_PATTERN.test(submittedSearch)) {
+      pushBookingEvent('flightSearchStart', { onceKey: searchId });
+    }
+    pushBookingEvent('bookingStart', { step: 0, onceKey: bookingRequestId.current });
 
     searchFlights(api, params)
       .then((data) => {
@@ -605,8 +620,11 @@ function BookingApp({ mount }) {
   }, [api, origin, dest, depart, passengers]);
 
   const go = (next) => {
+    if (submittingRef.current) return;
     setStep(next);
-    pushBookingEvent('bookingStep', { step: next, label: STEPS[next] });
+    pushBookingEvent('bookingStep', {
+      step: next, onceKey: `${bookingRequestId.current}:${next}`,
+    });
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
         step: next, selected, seats, passenger,
@@ -625,23 +643,67 @@ function BookingApp({ mount }) {
   };
 
   const completeBooking = async () => {
-    pushBookingEvent('bookingComplete', { step: 3 });
-    const resp = await fetch(`${api}/api/bookings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ flightId: selected?.id, passengers: [passenger], seats }),
-    });
-    const data = resp.ok ? await resp.json() : { id: `BK_DEMO_${Date.now()}` };
-    setConfirmed(data);
-    window.dispatchEvent(new CustomEvent('wknd:booking-complete', { detail: data }));
+    if (submittingRef.current || confirmed || !selected || seats.length !== pax
+      || !isPaymentValid(paymentMethod, payment)) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    setBookingError('');
+    let reason = 'network';
+    try {
+      const resp = await fetch(`${api}/api/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          flightId: selected.id,
+          quoteId: selected.quoteId,
+          requestId: bookingRequestId.current,
+          passengers: [passenger],
+          passengerCount: pax,
+          seats,
+          journey: getJourney(),
+        }),
+      });
+      reason = 'http';
+      if (!resp.ok) throw new Error(`Booking API returned HTTP ${resp.status}`);
+      reason = 'invalid-response';
+      const data = await resp.json();
+      if (!/^BK_[0-9a-f]{12,16}$/i.test(data.id) || data.status !== 'confirmed'
+        || data.flightId !== selected.id || !Number.isFinite(data.total) || data.total < 0
+        || !/^[A-Z]{3}$/.test(data.currency) || typeof data.demo !== 'boolean') {
+        throw new Error('Booking API did not return a valid confirmation');
+      }
+      pushBookingEvent('bookingComplete', { step: 3, booking: data, onceKey: data.id });
+      setConfirmed(data);
+      // Confirmation telemetry and integrations receive no passenger/payment PII.
+      window.dispatchEvent(new CustomEvent('wknd:booking-complete', {
+        detail: {
+          id: data.id,
+          status: data.status,
+          total: data.total,
+          currency: data.currency,
+          demo: data.demo,
+          journeyId: getJourney().id,
+        },
+      }));
+    } catch (err) {
+      pushBookingEvent('bookingError', { step: 3, reason });
+      setBookingError('Your booking could not be confirmed. Please try again. If your fare has expired, search for flights again.');
+      // eslint-disable-next-line no-console
+      console.error('Unable to confirm WKND Aero booking.', err);
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   };
 
   if (confirmed) {
     return h('div', { class: 'booking-app' }, [
       h(StepNav, { step: 4, confirmed: true }),
       h('div', { class: 'booking-confirmation' }, [
-        h('h2', null, 'You\'re booked'),
-        h('p', null, 'Your adventure starts at the airport. We\'ve sent a confirmation to your email.'),
+        h('h2', null, confirmed.demo ? 'Demo booking confirmed' : 'You\'re booked'),
+        h('p', null, confirmed.demo
+          ? 'This is a demo reservation. No payment has been taken, flight issued or email sent.'
+          : 'Your booking is confirmed. Keep your confirmation reference for your trip.'),
         h('p', { class: 'booking-ref' }, `Confirmation ${confirmed.id}`),
         h('p', null, `${selected?.origin} → ${selected?.destination} · ${formatTime(selected?.departTime)}`),
         h('a', { href: '/', class: 'booking-btn booking-btn-primary' }, 'Return home'),
@@ -769,7 +831,9 @@ function BookingApp({ mount }) {
           pax,
           depart,
           pricing: computePricing(selected, seats, pax),
-          canComplete: isPaymentValid(paymentMethod, payment),
+          canComplete: !submitting && isPaymentValid(paymentMethod, payment),
+          submitting,
+          bookingError,
           onComplete: completeBooking,
         }),
       ]),

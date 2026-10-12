@@ -4,6 +4,7 @@
  */
 
 import { loadCSS } from './aem.js';
+import { getJourney } from './journey-analytics.js';
 
 /** @type {Set<string>} */
 export const AERO_BLOCKS = new Set([
@@ -114,12 +115,14 @@ export const DEFAULT_FLIGHT_ORIGIN = 'MEL';
  */
 export function getFlightAttribution() {
   const params = new URLSearchParams(window.location.search);
+  // eslint-disable-next-line no-use-before-define -- paired attribution readers
+  const stored = readFlightAttribution();
   return {
-    origin: params.get('origin') || '',
-    dest: params.get('dest') || '',
-    adv: params.get('adv') || '',
-    cid: params.get('cid') || '',
-    ref: params.get('ref') || '',
+    origin: params.get('origin') || stored.origin || '',
+    dest: params.get('dest') || stored.dest || '',
+    adv: params.get('adv') || stored.adv || '',
+    cid: params.get('cid') || stored.cid || '',
+    ref: params.get('ref') || stored.ref || '',
   };
 }
 
@@ -130,9 +133,14 @@ export function getFlightAttribution() {
 export function persistFlightAttribution(attrs) {
   try {
     const existing = JSON.parse(sessionStorage.getItem('wknd:aero:attribution') || '{}');
-    sessionStorage.setItem('wknd:aero:attribution', JSON.stringify({ ...existing, ...attrs }));
-  } catch {
-    /* ignore quota errors */
+    const journeyId = getJourney().id;
+    const previous = existing.journeyId === journeyId ? existing : {};
+    sessionStorage.setItem('wknd:aero:attribution', JSON.stringify({
+      ...previous, ...attrs, journeyId,
+    }));
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Unable to persist flight attribution.', error.name);
   }
 }
 
@@ -141,8 +149,11 @@ export function persistFlightAttribution(attrs) {
  */
 export function readFlightAttribution() {
   try {
-    return JSON.parse(sessionStorage.getItem('wknd:aero:attribution') || '{}');
-  } catch {
+    const attrs = JSON.parse(sessionStorage.getItem('wknd:aero:attribution') || '{}');
+    return attrs.journeyId === getJourney().id ? attrs : {};
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Unable to read flight attribution.', error.name);
     return {};
   }
 }

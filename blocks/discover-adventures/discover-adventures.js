@@ -1,4 +1,7 @@
 // codegen:layout-pattern=carousel
+import { normalizeJourney, addJourneyToUrl } from '../../scripts/journey-context.js';
+import { journeyEventPayload, mapJourneyToAnalytics, decorateJourneyIdentity } from '../../scripts/journey-analytics.js';
+
 // Sample data for standalone/preview mode.
 // In production, data comes dynamically from bridge.toolResult.
 const SAMPLE_DATA = [
@@ -53,7 +56,7 @@ function makeChip(label, value) {
   return chip;
 }
 
-function buildCard(item, i, bridge, isTop, intent) {
+function buildCard(item, i, bridge, isTop, intent, tracking) {
   const card = document.createElement('article');
   card.className = 'da-card';
 
@@ -151,7 +154,52 @@ function buildCard(item, i, bridge, isTop, intent) {
   tertiary.className = 'da-cta da-cta-tertiary';
   tertiary.type = 'button';
   tertiary.textContent = 'Explore on WKND';
-  if (bridge) tertiary.addEventListener('click', () => { window.open(`https://wknd-adventures.run.place/of1?llm_app_ctx=${encodeURIComponent(intent)}`, '_blank'); });
+  tertiary.addEventListener('click', async () => {
+    const journey = normalizeJourney({ ...tracking.journey, adventure: item.adventure_id });
+    const url = new URL('https://wknd-adventures.run.place/of1');
+    url.searchParams.set('llm_app_ctx', intent || `Tell me about ${name}`);
+    let href = addJourneyToUrl(url.href, journey);
+    tertiary.disabled = true;
+    try {
+      if (tracking.ready && journey) {
+        const payload = journeyEventPayload('llmAppHandoff', {}, journey);
+        payload.data.__adobe = { analytics: {} }; // eslint-disable-line no-underscore-dangle
+        mapJourneyToAnalytics(payload);
+        // Do not block host navigation on an Analytics network response.
+        window.alloy('sendEvent', {
+          xdm: payload.xdm, data: payload.data,
+        }).catch((error) => {
+          // eslint-disable-next-line no-console
+          console.warn('LLM handoff telemetry failed.', error.name);
+        });
+        href = await decorateJourneyIdentity(href);
+      }
+      if (bridge?.openLink) {
+        const response = await bridge.openLink(href);
+        if (response?.isError || response?.error) throw new Error('Host rejected the WKND link');
+      } else if (!window.open(href, '_blank', 'noopener')) {
+        throw new Error('The browser blocked the WKND link');
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Unable to open WKND from the LLM app.', error.name);
+      let notice = actions.querySelector('[role="alert"]');
+      if (!notice) {
+        notice = document.createElement('p');
+        notice.setAttribute('role', 'alert');
+        actions.append(notice);
+      }
+      notice.textContent = 'Unable to open WKND. Try again or open this link: ';
+      const fallback = document.createElement('a');
+      fallback.href = href;
+      fallback.target = '_blank';
+      fallback.rel = 'noopener';
+      fallback.textContent = 'Explore on WKND';
+      notice.append(fallback);
+    } finally {
+      tertiary.disabled = false;
+    }
+  });
   actions.appendChild(tertiary);
 
   content.appendChild(actions);
@@ -159,7 +207,7 @@ function buildCard(item, i, bridge, isTop, intent) {
   return card;
 }
 
-function renderWidget(block, items, bridge, intent) {
+function renderWidget(block, items, bridge, intent, tracking) {
   const root = document.createElement('div');
   root.className = 'da-root';
 
@@ -179,7 +227,9 @@ function renderWidget(block, items, bridge, intent) {
   track.className = 'da-track';
 
   const shown = items.slice(0, 8);
-  shown.forEach((item, i) => track.appendChild(buildCard(item, i, bridge, i === 0, intent)));
+  shown.forEach((item, i) => (
+    track.appendChild(buildCard(item, i, bridge, i === 0, intent, tracking))
+  ));
   wrapper.appendChild(track);
 
   const fade = document.createElement('div');
@@ -232,9 +282,51 @@ function renderWidget(block, items, bridge, intent) {
   }
 }
 
+async function initializeJourneyTracking(edge) {
+  if (!navigator.cookieEnabled) {
+    throw new Error('Browser cookies are unavailable for Adobe identity handoff');
+  }
+  const sdk = await import('../../scripts/llmapps-sdk.js');
+  await sdk._loadAlloyScripts(); // eslint-disable-line no-underscore-dangle -- public SDK loader
+  let info;
+  try {
+    info = await window.alloy('getLibraryInfo');
+  } catch (error) {
+    if (!error.message.includes('The library must be configured first.')) throw error;
+    await window.alloy('configure', { datastreamId: edge.datastreamId, orgId: edge.orgId });
+  }
+  if (info && (info.libraryInfo?.configs?.datastreamId !== edge.datastreamId
+    || info.libraryInfo?.configs?.orgId !== edge.orgId)) {
+    throw new Error('Existing Adobe configuration does not match the LLM action');
+  }
+  const identityKey = `kndctr_${edge.orgId.replace('@', '_')}_identity`;
+  const hasIdentityState = edge.handles?.some((handle) => handle.type === 'state:store'
+    && handle.payload?.some((state) => state.key === identityKey
+      && typeof state.value === 'string' && state.maxAge > 0));
+  if (hasIdentityState) {
+    const consentKeys = ['consent', 'consent_check']
+      .map((name) => `kndctr_${edge.orgId.replace('@', '_')}_${name}`);
+    const handles = edge.handles.map((handle) => (handle.type === 'state:store'
+      ? { ...handle, payload: handle.payload.filter((state) => !consentKeys.includes(state.key)) }
+      : handle));
+    await window.alloy('applyResponse', {
+      // Server tool policy must not overwrite the browser's saved consent.
+      responseBody: { handle: handles }, renderDecisions: true,
+    });
+    if (!document.cookie.split(';').some((cookie) => cookie.trim().startsWith(`${identityKey}=`))) {
+      throw new Error('Browser could not persist the Adobe identity state');
+    }
+  } else {
+    // An identity-only applyResponse leaves Web SDK's first-request gate unresolved.
+    // eslint-disable-next-line no-console
+    console.warn('LLM Edge identity state is missing; browser identity is acquired independently.');
+  }
+}
+
 export default async function decorate(block, bridge) {
   let items;
   let intent = '';
+  let result;
 
   if (bridge) {
     bridge.applyHostStyles();
@@ -242,7 +334,7 @@ export default async function decorate(block, bridge) {
     if (isPreview) {
       items = SAMPLE_DATA;
     } else {
-      const result = await bridge.toolResult;
+      result = await bridge.toolResult;
       const structuredContent = result?.structuredContent || {};
       // The action returns the adventure array under structuredContent.adventures.
       items = structuredContent?.adventures || [];
@@ -252,8 +344,32 @@ export default async function decorate(block, bridge) {
     items = SAMPLE_DATA;
   }
 
+  const metadata = result?._meta; // eslint-disable-line no-underscore-dangle -- MCP metadata
+  const tracking = {
+    journey: normalizeJourney(metadata?.wkndJourney) || {
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      source: 'llm-app',
+      tool: 'discover_adventures',
+      assisted: false,
+    },
+    ready: false,
+  };
+  const edge = metadata?.wkndEdge;
+  if (bridge && !bridge.hostContext?.preview && edge) {
+    try {
+      await initializeJourneyTracking(edge);
+      tracking.ready = true;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('LLM Adobe initialization failed; journey correlation is retained.', error.message);
+    }
+  } else if (bridge && !bridge.hostContext?.preview) {
+    // eslint-disable-next-line no-console
+    console.warn('LLM action has no Edge handoff metadata; server-to-browser identity is unavailable.');
+  }
   block.textContent = '';
-  renderWidget(block, items || [], bridge, intent);
+  renderWidget(block, items || [], bridge, intent, tracking);
 
   if (bridge) {
     bridge.reportSize(block.offsetWidth, block.offsetHeight);

@@ -2,6 +2,11 @@
 
 Measurement plan for [masterclass-demo](https://main--masterclass-demo--znikolovski.aem.page/) on report suite **`ags050wknd`**, using **Web SDK (martech)** for transport and **Adobe Experience Platform Tags (Launch)** for variable and event mapping.
 
+The LLM App/OF1/optional Sherpa/Aero funnel has a direct Web SDK mapping contract
+for eVar30-35 and event30-41. See [JOURNEY-TRACKING.md](JOURNEY-TRACKING.md) for
+activation, consent scope, booking serialization and journey-vs-visitor caveats;
+do not add duplicate Launch Send Event rules for its `wkndJourney` hits.
+
 See also [MARTECH.md](./MARTECH.md) for datastream and site wiring.
 
 ---

@@ -1,4 +1,8 @@
 import { loadCSS } from './aem.js';
+import {
+  getJourney, saveJourney, pushJourneyEvent, prepareAeroUrl, decorateJourneyIdentity,
+} from './journey-analytics.js';
+import { isAeroUrl, journeyFromUrl, addJourneyToUrl } from './journey-context.js';
 
 export default async function initConcierge() {
   if (document.querySelector('.wknd-sherpa')) return;
@@ -79,7 +83,11 @@ export default async function initConcierge() {
     retry.hidden = true;
     notice.hidden = false;
     status.textContent = 'Loading WKND Sherpa...';
-    frame.src = `${window.hlx.codeBasePath}/tools/concierge/index.html`;
+    frame.src = addJourneyToUrl(
+      `${window.hlx.codeBasePath}/tools/concierge/index.html`,
+      getJourney(),
+      window.location.href,
+    );
     timeout = setTimeout(() => {
       // Stop the incomplete document so a late bootstrap cannot race a retry.
       frame.src = 'about:blank';
@@ -92,7 +100,11 @@ export default async function initConcierge() {
       requestId += 1;
       pendingRequest = { id: requestId, prompt, send };
     }
-    if (!dialog.open) dialog.showModal();
+    if (!dialog.open) {
+      saveJourney({ ...getJourney(), assisted: true });
+      pushJourneyEvent('sherpaOpen');
+      dialog.showModal();
+    }
     launcher.setAttribute('aria-expanded', 'true');
     initialize();
     prefill();
@@ -106,7 +118,30 @@ export default async function initConcierge() {
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin || event.source !== frame.contentWindow
       || event.data?.source !== 'wknd-sherpa') return;
-    if (event.data.type === 'ready' && loading) {
+    if (event.data.type === 'message-attempt' && ready) {
+      pushJourneyEvent('sherpaMessageAttempt');
+    } else if (['aero-link', 'aero-link-opened'].includes(event.data.type) && ready
+      && typeof event.data.url === 'string') {
+      let url;
+      try {
+        url = new URL(event.data.url);
+      } catch {
+        return;
+      }
+      if (!isAeroUrl(url)) return;
+      const href = prepareAeroUrl(url.href, 'wknd-sherpa');
+      saveJourney(journeyFromUrl(new URL(href)));
+      pushJourneyEvent('aeroHandoff');
+      if (event.data.type === 'aero-link-opened') return;
+      decorateJourneyIdentity(href).then((decorated) => {
+        frame.contentWindow.postMessage({
+          source: 'wknd-sherpa',
+          type: 'aero-link-ready',
+          requestId: event.data.requestId,
+          url: decorated,
+        }, window.location.origin);
+      });
+    } else if (event.data.type === 'ready' && loading) {
       clearTimeout(timeout);
       loading = false;
       ready = true;

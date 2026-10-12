@@ -4,6 +4,8 @@
  */
 
 import { deriveAdventureCategory } from './adventure-category.js';
+import { mapJourneyToAnalytics } from './journey-analytics.js';
+import { sanitizeJourneyUrl } from './journey-context.js';
 
 const JOURNEY_STAGE_SEGMENTS = {
   inspiration: ['blog', 'field-notes'],
@@ -91,7 +93,8 @@ function deriveJourneyStage(pathname, siteSection) {
 
 /** Production EDS hosts (aem.network primary; aem.live retained during transition). */
 export function isAemProductionHost(hostname = window.location?.hostname || '') {
-  return hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network');
+  return hostname.endsWith('.aem.live') || hostname.endsWith('.aem.network')
+    || hostname === 'wknd-adventures.run.place';
 }
 
 /**
@@ -194,7 +197,7 @@ export function pushAnalyticsPageContext(doc, getMetadataValue) {
  */
 export function pushErrorPageContext() {
   if (typeof window === 'undefined' || !window.isErrorPage || !window.adobeDataLayer) return;
-  const errorUrl = window.location.pathname + window.location.search;
+  const errorUrl = sanitizeJourneyUrl(window.location.href);
   window.adobeDataLayer.push({
     event: 'pageError',
     page: {
@@ -243,5 +246,6 @@ export function mapPageToAnalytics(content) {
   const cid = new URLSearchParams(window.location.search).get('cid');
   if (cid) s.eVar1 = cid;
 
+  mapJourneyToAnalytics(content);
   return true;
 }

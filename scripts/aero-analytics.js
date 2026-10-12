@@ -2,27 +2,17 @@
  * Aero booking funnel ACDL events with cross-site attribution.
  */
 import { readFlightAttribution } from './aero-blocks.js';
+import { getJourney, saveJourney, pushJourneyEvent } from './journey-analytics.js';
 
 /**
  * @param {string} eventName
  * @param {{ step?: number, label?: string }} detail
  */
 export function pushBookingEvent(eventName, detail = {}) {
-  if (typeof window === 'undefined' || !window.adobeDataLayer) return;
+  if (typeof window === 'undefined') return;
   const attrs = readFlightAttribution();
-  window.adobeDataLayer.push({
-    event: eventName,
-    booking: {
-      step: detail.step,
-      label: detail.label || '',
-    },
-    attribution: {
-      adventure: attrs.adv || '',
-      campaignId: attrs.cid || '',
-      referrer: attrs.ref || '',
-      destination: attrs.dest || '',
-    },
-  });
+  saveJourney({ ...getJourney(), adventure: attrs.adv || getJourney().adventure });
+  pushJourneyEvent(eventName, detail);
 }
 
 /**
@@ -30,17 +20,9 @@ export function pushBookingEvent(eventName, detail = {}) {
  */
 export function initAeroEmbedAnalytics() {
   window.addEventListener('wknd:flight-search-start', (e) => {
-    if (!window.adobeDataLayer) return;
     const detail = e.detail || {};
-    window.adobeDataLayer.push({
-      event: 'flightSearchStart',
-      attribution: {
-        destination: detail.dest || '',
-        adventure: detail.adv || '',
-        campaignId: detail.cid || '',
-        referrer: detail.ref || 'wknd-adventures',
-      },
-    });
+    if (detail.journeyTracked) return;
+    pushBookingEvent('flightSearchStart', { onceKey: detail.searchId });
   });
 }
 

@@ -1,15 +1,74 @@
 import { loadScript } from './aem.js';
 import stylingConfigurations from './concierge-config.js';
 import { WEB_SDK_CONFIG } from './martech-config.js';
+import { isAeroUrl } from './journey-context.js';
+import { prepareAeroUrl } from './journey-analytics.js';
 
 function notify(type, detail = {}) {
   window.parent.postMessage({ source: 'wknd-sherpa', type, ...detail }, window.location.origin);
 }
 
+let aeroRequestId = 0;
+const aeroRequests = new Map();
+let lastMessageAttempt = 0;
+function messageAttempt() {
+  const now = Date.now();
+  if (now - lastMessageAttempt < 250) return;
+  lastMessageAttempt = now;
+  notify('message-attempt');
+}
+function handleClick(event) {
+  if (event.button > 1) return;
+  const button = event.target.closest?.('#brand-concierge-mount button[aria-label="Send message"]');
+  const input = document.querySelector('#brand-concierge-mount .chat-input');
+  if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true'
+    && input?.value.trim()) messageAttempt();
+  const link = event.target.closest?.('#brand-concierge-mount a[href]');
+  if (!link || !isAeroUrl(new URL(link.href))) return;
+  link.href = prepareAeroUrl(link.href, 'wknd-sherpa');
+  if (event.defaultPrevented) return;
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+    || (link.target && link.target !== '_self')) {
+    notify('aero-link-opened', { url: link.href });
+    return;
+  }
+  event.preventDefault();
+  aeroRequestId += 1;
+  const requestId = aeroRequestId;
+  aeroRequests.set(requestId, link.href);
+  notify('aero-link', { requestId, url: link.href });
+  setTimeout(() => {
+    if (!aeroRequests.delete(requestId)) return;
+    // eslint-disable-next-line no-console
+    console.error('WKND Sherpa flight handoff timed out.');
+    const status = document.createElement('p');
+    status.setAttribute('role', 'alert');
+    status.textContent = 'Unable to open flight options. Please try the link again.';
+    link.after(status);
+  }, 4000);
+}
+document.addEventListener('click', handleClick, true);
+document.addEventListener('auxclick', handleClick, true);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing
+    && event.target.matches?.('#brand-concierge-mount .chat-input')
+    && event.target.value.trim()) messageAttempt();
+}, true);
+
 window.addEventListener('message', (event) => {
   if (event.origin !== window.location.origin || event.source !== window.parent
-    || event.data?.source !== 'wknd-sherpa' || event.data.type !== 'prefill'
-    || typeof event.data.prompt !== 'string') return;
+    || event.data?.source !== 'wknd-sherpa') return;
+  if (event.data.type === 'aero-link-ready') {
+    const original = aeroRequests.get(event.data.requestId);
+    if (!original || typeof event.data.url !== 'string') return;
+    const url = new URL(event.data.url);
+    if (!isAeroUrl(url) || url.origin !== new URL(original).origin
+      || url.pathname !== new URL(original).pathname) return;
+    aeroRequests.delete(event.data.requestId);
+    window.top.location.assign(url.href);
+    return;
+  }
+  if (event.data.type !== 'prefill' || typeof event.data.prompt !== 'string') return;
   const { prompt, requestId } = event.data;
   const input = [...document.querySelectorAll('#brand-concierge-mount .chat-input')]
     .find((element) => element.getClientRects().length && !element.disabled);

@@ -74,8 +74,19 @@ try {
       const item = panel.locator('li').nth(index);
       assert((await item.textContent()).includes(`Destination airport: ${entry.flightOptions.airport}`));
       assert((await item.textContent()).includes(`Flights from ${entry.flightOptions.startingFare}`));
-      assert.equal(await item.locator('a.secondary').getAttribute('href'), entry.url);
-      assert.equal(await item.locator('a.primary').getAttribute('href'), entry.flightOptions.bookingUrl);
+      await Promise.all([
+        ['a.secondary', entry.url],
+        ['a.primary', entry.flightOptions.bookingUrl],
+      ].map(async ([selector, source]) => {
+        const actual = new URL(await item.locator(selector).getAttribute('href'));
+        const expectedUrl = new URL(source);
+        assert.equal(actual.origin + actual.pathname, expectedUrl.origin + expectedUrl.pathname);
+        expectedUrl.searchParams.forEach((value, key) => {
+          assert.equal(actual.searchParams.get(key), value);
+        });
+        assert(actual.searchParams.get('wj'));
+        assert.equal(actual.searchParams.get('ref'), 'wknd-of1');
+      }));
     }));
     assert(await panel.evaluate((block) => (
       !block.closest('.cards')
