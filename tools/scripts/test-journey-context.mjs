@@ -66,6 +66,7 @@ console.log('PASS validated/expiring private context, safe hosts, redaction and 
 
 const values = new Map();
 const env = {
+  ALLOWED_ORIGINS: 'https://wknd-adventures.run.place',
   WKND_AERO_CATALOG: {
     put: async (key, value) => values.set(key, value),
     get: async (key, type) => {
@@ -74,8 +75,11 @@ const env = {
     },
   },
 };
-const search = await worker.fetch(new Request('https://worker.test/api/flights/search?origin=MEL&dest=PUQ'), env);
+const search = await worker.fetch(new Request('https://worker.test/api/flights/search?origin=MEL&dest=PUQ', {
+  headers: { Origin: 'https://wknd-adventures.run.place' },
+}), env);
 assert.equal(search.status, 200);
+assert.equal(search.headers.get('Access-Control-Allow-Origin'), 'https://wknd-adventures.run.place');
 const [flight] = (await search.json()).flights;
 const body = {
   requestId: crypto.randomUUID(),
