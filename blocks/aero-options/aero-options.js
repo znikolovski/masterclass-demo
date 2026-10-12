@@ -1,4 +1,5 @@
 import { normalizeOf1Text, selectOf1Entries } from '../../scripts/of1-context.js';
+import { prepareAeroUrl } from '../../scripts/journey-analytics.js';
 
 let catalog;
 
@@ -80,7 +81,7 @@ export default async function decorate(block) {
       ['Find flights with WKND Aero', flight.bookingUrl, 'primary'],
     ].forEach(([label, href, style]) => {
       const link = element('a', label, `button ${style}`);
-      link.href = href;
+      link.href = prepareAeroUrl(href);
       link.setAttribute('aria-label', `${label} for ${title}`);
       actions.append(link);
     });

@@ -1,4 +1,5 @@
 import { readBlockConfig } from './aem.js';
+import { getJourney, pushJourneyEvent } from './journey-analytics.js';
 
 let initialQuery = '';
 const initialized = new WeakSet();
@@ -8,6 +9,32 @@ export function initOf1Query(block) {
   initialized.add(block);
   const params = new URLSearchParams(window.location.search);
   initialQuery = params.get('q') || params.get('llm_app_ctx') || readBlockConfig(block).query || '';
+  getJourney();
+  pushJourneyEvent('of1Arrival');
+  const main = block.closest('main');
+  const searches = new WeakSet();
+  const results = new WeakSet();
+  const observeTurns = () => {
+    main.querySelectorAll('.of1-turn-anchor').forEach((anchor) => {
+      if (!searches.has(anchor)) {
+        searches.add(anchor);
+        pushJourneyEvent('of1Search');
+      }
+      if (results.has(anchor)) return;
+      let hasResults = false;
+      for (let section = anchor.nextElementSibling; section; section = section.nextElementSibling) {
+        if (section.classList.contains('of1-turn-anchor')) break;
+        if (section.classList.contains('generated-section')) hasResults = true;
+        if (hasResults && section.classList.contains('generative-suggestions')) {
+          results.add(anchor);
+          pushJourneyEvent('of1Results');
+          break;
+        }
+      }
+    });
+  };
+  new MutationObserver(observeTurns).observe(main, { childList: true });
+  observeTurns();
   // The SDK removes the initial input before rendering; capture its query first.
   block.addEventListener('click', (event) => {
     const chip = event.target.closest('.of1-chip');

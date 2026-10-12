@@ -12,7 +12,9 @@ import {
   toCamelCase,
 } from './aem.js';
 import { initAssetAnalytics } from './asset-analytics.js';
-import { pushAnalyticsPageContext, pushErrorPageContext } from './analytics-page.js';
+import { pushAnalyticsPageContext, pushErrorPageContext, isAemProductionHost } from './analytics-page.js';
+import { bindJourneyHandoffs, getJourney, pushJourneyEvent } from './journey-analytics.js';
+import { sanitizeJourneyUrl } from './journey-context.js';
 import {
   getTargetZones,
   hoistTargetLocationToSection,
@@ -541,7 +543,7 @@ function bindCtaAnalytics(main) {
       mod.pushInteractionEvent('ctaClick', {
         label: (link.textContent || '').trim(),
         block: link.closest('[class*="block"]')?.classList?.item(0) || 'cta',
-        detail: link.getAttribute('href') || '',
+        detail: sanitizeJourneyUrl(link.getAttribute('href'), window.location.href) || '',
       });
     }).catch(() => {});
   });
@@ -933,8 +935,7 @@ function isConsentGiven() {
   return hostname === 'localhost'
     || hostname === 'localhost.local'
     || hostname.endsWith('.page')
-    || hostname.endsWith('.live')
-    || hostname.endsWith('.network');
+    || isAemProductionHost(hostname);
 }
 
 /**
@@ -1233,6 +1234,13 @@ async function loadEager(doc) {
       primeLcpImage(main);
     }
     decorateMain(main);
+    if (!isLibraryPreview(doc)) {
+      bindJourneyHandoffs(main);
+      if (getRepolessSiteSlug(doc) === 'wknd-aero') {
+        getJourney();
+        pushJourneyEvent('aeroArrival');
+      }
+    }
     const of1 = main.querySelector('.of1.block');
     if (of1 && !isLibraryPreview(doc)) {
       const { initOf1Query } = await import('./of1-context.js');

@@ -4,7 +4,9 @@
 
 import { syncCatalogFromAdventures, getCatalogIndex, getCatalogEntity } from './catalog.js';
 import { renderPipelinePage } from './pipeline.js';
-import { searchFlights, createBooking } from './booking.js';
+import { searchFlights, createBooking, BookingInputError } from './booking.js';
+// eslint-disable-next-line import/no-relative-packages -- shared browser/Worker contract
+import { JOURNEY_ID_PATTERN } from '../../../scripts/journey-context.js';
 
 /**
  * @param {string} origin
@@ -81,14 +83,44 @@ export default {
       }
 
       if (url.pathname === '/api/flights/search' && request.method === 'GET') {
-        return json(searchFlights(url.searchParams), 200, cors);
+        const result = searchFlights(url.searchParams);
+        await env.WKND_AERO_CATALOG.put(
+          `flight-quote:${result.flights[0].quoteId}`,
+          JSON.stringify(result.flights),
+          { expirationTtl: 1800 },
+        );
+        return json(result, 200, { ...cors, 'Cache-Control': 'no-store' });
       }
 
       if (url.pathname === '/api/bookings' && request.method === 'POST') {
-        const body = await request.json();
-        const booking = createBooking(body);
+        let body;
+        try {
+          body = await request.json();
+        } catch {
+          throw new BookingInputError('Invalid booking JSON');
+        }
+        if (!JOURNEY_ID_PATTERN.test(body?.requestId)
+          || !JOURNEY_ID_PATTERN.test(body?.quoteId)) {
+          throw new BookingInputError('Invalid booking request identifiers');
+        }
+        const id = `BK_${body.requestId.replace(/-/g, '').slice(0, 16).toLowerCase()}`;
+        const previous = await env.WKND_AERO_CATALOG.get(`booking:${id}`, 'json');
+        if (previous) {
+          const lead = body.passengers?.[0];
+          if (previous.flightId !== body.flightId || previous.quoteId !== body.quoteId
+            || previous.passengerCount !== body.passengerCount
+            || JSON.stringify(previous.seats) !== JSON.stringify(body.seats)
+            || !['first', 'last', 'email'].every((key) => (
+              previous.passengers[0][key] === lead?.[key]
+            ))) {
+            throw new BookingInputError('This booking request was already confirmed with different details.', 409);
+          }
+          return json(previous, 200, { ...cors, 'Cache-Control': 'no-store' });
+        }
+        const flights = await env.WKND_AERO_CATALOG.get(`flight-quote:${body.quoteId}`, 'json');
+        const booking = createBooking(body, flights?.find((flight) => flight.id === body.flightId));
         await env.WKND_AERO_CATALOG.put(`booking:${booking.id}`, JSON.stringify(booking));
-        return json(booking, 201, cors);
+        return json(booking, 201, { ...cors, 'Cache-Control': 'no-store' });
       }
 
       const bookingMatch = url.pathname.match(/^\/api\/bookings\/([^/]+)$/);
@@ -114,7 +146,13 @@ export default {
 
       return json({ error: 'not found', path: url.pathname }, 404, cors);
     } catch (err) {
-      return json({ error: 'internal error', message: err.message }, 500, cors);
+      const status = err instanceof BookingInputError ? err.status : 500;
+      // eslint-disable-next-line no-console
+      console.error('WKND Aero API request failed.', { path: url.pathname, status });
+      return json({
+        error: status < 500 ? 'invalid booking' : 'internal error',
+        message: status < 500 ? err.message : 'Unable to process the request.',
+      }, status, cors);
     }
   },
 

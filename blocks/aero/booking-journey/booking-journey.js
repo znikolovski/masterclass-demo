@@ -2,7 +2,9 @@
  * Booking journey — Preact SPA shell (delayed load on /book/*).
  */
 import { loadCSS } from '../../../scripts/aem.js';
-import { getAeroApiBase, readFlightAttribution, DEFAULT_FLIGHT_ORIGIN } from '../../../scripts/aero-blocks.js';
+import {
+  getAeroApiBase, getFlightAttribution, persistFlightAttribution, DEFAULT_FLIGHT_ORIGIN,
+} from '../../../scripts/aero-blocks.js';
 
 const IMPORT_MAP = {
   imports: {
@@ -39,7 +41,8 @@ export default async function decorate(block) {
   }
 
   const params = new URLSearchParams(window.location.search);
-  const attrs = readFlightAttribution();
+  const attrs = getFlightAttribution();
+  persistFlightAttribution(attrs);
   mount.dataset.origin = params.get('origin') || attrs.origin || DEFAULT_FLIGHT_ORIGIN;
   mount.dataset.dest = params.get('dest') || attrs.dest || '';
   mount.dataset.depart = params.get('depart') || '';

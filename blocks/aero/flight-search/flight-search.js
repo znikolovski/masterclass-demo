@@ -12,7 +12,9 @@ import {
   getAdventureDestinationOptions,
   getCatalogItems,
 } from '../../../scripts/aero-catalog.js';
-import { pushInteractionEvent } from '../../../scripts/analytics-acdl.js';
+import { pushBookingEvent } from '../../../scripts/aero-analytics.js';
+import { getJourney, decorateJourneyIdentity, pushJourneyEvent } from '../../../scripts/journey-analytics.js';
+import { addJourneyToUrl, isAeroUrl } from '../../../scripts/journey-context.js';
 
 /** Major hub airports for origin selection. */
 const ORIGIN_AIRPORTS = [
@@ -130,7 +132,7 @@ export default async function decorate(block) {
   form.action = '/book/flights';
   buildSearchForm(form, config, destinations);
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = new FormData(form);
     const destSelect = form.querySelector('select[name="destination"]');
@@ -146,6 +148,8 @@ export default async function decorate(block) {
     if (adv) params.set('adv', adv);
     if (attrs.cid) params.set('cid', attrs.cid);
     if (attrs.ref) params.set('ref', attrs.ref);
+    const searchId = crypto.randomUUID();
+    params.set('fsid', searchId);
 
     persistFlightAttribution({
       origin: params.get('origin') || '',
@@ -156,19 +160,25 @@ export default async function decorate(block) {
     });
 
     window.dispatchEvent(new CustomEvent('wknd:flight-search-start', {
-      detail: Object.fromEntries(params),
+      detail: { ...Object.fromEntries(params), journeyTracked: true, searchId },
     }));
 
-    pushInteractionEvent('flightSearchStart', {
-      block: 'flight-search',
-      label: params.get('dest') || '',
-      detail: adv || '',
-    });
+    pushBookingEvent('flightSearchStart', { onceKey: searchId });
 
     const target = form.dataset.embed === 'true' && window.top !== window.self
       ? window.top.location
       : window.location;
-    target.assign(`/book/flights?${params.toString()}`);
+    const site = isAeroUrl(new URL(window.location.href))
+      || window.location.hostname === 'localhost' ? window.location.origin
+      : 'https://main--wknd-aero--znikolovski.aem.live';
+    const url = new URL(`/book/flights?${params.toString()}`, site);
+    const href = addJourneyToUrl(url.href, getJourney());
+    if (site !== window.location.origin) {
+      pushJourneyEvent('aeroHandoff');
+      target.assign(await decorateJourneyIdentity(href));
+    } else {
+      target.assign(href);
+    }
   });
 
   if (window.top !== window.self) form.dataset.embed = 'true';
