@@ -72,6 +72,7 @@ function buildCard(item, i, bridge, isTop, intent, tracking) {
     const img = document.createElement('img');
     img.src = item.image_url;
     img.alt = item.title || item.name || '';
+    img.loading = i === 0 ? 'eager' : 'lazy';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
     img.onerror = () => { if (img.parentNode) img.parentNode.replaceChild(colorDiv(), img); };
     imageWrap.appendChild(img);
@@ -207,7 +208,7 @@ function buildCard(item, i, bridge, isTop, intent, tracking) {
   return card;
 }
 
-function renderWidget(block, items, bridge, intent, tracking) {
+function renderWidget(block, items, bridge, intent, tracking, ranked) {
   const root = document.createElement('div');
   root.className = 'da-root';
 
@@ -226,9 +227,8 @@ function renderWidget(block, items, bridge, intent, tracking) {
   const track = document.createElement('div');
   track.className = 'da-track';
 
-  const shown = items.slice(0, 8);
-  shown.forEach((item, i) => (
-    track.appendChild(buildCard(item, i, bridge, i === 0, intent, tracking))
+  items.forEach((item, i) => (
+    track.appendChild(buildCard(item, i, bridge, ranked && i === 0, intent, tracking))
   ));
   wrapper.appendChild(track);
 
@@ -327,6 +327,7 @@ export default async function decorate(block, bridge) {
   let items;
   let intent = '';
   let result;
+  let ranked = true;
 
   if (bridge) {
     bridge.applyHostStyles();
@@ -339,6 +340,7 @@ export default async function decorate(block, bridge) {
       // The action returns the adventure array under structuredContent.adventures.
       items = structuredContent?.adventures || [];
       intent = structuredContent?.intent || '';
+      ranked = structuredContent?.ranked !== false;
     }
   } else {
     items = SAMPLE_DATA;
@@ -369,7 +371,7 @@ export default async function decorate(block, bridge) {
     console.warn('LLM action has no Edge handoff metadata; server-to-browser identity is unavailable.');
   }
   block.textContent = '';
-  renderWidget(block, items || [], bridge, intent, tracking);
+  renderWidget(block, items || [], bridge, intent, tracking, ranked);
 
   if (bridge) {
     bridge.reportSize(block.offsetWidth, block.offsetHeight);
