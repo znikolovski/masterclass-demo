@@ -160,20 +160,38 @@ function buildCard(item, i, bridge, isTop, intent, tracking) {
     const url = new URL('https://wknd-adventures.run.place/of1');
     url.searchParams.set('llm_app_ctx', intent || `Tell me about ${name}`);
     let href = addJourneyToUrl(url.href, journey);
+    let identityTimer;
     tertiary.disabled = true;
     try {
       if (tracking.ready && journey) {
         const payload = journeyEventPayload('llmAppHandoff', {}, journey);
+        if (!tracking.identityReady && tracking.identityMap) {
+          payload.xdm.identityMap = tracking.identityMap;
+        }
         payload.data.__adobe = { analytics: {} }; // eslint-disable-line no-underscore-dangle
         mapJourneyToAnalytics(payload);
-        // Do not block host navigation on an Analytics network response.
-        window.alloy('sendEvent', {
+        const handoffSent = window.alloy('sendEvent', {
           xdm: payload.xdm, data: payload.data,
-        }).catch((error) => {
+        }).then(() => true).catch((error) => {
           // eslint-disable-next-line no-console
           console.warn('LLM handoff telemetry failed.', error.name);
+          return false;
         });
-        href = await decorateJourneyIdentity(href);
+        if (tracking.identityReady) {
+          href = await decorateJourneyIdentity(href);
+        } else {
+          // A cookieless SDK needs its first response before using its in-memory ECID.
+          href = await Promise.race([
+            handoffSent.then((sent) => (sent ? decorateJourneyIdentity(href) : href)),
+            new Promise((resolve) => {
+              identityTimer = setTimeout(() => {
+                // eslint-disable-next-line no-console
+                console.warn('Widget identity handoff timed out; journey correlation is retained.');
+                resolve(href);
+              }, 1500);
+            }),
+          ]);
+        }
       }
       if (bridge?.openLink) {
         const response = await bridge.openLink(href);
@@ -198,6 +216,7 @@ function buildCard(item, i, bridge, isTop, intent, tracking) {
       fallback.textContent = 'Explore on WKND';
       notice.append(fallback);
     } finally {
+      clearTimeout(identityTimer);
       tertiary.disabled = false;
     }
   });
@@ -286,6 +305,11 @@ async function initializeJourneyTracking(edge) {
   if (!navigator.cookieEnabled) {
     throw new Error('Browser cookies are unavailable for Adobe identity handoff');
   }
+  const probe = `wknd_cookie_probe_${crypto.randomUUID().replaceAll('-', '')}`;
+  document.cookie = `${probe}=1; path=/; SameSite=Lax`;
+  const cookiesAvailable = document.cookie.split(';')
+    .some((cookie) => cookie.trim().startsWith(`${probe}=`));
+  document.cookie = `${probe}=; path=/; SameSite=Lax; Max-Age=0`;
   const sdk = await import('../../scripts/llmapps-sdk.js');
   await sdk._loadAlloyScripts(); // eslint-disable-line no-underscore-dangle -- public SDK loader
   let info;
@@ -293,11 +317,21 @@ async function initializeJourneyTracking(edge) {
     info = await window.alloy('getLibraryInfo');
   } catch (error) {
     if (!error.message.includes('The library must be configured first.')) throw error;
-    await window.alloy('configure', { datastreamId: edge.datastreamId, orgId: edge.orgId });
+    await window.alloy('configure', {
+      datastreamId: edge.datastreamId,
+      orgId: edge.orgId,
+      ...(!cookiesAvailable ? { thirdPartyCookiesEnabled: false } : {}),
+    });
   }
   if (info && (info.libraryInfo?.configs?.datastreamId !== edge.datastreamId
     || info.libraryInfo?.configs?.orgId !== edge.orgId)) {
     throw new Error('Existing Adobe configuration does not match the LLM action');
+  }
+  if (!cookiesAvailable) {
+    // Applying identity handles without writable cookies stalls the SDK's request gate.
+    // eslint-disable-next-line no-console
+    console.warn('Widget cookies are blocked; handoff telemetry uses in-memory identity when available.');
+    return false;
   }
   const identityKey = `kndctr_${edge.orgId.replace('@', '_')}_identity`;
   const hasIdentityState = edge.handles?.some((handle) => handle.type === 'state:store'
@@ -314,13 +348,16 @@ async function initializeJourneyTracking(edge) {
       responseBody: { handle: handles }, renderDecisions: true,
     });
     if (!document.cookie.split(';').some((cookie) => cookie.trim().startsWith(`${identityKey}=`))) {
-      throw new Error('Browser could not persist the Adobe identity state');
+      // eslint-disable-next-line no-console
+      console.warn('Browser could not persist the Adobe identity state; identity decoration is unavailable.');
+      return false;
     }
   } else {
     // An identity-only applyResponse leaves Web SDK's first-request gate unresolved.
     // eslint-disable-next-line no-console
     console.warn('LLM Edge identity state is missing; browser identity is acquired independently.');
   }
+  return true;
 }
 
 export default async function decorate(block, bridge) {
@@ -356,11 +393,13 @@ export default async function decorate(block, bridge) {
       assisted: false,
     },
     ready: false,
+    identityReady: false,
+    identityMap: metadata?.wkndEdge?.identityMap,
   };
   const edge = metadata?.wkndEdge;
   if (bridge && !bridge.hostContext?.preview && edge) {
     try {
-      await initializeJourneyTracking(edge);
+      tracking.identityReady = await initializeJourneyTracking(edge);
       tracking.ready = true;
     } catch (error) {
       // eslint-disable-next-line no-console

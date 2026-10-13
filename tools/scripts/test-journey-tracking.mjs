@@ -63,8 +63,11 @@ try {
     if (url.hostname.endsWith('adobedtm.com')) {
       return route.fulfill({ contentType: 'text/javascript', body: '' });
     }
-    if (url.hostname.endsWith('adobedc.net')) {
+    if (url.hostname.endsWith('adobedc.net')
+      || (url.hostname === 'adobedc.demdex.net'
+        && request.frame().url().includes('/__journey-widget'))) {
       edgeUrls.push(url.href);
+      if (request.frame().url().includes('edge-failure')) return route.abort('failed');
       const body = request.postDataJSON();
       if (body?.events) events.push(...body.events);
       const optedOut = body?.consent?.some((consent) => consent.value?.general === 'out');
@@ -165,20 +168,31 @@ try {
       };
       return route.fulfill({
         contentType: 'text/html',
-        body: `<!doctype html><html><body><div id="widget"></div>
+        body: `<!doctype html><html><head>
+          <link rel="stylesheet" href="/blocks/discover-adventures/discover-adventures.css">
+          </head><body><main><div id="widget" class="discover-adventures"></div></main>
           <script type="module">
             import decorate from '/blocks/discover-adventures/discover-adventures.js';
             window.handoffUrls=[];
-            ${url.searchParams.has('configured') ? `
+            ${url.searchParams.has('configured') || url.searchParams.has('consent-out')
+    || url.searchParams.has('consent-pending') ? `
               const sdk=await import('/scripts/llmapps-sdk.js');
               await sdk._loadAlloyScripts();
               await window.alloy('configure', {
                 datastreamId:'56dee4fc-21a9-4e37-83ab-bdd874957aba',
                 orgId:'28260E2056581D3B7F000101@AdobeOrg',
+                ${url.searchParams.has('consent-out') ? "defaultConsent:'out'," : ''}
+                ${url.searchParams.has('consent-pending') ? "defaultConsent:'pending'," : ''}
               });
             ` : ''}
             ${url.searchParams.has('no-cookies')
     ? "Object.defineProperty(navigator,'cookieEnabled',{get:()=>false});" : ''}
+            ${url.searchParams.has('blocked-identity-cookie') ? `
+              Object.defineProperty(document,'cookie',{
+                get(){return '';},
+                set(){}
+              });
+            ` : ''}
             await decorate(document.querySelector('#widget'), {
               applyHostStyles(){}, reportSize(){}, hostContext:{},
               toolResult:Promise.resolve(${JSON.stringify(result)}),
@@ -381,21 +395,60 @@ try {
 
   // Each native SDK instance must finish before checking the shared event collector.
   /* eslint-disable no-restricted-syntax, no-await-in-loop */
-  for (const variant of ['configured', 'identity-only', 'no-cookies']) {
+  for (const variant of [
+    'configured', 'identity-only', 'blocked-identity-cookie',
+    'configured&blocked-identity-cookie', 'configured&consent-out',
+    'blocked-identity-cookie&consent-out', 'blocked-identity-cookie&consent-pending',
+    'blocked-identity-cookie&edge-failure', 'no-cookies',
+  ]) {
     const extra = await context.newPage();
+    extra.on('console', (message) => {
+      if (['error', 'warning'].includes(message.type())) diagnostics.push(message.text());
+    });
+    extra.on('pageerror', (error) => errors.push(error.message));
     await extra.goto(`${base}/__journey-widget?${variant}`);
     await extra.locator('.da-cta-tertiary').waitFor();
     const before = read('llmAppHandoff').length;
+    const clickedAt = Date.now();
     await extra.locator('.da-cta-tertiary').click();
     await extra.waitForFunction(() => window.handoffUrls.length === 1);
+    assert(Date.now() - clickedAt < 2500, `${variant}: widget navigation was delayed`);
     await extra.waitForTimeout(500);
     const href = await extra.evaluate(() => window.handoffUrls[0]);
     assert.equal(new URL(href).searchParams.get('wj'), journey.id);
-    assert.equal(read('llmAppHandoff').length - before, variant === 'no-cookies' ? 0 : 1);
-    if (variant === 'no-cookies') assert(!new URL(href).searchParams.has('adobe_mc'));
+    const blocked = variant.includes('blocked-identity-cookie');
+    const suppressed = variant === 'no-cookies' || variant.includes('consent-out')
+      || variant.includes('consent-pending') || variant.includes('edge-failure');
+    assert.equal(
+      read('llmAppHandoff').length - before,
+      suppressed ? 0 : 1,
+      `${variant}: ${JSON.stringify(diagnostics)}`,
+    );
+    if (variant === 'no-cookies' || suppressed) {
+      assert(!new URL(href).searchParams.has('adobe_mc'));
+    }
+    if (blocked && !suppressed) {
+      const event = read('llmAppHandoff').at(-1);
+      assert.equal(event.data.__adobe.analytics.events, 'event31');
+      assert.equal(event.data.__adobe.analytics.eVar30, journey.id);
+      assert.equal(event.xdm.identityMap.ECID[0].id, identity);
+      assert.equal(await extra.evaluate(() => document.cookie), '');
+      assert(new URL(href).searchParams.get('adobe_mc').includes(identity));
+      await extra.locator('.da-cta-tertiary').click();
+      await extra.waitForFunction(() => window.handoffUrls.length === 2);
+      await extra.waitForTimeout(500);
+      assert.equal(read('llmAppHandoff').length - before, 2);
+    }
+    if (screenshots && variant === 'blocked-identity-cookie') {
+      for (const width of [375, 768, 1200]) {
+        await extra.setViewportSize({ width, height: 800 });
+        await extra.screenshot({ path: `${screenshots}/widget-cookies-${width}.png`, fullPage: true });
+      }
+    }
     await extra.close();
   }
   /* eslint-enable no-restricted-syntax, no-await-in-loop */
+  assert.deepEqual(errors, []);
   const storagePage = await context.newPage();
   await storagePage.goto(`${base}/__journey-host`);
   const bounded = await storagePage.evaluate(async () => {
@@ -423,7 +476,7 @@ try {
     keys: 256, count: 300, reset: 1, retained: true,
   });
   await storagePage.close();
-  console.log('PASS configured/identity-only/cookie-blocked SDK handling and bounded/blocked journey storage');
+  console.log('PASS configured/identity-only/cookie-blocked SDK handling, widget consent, failed Edge navigation and bounded/blocked journey storage');
 } finally {
   await browser.close();
 }

@@ -56,6 +56,27 @@ manually transmits MCP host/user IDs. Modifier/new-tab navigation retains journe
 parameters but is not guaranteed to carry Adobe's ECID. No identity is fabricated
 if Edge, browser storage or the host sandbox prevents identity transfer.
 
+The discovery widget checks cookie persistence before applying server identity
+handles: applying those handles when cookies are blocked can stall the Web SDK's
+first-request gate. Cookie blocking does not disable `llmAppHandoff` telemetry.
+The widget instead sends through the native SDK with the actual server-provided
+ECID in `xdm.identityMap`, when available. A newly configured cookieless instance
+disables third-party-cookie identity requests. Browser consent remains authoritative;
+pending/out consent is never changed to make the handoff work.
+
+After the first response, the SDK can use its in-memory ECID to decorate the link,
+even without a persistent identity cookie. This cookieless path waits at most
+1.5 seconds before opening the journey-decorated URL; failed or pending collection
+does not block navigation. Cross-domain visitor continuity is only established
+when the native SDK actually decorates the URL, not merely because eVar30 matches.
+
+In the **Adobe LLM Apps UI**, the discovery resource's CSP `connectDomains` must
+allow `https://edge.adobedc.net`. If reusing a configured SDK with third-party
+identity requests enabled, also allow `https://adobedc.demdex.net`. Preserve the
+existing EDS domain permissions. CSP is UI-owned metadata: publish it through the
+managed deployment and generate a fresh tool result rather than retesting an old
+ChatGPT card with cached sandbox permissions.
+
 `llm_app_ctx` remains the intentional OF1 search handoff, with `q` taking SDK
 precedence. Search/prompt parameters, Sherpa prompt hashes and `adobe_mc` are
 removed from site Analytics page/link/referrer URLs. New journey events contain
