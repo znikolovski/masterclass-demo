@@ -1,0 +1,43 @@
+.sherpa-options {
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.sherpa-options .sherpa-options-panel {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 12px;
+}
+
+.sherpa-options h2 {
+  margin: 0 0 8px;
+  font-size: var(--heading-font-size-m);
+  overflow-wrap: anywhere;
+}
+
+.sherpa-options p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(61 79 69);
+}
+
+.sherpa-options p:last-child {
+  margin-top: 16px;
+}
+
+.sherpa-options .sherpa-options-panel .button {
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 12px 16px;
+  white-space: normal;
+  text-align: center;
+}
+
+@media (width >= 900px) {
+  .sherpa-options .sherpa-options-panel {
+    padding: 24px 28px;
+  }
+}

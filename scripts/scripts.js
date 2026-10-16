@@ -707,14 +707,6 @@ export function decorateMain(main) {
 
       const actions = document.createElement('span');
       actions.className = 'cards-card-actions';
-      const chat = document.createElement('a');
-      const prompt = `Help me plan this adventure: ${title}. What should I prepare?`;
-      chat.href = `#sherpa?prompt=${encodeURIComponent(prompt)}&send=true`;
-      chat.className = 'button primary';
-      chat.textContent = 'Chat with WKND Sherpa';
-      chat.setAttribute('aria-label', `Chat with WKND Sherpa about ${title}`);
-      chat.setAttribute('aria-haspopup', 'dialog');
-      chat.setAttribute('aria-controls', 'wknd-sherpa-dialog');
       if (isAeroLink(sourceLink)) {
         sourceLink.textContent = sourceLink.pathname.startsWith('/book/')
           ? 'Find flights with WKND Aero' : 'View WKND Aero experience';
@@ -723,8 +715,26 @@ export function decorateMain(main) {
       sourceLink.classList.remove('primary', 'accent');
       sourceLink.classList.add('button', 'secondary');
       sourceLink.replaceWith(actions);
-      actions.append(sourceLink, chat);
+      actions.append(sourceLink);
     });
+    const adventureCards = main.querySelector('.cards .cards-card-actions')?.closest('.cards');
+    const sections = [...document.querySelector('main').children];
+    const turnStart = sections.findLastIndex((section) => (
+      section.classList.contains('of1-turn-anchor')
+    ));
+    const hasSherpa = sections.slice(turnStart + 1)
+      .some((section) => section.querySelector('.sherpa-options'));
+    if (adventureCards && !main.querySelector('.sherpa-options') && !hasSherpa) {
+      const section = document.createElement('div');
+      section.append(buildBlock('sherpa-options', [[
+        '<h2>Talk it through with WKND Sherpa</h2>'
+        + '<p>Need help choosing? Compare your options and discuss what to prepare with '
+        + 'your AI adventure guide, or keep browsing the field notes below.</p>'
+        + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
+      ]]));
+      const cardSection = [...main.children].find((child) => child.contains(adventureCards));
+      main.insertBefore(section, cardSection);
+    }
   }
   // hopefully forward compatible button decoration
   decorateButtons(main);

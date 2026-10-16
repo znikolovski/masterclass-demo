@@ -206,25 +206,33 @@ columns, but still dropped Yosemite's source card when its evidence was absent.
 See [`OF1-GENERATED-CONTENT-QUALITY.md`](OF1-GENERATED-CONTENT-QUALITY.md)
 for engineering reproduction evidence and acceptance criteria.
 
-### Adventure-card handoff to WKND Sherpa
+### Optional WKND Sherpa help before adventure cards
 
 Generated adventure cards with a heading and an original `/blog/` article link
-offer two actions: the existing field-notes link as a secondary button, and
-**Chat with WKND Sherpa** as a primary button. Labels wrap on narrow cards.
+retain the existing field-notes link as a secondary button for independent
+browsing. They no longer contain a Sherpa action. Labels wrap on narrow cards.
 Cards pointing to the same owner's WKND Aero site instead use
 **View WKND Aero experience** or **Find flights with WKND Aero**, preserving the
 full external URL and airport/adventure query parameters.
 Generated grids show one column below 600 px and at most two columns above it;
 additional cards wrap into new rows, and a single card stays centered.
-The chat action uses the existing same-page `#sherpa?prompt=...&send=true`
-deep link to automatically send
-`Help me plan this adventure: {card title}. What should I prepare?`.
-The prompt uses the visible title, not a potentially mismatched fallback article
-destination.
+Before the first adventure-card section in each generated response, a separate
+**Talk it through with WKND Sherpa** panel offers optional conversational help.
+The `sherpa-options` block uses the same compact, bordered-panel treatment as
+WKND Aero, with one **Chat with WKND Sherpa** button. It uses the existing
+same-page `#sherpa?prompt=...&send=true` deep link to automatically send a
+question about choosing an adventure and preparation, including the current
+OF1 search and the card headings available when the panel is rendered.
+The prompt uses the displayed options, not potentially mismatched article
+destinations. Follow-up responses get their own panel and search context;
+reopening an earlier panel retains that response's original question.
 
-Site decoration adds these actions consistently without a new model-generated
-slot or changes to the authored template contract, canonical OF1 client, or
-concierge implementation. Ordinary authored cards remain unchanged.
+Site decoration adds one panel per response without a new model-generated slot
+or changes to the authored template contract, canonical OF1 client, or concierge
+implementation. The autoblocked panel has one semantic content cell containing
+an H2, explanatory paragraph and Sherpa link; authors do not need to add it to
+templates. Ordinary authored cards remain unchanged, and opening Sherpa still
+defines the optional assisted journey cohort.
 Run `node tools/scripts/test-of1-actions.mjs` against the local server to check
 the handoff, prompt encoding, responsive actions, and authored-card isolation.
 
