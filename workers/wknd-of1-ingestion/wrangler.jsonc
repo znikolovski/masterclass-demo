@@ -1,0 +1,37 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "wknd-of1-ingestion",
+	"main": "src/index.js",
+	"compatibility_date": "2026-10-15",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"upload_source_maps": true,
+	"minify": true,
+	"workers_dev": true,
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
+	"triggers": {
+		"crons": [
+			"*/5 * * * *"
+		]
+	},
+	"vars": {
+		"MODE": "write",
+		"OWNER": "znikolovski",
+		"REPO": "masterclass-demo",
+		"REF": "main",
+		"OF1_ORIGIN": "https://of1-gen-web-service.franklin-prod.workers.dev",
+		"SYNC_POLICY_VERIFIED": "true"
+	},
+	"d1_databases": [
+		{
+			"binding": "STATE",
+			"database_name": "wknd-of1-ingestion",
+			"migrations_dir": "migrations",
+			"database_id": "8c20c156-864e-4a8a-bce5-8f3a68b41abb"
+		}
+	]
+}
