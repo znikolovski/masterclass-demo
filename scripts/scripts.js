@@ -15,6 +15,7 @@ import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext, pushErrorPageContext, isAemProductionHost } from './analytics-page.js';
 import { bindJourneyHandoffs, getJourney, pushJourneyEvent } from './journey-analytics.js';
 import { sanitizeJourneyUrl } from './journey-context.js';
+import { getOf1ArticleUrl } from './of1-context.js';
 import {
   getTargetZones,
   hoistTargetLocationToSection,
@@ -680,6 +681,9 @@ export function decorateMain(main) {
         const url = new URL(href, origin);
         url.hostname = `${tenant}.aem.live`;
         link.href = url.href;
+      }
+      if (['http:', 'https:'].includes(link.protocol)) {
+        link.href = getOf1ArticleUrl(link.getAttribute('href'));
       }
     });
     main.querySelectorAll('img[src]').forEach((image) => {

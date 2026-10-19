@@ -211,6 +211,11 @@ for engineering reproduction evidence and acceptance criteria.
 Generated adventure cards with a heading and an original `/blog/` article link
 retain the existing field-notes link as a secondary button for independent
 browsing. They no longer contain a Sherpa action. Labels wrap on narrow cards.
+Generated field-notes links use `https://wknd-adventures.run.place/blog/...`,
+including links emitted with a same-site AEM preview/live hostname or a
+root-relative path. Paths, query parameters and fragments are preserved.
+The same mapping applies to source-backed planning citations. Native image
+delivery and links to other sites are unchanged.
 Cards pointing to the same owner's WKND Aero site instead use
 **View WKND Aero experience** or **Find flights with WKND Aero**, preserving the
 full external URL and airport/adventure query parameters.

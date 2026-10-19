@@ -126,9 +126,13 @@ try {
   ), fixture.sources.length);
   const actions = page.locator('.generated-section .cards-card-actions');
   const sources = await actions.locator('a.secondary').evaluateAll((links) => (
-    links.map((link) => link.pathname)
+    links.map((link) => link.href)
   ));
-  assert.deepEqual(sources, fixture.sources.map((href) => new URL(href, base).pathname));
+  assert.deepEqual(sources, fixture.sources.map((href) => {
+    const url = new URL(href, base);
+    return url.pathname.startsWith('/blog/')
+      ? `https://wknd-adventures.run.place${url.pathname}${url.search}${url.hash}` : url.href;
+  }));
   assert.equal(await actions.locator('a.primary').count(), 0);
   assert.equal(await actions.locator('a').count(), fixture.sources.length);
   const panel = page.locator('.generated-section .sherpa-options');
@@ -185,6 +189,46 @@ try {
     authoredPanels: 0,
     invalidPanels: 0,
   });
+  const articleLinks = await page.evaluate(async () => {
+    const { decorateMain } = await import(new URL('/scripts/scripts.js', window.location.origin).href);
+    const article = '/blog/ohrid-macedonia?ref=of1&topic=lake%20walk#field-notes';
+    const canonical = `https://wknd-adventures.run.place${article}`;
+    const cases = [
+      [article, canonical],
+      [`https://main--masterclass-demo--znikolovski${article}`, canonical],
+      [`https://main--masterclass-demo--znikolovski.aem.live${article}`, canonical],
+      [`https://main--masterclass-demo--znikolovski.aem.page${article}`, canonical],
+      [`https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live${article}`, canonical],
+      [`//main--masterclass-demo--znikolovski.aem.live${article}`, canonical],
+      [canonical, canonical],
+      [`https://example.com${article}`, `https://example.com${article}`],
+      [`https://main--other-site--znikolovski.aem.live${article}`,
+        `https://main--other-site--znikolovski.aem.live${article}`],
+      [`https://main--masterclass-demo--znikolovski.aem.live.evil.example${article}`,
+        `https://main--masterclass-demo--znikolovski.aem.live.evil.example${article}`],
+      ['https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=OHD&adv=ohrid-macedonia',
+        'https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=OHD&adv=ohrid-macedonia'],
+      ['#sherpa?prompt=Ohrid&send=true', '#sherpa?prompt=Ohrid&send=true'],
+      ['mailto:hello@example.com', 'mailto:hello@example.com'],
+    ];
+    const detached = document.createElement('main');
+    const section = document.createElement('div');
+    cases.forEach(([href]) => {
+      const paragraph = document.createElement('p');
+      const link = document.createElement('a');
+      link.setAttribute('href', href);
+      link.textContent = 'Field notes';
+      paragraph.append(link);
+      section.append(paragraph);
+    });
+    detached.append(section);
+    decorateMain(detached);
+    return [...detached.querySelectorAll('a')].map((link, index) => ({
+      actual: link.getAttribute('href'), expected: cases[index][1],
+    }));
+  });
+  articleLinks.forEach(({ actual, expected }) => assert.equal(actual, expected));
+  process.stdout.write('PASS public field-notes origin, AEM aliases, query/fragment preservation and external-link isolation\n');
   process.stdout.write('PASS pre-card Sherpa panel, browsing-only cards, all intents, destinations, encoding and idempotence\n');
 
   await page.getByRole('button', { name: 'Chat with WKND Sherpa' }).waitFor({ timeout: 60000 });
