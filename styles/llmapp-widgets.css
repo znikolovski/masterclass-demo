@@ -1,6 +1,6 @@
 @import url('./llmapp-fonts.css');
 
-main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) {
   --widget-ink: var(--dark-color, #0f1a14);
   --widget-accent: var(--accent-color, #e8651a);
   --widget-paper: var(--light-color, #f4f2ef);
@@ -18,22 +18,22 @@ main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .pl
 }
 
 /* Only widget sections lose their gutters; other page sections stay untouched. */
-main > :is(div, .section):has(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+main > :is(div, .section):has(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) {
   margin: 0;
   padding-block: 0;
 }
 
-main > .section > div:has(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+main > .section > div:has(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) {
   max-width: none;
   padding: 0;
 }
 
-main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) button {
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) button {
   min-height: 44px;
   max-width: 100%;
 }
 
-main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) :is(.da-cta, .build-route-briefing-cta, .bgc-btn, .ppa-cta, .apw-cta, .pfs-btn) {
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) :is(.da-cta, .build-route-briefing-cta, .bgc-btn, .ppa-cta, .apw-cta, .pfs-btn, .check-booking-button) {
   border: 1px solid var(--widget-ink);
   border-radius: 999px;
   padding: 10px 14px;
@@ -49,32 +49,32 @@ main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .pl
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) :is(.da-cta, .build-route-briefing-cta, .bgc-btn, .ppa-cta, .apw-cta, .pfs-btn):hover {
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) :is(.da-cta, .build-route-briefing-cta, .bgc-btn, .ppa-cta, .apw-cta, .pfs-btn, .check-booking-button):hover {
   box-shadow: 5px 5px 0 var(--widget-accent);
   transform: translate(-1px, -1px);
 }
 
-main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) button:focus-visible {
+main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) button:focus-visible {
   outline: 2px solid var(--widget-accent);
   outline-offset: 4px;
 }
 
 @media (prefers-color-scheme: dark) {
-  main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+  main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) {
     --widget-surface: #0f1a14;
     --widget-text: #f4f2ef;
     --widget-border: rgb(244 242 239 / 25%);
   }
 }
 
-body.dark main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) {
+body.dark main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) {
   --widget-surface: #0f1a14;
   --widget-text: #f4f2ef;
   --widget-border: rgb(244 242 239 / 25%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission) button {
+  main :is(.discover-adventures, .build-route-briefing, .build-gear-checklist, .plan-permits-and-access, .audit-pack-weight, .prepare-field-submission, .check-booking) button {
     transition: none;
   }
 }
