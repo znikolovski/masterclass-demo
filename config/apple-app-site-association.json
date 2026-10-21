@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["FAKETEAMID.com.wknd.adventures"],
+        "components": [
+          {
+            "/": "/of1",
+            "comment": "Simulator-only WKND OF1 handoff. Replace the app identifier before physical-device rollout."
+          },
+          {
+            "/": "/of1/",
+            "comment": "Trailing slash variant; query parameters remain unrestricted."
+          }
+        ]
+      }
+    ]
+  }
+}
