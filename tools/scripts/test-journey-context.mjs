@@ -7,6 +7,7 @@ import {
 } from '../../scripts/journey-context.js';
 import { journeyEventPayload, mapJourneyToAnalytics } from '../../scripts/journey-analytics.js';
 import loadTestAeroWorker from './lib/load-test-aero-worker.mjs'; // eslint-disable-line import/extensions
+import bookingAuthFixture from './lib/booking-auth-fixture.mjs'; // eslint-disable-line import/extensions
 
 const worker = await loadTestAeroWorker();
 
@@ -65,7 +66,10 @@ assert.equal(unrelated.data.__adobe.analytics.events, undefined);
 console.log('PASS validated/expiring private context, safe hosts, redaction and hit-local event mapping');
 
 const values = new Map();
+const auth = await bookingAuthFixture();
+const accessToken = await auth.token();
 const env = {
+  ...auth.env,
   ALLOWED_ORIGINS: 'https://wknd-adventures.run.place',
   WKND_AERO_CATALOG: {
     put: async (key, value) => values.set(key, value),
@@ -92,7 +96,7 @@ const body = {
   journey: { ...context, prompt: 'PRIVATE' },
 };
 const book = (data) => worker.fetch(new Request('https://worker.test/api/bookings', {
-  method: 'POST', body: JSON.stringify(data),
+  method: 'POST', body: JSON.stringify(data), headers: { Authorization: `Bearer ${accessToken}` },
 }), env);
 const booked = await book(body);
 assert.equal(booked.status, 201);
@@ -112,7 +116,8 @@ assert.equal((await book({ ...body, requestId: crypto.randomUUID(), seats: [] })
 values.set(`flight-quote:${flight.quoteId}`, JSON.stringify([{ ...flight, expiresAt: Date.now() - 1 }]));
 assert.equal((await book({ ...body, requestId: crypto.randomUUID() })).status, 409);
 const malformed = await worker.fetch(new Request('https://worker.test/api/bookings', {
-  method: 'POST', body: '{',
+  method: 'POST', body: '{', headers: { Authorization: `Bearer ${accessToken}` },
 }), env);
 assert.equal(malformed.status, 400);
+auth.restore();
 console.log('PASS server-priced demo confirmation, correlation, idempotent retry and explicit invalid/expired failures');

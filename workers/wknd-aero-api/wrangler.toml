@@ -10,6 +10,11 @@ id = "f7642f71bf8244d19d1b4749f0c3d48f"
 ALLOWED_ORIGINS = "https://main--wknd-aero--znikolovski.aem.page,https://main--wknd-aero--znikolovski.aem.live,https://main--masterclass-demo--znikolovski.aem.page,https://main--masterclass-demo--znikolovski.aem.live,https://wknd-adventures.run.place,http://localhost:3000"
 ADVENUTURES_INDEX_URL = "https://main--masterclass-demo--znikolovski.aem.live/query-index.json"
 AERO_SITE_HOST = "https://main--wknd-aero--znikolovski.aem.network"
+AUTH0_ISSUER = "https://dev-g4kzp3zwgwzs8oha.us.auth0.com/"
+BOOKING_API_AUDIENCE = "https://wknd-aero-api.jaggah.workers.dev"
+MCP_RESOURCE = "https://28538-wkndsherpa.adobeio-static.net/api/v1/web/llm-apps/mcp"
+AUTH0_CHECKOUT_CLIENT_ID = "ULTyS938dUNMhSXTjvLXr3b8ZrGOGhyM"
+# Set WKND_BOOKING_ASSERTION_SECRET with `wrangler secret put`, never in this file.
 
 [triggers]
 crons = ["0 */6 * * *"]
