@@ -11,4 +11,6 @@ jobs:
       with:
         node-version: 24
     - run: npm ci
+    - name: Install Aero Worker runtime dependencies
+      run: npm ci --prefix workers/wknd-aero-api --omit=dev
     - run: npm run lint
