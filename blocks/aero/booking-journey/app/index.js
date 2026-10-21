@@ -663,7 +663,7 @@ function BookingApp({ mount }) {
       await signInForBooking(api);
       setSignedIn(true);
     } catch (err) {
-      setBookingError(err.error === 'popup_closed'
+      setBookingError(['cancelled', 'popup_closed'].includes(err.error)
         ? 'Sign-in was cancelled. Your selections are unchanged.'
         : 'Unable to sign in. Allow popups and try again. Website sign-in must be configured before booking.');
       // eslint-disable-next-line no-console

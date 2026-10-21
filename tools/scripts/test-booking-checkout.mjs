@@ -96,7 +96,7 @@ try {
     body: `window.auth0={Auth0Client:class {
       constructor(config){window.testAuthConfig=config;}
       async loginWithPopup(_,options){
-        if(window.testCancelLogin) throw {error:'popup_closed'};
+        if(window.testCancelLogin) throw {error:window.testCancelLogin};
         options.popup.close(); window.testSignedIn=true;
       }
       async getTokenSilently(){return ${JSON.stringify(token)};}
@@ -114,7 +114,7 @@ try {
   const complete = page.getByRole('button', { name: 'Complete booking', exact: false });
   assert(await complete.isDisabled());
   assert.equal(posts, 0);
-  await page.evaluate(() => { window.testCancelLogin = true; });
+  await page.evaluate(() => { window.testCancelLogin = 'cancelled'; });
   await page.getByRole('button', { name: 'Sign in to book', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'cancelled' }).waitFor();
   assert(await complete.isDisabled());
