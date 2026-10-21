@@ -11,7 +11,7 @@ const AERO_BLOCKS = new Set([
 
 const LLM_WIDGET_BLOCKS = new Set([
   'discover-adventures', 'build-route-briefing', 'build-gear-checklist',
-  'plan-permits-and-access', 'audit-pack-weight', 'prepare-field-submission',
+  'plan-permits-and-access', 'audit-pack-weight', 'prepare-field-submission', 'check-booking',
 ]);
 const widgetFontLoads = new Map();
 

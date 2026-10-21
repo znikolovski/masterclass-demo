@@ -1,0 +1,141 @@
+@import url('../../styles/llmapp-widgets.css');
+
+main .check-booking {
+  box-sizing: border-box;
+  max-width: 780px;
+  padding: 16px;
+  font-size: 15px;
+}
+
+main .check-booking *,
+main .check-booking *::before,
+main .check-booking *::after {
+  box-sizing: border-box;
+}
+
+main .check-booking :is(h2, h3, h4) {
+  margin-block: 0 12px;
+  color: inherit;
+  font-family: var(--widget-heading-font);
+  line-height: 1.4;
+}
+
+main .check-booking h2 {
+  font-size: 20px;
+}
+
+main .check-booking h3 {
+  font-size: 16px;
+}
+
+main .check-booking h4 {
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+main .check-booking p {
+  margin-block: 12px;
+}
+
+main .check-booking .check-booking-lookup,
+main .check-booking nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 16px;
+}
+
+main .check-booking .check-booking-field {
+  flex: 1 1 230px;
+  min-width: 0;
+}
+
+main .check-booking label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+main .check-booking input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  border: 1px solid var(--widget-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: var(--widget-surface);
+  color: var(--widget-text);
+  font: inherit;
+}
+
+main .check-booking .check-booking-button {
+  align-self: flex-end;
+  margin: 0 4px 4px 0;
+  white-space: normal;
+}
+
+main .check-booking button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+main .check-booking :is(input, a):focus-visible {
+  outline: 2px solid var(--widget-accent);
+  outline-offset: 4px;
+}
+
+main .check-booking .check-booking-card {
+  margin-block: 16px;
+  border: 1px solid var(--widget-border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--widget-surface);
+}
+
+main .check-booking .check-booking-badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: #ffdf73;
+  color: #302400;
+  font-weight: 700;
+}
+
+main .check-booking dl {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr);
+  gap: 8px 12px;
+  margin-block: 20px;
+}
+
+main .check-booking dt {
+  font-weight: 600;
+}
+
+main .check-booking dd {
+  min-width: 0;
+  margin: 0;
+}
+
+main .check-booking a {
+  display: inline-block;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+main .check-booking .check-booking-muted {
+  opacity: 0.85;
+}
+
+main .check-booking [role="alert"] {
+  border-left: 3px solid var(--widget-accent);
+  padding-left: 12px;
+}
+
+@media (width >= 600px) {
+  main .check-booking .check-booking-card {
+    padding: 24px;
+  }
+}

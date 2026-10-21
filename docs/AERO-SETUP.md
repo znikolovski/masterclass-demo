@@ -76,13 +76,28 @@ anonymous booking creation and the previous unrestricted booking lookup.
 5. Generate a strong random shared secret (at least 32 bytes) locally. Store it
    with `npx wrangler secret put WKND_BOOKING_ASSERTION_SECRET` in the Worker
    directory, and as the **secret** variable `WKND_BOOKING_ASSERTION_SECRET`
-   in the Adobe LLM Apps UI. Never commit it or put it in browser code.
+   in a supported server-side secret configuration for Adobe LLM Apps.
+   The current LLM Apps UI does not support secrets; do not store this key as an
+   ordinary Variable. Secure runtime provisioning is required before enabling
+   the lookup tool. Never commit it or put it in browser code.
 6. Enable auth for **Check Booking**, scope `bookings:read`, in the LLM Apps UI.
    The MCP API identifier remains the canonical MCP resource, not the Worker
    API audience. See the companion README for the tool output/widget contract.
    Make `booking_id` optional to enable listing, and declare optional `cursor`
    for pagination; the existing required-ID schema still supports direct lookup.
 7. Deploy the Worker, website code and companion app, then refresh host tools.
+
+Check Booking is an **EDS widget**, configured with script URL
+`https://main--masterclass-demo--znikolovski.aem.page/scripts/aem-embed.js`
+and widget URL
+`https://main--masterclass-demo--znikolovski.aem.page/eds-widgets/check-booking`.
+Author the page using a `Check Booking` block with one optional H2 title cell
+(default: “Your WKND bookings”); see `drafts/eds-widgets/check-booking.plain.html`.
+There are no authored customer identifiers, bookings, credentials, or sample
+private records. The block renders verified tool results through the shared
+LLM Apps SDK and requests details/pagination via `check-booking`. Do not add
+`widget.html` to the companion action directory: it overrides EDS delivery.
+Standalone page previews show a host/sign-in explanation instead of private data.
 
 The website reads public configuration from `GET /api/auth/config` and loads
 Auth0's SPA SDK only when sign-in is requested. Login uses a popup and memory-only
@@ -124,6 +139,7 @@ Focused regression checks:
 node tools/scripts/test-booking-auth.mjs
 node tools/scripts/test-journey-context.mjs
 node tools/scripts/test-booking-checkout.mjs
+node tools/scripts/test-check-booking-widget.mjs
 ```
 
 Before enabling the live tool, create a new booking signed in as customer A,
