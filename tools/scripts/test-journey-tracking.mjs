@@ -3,12 +3,15 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright'; // eslint-disable-line import/no-extraneous-dependencies
 import loadTestAeroWorker from './lib/load-test-aero-worker.mjs'; // eslint-disable-line import/extensions
+import bookingAuthFixture from './lib/booking-auth-fixture.mjs'; // eslint-disable-line import/extensions
 
 const base = process.argv[2] || 'http://localhost:3000';
 const screenshots = process.argv[3];
 const aero = 'https://main--wknd-aero--znikolovski.aem.live';
 const adventure = 'https://wknd-adventures.run.place';
 const worker = await loadTestAeroWorker();
+const auth = await bookingAuthFixture();
+const checkoutToken = await auth.token();
 const browser = await chromium.launch();
 const journey = {
   id: crypto.randomUUID(),
@@ -31,7 +34,13 @@ const handles = [
   },
 ];
 const values = new Map();
+values.set('catalog:adventures:ohrid-macedonia', JSON.stringify({
+  sku: 'ohrid-macedonia',
+  name: 'Ohrid',
+  editorialUrl: `${adventure}/blog/ohrid-macedonia`,
+}));
 const env = {
+  ...auth.env,
   WKND_AERO_CATALOG: {
     put: async (key, value) => values.set(key, value),
     get: async (key, type) => {
@@ -62,6 +71,15 @@ try {
     const url = new URL(request.url());
     if (url.hostname.endsWith('adobedtm.com')) {
       return route.fulfill({ contentType: 'text/javascript', body: '' });
+    }
+    if (url.hostname === 'cdn.auth0.com') {
+      return route.fulfill({
+        contentType: 'text/javascript',
+        body: `window.auth0={Auth0Client:class {
+          async loginWithPopup(_,options){options.popup.close();}
+          async getTokenSilently(){return ${JSON.stringify(checkoutToken)};}
+        }};`,
+      });
     }
     if (url.hostname.endsWith('adobedc.net')
       || (url.hostname === 'adobedc.demdex.net'
@@ -114,7 +132,7 @@ try {
         if (bookingMode === 'hold') await new Promise((resolve) => { release = resolve; });
       }
       const response = await worker.fetch(new Request(request.url(), {
-        method: request.method(), body: request.postData() || undefined,
+        method: request.method(), headers: request.headers(), body: request.postData() || undefined,
       }), env);
       const body = await response.text();
       if (url.pathname === '/api/bookings' && response.ok) confirmed = JSON.parse(body);
@@ -278,6 +296,8 @@ try {
   await page.locator('#pax-email').fill('PRIVATE_PASSENGER@example.com');
   await page.getByRole('button', { name: 'Continue to payment' }).click();
   await page.getByRole('tab', { name: /PayPal/i }).click();
+  await page.getByRole('button', { name: 'Sign in to book', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Signed in to WKND' }).waitFor();
   const complete = page.getByRole('button', { name: 'Complete booking', exact: false });
   await complete.click();
   await page.getByRole('alert').waitFor();
@@ -479,4 +499,5 @@ try {
   console.log('PASS configured/identity-only/cookie-blocked SDK handling, widget consent, failed Edge navigation and bounded/blocked journey storage');
 } finally {
   await browser.close();
+  auth.restore();
 }
