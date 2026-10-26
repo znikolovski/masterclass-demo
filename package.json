@@ -48,7 +48,8 @@
     "map:republish": "node tools/scripts/republish-map-adventures.mjs",
     "analytics:segments:export": "node tools/scripts/publish-wknd-segments.mjs --dry-run --export",
     "analytics:segments:publish": "node tools/scripts/publish-wknd-segments.mjs --apply",
-    "analytics:briefing": "node tools/analytics/scripts/generate-performance-briefing.mjs"
+    "analytics:briefing": "node tools/analytics/scripts/generate-performance-briefing.mjs",
+    "deck:analytics-target": "node tools/scripts/export-analytics-target-deck.mjs"
   },
   "repository": {
     "type": "git",
@@ -61,11 +62,12 @@
   },
   "homepage": "https://github.com/adobe/aem-boilerplate#readme",
   "devDependencies": {
-    "playwright": "1.58.2",
     "@babel/eslint-parser": "7.29.7",
     "eslint": "8.57.1",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.32.0",
+    "playwright": "1.58.2",
+    "pptxgenjs": "^4.0.1",
     "stylelint": "17.12.0",
     "stylelint-config-standard": "40.0.0"
   }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>WKND Adventures | Square Feed | Dark | 1:1</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&amp;family=Syncopate:wght@700&amp;display=swap">
+    <style>
+      .wknd-ad .wknd-logo {
+        display: block;
+        flex-shrink: 0;
+        width: 96px;
+        height: 96px;
+        object-fit: contain;
+        object-position: center;
+      }
+    </style>
+  </head>
+  <body style="width: 1080px; height: 1080px; margin: 0; padding: 0;">
+    <div class="wknd-ad" style="position: relative; width: 1080px; height: 1080px; background-color: #0f1a14; color: #fff; font-family: 'Instrument Sans', Arial, sans-serif;">
+      <img class="wknd-image" src="{{image}}" alt="{{imageDescription}}" width="1080" height="576" style="position: absolute; top: 0; left: 0; display: block; width: 1080px; height: 576px; object-fit: cover; object-position: center;">
+      <div class="wknd-brand" style="position: absolute; top: 60px; left: 72px; display: flex; align-items: center; gap: 24px; padding: 30px 36px; background-color: #0f1a14; color: #fff;">
+        <img class="wknd-logo" src="{{brand_logo}}" style="{{defaultLogo}}" alt="" aria-hidden="true" width="96" height="96">
+        <div>
+          <div style="font-family: Syncopate, Arial, sans-serif; font-size: 72px; font-weight: 700; line-height: 78px; letter-spacing: -3px;">WKND</div>
+          <div style="margin-top: 9px; font-size: 27px; font-weight: 600; line-height: 36px; letter-spacing: 6px;">ADVENTURES</div>
+        </div>
+      </div>
+      <div class="wknd-accent" aria-hidden="true" style="position: absolute; top: 567px; left: 72px; width: 144px; height: 18px; background-color: #e8651a;"></div>
+      <div class="wknd-copy" style="position: absolute; top: 630px; left: 72px; width: 936px;">
+        <h1 class="wknd-headline" style="margin: 0; color: #fff; font-family: Syncopate, Arial, sans-serif; font-size: 72px; font-weight: 700; line-height: 84px; letter-spacing: -3px; overflow-wrap: break-word;">{{on_image_text}}</h1>
+      </div>
+      <div class="wknd-signoff" style="position: absolute; bottom: 48px; left: 72px; font-size: 30px; font-weight: 600; line-height: 42px; letter-spacing: 4.5px;">BOLD STORIES. WILD PLACES.</div>
+    </div>
+  </body>
+</html>

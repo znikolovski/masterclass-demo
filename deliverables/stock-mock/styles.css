@@ -1,0 +1,964 @@
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/instrument-sans-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Syncopate;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/syncopate-bold-latin.woff2") format("woff2");
+}
+
+:root {
+  --heading-font-family: "Syncopate", sans-serif;
+  --body-font-family: "Instrument Sans", sans-serif;
+  --accent-color: #e8651a;
+  --text-color: #0f1a14;
+  --light-color: #f4f2ef;
+
+  font-family: var(--body-font-family);
+  color: var(--text-color);
+  background: var(--light-color);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button, input {
+  font: inherit;
+}
+
+button, a, input, label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, .import-button {
+  cursor: pointer;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, .import-button:focus-within {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 4px;
+}
+
+.site-header {
+  min-height: 90px;
+  padding: 20px max(24px, calc((100vw - 1320px) / 2));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-bottom: 1px solid #ddd8cf;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-color);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.wordmark span {
+  display: block;
+  font-family: var(--heading-font-family);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  line-height: 1.5;
+}
+
+.header-divider {
+  display: none;
+  width: 1px;
+  height: 30px;
+  background: #e2e4e8;
+}
+
+.header-title {
+  display: none;
+  font-size: 14px;
+  color: #63666c;
+}
+
+.ticker-view-link {
+  margin-left: auto;
+  color: var(--text-color);
+  font-size: 11px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.mock-badge {
+  display: none;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: var(--light-color);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.mock-badge span {
+  display: inline-block;
+  margin-right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-color);
+}
+
+.stock-mock {
+  max-width: 1368px;
+  margin: auto;
+  padding: 36px 20px 20px;
+}
+
+.stock-mock .eyebrow {
+  margin: 0 0 10px;
+  font-size: 10px;
+  line-height: 1.5;
+  font-weight: 750;
+  letter-spacing: 1.7px;
+  color: #676b73;
+}
+
+.stock-mock h1 {
+  max-width: 800px;
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: clamp(23px, 2.5vw, 32px);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.stock-mock h2, .stock-mock h3, .stock-mock p {
+  margin-top: 0;
+}
+
+.stock-mock .page-heading {
+  margin-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+}
+
+.stock-mock .page-heading > p {
+  margin: 0;
+  color: #6a6e76;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.stock-mock .dashboard {
+  display: grid;
+  gap: 22px;
+  align-items: start;
+}
+
+.stock-mock .quote-card, .stock-mock .scenario-card, .stock-mock .events-card {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #ddd8cf;
+  border-radius: 20px;
+}
+
+.stock-mock .quote-card {
+  padding: 24px 16px 0;
+  overflow: hidden;
+}
+
+.stock-mock .company-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stock-mock .company-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 26px;
+  letter-spacing: -2px;
+  font-weight: 900;
+  background: #fbe8db;
+  color: var(--text-color);
+}
+
+.stock-mock .company-header h2 {
+  margin: 0 0 5px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+}
+
+.stock-mock .company-header p {
+  margin-bottom: 0;
+  font-size: 11px;
+  color: #737780;
+}
+
+.stock-mock .market-badge {
+  display: none;
+  margin-left: auto;
+  padding: 6px 9px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #737780;
+  white-space: nowrap;
+}
+
+.stock-mock .quote-summary {
+  padding-top: 30px;
+}
+
+.stock-mock .price-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.stock-mock footer strong {
+  color: #515761;
+  font-weight: 550;
+}
+
+.stock-mock .price-line strong {
+  font-size: clamp(42px, 5vw, 58px);
+  font-weight: 600;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.stock-mock .currency-label {
+  color: #737780;
+  font-size: 13px;
+}
+
+.stock-mock #price-change {
+  margin: 7px 0 10px;
+  font-size: 15px;
+  font-weight: 550;
+}
+
+.stock-mock .negative {
+  color: #bc302c;
+}
+
+.stock-mock .positive {
+  color: #137447;
+}
+
+.stock-mock .muted {
+  color: #737780;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.stock-mock .chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 30px 0 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.stock-mock .story-note {
+  margin-top: 22px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--accent-color);
+  border-radius: 0 8px 8px 0;
+  background: var(--light-color);
+}
+
+.stock-mock .story-note strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stock-mock .story-note p {
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #515b54;
+}
+
+.stock-mock .story-disclaimer {
+  font-size: 10px;
+  line-height: 1.6;
+  color: #686f69;
+}
+
+.stock-mock .periods {
+  display: flex;
+  gap: 4px;
+}
+
+.stock-mock .periods button {
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 5px;
+  color: #626872;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.stock-mock .periods button[aria-pressed="true"] {
+  background: var(--text-color);
+  color: #fff;
+}
+
+.stock-mock .baseline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #737780;
+  font-size: 10px;
+}
+
+.stock-mock input {
+  accent-color: var(--accent-color);
+}
+
+.stock-mock .chart {
+  margin: 0;
+}
+
+.stock-mock .chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.stock-mock .gridline {
+  stroke: #edf0f3;
+  stroke-width: 1;
+}
+
+.stock-mock .axis-label {
+  fill: #757b85;
+  font-size: 11px;
+}
+
+.stock-mock .price-path {
+  fill: none;
+  stroke: #d64440;
+  stroke-width: 2.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.stock-mock .baseline-path {
+  fill: none;
+  stroke: #9da4af;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+
+.stock-mock .chart-area {
+  fill: #d64440;
+  opacity: 0.065;
+}
+
+.stock-mock .last-point {
+  fill: #d64440;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.stock-mock .event-point {
+  fill: #fff;
+  stroke: #434851;
+  stroke-width: 2;
+}
+
+.stock-mock .chart-positive .price-path {
+  stroke: #168451;
+}
+
+.stock-mock .chart-positive .chart-area, .stock-mock .chart-positive .last-point {
+  fill: #168451;
+}
+
+.stock-mock figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  padding: 7px 0 22px;
+  font-size: 10px;
+  color: #777d86;
+}
+
+.stock-mock figcaption > span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.stock-mock #active-count {
+  margin-left: auto;
+}
+
+.stock-mock .legend-line {
+  width: 14px;
+  border-top: 2px solid #6c737e;
+}
+
+.stock-mock .legend-line.dashed {
+  border-top: 2px dashed #9da4af;
+}
+
+.stock-mock .date-explorer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 18px;
+  margin-bottom: 24px;
+  border: 1px solid #eceef2;
+  background: #fafbfc;
+  border-radius: 9px;
+}
+
+.stock-mock .date-explorer > div {
+  display: grid;
+  gap: 8px;
+}
+
+.stock-mock .date-explorer label {
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.8px;
+  color: #6d737c;
+}
+
+.stock-mock input[type="date"] {
+  max-width: 100%;
+  padding: 5px 7px;
+  color: #30343b;
+  border: 1px solid #d9dde4;
+  background: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.stock-mock .scrubber-label {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stock-mock input[type="range"] {
+  width: 100%;
+  margin: 0 0 7px;
+  cursor: pointer;
+}
+
+.stock-mock .stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin: 0;
+  padding: 22px 0;
+  border-top: 1px solid #eceef2;
+}
+
+.stock-mock .stats dt {
+  font-size: 10px;
+  color: #737780;
+  margin-bottom: 9px;
+}
+
+.stock-mock .stats dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.stock-mock .scenario-card {
+  padding: 26px 22px 14px;
+}
+
+.stock-mock .panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.stock-mock .panel-heading h2 {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.stock-mock .panel-heading .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+
+.stock-mock .lab-icon {
+  display: grid;
+  place-items: center;
+  background: var(--accent-color);
+  color: #fff;
+  flex-shrink: 0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 23px;
+}
+
+.stock-mock .panel-intro {
+  color: #6d737c;
+  font-size: 12px;
+  line-height: 1.75;
+  margin: 18px 0;
+}
+
+.stock-mock .baseline-note {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  padding: 15px;
+  background: #fbefe6;
+  border: 1px solid #edd1bd;
+  border-radius: 8px;
+}
+
+.stock-mock .baseline-note > span {
+  color: #b4480e;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.stock-mock .baseline-note strong {
+  font-size: 11px;
+}
+
+.stock-mock .baseline-note p {
+  margin: 5px 0 0;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #78543e;
+}
+
+.stock-mock .dataset-heading {
+  margin: 25px 0 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stock-mock h3 {
+  font-size: 12px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.stock-mock .text-button {
+  background: none;
+  border: 0;
+  font-size: 10px;
+  color: #6a7079;
+  padding: 8px 0 8px 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stock-mock .dataset {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 14px;
+  padding: 17px 0;
+  border-bottom: 1px solid #eef0f3;
+  cursor: pointer;
+}
+
+.stock-mock .dataset > input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.stock-mock .dataset-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.stock-mock .dataset strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.stock-mock .dataset-description {
+  display: block;
+  color: #737780;
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 4px 0 6px;
+  overflow-wrap: anywhere;
+}
+
+.stock-mock .dataset-meta {
+  display: block;
+  color: #68707a;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.stock-mock .switch {
+  flex-shrink: 0;
+  width: 32px;
+  height: 19px;
+  background: #dce0e6;
+  border-radius: 15px;
+  padding: 3px;
+}
+
+.stock-mock .switch::after {
+  content: "";
+  display: block;
+  height: 13px;
+  width: 13px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px #0002;
+  transition: transform 150ms;
+}
+
+.stock-mock .dataset input:checked ~ .switch {
+  background: var(--accent-color);
+}
+
+.stock-mock .dataset input:checked ~ .switch::after {
+  transform: translateX(13px);
+}
+
+.stock-mock .import-panel {
+  margin-top: 24px;
+  padding: 18px;
+  background: var(--light-color);
+  border: 1px dashed #d4cdc3;
+  border-radius: 9px;
+}
+
+.stock-mock .import-panel p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #6d737c;
+  margin: 9px 0 14px;
+}
+
+.stock-mock .import-button {
+  position: relative;
+  display: block;
+  text-align: center;
+  padding: 11px;
+  font-size: 11px;
+  font-weight: 650;
+  border: 1px solid #dce0e6;
+  border-radius: 9999px;
+  border-color: var(--text-color);
+  background: var(--text-color);
+  color: #fff;
+}
+
+.stock-mock .import-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.stock-mock .dataset input:focus-visible {
+  outline-offset: 2px;
+  opacity: 1;
+  appearance: none;
+  border-radius: 4px;
+}
+
+.stock-mock .import-panel a {
+  display: block;
+  color: #68707a;
+  font-size: 9px;
+  margin-top: 12px;
+  text-align: center;
+  text-underline-offset: 3px;
+}
+
+.stock-mock .status {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #267247;
+  margin: 12px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.stock-mock .status.error {
+  color: #bc302c;
+}
+
+.stock-mock .events-card {
+  margin-top: 22px;
+  padding: 25px 22px;
+}
+
+.stock-mock .events-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.stock-mock .events-heading .eyebrow {
+  font-size: 9px;
+}
+
+.stock-mock .events-heading h2 {
+  margin-bottom: 0;
+  font-family: var(--heading-font-family);
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.stock-mock #event-count {
+  font-size: 10px;
+  color: #737780;
+}
+
+.stock-mock .empty-state {
+  padding: 28px 0 5px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #737780;
+}
+
+.stock-mock .event-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 15px;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.stock-mock .event-row time {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: #737780;
+}
+
+.stock-mock .event-row strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+
+.stock-mock .event-row p {
+  color: #737780;
+  font-size: 10px;
+  margin: 4px 0 0;
+  line-height: 1.6;
+}
+
+.stock-mock .event-row > span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stock-mock .event-effect {
+  max-width: 105px;
+  text-align: right;
+  line-height: 1.6;
+}
+
+.stock-mock .upcoming {
+  background: #fafbfc;
+}
+
+.stock-mock footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 28px 2px 8px;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #777d86;
+}
+
+.stock-mock .company-separator {
+  padding: 0 3px;
+}
+
+@media (width >= 600px) {
+  .mock-badge {
+    display: inline-block;
+  }
+
+  .header-divider {
+    display: block;
+  }
+
+  .header-title {
+    display: inline;
+  }
+
+  .stock-mock {
+    padding: 45px 28px 20px;
+  }
+
+  .stock-mock .quote-card {
+    padding: 30px 30px 0;
+  }
+
+  .stock-mock .market-badge {
+    display: block;
+  }
+
+  .stock-mock .company-header h2 {
+    font-size: 21px;
+  }
+
+  .stock-mock .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .stock-mock .event-row {
+    grid-template-columns: 110px 1fr auto;
+  }
+
+  .stock-mock .event-row time {
+    grid-column: auto;
+  }
+}
+
+@media (width >= 900px) {
+  .stock-mock .dashboard {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .stock-mock .page-heading > p {
+    text-align: right;
+  }
+}
+
+@media (width >= 1200px) {
+  .stock-mock .dashboard {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+
+  .stock-mock .quote-card {
+    padding: 34px 34px 0;
+  }
+
+  .stock-mock .quote-summary {
+    padding-top: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stock-mock .switch::after {
+    transition: none;
+  }
+}
+
+.ticker-view .site-header,
+.ticker-view .stock-mock :is(
+  .page-heading,
+  .story-note,
+  .market-badge,
+  .chart-toolbar,
+  figcaption,
+  .date-explorer,
+  .stats,
+  .scenario-card,
+  .events-card,
+  .event-point,
+  footer
+) {
+  display: none;
+}
+
+.ticker-view .stock-mock {
+  display: grid;
+  align-items: center;
+  max-width: 1100px;
+  min-height: 100svh;
+  padding: 24px 16px;
+}
+
+.ticker-view .stock-mock .dashboard {
+  display: block;
+}
+
+.ticker-view .stock-mock .quote-card {
+  padding: 28px 20px 16px;
+}
+
+.ticker-view .stock-mock .chart {
+  margin-top: 28px;
+}
+
+@media (width >= 600px) {
+  .ticker-view .stock-mock {
+    padding: 40px 32px;
+  }
+
+  .ticker-view .stock-mock .quote-card {
+    padding: 40px 40px 24px;
+  }
+}

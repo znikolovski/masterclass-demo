@@ -1,0 +1,40 @@
+{
+  "datasets": [
+    {
+      "id": "new-destinations",
+      "name": "Highly requested adventures launch",
+      "description": "Ladakh, India and Ohrid, North Macedonia go live, but no sustained stock lift is modeled. Illustrative launch dates.",
+      "events": [
+        { "date": "2026-08-25", "label": "Ladakh, India launches — a highly requested adventure", "impactPct": 0 },
+        { "date": "2026-09-22", "label": "Ohrid, North Macedonia launches — another highly requested adventure", "impactPct": 0 }
+      ]
+    },
+    {
+      "id": "booking-outage",
+      "name": "Booking platform outage",
+      "description": "A checkout incident interrupts peak-season bookings.",
+      "events": [
+        { "date": "2026-09-08", "label": "Booking platform goes offline", "impactPct": -8 },
+        { "date": "2026-09-12", "label": "Service restored; bookings begin to recover", "impactPct": 3 }
+      ]
+    },
+    {
+      "id": "extreme-weather",
+      "name": "Extreme weather disruption",
+      "description": "Storm closures lead to cancellations and refunds.",
+      "events": [
+        { "date": "2026-08-18", "label": "Alpine storm closes key adventure routes", "impactPct": -6 },
+        { "date": "2026-08-23", "label": "Additional departures cancelled", "impactPct": -4 }
+      ]
+    },
+    {
+      "id": "campaign-recovery",
+      "name": "Brand & booking recovery",
+      "description": "A new campaign rebuilds demand and customer confidence.",
+      "events": [
+        { "date": "2026-09-21", "label": "Go Somewhere New campaign launches", "impactPct": 7 },
+        { "date": "2026-10-06", "label": "Repeat bookings outperform expectations", "impactPct": 5 }
+      ]
+    }
+  ]
+}

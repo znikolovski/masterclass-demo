@@ -358,14 +358,21 @@ try {
     const { default: init } = await import('/scripts/concierge.js');
     await init();
   });
-  await page.getByRole('button', { name: 'Chat with WKND Sherpa', exact: true }).click();
+  await page.locator('.sherpa-options').getByRole('link', {
+    name: 'Chat with WKND Sherpa', exact: true,
+  }).click();
   const frame = page.frameLocator('.wknd-sherpa-frame');
   await frame.locator('.chat-input').waitFor();
-  await frame.locator('.chat-input').fill('PRIVATE_CHAT');
-  await frame.getByRole('button', { name: 'Send message' }).click();
   await page.waitForTimeout(400);
   assert.equal(read('sherpaOpen').length, 1);
   assert.equal(read('sherpaMessageAttempt').length, 1);
+  const sherpaPrompt = await frame.locator('.chat-input').inputValue();
+  assert(sherpaPrompt.startsWith('Help me choose an adventure'));
+  assert(events.every((event) => !JSON.stringify(event).includes(sherpaPrompt)));
+  await frame.locator('.chat-input').fill('PRIVATE_CHAT');
+  await frame.getByRole('button', { name: 'Send message' }).click();
+  await page.waitForTimeout(400);
+  assert.equal(read('sherpaMessageAttempt').length, 2);
   assert(events.every((event) => !JSON.stringify(event).includes('PRIVATE_CHAT')));
   await frame.getByRole('link', { name: 'Flights' }).click();
   await page.waitForURL(`${aero}/book/flights**`);

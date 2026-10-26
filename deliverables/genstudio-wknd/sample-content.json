@@ -1,0 +1,74 @@
+{
+  "brand": "WKND Adventures",
+  "campaign": "Wild places. Real weekends.",
+  "logos": {
+    "dark": "assets/wknd-compass-on-dark.png",
+    "light": "assets/wknd-compass-on-light.png"
+  },
+  "templates": [
+    {
+      "file": "meta-feed-square.html",
+      "theme": "dark",
+      "alternate": { "file": "meta-feed-square-light.html", "theme": "light" },
+      "name": "WKND / Wild Places / Square Feed",
+      "placements": ["Facebook Feed", "Instagram Feed"],
+      "canvas": { "width": 1080, "height": 1080 },
+      "export": { "width": 1080, "height": 1080 },
+      "fields": {
+        "image": "https://main--masterclass-demo--znikolovski.aem.live/media_137e525a8479336997a84917d2ad521f873e4df22.jpg?width=2000&format=jpg&optimize=medium",
+        "imageDescription": "A climber on a rock face above a mountain lake.",
+        "on_image_text": "Your next wild story."
+      },
+      "nativeCopy": {
+        "headline": "Find your next adventure",
+        "body": "A new route. A different perspective. Explore wild places and honest field notes with WKND Adventures.",
+        "cta": "Learn More",
+        "destination": "https://main--masterclass-demo--znikolovski.aem.live/adventures"
+      },
+      "prompt": "Create an awareness ad for WKND Adventures aimed at outdoor-curious weekend explorers. Invite people to discover routes and field notes. Use a grounded, bold, editorial voice. Generate on_image_text of 3 to 6 words and no more than 40 characters including spaces. Do not invent discounts, prices, guided-trip availability, safety guarantees or environmental certifications."
+    },
+    {
+      "file": "instagram-feed-portrait.html",
+      "theme": "light",
+      "alternate": { "file": "instagram-feed-portrait-dark.html", "theme": "dark" },
+      "name": "WKND / Take the Long Way / Portrait Feed",
+      "placements": ["Instagram Feed", "Facebook Feed"],
+      "canvas": { "width": 1080, "height": 1350 },
+      "export": { "width": 1080, "height": 1350 },
+      "fields": {
+        "image": "https://main--masterclass-demo--znikolovski.aem.live/media_1e4b49be43a70d306b1c312d0d78dd369b5ccce40.jpg?width=2000&format=jpg&optimize=medium",
+        "imageDescription": "A hiker on a granite ledge above a mountain valley.",
+        "on_image_text": "Take the long way."
+      },
+      "nativeCopy": {
+        "headline": "Find a route worth exploring",
+        "body": "A little trail inspiration goes a long way. Browse WKND adventures for routes and field notes to inspire your next time outdoors.",
+        "cta": "Learn More",
+        "destination": "https://main--masterclass-demo--znikolovski.aem.live/adventures"
+      },
+      "prompt": "Create an Instagram feed ad for WKND Adventures promoting route discovery and field notes to experienced hikers researching their next adventure. Use specific, thoughtful language without promising bookings or guided services. Generate on_image_text of 3 to 6 words and no more than 40 characters including spaces. Instagram does not display the native headline; make the on-image text and primary text understandable independently. Do not invent prices, permits, dates, availability or difficulty claims. Do not name a location unless verified for the selected image."
+    },
+    {
+      "file": "instagram-stories-vertical.html",
+      "theme": "dark",
+      "alternate": { "file": "instagram-stories-vertical-light.html", "theme": "light" },
+      "name": "WKND / Beyond the Scroll / Stories",
+      "placements": ["Instagram Stories", "Facebook Stories"],
+      "canvas": { "width": 1080, "height": 1920 },
+      "export": { "width": 1080, "height": 1920 },
+      "safeArea": { "left": 72, "top": 270, "right": 192, "bottom": 390 },
+      "fields": {
+        "image": "https://main--masterclass-demo--znikolovski.aem.live/media_1bd10685af4f3d38127de55d4da60d4ef86518b8d.jpg?width=2000&format=jpg&optimize=medium",
+        "imageDescription": "Cold Atlantic surf on the Lofoten Islands in Norway.",
+        "on_image_text": "Beyond the scroll."
+      },
+      "nativeCopy": {
+        "headline": "Stories from wild places",
+        "body": "Meet the places beyond your feed. Discover WKND field notes from the Lofoten Islands.",
+        "cta": "Learn More",
+        "destination": "https://main--masterclass-demo--znikolovski.aem.live/blog/kayaking-norway"
+      },
+      "prompt": "Create a static Instagram Stories ad for WKND Adventures aimed at outdoor-minded readers discovering the Lofoten Islands. Lead with a short curiosity-driven hook rather than urgency. Generate on_image_text of 3 to 6 words and no more than 40 characters including spaces. Keep the native CTA separate from the artwork. Do not invent offers, wildlife encounters, trip availability, safety guarantees or sustainability claims."
+    }
+  ]
+}

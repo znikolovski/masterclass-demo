@@ -436,3 +436,19 @@ generation displayed the planning panel, native images loaded, and the new
 375, 768 and 1200 px. Authored-page spacing and full-bleed heroes are unchanged.
 Production search, navigation/footer, five response templates and existing
 deliverables remain available.
+
+### Automatic ingestion of new published adventures
+
+The isolated `workers/wknd-of1-ingestion` service polls the main site's
+published `/blog/` inventory every five minutes. **Write mode is active** with
+verified Adobe service credentials and the confirmed upstream sync policy.
+A temporary article completed real ingestion and source-specific retrieval;
+withdrawal removed its owned records and, after propagation and a repeat sync,
+the source disappeared from retrieval. The fixture was then deleted.
+
+It owns only new `auto-blog-*` knowledge mirrors and entity
+records; the 15 curated adventure entries and their planning/Aero companions
+remain manually maintained. All 50 original curated catalogue records were
+verified unchanged during acceptance. See [Automatic OF1 adventure
+ingestion](OF1-AUTOMATIC-INGESTION.md) for lifecycle, credentials, free-tier
+constraints, deployment and recovery.
