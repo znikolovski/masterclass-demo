@@ -728,7 +728,8 @@ export function decorateMain(main) {
     ));
     const hasSherpa = sections.slice(turnStart + 1)
       .some((section) => section.querySelector('.sherpa-options'));
-    if (adventureCards && !main.querySelector('.sherpa-options') && !hasSherpa) {
+    const adventureContent = adventureCards || main.querySelector('.adventure-facts');
+    if (adventureContent && !main.querySelector('.sherpa-options') && !hasSherpa) {
       const section = document.createElement('div');
       section.append(buildBlock('sherpa-options', [[
         '<h2>Talk it through with WKND Sherpa</h2>'
@@ -736,7 +737,7 @@ export function decorateMain(main) {
         + 'your AI adventure guide, or keep browsing the field notes below.</p>'
         + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
       ]]));
-      const cardSection = [...main.children].find((child) => child.contains(adventureCards));
+      const cardSection = [...main.children].find((child) => child.contains(adventureContent));
       main.insertBefore(section, cardSection);
     }
   }

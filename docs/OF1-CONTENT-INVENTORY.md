@@ -208,6 +208,15 @@ for engineering reproduction evidence and acceptance criteria.
 
 ### Optional WKND Sherpa help before adventure cards
 
+Deep-dive templates have no authored cards. When a generated turn reaches its
+adventure facts without any cards, the OF1 decoration hook adds standard cards
+from matching published `/blog/` products in `of1/config/knowledge.json`, using
+the existing curated destination terms and exact source titles/IDs. It does not
+invent destinations or replace cards already supplied by another template.
+The Sherpa panel also appears for adventure facts when no catalog entry matches,
+so conversational help no longer depends on a cards section being present.
+Follow-up turns are checked independently.
+
 Generated adventure cards with a heading and an original `/blog/` article link
 retain the existing field-notes link as a secondary button for independent
 browsing. They no longer contain a Sherpa action. Labels wrap on narrow cards.

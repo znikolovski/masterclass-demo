@@ -91,8 +91,37 @@ try {
     template = templates[index];
     await page.goto(`${base}/of1?llm_app_ctx=${encodeURIComponent(entry.planning.destinationTerms[0])}`);
     await verify([entry]);
+    assert.equal(await page.locator('.generated-section .sherpa-options').count(), 1);
+    if (index === 4) {
+      const source = entities.find((entity) => entity.id === entry.id.replace(/^planning-/, ''));
+      assert.equal(await page.locator('.generated-section .cards').count(), 1);
+      assert.equal(await page.locator('.cards h3').textContent(), source.title);
+      assert.equal(await page.locator('.cards a').getAttribute('href'), source.url.replace(
+        /^https:\/\/[^/]+--masterclass-demo--znikolovski\.aem\.(?:page|live)(\/blog\/)/,
+        'https://wknd-adventures.run.place$1',
+      ));
+    }
   }, Promise.resolve());
   process.stdout.write('PASS five destinations and templates, exact source-backed points, links and placement\n');
+
+  template = templates[4];
+  const lofoten = entries.find((entry) => entry.id === 'planning-kayaking-norway');
+  await page.goto(`${base}/of1?llm_app_ctx=${encodeURIComponent('Tell me about Lofoten Islands: Arctic Surfing at the Top of the World')}&adv=kayaking-norway`);
+  await verify([lofoten]);
+  assert.equal(await page.locator('.generated-section .cards').count(), 1);
+  const sherpa = page.locator('.sherpa-options a');
+  assert((await sherpa.getAttribute('href')).startsWith('#sherpa?prompt='));
+  assert.equal(await page.locator('.sherpa-options').count(), 1);
+  await page.locator('.generative-suggestions:not(.dimmed) .suggestion-input').fill('Ohrid');
+  await page.locator('.generative-suggestions:not(.dimmed) .suggestion-submit').click();
+  await page.waitForFunction(() => document.querySelectorAll('.generative-suggestions').length === 2);
+  assert.equal(await page.locator('.generated-section .cards').count(), 2);
+  assert.equal(await page.locator('.sherpa-options').count(), 2);
+  await page.goto(`${base}/of1?q=No%20matching%20adventure`);
+  await ready();
+  assert.equal(await page.locator('.cards').count(), 0, 'Do not invent cards for an unknown source');
+  assert.equal(await page.locator('.sherpa-options').count(), 1, 'Sherpa help must not depend on cards');
+  process.stdout.write('PASS Lofoten deep-dive cards, contextual Sherpa CTA, per-turn follow-ups and unknown-source isolation\n');
 
   [template] = templates;
   await page.goto(`${base}/of1?q=Compare%20Patagonia%20and%20Yosemite`);
@@ -169,10 +198,12 @@ try {
   assert.deepEqual(sourceErrors, []);
   process.stdout.write('PASS follow-ups, chips, restart, heading fallback, query priority and authored isolation\n');
 
+  template = templates[4];
   await page.route('**/of1/config/knowledge.json', (route) => route.fulfill({ status: 503, body: 'Unavailable' }));
   await page.goto(`${base}/of1?q=Ohrid`);
   await ready();
   await page.locator('.adventure-planning [role="status"]').waitFor();
+  await page.getByRole('status').filter({ hasText: 'Adventure cards are unavailable' }).waitFor();
   assert.equal(await page.locator('.adventure-planning a').count(), 0);
   await page.unroute('**/of1/config/knowledge.json');
   await page.locator('.generative-suggestions:not(.dimmed) .suggestion-input').fill('Yosemite');

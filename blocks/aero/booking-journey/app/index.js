@@ -5,7 +5,10 @@ import { pushBookingEvent } from '../../../../scripts/aero-analytics.js';
 import { DEFAULT_FLIGHT_ORIGIN } from '../../../../scripts/aero-blocks.js';
 import { getJourney } from '../../../../scripts/journey-analytics.js';
 import { JOURNEY_ID_PATTERN } from '../../../../scripts/journey-context.js';
-import { signInForBooking, getBookingAccessToken } from '../../../../scripts/aero-auth.js';
+import {
+  signInForBooking, getBookingAccessToken, invalidateBookingAuth,
+  restoreBookingSession, subscribeToBookingAuth,
+} from '../../../../scripts/aero-auth.js';
 
 const STEPS = ['Flights', 'Seats', 'Passengers', 'Payment'];
 
@@ -601,6 +604,19 @@ function BookingApp({ mount }) {
   const pax = Math.min(6, Math.max(1, parseInt(passengers || '1', 10) || 1));
 
   useEffect(() => {
+    const unsubscribe = subscribeToBookingAuth((value) => {
+      setSignedIn(value);
+      if (value) setBookingError('');
+    });
+    restoreBookingSession(api).catch((err) => {
+      setBookingError('Unable to check your sign-in. Sign in again before completing your booking.');
+      // eslint-disable-next-line no-console
+      console.error('WKND checkout session restoration failed.', { reason: err.error || err.name });
+    });
+    return unsubscribe;
+  }, [api]);
+
+  useEffect(() => {
     setSeats((prev) => (prev.length > pax ? prev.slice(0, pax) : prev));
   }, [pax]);
 
@@ -661,7 +677,6 @@ function BookingApp({ mount }) {
     setBookingError('');
     try {
       await signInForBooking(api);
-      setSignedIn(true);
     } catch (err) {
       setBookingError(['cancelled', 'popup_closed'].includes(err.error)
         ? 'Sign-in was cancelled. Your selections are unchanged.'
@@ -683,15 +698,7 @@ function BookingApp({ mount }) {
     let reason = 'network';
     try {
       reason = 'authentication';
-      let accessToken;
-      try {
-        accessToken = await getBookingAccessToken(api);
-      } catch (err) {
-        if (['login_required', 'consent_required', 'interaction_required'].includes(err.error)) {
-          setSignedIn(false);
-        }
-        throw err;
-      }
+      const accessToken = await getBookingAccessToken(api);
       reason = 'network';
       const resp = await fetch(`${api}/api/bookings`, {
         method: 'POST',
@@ -711,7 +718,7 @@ function BookingApp({ mount }) {
       });
       reason = 'http';
       if (resp.status === 401) {
-        setSignedIn(false);
+        invalidateBookingAuth();
         reason = 'authentication';
       }
       if (resp.status === 403) reason = 'permission';
