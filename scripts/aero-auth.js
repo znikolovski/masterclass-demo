@@ -2,7 +2,28 @@ import { loadScript } from './aem.js';
 
 let clientPromise;
 let clientApi;
+let sessionPromise;
+let loginPromise;
+let authenticated = false;
+let revision = 0;
+const listeners = new Set();
 const SDK_URL = 'https://cdn.auth0.com/js/auth0-spa-js/2.5/auth0-spa-js.production.js';
+
+function updateSession(value) {
+  revision += 1;
+  authenticated = value;
+  listeners.forEach((listener) => listener(authenticated));
+}
+
+export function subscribeToBookingAuth(listener) {
+  listeners.add(listener);
+  listener(authenticated);
+  return () => listeners.delete(listener);
+}
+
+export function invalidateBookingAuth() {
+  updateSession(false);
+}
 
 async function getClient(api) {
   if (clientPromise && clientApi !== api) {
@@ -47,18 +68,51 @@ async function getClient(api) {
 }
 
 export async function signInForBooking(api) {
+  if (loginPromise) return loginPromise;
   // Open on the click, before network requests, so browsers do not block the popup.
   const popup = window.open('', 'wknd-customer-login', 'width=500,height=700');
   if (!popup) throw new Error('Allow the sign-in popup to continue.');
-  try {
+  loginPromise = (async () => {
     const client = await getClient(api);
     await client.loginWithPopup({}, { popup, timeoutInSeconds: 120 });
-  } finally {
+    updateSession(true);
+  })().finally(() => {
     if (!popup.closed) popup.close();
+    loginPromise = undefined;
+  });
+  return loginPromise;
+}
+
+export async function restoreBookingSession(api) {
+  if (!sessionPromise) {
+    const started = revision;
+    sessionPromise = (async () => {
+      const client = await getClient(api);
+      await client.checkSession();
+      const signedIn = await client.isAuthenticated();
+      if (revision === started) updateSession(signedIn);
+    })().catch((error) => {
+      sessionPromise = undefined;
+      throw error;
+    });
   }
+  await sessionPromise;
+}
+
+export async function signOutForBooking(api) {
+  const client = await getClient(api);
+  await client.logout({ logoutParams: { returnTo: window.location.origin } });
+  updateSession(false);
 }
 
 export async function getBookingAccessToken(api) {
   const client = await getClient(api);
-  return client.getTokenSilently();
+  try {
+    return await client.getTokenSilently();
+  } catch (error) {
+    if (['login_required', 'consent_required', 'interaction_required'].includes(error.error)) {
+      invalidateBookingAuth();
+    }
+    throw error;
+  }
 }

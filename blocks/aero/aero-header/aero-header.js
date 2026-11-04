@@ -3,6 +3,10 @@
  */
 import { getMetadata } from '../../../scripts/aem.js';
 import { pushInteractionEvent } from '../../../scripts/analytics-acdl.js';
+import { getAeroApiBase } from '../../../scripts/aero-blocks.js';
+import {
+  restoreBookingSession, signInForBooking, signOutForBooking, subscribeToBookingAuth,
+} from '../../../scripts/aero-auth.js';
 
 const isDesktop = window.matchMedia('(min-width: 900px)');
 
@@ -18,7 +22,10 @@ function toggleMobileNav(nav, open) {
   nav.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   document.body.style.overflowY = expanded && !isDesktop.matches ? 'hidden' : '';
   const btn = nav.querySelector('.aero-header-toggle');
-  if (btn) btn.setAttribute('aria-label', expanded ? 'Close navigation' : 'Open navigation');
+  if (btn) {
+    btn.setAttribute('aria-label', expanded ? 'Close navigation' : 'Open navigation');
+    btn.setAttribute('aria-expanded', String(expanded));
+  }
 }
 
 /**
@@ -38,7 +45,50 @@ function renderActionLink(link) {
   const label = link.textContent.trim();
   const isPrimary = label.toUpperCase() === 'SIGN IN' || label.toUpperCase() === 'SIGN IN / JOIN';
   const cls = isPrimary ? 'aero-header-action aero-header-action--primary' : 'aero-header-action';
-  return `<a href="${link.href}" class="${cls}">${label}</a>`;
+  return isPrimary
+    ? `<button type="button" class="${cls}" data-aero-auth>${label}</button>`
+    : `<a href="${link.href}" class="${cls}">${label}</a>`;
+}
+
+function bindAuthentication(nav) {
+  const button = nav.querySelector('[data-aero-auth]');
+  if (!button) return;
+  const api = getAeroApiBase();
+  const signedOutLabel = button.textContent;
+  let signedIn = false;
+  const status = document.createElement('p');
+  status.className = 'aero-header-auth-status';
+  status.setAttribute('role', 'alert');
+  status.hidden = true;
+  nav.after(status);
+  subscribeToBookingAuth((value) => {
+    signedIn = value;
+    button.textContent = value ? 'SIGN OUT' : signedOutLabel;
+  });
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    status.hidden = true;
+    pushInteractionEvent('navClick', { block: 'aero-header', label: button.textContent.trim() });
+    try {
+      if (signedIn) await signOutForBooking(api);
+      else await signInForBooking(api);
+    } catch (error) {
+      status.textContent = ['cancelled', 'popup_closed'].includes(error.error)
+        ? 'Sign-in was cancelled. You can try again.'
+        : 'Unable to update sign-in. Allow popups, check your connection and try again.';
+      status.hidden = false;
+      // eslint-disable-next-line no-console
+      console.error('WKND header authentication failed.', { reason: error.error || error.name });
+    } finally {
+      button.disabled = false;
+    }
+  });
+  restoreBookingSession(api).catch((error) => {
+    status.textContent = 'Unable to check your sign-in. Use Sign in to try again.';
+    status.hidden = false;
+    // eslint-disable-next-line no-console
+    console.error('WKND session restoration failed.', { reason: error.error || error.name });
+  });
 }
 
 /**
@@ -123,7 +173,7 @@ export default async function decorate(block) {
     const { brand, navLinks, actions } = splitNavLinks([...tmp.querySelectorAll('a')]);
     nav.innerHTML = `
       <div class="aero-header-brand">${renderBrand(brand)}</div>
-      <button type="button" class="aero-header-toggle" aria-expanded="false" aria-controls="aero-header-menu">
+      <button type="button" class="aero-header-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="aero-header-menu">
         <span class="aero-header-toggle-bar"></span>
         <span class="aero-header-toggle-bar"></span>
         <span class="aero-header-toggle-bar"></span>
@@ -137,7 +187,7 @@ export default async function decorate(block) {
       <div class="aero-header-brand">
         <a href="/" class="aero-header-logo">WKND<br>AERO</a>
       </div>
-      <button type="button" class="aero-header-toggle" aria-expanded="false" aria-controls="aero-header-menu">
+      <button type="button" class="aero-header-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="aero-header-menu">
         <span class="aero-header-toggle-bar"></span>
         <span class="aero-header-toggle-bar"></span>
         <span class="aero-header-toggle-bar"></span>
@@ -163,4 +213,5 @@ export default async function decorate(block) {
   });
 
   block.append(nav);
+  bindAuthentication(nav);
 }
