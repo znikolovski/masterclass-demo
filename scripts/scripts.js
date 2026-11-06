@@ -644,8 +644,8 @@ function decorateSections(main) {
 }
 
 /**
- * Keep WKND Aero booking links on the Aero site when authored HTML normalizes
- * their absolute destination to a root-relative path.
+ * Keep WKND Aero booking and fare-condition links on the Aero site when
+ * authored HTML normalizes their absolute destination to a root-relative path.
  * @param {Element} main The main element
  */
 function normalizeAeroBookingLinks(main) {
@@ -654,7 +654,7 @@ function normalizeAeroBookingLinks(main) {
 
   main.querySelectorAll('a[href]').forEach((link) => {
     const url = new URL(link.href);
-    if (/^\/book\/flights\/?$/.test(url.pathname)
+    if (/^\/(?:book\/flights|fare-conditions)\/?$/.test(url.pathname)
       && !url.hostname.includes('--wknd-aero--')) {
       url.hostname = aeroHost;
       url.protocol = 'https:';
