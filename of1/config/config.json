@@ -1,8 +1,8 @@
 {
-  "domain": "llm-traffic-tracking--masterclass-demo--znikolovski",
+  "domain": "main--masterclass-demo--znikolovski",
   "owner": "znikolovski",
   "repo": "masterclass-demo",
-  "branch": "llm-traffic-tracking",
+  "branch": "main",
   "knowledgeMode": "da-document",
   "contentIngestion": {
     "enabled": true,

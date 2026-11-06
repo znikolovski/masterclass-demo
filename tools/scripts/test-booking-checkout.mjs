@@ -29,15 +29,26 @@ const server = createServer(async (req, res) => {
     res.setHeader('Content-Type', 'text/html');
     res.end(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
       <link rel="stylesheet" href="/styles/styles.css">
+      <meta name="aero-api" content="https://worker.test">
+      <link rel="stylesheet" href="/blocks/aero/aero-header/aero-header.css">
       <link rel="stylesheet" href="/blocks/aero/booking-journey/booking-journey.css">
       <script type="importmap">{"imports":{"preact":"https://esm.sh/preact@10.24.3","preact/hooks":"https://esm.sh/preact@10.24.3/hooks"}}</script>
-      </head><body class="appear"><main><div class="booking-journey"><div id="mount"></div></div></main>
+      </head><body class="appear"><header><div class="aero-header"></div></header>
+      <main><div class="booking-journey"><div id="mount"></div></div></main>
       <script type="module">
+        import header from '/blocks/aero/aero-header/aero-header.js';
         import init from '/blocks/aero/booking-journey/app/index.js';
+        await header(document.querySelector('.aero-header'));
         const mount=document.querySelector('#mount');
         Object.assign(mount.dataset,{api:'https://worker.test',origin:'MEL',dest:'PUQ',depart:'2026-12-01',passengers:'1'});
         init(mount);
       </script></body></html>`);
+    return;
+  }
+  if (pathname === '/nav.plain.html') {
+    res.setHeader('Content-Type', 'text/html');
+    res.end('<div><a href="/">WKND AERO</a><a href="/book/flights">BOOK</a>'
+      + '<a href="/book/flights">FLIGHT STATUS</a><a href="/sign-in">SIGN IN</a></div>');
     return;
   }
   const path = resolve(root, `.${pathname}`);
@@ -95,11 +106,20 @@ try {
     contentType: 'text/javascript',
     body: `window.auth0={Auth0Client:class {
       constructor(config){window.testAuthConfig=config;}
+      async checkSession(){if(window.testRestoreSession)window.testSignedIn=true;}
+      async isAuthenticated(){return !!window.testSignedIn;}
       async loginWithPopup(_,options){
         if(window.testCancelLogin) throw {error:window.testCancelLogin};
         options.popup.close(); window.testSignedIn=true;
       }
-      async getTokenSilently(){return ${JSON.stringify(token)};}
+      async logout(options){
+        if(window.testLogoutFailure)throw {error:'network_error'};
+        window.testLogoutConfig=options;window.testSignedIn=false;
+      }
+      async getTokenSilently(){
+        if(window.testExpiredSession)throw {error:'login_required'};
+        return ${JSON.stringify(token)};
+      }
     }};`,
   }));
   await page.goto(`${base}/__checkout-test`);
@@ -124,11 +144,47 @@ try {
   await page.getByRole('status').filter({ hasText: 'Signed in to WKND' }).waitFor();
   assert((await page.locator('.booking-flight-summary').innerText()).includes('2A'));
   assert(!(await complete.isDisabled()));
+  const header = page.locator('.aero-header');
+  await header.getByRole('button', { name: 'SIGN OUT', exact: true }).waitFor();
+  await page.evaluate(() => { window.testLogoutFailure = true; });
+  await header.getByRole('button', { name: 'SIGN OUT', exact: true }).click();
+  await header.getByRole('alert').filter({ hasText: 'Unable to update sign-in' }).waitFor();
+  assert(!(await complete.isDisabled()), 'Failed logout must not falsely clear the session');
+  await page.evaluate(() => { window.testLogoutFailure = false; });
+  await header.getByRole('button', { name: 'SIGN OUT', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign in to book', exact: true }).waitFor();
+  assert(await complete.isDisabled());
+  assert.equal((await page.evaluate(() => window.testLogoutConfig)).logoutParams.returnTo, base);
+  await page.evaluate(() => { window.testCancelLogin = 'popup_closed'; });
+  await header.getByRole('button', { name: 'SIGN IN', exact: true }).click();
+  await header.getByRole('alert').filter({ hasText: 'cancelled' }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/__checkout-test', 'Sign-in must not navigate to the missing /sign-in page');
+  assert(await complete.isDisabled());
+  await page.evaluate(() => { window.testCancelLogin = false; });
+  await header.getByRole('button', { name: 'SIGN IN', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Signed in to WKND' }).waitFor();
+  assert(!(await complete.isDisabled()));
+  await page.evaluate(() => { window.testExpiredSession = true; });
+  await complete.click();
+  await header.getByRole('button', { name: 'SIGN IN', exact: true }).waitFor();
+  assert(await complete.isDisabled());
+  assert.equal(posts, 0);
+  await page.evaluate(() => { window.testExpiredSession = false; });
+  await header.getByRole('button', { name: 'SIGN IN', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Signed in to WKND' }).waitFor();
+  assert.equal(await page.locator('.booking-journey [role="alert"]:visible').count(), 0, 'Reauthentication must clear the stale checkout sign-in error');
   for (const width of [375, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
+    if (width < 900) {
+      await header.getByRole('button', { name: 'Open navigation', exact: true }).click();
+      assert(await header.getByRole('button', { name: 'SIGN OUT', exact: true }).isVisible());
+    }
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `Checkout overflow at ${width}px`);
     if (process.argv[2]) {
       await page.screenshot({ path: `${process.argv[2]}/booking-checkout-${width}.png`, fullPage: true });
+    }
+    if (width < 900) {
+      await header.getByRole('button', { name: 'Close navigation', exact: true }).click();
     }
   }
   const config = await page.evaluate(() => window.testAuthConfig);
@@ -157,8 +213,22 @@ try {
   const stored = await page.evaluate(() => JSON.stringify({ ...sessionStorage, ...localStorage }));
   assert(!stored.includes(token));
   assert(!stored.includes('private@example.test'));
+  const restored = await context.newPage();
+  await restored.addInitScript(() => { window.testRestoreSession = true; });
+  await restored.goto(`${base}/__checkout-test`);
+  await restored.locator('.aero-header').getByRole('button', { name: 'SIGN OUT', exact: true }).waitFor();
+  await restored.locator('.flight-card button').first().click();
+  await restored.getByRole('button', { name: 'Seat 2A', exact: true }).click();
+  await restored.getByRole('button', { name: 'Continue', exact: true }).click();
+  await restored.getByLabel('First name', { exact: true }).fill('Restored');
+  await restored.getByLabel('Last name', { exact: true }).fill('Customer');
+  await restored.getByLabel('Email', { exact: true }).fill('restored@example.test');
+  await restored.getByRole('button', { name: 'Continue to payment' }).click();
+  await restored.getByRole('status').filter({ hasText: 'Signed in to WKND' }).waitFor();
+  assert.equal(await restored.getByRole('button', { name: 'Sign in to book', exact: true }).count(), 0);
+  await restored.close();
   assert.equal(errors.length, 0, errors.join('\n'));
-  console.log('PASS popup cancellation/retry, preserved checkout selections, authenticated confirmation, memory-only credentials and responsive checkout');
+  console.log('PASS header/widget login and logout synchronization, cancellation, expired sessions, SSO restoration, preserved selections, authenticated confirmation and responsive memory-only checkout');
 } finally {
   if (browser) await browser.close();
   await new Promise((done) => { server.close(done); });

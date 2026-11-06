@@ -5,14 +5,13 @@
  * @see docs/ANALYTICS-TARGET-PRESENTER-DECK.md
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies -- deck export is a dev-only tool
-import PptxGenJS from 'pptxgenjs';
+import pptxgen from 'pptxgenjs';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = join(scriptDir, '../../docs');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const OUT_DIR = join(__dirname, '../../docs');
 const OUT_FILE = join(OUT_DIR, 'ANALYTICS-TARGET-PRESENTER-DECK.pptx');
 
 /** Adobe brand tokens — skills/adobe-deck/references/brand-foundations.md */
@@ -778,15 +777,9 @@ function buildDeck(pptx) {
     ['Part 4 · Launch configuration', '17:00 – 22:00'],
     ['Part 5 · Analytics admin and audiences', '22:00 – 25:00'],
     ['Part 6 · Adobe Target end-to-end', '25:00 – 30:00'],
-  ], {
-    x: G.contentX, y: 1.15, w: 5.2, h: 2.5, colW: [3.4, 1.8],
-  });
-  addVisualBox(slide, {
-    x: 6.35, y: 1.15, w: 3.15, h: 1.05,
-  }, 'Preview site', 'main--masterclass-demo--znikolovski.aem.page');
-  addVisualBox(slide, {
-    x: 6.35, y: 2.35, w: 3.15, h: 1.05,
-  }, 'Have ready', 'One page with Target = On and a targetlocation section');
+  ], { x: G.contentX, y: 1.15, w: 5.2, h: 2.5, colW: [3.4, 1.8] });
+  addVisualBox(slide, { x: 6.35, y: 1.15, w: 3.15, h: 1.05 }, 'Preview site', 'main--masterclass-demo--znikolovski.aem.page');
+  addVisualBox(slide, { x: 6.35, y: 2.35, w: 3.15, h: 1.05 }, 'Have ready', 'One page with Target = On and a targetlocation section');
 
   // —— Part 1 divider ——
   dividerSlide(pptx, 'Part 1  |  The big picture', '0:00 – 5:00', SPEAKER_NOTES.part1Divider);
@@ -801,12 +794,8 @@ function buildDeck(pptx) {
     ['Blocks', 'Push interaction events'],
     ['Target offers', 'HTML from authoring export'],
     ['Segments', 'Audience archetypes for Target'],
-  ], {
-    x: G.contentX, y: 1.15, w: 4.5, h: 2.8, colW: [1.5, 3.0],
-  });
-  addVisualBox(slide, {
-    x: 5.75, y: 1.15, w: 3.75, h: 2.5,
-  }, 'Key rule', [
+  ], { x: G.contentX, y: 1.15, w: 4.5, h: 2.8, colW: [1.5, 3.0] });
+  addVisualBox(slide, { x: 5.75, y: 1.15, w: 3.75, h: 2.5 }, 'Key rule', [
     'One Web SDK instance: alloy',
     'Code sends the first page view',
     'Launch loads ~3 seconds later',
@@ -842,9 +831,7 @@ function buildDeck(pptx) {
     ['ACDL + block events', 'Rule libraries', 'Workspace', 'Audiences'],
     ['Target zone decoration', 'Supplemental pageView', 'Event enablement', 'Traffic allocation'],
     ['launchUrls embed', '', '', ''],
-  ], {
-    x: G.contentX, y: 1.1, w: G.contentW, h: 2.6, colW: [2.0, 2.1, 2.2, 2.25],
-  });
+  ], { x: G.contentX, y: 1.1, w: G.contentW, h: 2.6, colW: [2.0, 2.1, 2.2, 2.25] });
 
   // —— Part 2 ——
   dividerSlide(pptx, 'Part 2  |  Site wiring and page load', '5:00 – 10:00', SPEAKER_NOTES.part2Divider);
@@ -858,17 +845,8 @@ function buildDeck(pptx) {
     ['Staging Launch', '.aem.page + localhost'],
     ['Production Launch', '.aem.live'],
     ['First-hit mapping', 'onBeforeEventSend'],
-  ], {
-    x: G.contentX, y: 1.15, w: 4.3, h: 2.4, colW: [1.6, 2.7],
-  });
-  slide.addShape('rect', {
-    x: 5.5,
-    y: 1.15,
-    w: 3.95,
-    h: 1.35,
-    fill: { color: C.grayFill },
-    line: { color: C.grayMid, width: 0.75 },
-  });
+  ], { x: G.contentX, y: 1.15, w: 4.3, h: 2.4, colW: [1.6, 2.7] });
+  slide.addShape('rect', { x: 5.5, y: 1.15, w: 3.95, h: 1.35, fill: { color: C.grayFill }, line: { color: C.grayMid, width: 0.75 } });
   slide.addText('onBeforeEventSend: (content) =>\n  mapPageToAnalytics(content),', {
     x: 5.62,
     y: 1.28,
@@ -897,36 +875,20 @@ function buildDeck(pptx) {
     ['target', 'Eager personalization'],
     ['adventureCategory', 'eVar4'],
     ['journeyStage', 'prop3'],
-  ], {
-    x: G.contentX, y: 1.2, w: 3.8, h: 1.9, colW: [1.6, 2.2],
-  });
-  slide.addText('Page fields · component-models.json', {
-    x: G.contentX, y: 1.05, w: 3.8, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark,
-  });
+  ], { x: G.contentX, y: 1.2, w: 3.8, h: 1.9, colW: [1.6, 2.2] });
+  slide.addText('Page fields · component-models.json', { x: G.contentX, y: 1.05, w: 3.8, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
   addAdobeTable(slide, [
     ['Field', 'Effect'],
     ['targetlocation', 'data-targetlocation zone'],
-  ], {
-    x: 5.2, y: 1.35, w: 3.8, h: 0.75, colW: [1.5, 2.3],
-  });
-  slide.addText('Section field', {
-    x: 5.2, y: 1.2, w: 3.8, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark,
-  });
-  addVisualBox(slide, {
-    x: 5.2, y: 2.25, w: 3.8, h: 0.75,
-  }, 'Docs', 'docs/MARTECH.md');
+  ], { x: 5.2, y: 1.35, w: 3.8, h: 0.75, colW: [1.5, 2.3] });
+  slide.addText('Section field', { x: 5.2, y: 1.2, w: 3.8, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
+  addVisualBox(slide, { x: 5.2, y: 2.25, w: 3.8, h: 0.75 }, 'Docs', 'docs/MARTECH.md');
 
   slide = contentSlide(pptx, SPEAKER_NOTES.pageLoad);
   addSlideTitle(slide, 'Page load  |  Three phases');
-  addVisualBox(slide, {
-    x: G.contentX, y: 1.2, w: 2.7, h: 1.55,
-  }, 'Eager', 'LCP path\nTarget if target: on\nscheduleEagerTargetDelivery()');
-  addVisualBox(slide, {
-    x: 3.85, y: 1.2, w: 2.7, h: 1.55,
-  }, 'Lazy', 'loadMartech()\nACDL page push\nmartechLazy() = page view');
-  addVisualBox(slide, {
-    x: 6.7, y: 1.2, w: 2.7, h: 1.55,
-  }, 'Delayed', '~3 seconds\nmartechDelayed() = Launch\ninitAssetAnalytics()');
+  addVisualBox(slide, { x: G.contentX, y: 1.2, w: 2.7, h: 1.55 }, 'Eager', 'LCP path\nTarget if target: on\nscheduleEagerTargetDelivery()');
+  addVisualBox(slide, { x: 3.85, y: 1.2, w: 2.7, h: 1.55 }, 'Lazy', 'loadMartech()\nACDL page push\nmartechLazy() = page view');
+  addVisualBox(slide, { x: 6.7, y: 1.2, w: 2.7, h: 1.55 }, 'Delayed', '~3 seconds\nmartechDelayed() = Launch\ninitAssetAnalytics()');
   slide.addText('Critical: Launch rules do not run on the first page view. Interaction rules need ≥5 seconds after load.', {
     x: G.contentX,
     y: 3.0,
@@ -940,14 +902,7 @@ function buildDeck(pptx) {
 
   slide = contentSlide(pptx, SPEAKER_NOTES.demoConsole);
   addSlideTitle(slide, 'Demo  |  Browser console');
-  slide.addShape('rect', {
-    x: G.contentX,
-    y: 1.2,
-    w: 4.2,
-    h: 1.2,
-    fill: { color: C.grayFill },
-    line: { color: C.grayMid, width: 0.75 },
-  });
+  slide.addShape('rect', { x: G.contentX, y: 1.2, w: 4.2, h: 1.2, fill: { color: C.grayFill }, line: { color: C.grayMid, width: 0.75 } });
   slide.addText('After preview load (wait ~5s):\n\nadobeDataLayer.getState(\'page\')\ntypeof _satellite !== \'undefined\'', {
     x: G.contentX + 0.12,
     y: 1.32,
@@ -958,9 +913,7 @@ function buildDeck(pptx) {
     color: C.black,
     valign: 'top',
   });
-  addVisualBox(slide, {
-    x: 5.45, y: 1.2, w: 3.95, h: 1.55,
-  }, 'Performance', [
+  addVisualBox(slide, { x: 5.45, y: 1.2, w: 3.95, h: 1.55 }, 'Performance', [
     'head.html preconnects to edge.adobedc.net',
     'Target zones hidden until target-ready in target-delivery.js',
   ]);
@@ -979,14 +932,7 @@ function buildDeck(pptx) {
     fontSize: 9,
     color: C.grayDark,
   });
-  slide.addShape('rect', {
-    x: G.contentX,
-    y: 1.35,
-    w: 4.5,
-    h: 1.65,
-    fill: { color: C.grayFill },
-    line: { color: C.grayMid, width: 0.75 },
-  });
+  slide.addShape('rect', { x: G.contentX, y: 1.35, w: 4.5, h: 1.65, fill: { color: C.grayFill }, line: { color: C.grayMid, width: 0.75 } });
   slide.addText('adobeDataLayer.push({ page: {\n  pageName, template, theme,\n  contentType, environment,\n  siteSection, adventureCategory,\n  journeyStage, targetEnabled,\n}});', {
     x: G.contentX + 0.1,
     y: 1.45,
@@ -1006,9 +952,7 @@ function buildDeck(pptx) {
     fontSize: 9,
     color: C.black,
   });
-  addVisualBox(slide, {
-    x: 5.75, y: 1.35, w: 3.75, h: 1.2,
-  }, 'Environment', 'preview · live · local\nvia prop1 on every hit');
+  addVisualBox(slide, { x: 5.75, y: 1.35, w: 3.75, h: 1.2 }, 'Environment', 'preview · live · local\nvia prop1 on every hit');
 
   slide = contentSlide(pptx, SPEAKER_NOTES.variableMap);
   addSlideTitle(slide, 'Variable map  |  Report suite ags050wknd', { fontSize: 20 });
@@ -1023,9 +967,7 @@ function buildDeck(pptx) {
     ['prop4', 'page.siteSection', 'blog'],
     ['prop5', 'interaction hits', 'Block detail'],
     ['prop9', 'targetEnabled', 'target-on'],
-  ], {
-    x: G.contentX, y: 1.1, w: G.contentW, h: 3.0, colW: [1.2, 2.5, 2.0],
-  });
+  ], { x: G.contentX, y: 1.1, w: G.contentW, h: 3.0, colW: [1.2, 2.5, 2.0] });
   slide.addText('Mapping: mapPageToAnalytics() ← onBeforeEventSend', {
     x: G.contentX,
     y: 4.35,
@@ -1038,17 +980,8 @@ function buildDeck(pptx) {
 
   slide = contentSlide(pptx, SPEAKER_NOTES.interactions);
   addSlideTitle(slide, 'Interactions  |  ACDL pattern');
-  slide.addText('File: scripts/analytics-acdl.js', {
-    x: G.contentX, y: 1.05, w: 4.5, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark,
-  });
-  slide.addShape('rect', {
-    x: G.contentX,
-    y: 1.28,
-    w: 4.4,
-    h: 1.35,
-    fill: { color: C.grayFill },
-    line: { color: C.grayMid, width: 0.75 },
-  });
+  slide.addText('File: scripts/analytics-acdl.js', { x: G.contentX, y: 1.05, w: 4.5, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
+  slide.addShape('rect', { x: G.contentX, y: 1.28, w: 4.4, h: 1.35, fill: { color: C.grayFill }, line: { color: C.grayMid, width: 0.75 } });
   slide.addText('adobeDataLayer.push({\n  event: \'ctaClick\',\n  interaction: { label, block, detail },\n});', {
     x: G.contentX + 0.1,
     y: 1.38,
@@ -1077,31 +1010,9 @@ function buildDeck(pptx) {
     ['Real-Time event counter', false],
   ].forEach(([text, accent], i) => {
     const y = 1.25 + i * 0.48;
-    slide.addShape('rect', {
-      x: flowX,
-      y,
-      w: flowW,
-      h: 0.42,
-      fill: { color: C.grayFill },
-      line: { color: C.grayMid, width: 0.5 },
-    });
-    slide.addShape('rect', {
-      x: flowX,
-      y,
-      w: 0.06,
-      h: 0.42,
-      fill: { color: accent ? C.blue : C.grayDark },
-      line: { color: accent ? C.blue : C.grayDark, width: 0 },
-    });
-    slide.addText(text, {
-      x: flowX + 0.14,
-      y: y + 0.06,
-      w: flowW - 0.2,
-      h: 0.3,
-      fontFace: FONT.body,
-      fontSize: 10,
-      color: C.black,
-    });
+    slide.addShape('rect', { x: flowX, y, w: flowW, h: 0.42, fill: { color: C.grayFill }, line: { color: C.grayMid, width: 0.5 } });
+    slide.addShape('rect', { x: flowX, y, w: 0.06, h: 0.42, fill: { color: accent ? C.blue : C.grayDark }, line: { color: accent ? C.blue : C.grayDark, width: 0 } });
+    slide.addText(text, { x: flowX + 0.14, y: y + 0.06, w: flowW - 0.2, h: 0.3, fontFace: FONT.body, fontSize: 10, color: C.black });
   });
 
   slide = contentSlide(pptx, SPEAKER_NOTES.blocks);
@@ -1116,9 +1027,7 @@ function buildDeck(pptx) {
     ['Quiz', 'quizStart … complete', 'event17–21'],
     ['Forms', 'formImpression …', 'event9–15'],
     ['Images', 'assetImpression / click', 'event7 / event8'],
-  ], {
-    x: G.contentX, y: 1.1, w: G.contentW, h: 3.1, colW: [2.0, 3.0, 2.0],
-  });
+  ], { x: G.contentX, y: 1.1, w: G.contentW, h: 3.1, colW: [2.0, 3.0, 2.0] });
 
   slide = contentSlide(pptx, SPEAKER_NOTES.demoFaq);
   addSlideTitle(slide, 'Demo  |  FAQ expand');
@@ -1127,12 +1036,8 @@ function buildDeck(pptx) {
     { text: '2. Expand one item\n', options: { bullet: true, breakLine: true } },
     { text: '3. Console: getState(\'interaction\')\n', options: { bullet: true, breakLine: true } },
     { text: '4. Debugger → EDS - FAQ Expand', options: { bullet: true } },
-  ], {
-    x: G.contentX, y: 1.15, w: 4.3, h: 1.5, fontFace: FONT.body, fontSize: 11, color: C.black,
-  });
-  addVisualBox(slide, {
-    x: 5.45, y: 1.15, w: 3.95, h: 1.45,
-  }, 'Validate', [
+  ], { x: G.contentX, y: 1.15, w: 4.3, h: 1.5, fontFace: FONT.body, fontSize: 11, color: C.black });
+  addVisualBox(slide, { x: 5.45, y: 1.15, w: 3.95, h: 1.45 }, 'Validate', [
     'Rule fires after Launch loads',
     'prop5 = accordion-faq',
     'event5 in Real-Time',
@@ -1145,9 +1050,7 @@ function buildDeck(pptx) {
     ['Quiz', 'quiz-analytics.js', 'event17–21, eVar2, eVar8'],
     ['Forms', 'form-analytics.js', 'event9–15, eVar7'],
     ['Assets', 'asset-analytics.js', 'event7–8, eVar6'],
-  ], {
-    x: G.contentX, y: 1.2, w: G.contentW, h: 1.4, colW: [1.5, 2.5, 3.0],
-  });
+  ], { x: G.contentX, y: 1.2, w: G.contentW, h: 1.4, colW: [1.5, 2.5, 3.0] });
   slide.addText('Quiz result category → eVar2 on quiz hits only — not page eVar4.', {
     x: G.contentX,
     y: 2.85,
@@ -1169,9 +1072,7 @@ function buildDeck(pptx) {
     ['Property', 'masterclass-demo-eds'],
     ['Domains', 'aem.page, aem.live'],
     ['Embed', 'martech-config.js'],
-  ], {
-    x: G.contentX, y: 1.15, w: 4.3, h: 1.5, colW: [1.5, 2.8],
-  });
+  ], { x: G.contentX, y: 1.15, w: 4.3, h: 1.5, colW: [1.5, 2.8] });
   slide.addText('ACDL extension: adobeDataLayer · do not inject\nWeb SDK: self-hosted alloy · Migrate Target off', {
     x: G.contentX,
     y: 2.75,
@@ -1181,29 +1082,19 @@ function buildDeck(pptx) {
     fontSize: 9,
     color: C.black,
   });
-  addVisualBox(slide, {
-    x: 5.5, y: 1.15, w: 3.95, h: 1.1,
-  }, 'Console path', 'Experience Platform → Data Collection → Tags');
+  addVisualBox(slide, { x: 5.5, y: 1.15, w: 3.95, h: 1.1 }, 'Console path', 'Experience Platform → Data Collection → Tags');
 
   slide = contentSlide(pptx, SPEAKER_NOTES.dataElements);
   addSlideTitle(slide, 'Data elements  |  Two-layer model');
-  slide.addText('Layer 1 — ACDL sources (storage: Page view)', {
-    x: G.contentX, y: 1.05, w: 4.2, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark,
-  });
+  slide.addText('Layer 1 — ACDL sources (storage: Page view)', { x: G.contentX, y: 1.05, w: 4.2, h: 0.2, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
   addAdobeTable(slide, [
     ['Element', 'Path'],
     ['EDS - Page Template', 'page.template'],
     ['EDS - Adventure Category', 'page.adventureCategory'],
     ['EDS - Interaction Label', 'interaction.label'],
-  ], {
-    x: G.contentX, y: 1.28, w: 4.2, h: 1.35, colW: [2.0, 2.2],
-  });
-  slide.addText('⚠ Storage None = top audit failure', {
-    x: G.contentX, y: 2.7, w: 4.2, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.black,
-  });
-  addVisualBox(slide, {
-    x: 5.45, y: 1.2, w: 3.95, h: 1.55,
-  }, 'Layer 2 — Variable container', [
+  ], { x: G.contentX, y: 1.28, w: 4.2, h: 1.35, colW: [2.0, 2.2] });
+  slide.addText('⚠ Storage None = top audit failure', { x: G.contentX, y: 2.7, w: 4.2, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.black });
+  addVisualBox(slide, { x: 5.45, y: 1.2, w: 3.95, h: 1.55 }, 'Layer 2 — Variable container', [
     'EDS - Analytics Variable',
     'Web SDK → Variable → Data + Analytics',
     'Used by every Update variable → Send event rule',
@@ -1211,15 +1102,9 @@ function buildDeck(pptx) {
 
   slide = contentSlide(pptx, SPEAKER_NOTES.interactionRules);
   addSlideTitle(slide, 'Interaction rules  |  Skeleton');
-  addVisualBox(slide, {
-    x: G.contentX, y: 1.2, w: 2.7, h: 1.45,
-  }, '1 · Event', 'Core Click or ACDL listen\nectaClick, faqExpand, …');
-  addVisualBox(slide, {
-    x: 3.85, y: 1.2, w: 2.7, h: 1.45,
-  }, '2 · Update variable', 'Select EDS - Analytics Variable\nSet events, linkName, prop5');
-  addVisualBox(slide, {
-    x: 6.7, y: 1.2, w: 2.7, h: 1.45,
-  }, '3 · Send event', 'Link click\nData = Analytics Variable');
+  addVisualBox(slide, { x: G.contentX, y: 1.2, w: 2.7, h: 1.45 }, '1 · Event', 'Core Click or ACDL listen\nectaClick, faqExpand, …');
+  addVisualBox(slide, { x: 3.85, y: 1.2, w: 2.7, h: 1.45 }, '2 · Update variable', 'Select EDS - Analytics Variable\nSet events, linkName, prop5');
+  addVisualBox(slide, { x: 6.7, y: 1.2, w: 2.7, h: 1.45 }, '3 · Send event', 'Link click\nData = Analytics Variable');
   slide.addText('Skip page view on DOM Ready — martech already sends it. Recipes: ANALYTICS-LAUNCH-PLAN.md §4d', {
     x: G.contentX,
     y: 2.85,
@@ -1238,18 +1123,8 @@ function buildDeck(pptx) {
     ['Update variable', 'events = event5 · prop5 = accordion-faq'],
     ['Send event', 'Link click · Analytics Variable'],
     ['Publish', 'Development → preview QA → Production'],
-  ], {
-    x: G.contentX, y: 1.15, w: G.contentW, h: 2.0, colW: [1.5, 6.0],
-  });
-  slide.addText('Runbook: docs/ANALYTICS-LAUNCH-RUNBOOK.md', {
-    x: G.contentX,
-    y: 3.3,
-    w: G.contentW,
-    h: 0.25,
-    fontFace: FONT.body,
-    fontSize: 9,
-    color: C.grayDark,
-  });
+  ], { x: G.contentX, y: 1.15, w: G.contentW, h: 2.0, colW: [1.5, 6.0] });
+  slide.addText('Runbook: docs/ANALYTICS-LAUNCH-RUNBOOK.md', { x: G.contentX, y: 3.3, w: G.contentW, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
 
   slide = contentSlide(pptx, SPEAKER_NOTES.validateLaunch);
   addSlideTitle(slide, 'Validate Launch  |  QA checklist');
@@ -1259,12 +1134,8 @@ function buildDeck(pptx) {
     { text: 'Trigger interaction once\n', options: { bullet: true, breakLine: true } },
     { text: 'Rules tab — correct order\n', options: { bullet: true, breakLine: true } },
     { text: 'Real-Time — event increments', options: { bullet: true } },
-  ], {
-    x: G.contentX, y: 1.15, w: 4.2, h: 2.0, fontFace: FONT.body, fontSize: 11, color: C.black,
-  });
-  addVisualBox(slide, {
-    x: 5.45, y: 1.15, w: 3.95, h: 1.55,
-  }, 'Common fixes', [
+  ], { x: G.contentX, y: 1.15, w: 4.2, h: 2.0, fontFace: FONT.body, fontSize: 11, color: C.black });
+  addVisualBox(slide, { x: 5.45, y: 1.15, w: 3.95, h: 1.55 }, 'Common fixes', [
     'Literal %EDS - …% → use getVar or getState',
     'Rule never fires → wait 5s, check embed',
     'Empty props → Page view storage',
@@ -1284,30 +1155,14 @@ function buildDeck(pptx) {
     ['event17–21', 'Quiz funnel'],
     ['eVar2', 'Quiz Result Category'],
     ['eVar8', 'Quiz Adventurer Type'],
-  ], {
-    x: G.contentX, y: 1.15, w: 5.0, h: 2.5, colW: [1.5, 3.5],
-  });
-  slide.addText('Full inventory: ANALYTICS-LAUNCH-PLAN.md Phase 3', {
-    x: G.contentX,
-    y: 3.85,
-    w: G.contentW,
-    h: 0.25,
-    fontFace: FONT.body,
-    fontSize: 9,
-    color: C.grayDark,
-  });
+  ], { x: G.contentX, y: 1.15, w: 5.0, h: 2.5, colW: [1.5, 3.5] });
+  slide.addText('Full inventory: ANALYTICS-LAUNCH-PLAN.md Phase 3', { x: G.contentX, y: 3.85, w: G.contentW, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
 
   slide = contentSlide(pptx, SPEAKER_NOTES.segments);
   addSlideTitle(slide, 'Segments  |  Built for personalization');
-  addVisualBox(slide, {
-    x: G.contentX, y: 1.2, w: 2.7, h: 1.35,
-  }, 'Tier 1', 'Data hygiene\nEDS - Live Traffic');
-  addVisualBox(slide, {
-    x: 3.85, y: 1.2, w: 2.7, h: 1.35,
-  }, 'Tier 2', 'Adventure interest\nWKND - Climbing Seekers');
-  addVisualBox(slide, {
-    x: 6.7, y: 1.2, w: 2.7, h: 1.35,
-  }, 'Tier 3', 'Journey stage\nWKND - Planners and Prep');
+  addVisualBox(slide, { x: G.contentX, y: 1.2, w: 2.7, h: 1.35 }, 'Tier 1', 'Data hygiene\nEDS - Live Traffic');
+  addVisualBox(slide, { x: 3.85, y: 1.2, w: 2.7, h: 1.35 }, 'Tier 2', 'Adventure interest\nWKND - Climbing Seekers');
+  addVisualBox(slide, { x: 6.7, y: 1.2, w: 2.7, h: 1.35 }, 'Tier 3', 'Journey stage\nWKND - Planners and Prep');
   slide.addText('Tier 4 archetypes → Target: WKND - Aspiring Climber = Climbing Seekers AND (Inspiration OR Discovery)', {
     x: G.contentX,
     y: 2.75,
@@ -1318,15 +1173,7 @@ function buildDeck(pptx) {
     bold: true,
     color: C.black,
   });
-  slide.addText('Workspace: WKND — Adventure Audiences', {
-    x: G.contentX,
-    y: 3.25,
-    w: G.contentW,
-    h: 0.25,
-    fontFace: FONT.body,
-    fontSize: 9,
-    color: C.grayDark,
-  });
+  slide.addText('Workspace: WKND — Adventure Audiences', { x: G.contentX, y: 3.25, w: G.contentW, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.grayDark });
 
   slide = contentSlide(pptx, SPEAKER_NOTES.demoWorkspace);
   addSlideTitle(slide, 'Demo  |  Analysis Workspace');
@@ -1336,12 +1183,8 @@ function buildDeck(pptx) {
     { text: 'Tier 2 segments as columns\n', options: { bullet: true, breakLine: true } },
     { text: 'Rows: Visits\n', options: { bullet: true, breakLine: true } },
     { text: 'Optional: eVar4 × prop3 table', options: { bullet: true } },
-  ], {
-    x: G.contentX, y: 1.15, w: 4.2, h: 1.8, fontFace: FONT.body, fontSize: 11, color: C.black,
-  });
-  addVisualBox(slide, {
-    x: 5.45, y: 1.15, w: 3.95, h: 1.1,
-  }, 'Bridge to Target', 'Export Tier 4 segments as Target audiences for hero tests');
+  ], { x: G.contentX, y: 1.15, w: 4.2, h: 1.8, fontFace: FONT.body, fontSize: 11, color: C.black });
+  addVisualBox(slide, { x: 5.45, y: 1.15, w: 3.95, h: 1.1 }, 'Bridge to Target', 'Export Tier 4 segments as Target audiences for hero tests');
 
   // —— Part 6 ——
   dividerSlide(pptx, 'Part 6  |  Adobe Target end-to-end', '25:00 – 30:00', SPEAKER_NOTES.part6Divider);
@@ -1380,9 +1223,7 @@ function buildDeck(pptx) {
     { text: 'Section as direct child of main\n', options: { bullet: true, breakLine: true } },
     { text: 'Section metadata → targetlocation\n', options: { bullet: true, breakLine: true } },
     { text: 'Page metadata → Target On', options: { bullet: true } },
-  ], {
-    x: G.contentX, y: 1.15, w: 4.2, h: 1.2, fontFace: FONT.body, fontSize: 11, color: C.black,
-  });
+  ], { x: G.contentX, y: 1.15, w: 4.2, h: 1.2, fontFace: FONT.body, fontSize: 11, color: C.black });
   slide.addText('Code: applySectionMetadata() → data-targetlocation + class target', {
     x: G.contentX,
     y: 2.45,
@@ -1392,9 +1233,7 @@ function buildDeck(pptx) {
     fontSize: 9,
     color: C.black,
   });
-  addVisualBox(slide, {
-    x: 5.45, y: 1.15, w: 3.95, h: 0.85,
-  }, 'Turn off', 'Target metadata when activity ends');
+  addVisualBox(slide, { x: 5.45, y: 1.15, w: 3.95, h: 0.85 }, 'Turn off', 'Target metadata when activity ends');
 
   slide = contentSlide(pptx, SPEAKER_NOTES.targetActivity);
   addSlideTitle(slide, 'Target activity  |  Console setup');
@@ -1405,9 +1244,7 @@ function buildDeck(pptx) {
     ['Experiences', 'Control + variant HTML offers'],
     ['Audience', 'e.g. WKND - Aspiring Climber'],
     ['QA', '?at_preview_token=…'],
-  ], {
-    x: G.contentX, y: 1.15, w: G.contentW, h: 2.3, colW: [1.8, 5.2],
-  });
+  ], { x: G.contentX, y: 1.15, w: G.contentW, h: 2.3, colW: [1.8, 5.2] });
   slide.addText('Admin: Disable auto global mbox · Datastream includes Target', {
     x: G.contentX,
     y: 3.6,
@@ -1427,15 +1264,9 @@ function buildDeck(pptx) {
     ['decorateTargetInjections', 'decorateBlock + loadBlock'],
     ['initTargetDelivery', 'MutationObserver'],
     ['refreshTargetZones', 'Re-decorate after lazy load'],
-  ], {
-    x: G.contentX, y: 1.15, w: 4.5, h: 1.75, colW: [2.2, 2.3],
-  });
-  slide.addText('Eager: scheduleEagerTargetDelivery()', {
-    x: G.contentX, y: 3.0, w: 4.5, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.black,
-  });
-  addVisualBox(slide, {
-    x: 5.75, y: 1.15, w: 3.75, h: 1.35,
-  }, 'Analytics QA', 'prop9 = target-on\nACDL targetZoneReady\nscripts/target-analytics.js');
+  ], { x: G.contentX, y: 1.15, w: 4.5, h: 1.75, colW: [2.2, 2.3] });
+  slide.addText('Eager: scheduleEagerTargetDelivery()', { x: G.contentX, y: 3.0, w: 4.5, h: 0.25, fontFace: FONT.body, fontSize: 9, color: C.black });
+  addVisualBox(slide, { x: 5.75, y: 1.15, w: 3.75, h: 1.35 }, 'Analytics QA', 'prop9 = target-on\nACDL targetZoneReady\nscripts/target-analytics.js');
 
   slide = contentSlide(pptx, SPEAKER_NOTES.targetQa);
   addSlideTitle(slide, 'Target QA  |  Before go-live');
@@ -1446,12 +1277,8 @@ function buildDeck(pptx) {
     { text: 'Target reporting shows impressions\n', options: { bullet: true, breakLine: true } },
     { text: 'PageSpeed ≥ 90 on experiment URL\n', options: { bullet: true, breakLine: true } },
     { text: 'Turn Target Off when activity ends', options: { bullet: true } },
-  ], {
-    x: G.contentX, y: 1.15, w: 5.5, h: 2.5, fontFace: FONT.body, fontSize: 11, color: C.black,
-  });
-  addVisualBox(slide, {
-    x: 6.2, y: 1.15, w: 3.2, h: 0.85,
-  }, 'Agent workflow', 'skills/adobe-target-personalization/SKILL.md');
+  ], { x: G.contentX, y: 1.15, w: 5.5, h: 2.5, fontFace: FONT.body, fontSize: 11, color: C.black });
+  addVisualBox(slide, { x: 6.2, y: 1.15, w: 3.2, h: 0.85 }, 'Agent workflow', 'skills/adobe-target-personalization/SKILL.md');
 
   slide = contentSlide(pptx, SPEAKER_NOTES.summary);
   addSlideTitle(slide, 'Summary  |  Who owns what', { fontSize: 20 });
@@ -1460,9 +1287,7 @@ function buildDeck(pptx) {
     ['Datastream + first page view', 'Interaction mapping', 'Labels + segments', 'Activities + offers'],
     ['ACDL + block events', 'Data elements + rules', 'Workspace', 'Audiences + traffic'],
     ['Target zones + decoration', 'Libraries', 'Tier 4 archetypes', 'HTML from EW'],
-  ], {
-    x: G.contentX, y: 1.1, w: G.contentW, h: 1.6, colW: [2.0, 2.1, 2.2, 2.25],
-  });
+  ], { x: G.contentX, y: 1.1, w: G.contentW, h: 1.6, colW: [2.0, 2.1, 2.2, 2.25] });
   slide.addText('Docs: MARTECH.md · ANALYTICS-LAUNCH-PLAN.md · ANALYTICS-LAUNCH-RUNBOOK.md · TARGET-PERSONALIZATION-PLAN.md', {
     x: G.contentX,
     y: 2.9,
@@ -1512,6 +1337,7 @@ function qaDeck(pptx) {
 
   slides.forEach((s, i) => {
     const bg = s.background?.color || C.white;
+    const isShell = i === 0 || i === slides.length - 1 || !s._name?.includes?.('content');
     if (bg !== C.white && bg !== C.red) {
       issues.push(`Slide ${i + 1}: non-brand background ${bg}`);
     }
@@ -1525,10 +1351,7 @@ function qaDeck(pptx) {
 
   console.log(`Slides: ${slides.length}`);
 
-  const slidesWithoutNotes = slides.filter((s) => {
-    const notes = Reflect.get(s, '_notes');
-    return !notes || notes.length === 0;
-  });
+  const slidesWithoutNotes = slides.filter((s) => !s._notes || s._notes.length === 0);
   if (slidesWithoutNotes.length) {
     issues.push(`${slidesWithoutNotes.length} slide(s) missing speaker notes`);
   } else {
@@ -1540,7 +1363,7 @@ function qaDeck(pptx) {
 
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
-  const pptx = new PptxGenJS();
+  const pptx = new pptxgen();
   buildDeck(pptx);
   qaDeck(pptx);
   await pptx.writeFile({ fileName: OUT_FILE });

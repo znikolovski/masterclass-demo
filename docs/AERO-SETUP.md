@@ -99,11 +99,16 @@ LLM Apps SDK and requests details/pagination via `check-booking`. Do not add
 `widget.html` to the companion action directory: it overrides EDS delivery.
 Standalone page previews show a host/sign-in explanation instead of private data.
 
-The website reads public configuration from `GET /api/auth/config` and loads
-Auth0's SPA SDK only when sign-in is requested. Login uses a popup and memory-only
-tokens, preserving the selected quote/seats without storing tokens or payment
-details. Allow popups; cancelled or expired login requires retry. Expired fare
-quotes require a new flight search.
+The header and booking checkout share the same Auth0 client and in-memory
+sign-in state, using public configuration from `GET /api/auth/config`. The header's
+authored **SIGN IN** / **SIGN IN / JOIN** action opens the same login popup as the
+checkout, rather than navigating to `/sign-in`. Signing in from either surface
+updates both; **SIGN OUT** clears the SDK session and uses Auth0 logout with the
+site origin as its return URL. Keep that origin in Auth0's Allowed Logout URLs.
+On a new page, the SDK checks for an existing Auth0 session without persisting
+tokens in browser storage. Credentials remain memory-only. Allow popups;
+cancelled or expired login requires retry without discarding the selected
+quote/seats. Expired fare quotes require a new flight search.
 
 The MCP handler uses a signed, read-only assertion lasting at most 60 seconds;
 it does not forward an access token minted for the MCP audience to the Worker

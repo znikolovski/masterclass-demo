@@ -269,10 +269,32 @@ no longer blocked in this recheck, but balanced retrieval and emitted booking
 links are still unproven. The deterministic Aero panel remains independently
 available.
 
-The feature page's authored domain currently points to the main tenant.
+At this feature-rollout stage, the feature page's authored domain pointed to the main tenant.
 The page was also exercised with a real Ohrid search and displayed the new
 planning section, but the successful sync and detailed retrieval evidence above
 use the feature tenant explicitly; they do not establish a main tenant update.
+
+### Main publication recheck (2026-10-09)
+
+Planning and compact generated-section spacing were promoted to main while
+preserving main's existing configuration and release fixes. The authored
+50-record knowledge configuration and five extended documents were
+previewed/published on main. Main sync completed with `errors: []` and
+331 indexed content chunks.
+
+The first broad main request for Patagonia gear/access selected other passages,
+not the new planning summary. A subsequent explicit request for the
+source-backed Patagonia planning summary retrieved its **Source-backed
+adventure planning**, **Gear checklist**, **Permits & access**, and **Route
+briefing** passages, with the self-contained planning facts in the system
+prompt. This establishes main ingestion and actual retrieval, not uniformly
+reliable source selection for every wording.
+
+Production browser checks and a real Ohrid generation also confirmed the
+dedicated panel, compact spacing and loaded native images. The earlier
+feature-only publication limitations no longer apply to this promoted release;
+general comparison, Aero-link generation and source-association limitations
+remain distinct from successful ingestion.
 
 ## Requested engineering changes and acceptance criteria
 

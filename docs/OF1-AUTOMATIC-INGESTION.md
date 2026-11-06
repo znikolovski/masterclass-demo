@@ -2,9 +2,8 @@
 
 The isolated [`wknd-of1-ingestion` Worker](../workers/wknd-of1-ingestion/)
 maintains knowledge for **newly published `/blog/**` adventure articles**.
-It also maintains the OF1 flight-option feed for published blog articles with
-valid WKND Aero booking links. It does not modify the site runtime, templates,
-Sherpa, Aero, or the current ingestion allowlist.
+It does not modify the site runtime, templates, Sherpa, Aero, or the current
+ingestion allowlist.
 
 **Production write mode is active.** Adobe service credentials are verified
 against DA and the site's AEM Admin API, installed as Cloudflare secrets,
