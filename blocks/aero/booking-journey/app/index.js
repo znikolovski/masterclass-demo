@@ -5,9 +5,9 @@ import { pushBookingEvent } from '../../../../scripts/aero-analytics.js';
 import { DEFAULT_FLIGHT_ORIGIN } from '../../../../scripts/aero-blocks.js';
 import { getJourney } from '../../../../scripts/journey-analytics.js';
 import { JOURNEY_ID_PATTERN } from '../../../../scripts/journey-context.js';
+import { signInForBooking, getBookingAccessToken } from '../../../../scripts/aero-auth.js';
 
 const STEPS = ['Flights', 'Seats', 'Passengers', 'Payment'];
-const STORAGE_KEY = 'wknd:booking:state';
 
 /** @typedef {{ rows: number, sections: string[][], label: string }} SeatLayout */
 
@@ -312,12 +312,15 @@ function SeatMap({
         else if (isSelected) cls += ' selected';
         else if (atCapacity) cls += ' locked';
         const blocked = isTaken || (!isSelected && atCapacity);
+        let label = `Seat ${id}`;
+        if (isTaken) label += ', unavailable';
+        else if (blocked && !isSelected) label += ', select another seat first';
         rowCells.push(h('button', {
           type: 'button',
           class: cls,
           key: id,
           disabled: blocked,
-          'aria-label': `Seat ${id}${isTaken ? ', unavailable' : blocked && !isSelected ? ', select another seat first' : ''}`,
+          'aria-label': label,
           'aria-pressed': isSelected,
           onClick: () => !blocked && onToggle(id),
         }, letter));
@@ -350,18 +353,30 @@ function PaymentTabIcon({ type }) {
     return h('svg', {
       class: 'payment-tab-icon', viewBox: '0 0 20 16', fill: 'none', 'aria-hidden': 'true',
     }, [
-      h('rect', { x: '1', y: '2', width: '18', height: '12', rx: '1', stroke: 'currentColor', 'stroke-width': '1.5' }),
-      h('line', { x1: '1', y1: '6', x2: '19', y2: '6', stroke: 'currentColor', 'stroke-width': '1.5' }),
+      h('rect', {
+        x: '1', y: '2', width: '18', height: '12', rx: '1', stroke: 'currentColor', 'stroke-width': '1.5',
+      }),
+      h('line', {
+        x1: '1', y1: '6', x2: '19', y2: '6', stroke: 'currentColor', 'stroke-width': '1.5',
+      }),
     ]);
   }
   if (type === 'pass') {
     return h('svg', {
       class: 'payment-tab-icon', viewBox: '0 0 20 16', fill: 'none', 'aria-hidden': 'true',
     }, [
-      h('rect', { x: '2', y: '3', width: '16', height: '10', rx: '1', stroke: 'currentColor', 'stroke-width': '1.5' }),
-      h('circle', { cx: '6', cy: '8', r: '2', stroke: 'currentColor', 'stroke-width': '1.5' }),
-      h('line', { x1: '10', y1: '7', x2: '16', y2: '7', stroke: 'currentColor', 'stroke-width': '1.5' }),
-      h('line', { x1: '10', y1: '10', x2: '14', y2: '10', stroke: 'currentColor', 'stroke-width': '1.5' }),
+      h('rect', {
+        x: '2', y: '3', width: '16', height: '10', rx: '1', stroke: 'currentColor', 'stroke-width': '1.5',
+      }),
+      h('circle', {
+        cx: '6', cy: '8', r: '2', stroke: 'currentColor', 'stroke-width': '1.5',
+      }),
+      h('line', {
+        x1: '10', y1: '7', x2: '16', y2: '7', stroke: 'currentColor', 'stroke-width': '1.5',
+      }),
+      h('line', {
+        x1: '10', y1: '10', x2: '14', y2: '10', stroke: 'currentColor', 'stroke-width': '1.5',
+      }),
     ]);
   }
   return h('svg', {
@@ -439,7 +454,9 @@ function PaymentFormFields({ method, payment, onChange }) {
         h('svg', {
           class: 'payment-lock-icon', viewBox: '0 0 16 21', fill: 'none', 'aria-hidden': 'true',
         }, [
-          h('rect', { x: '2', y: '8', width: '12', height: '10', rx: '1', stroke: 'currentColor', 'stroke-width': '1.5' }),
+          h('rect', {
+            x: '2', y: '8', width: '12', height: '10', rx: '1', stroke: 'currentColor', 'stroke-width': '1.5',
+          }),
           h('path', { d: 'M5 8V5a3 3 0 0 1 6 0v3', stroke: 'currentColor', 'stroke-width': '1.5' }),
         ]),
       ]),
@@ -492,6 +509,8 @@ function PaymentFormFields({ method, payment, onChange }) {
  */
 function FlightSummaryAside({
   flight, seats, passenger, pax, depart, pricing, onComplete, canComplete, submitting, bookingError,
+  signedIn, onSignIn,
+  quoteExpired, onSearchAgain,
 }) {
   const flightNo = flight?.id ? `WKND ${flight.id.replace(/\D/g, '')}` : 'WKND';
   const aircraft = flight?.aircraft ? flight.aircraft.toUpperCase() : 'AIRCRAFT';
@@ -538,6 +557,16 @@ function FlightSummaryAside({
         h('span', null, formatMoney(pricing.total)),
       ]),
     ]),
+    !signedIn && h('div', { class: 'booking-sign-in' }, [
+      h('p', null, 'Sign in with the same WKND account you use in ChatGPT or Claude to retrieve this booking later. Your flight and seat selections stay here during sign-in.'),
+      h('button', {
+        type: 'button',
+        class: 'booking-btn booking-btn-primary',
+        disabled: submitting,
+        onClick: onSignIn,
+      }, submitting ? 'Signing in...' : 'Sign in to book'),
+    ]),
+    signedIn && h('p', { role: 'status' }, 'Signed in to WKND. This booking will belong to your account.'),
     h('button', {
       type: 'button',
       class: 'booking-complete-btn',
@@ -549,6 +578,11 @@ function FlightSummaryAside({
       h('span', { class: 'booking-complete-arrow', 'aria-hidden': 'true' }, '→'),
     ]),
     bookingError && h('p', { class: 'booking-empty', role: 'alert' }, bookingError),
+    quoteExpired && h('button', {
+      type: 'button',
+      class: 'booking-btn booking-btn-secondary',
+      onClick: onSearchAgain,
+    }, 'Search for a new fare'),
     h('p', { class: 'booking-payment-legal' }, [
       'By clicking Complete booking, you agree to the WKND Aero conditions of ',
       'carriage and privacy policy.',
@@ -574,10 +608,12 @@ function BookingApp({ mount }) {
   const [confirmed, setConfirmed] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
+  const [quoteExpired, setQuoteExpired] = useState(false);
   const submittingRef = useRef(false);
   const bookingRequestId = useRef(crypto.randomUUID());
   const {
-    api, origin, dest, depart, passengers,
+    api, origin, dest, depart, passengers, adventureId,
   } = mount.dataset;
   const pax = Math.min(6, Math.max(1, parseInt(passengers || '1', 10) || 1));
 
@@ -625,13 +661,6 @@ function BookingApp({ mount }) {
     pushBookingEvent('bookingStep', {
       step: next, onceKey: `${bookingRequestId.current}:${next}`,
     });
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-        step: next, selected, seats, passenger,
-      }));
-    } catch {
-      /* ignore */
-    }
   };
 
   const toggleSeat = (id) => {
@@ -642,17 +671,50 @@ function BookingApp({ mount }) {
     });
   };
 
+  const signIn = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    setBookingError('');
+    try {
+      await signInForBooking(api);
+      setSignedIn(true);
+    } catch (err) {
+      setBookingError(['cancelled', 'popup_closed'].includes(err.error)
+        ? 'Sign-in was cancelled. Your selections are unchanged.'
+        : 'Unable to sign in. Allow popups and try again. Website sign-in must be configured before booking.');
+      // eslint-disable-next-line no-console
+      console.error('WKND customer sign-in failed.', { reason: err.error || err.name });
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
+  };
+
   const completeBooking = async () => {
-    if (submittingRef.current || confirmed || !selected || seats.length !== pax
+    if (submittingRef.current || confirmed || quoteExpired || !signedIn || !selected || seats.length !== pax
       || !isPaymentValid(paymentMethod, payment)) return;
     submittingRef.current = true;
     setSubmitting(true);
     setBookingError('');
     let reason = 'network';
     try {
+      reason = 'authentication';
+      let accessToken;
+      try {
+        accessToken = await getBookingAccessToken(api);
+      } catch (err) {
+        if (['login_required', 'consent_required', 'interaction_required'].includes(err.error)) {
+          setSignedIn(false);
+        }
+        throw err;
+      }
+      reason = 'network';
       const resp = await fetch(`${api}/api/bookings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(15000),
         body: JSON.stringify({
           flightId: selected.id,
           quoteId: selected.quoteId,
@@ -661,9 +723,19 @@ function BookingApp({ mount }) {
           passengerCount: pax,
           seats,
           journey: getJourney(),
+          adventureId: adventureId || undefined,
         }),
       });
       reason = 'http';
+      if (resp.status === 401) {
+        setSignedIn(false);
+        reason = 'authentication';
+      }
+      if (resp.status === 403) reason = 'permission';
+      if (resp.status === 409) {
+        setQuoteExpired(true);
+        reason = 'quote-expired';
+      }
       if (!resp.ok) throw new Error(`Booking API returned HTTP ${resp.status}`);
       reason = 'invalid-response';
       const data = await resp.json();
@@ -674,6 +746,9 @@ function BookingApp({ mount }) {
       }
       pushBookingEvent('bookingComplete', { step: 3, booking: data, onceKey: data.id });
       setConfirmed(data);
+      setPayment({
+        name: '', number: '', expiry: '', cvv: '', saveCard: false,
+      });
       // Confirmation telemetry and integrations receive no passenger/payment PII.
       window.dispatchEvent(new CustomEvent('wknd:booking-complete', {
         detail: {
@@ -687,12 +762,38 @@ function BookingApp({ mount }) {
       }));
     } catch (err) {
       pushBookingEvent('bookingError', { step: 3, reason });
-      setBookingError('Your booking could not be confirmed. Please try again. If your fare has expired, search for flights again.');
+      const messages = {
+        authentication: 'Your sign-in has expired or is unavailable. Sign in again before confirming.',
+        permission: 'Your account does not have permission to create bookings.',
+        'quote-expired': 'Your fare has expired or the booking details changed. Search for a new fare before confirming.',
+      };
+      setBookingError(messages[reason] || 'Your booking could not be confirmed. Please try again.');
       // eslint-disable-next-line no-console
-      console.error('Unable to confirm WKND Aero booking.', err);
+      console.error('Unable to confirm WKND Aero booking.', { reason, name: err.name });
     } finally {
       submittingRef.current = false;
       setSubmitting(false);
+    }
+  };
+
+  const searchAgain = async () => {
+    setStep(0);
+    setSelected(null);
+    setSeats([]);
+    setQuoteExpired(false);
+    setBookingError('');
+    setError('');
+    setLoading(true);
+    bookingRequestId.current = crypto.randomUUID();
+    try {
+      const data = await searchFlights(api, new URLSearchParams({
+        origin, dest, depart, passengers,
+      }));
+      setFlights(data.flights || []);
+    } catch {
+      setError('Unable to load flights. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -705,6 +806,7 @@ function BookingApp({ mount }) {
           ? 'This is a demo reservation. No payment has been taken, flight issued or email sent.'
           : 'Your booking is confirmed. Keep your confirmation reference for your trip.'),
         h('p', { class: 'booking-ref' }, `Confirmation ${confirmed.id}`),
+        h('p', null, 'Use Check Booking in your WKND ChatGPT or Claude app with this reference and the same account. New bookings may take a short time to appear.'),
         h('p', null, `${selected?.origin} → ${selected?.destination} · ${formatTime(selected?.departTime)}`),
         h('a', { href: '/', class: 'booking-btn booking-btn-primary' }, 'Return home'),
       ]),
@@ -812,6 +914,7 @@ function BookingApp({ mount }) {
       step === 3 && h('div', { class: 'booking-payment-layout' }, [
         h('section', { class: 'booking-payment-form-section' }, [
           h('h2', null, 'Payment details'),
+          h('p', null, 'Demo only: do not enter real payment card details. No payment is processed.'),
           h(PaymentMethodTabs, { method: paymentMethod, onChange: setPaymentMethod }),
           h(PaymentFormFields, {
             method: paymentMethod,
@@ -831,10 +934,14 @@ function BookingApp({ mount }) {
           pax,
           depart,
           pricing: computePricing(selected, seats, pax),
-          canComplete: !submitting && isPaymentValid(paymentMethod, payment),
+          canComplete: signedIn && !quoteExpired && !submitting && isPaymentValid(paymentMethod, payment),
           submitting,
           bookingError,
           onComplete: completeBooking,
+          signedIn,
+          onSignIn: signIn,
+          quoteExpired,
+          onSearchAgain: searchAgain,
         }),
       ]),
     ]),

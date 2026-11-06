@@ -1655,6 +1655,55 @@
     "persona": "trekking-planner"
   },
   {
+    "id": "aero-learn-to-surf-azores",
+    "type": "product",
+    "title": "WKND Aero flight-linked experience: Learn to Surf in the Azores",
+    "description": "Explore WKND Aero's flight finder for the São Miguel surf guide, with destination airport PDL and a published starting fare from $389. The guide covers beginner surf spots, March conditions, and essential wetsuit and board preparation.",
+    "keywords": [
+      "wknd aero",
+      "aero",
+      "flights",
+      "flight",
+      "airport",
+      "pdl",
+      "booking",
+      "flight experience",
+      "azores",
+      "sao miguel",
+      "ponta delgada",
+      "surfing",
+      "beginner"
+    ],
+    "facts": [
+      "The WKND Adventures Azores surf guide links to WKND Aero's flight finder for Ponta Delgada. Destination airport: PDL.",
+      "The guide lists fares to Ponta Delgada from $389 at publication. This is a published starting fare, not an origin- or date-specific quote or a complete trip cost.",
+      "Original WKND Adventures guide: https://wknd-adventures.run.place/blog/azores-surf-guide",
+      "Find flights for destination PDL and adventure learn-to-surf-azores: https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=PDL&adv=learn-to-surf-azores",
+      "The guide describes beginner surf spots and March conditions; it does not specify lesson prices or guarantee surf conditions. Check current conditions and the linked flight finder before travelling."
+    ],
+    "images": [
+      "https://main--masterclass-demo--znikolovski.aem.page/blog/media_15c8b7cdd7e8e9f095f427182bcefbd4e650e2229.jpg",
+      "https://main--masterclass-demo--znikolovski.aem.page/blog/media_114abab4f6827b36ffbfe2262463afaa3816fd4bd.jpg",
+      "https://main--masterclass-demo--znikolovski.aem.page/blog/media_12c8981af9e283e71d2ab6ffa950bc0597f88bcd6.jpg",
+      "https://main--masterclass-demo--znikolovski.aem.page/blog/media_1ea5ad419644652717323f43a33803c3541ce1dbe.jpg"
+    ],
+    "url": "https://wknd-adventures.run.place/blog/azores-surf-guide",
+    "sourceLabel": "Read the Azores surf guide",
+    "category": "flight-linked adventure",
+    "placeName": "São Miguel, Azores",
+    "flightOptions": {
+      "destinationTerms": [
+        "azores",
+        "sao miguel",
+        "ponta delgada"
+      ],
+      "airport": "PDL",
+      "startingFare": "$389",
+      "bookingUrl": "https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=PDL&adv=learn-to-surf-azores"
+    },
+    "persona": "beginner-surfer"
+  },
+  {
     "id": "planning-patagonia-trek",
     "type": "feature",
     "title": "Trip planning: Patagonia W Circuit",

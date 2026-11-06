@@ -67,6 +67,15 @@ export function getOf1Context() {
   return { query: topic?.title || initialQuery, headings };
 }
 
+export function getOf1ArticleUrl(href) {
+  const url = new URL(href, window.location.href);
+  if (['http:', 'https:'].includes(url.protocol) && url.pathname.startsWith('/blog/')
+    && /--masterclass-demo--znikolovski\.aem\.(page|live)$/.test(url.hostname)) {
+    return `https://wknd-adventures.run.place${url.pathname}${url.search}${url.hash}`;
+  }
+  return href;
+}
+
 export function normalizeOf1Text(text) {
   return ` ${text.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, ' ')

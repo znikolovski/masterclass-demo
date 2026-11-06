@@ -1,4 +1,6 @@
-import { normalizeOf1Text, selectOf1Entries } from '../../scripts/of1-context.js';
+import {
+  getOf1ArticleUrl, normalizeOf1Text, selectOf1Entries,
+} from '../../scripts/of1-context.js';
 
 let catalog;
 
@@ -96,7 +98,7 @@ export default async function decorate(block) {
     planning.sources.forEach((source) => {
       const sourceItem = element('li');
       const link = element('a', source.label);
-      link.href = source.url;
+      link.href = getOf1ArticleUrl(source.url);
       sourceItem.append(link);
       sources.append(sourceItem);
     });

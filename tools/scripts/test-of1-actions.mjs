@@ -11,7 +11,8 @@ import { chromium } from 'playwright';
 const base = process.argv[2] || 'http://localhost:3000';
 const screenshots = process.argv[3];
 const title = 'Ohrid & Ladakh + trails #WKND <camp> "weekend" \u2013 115 km';
-const prompt = `Help me plan this adventure: ${title}. What should I prepare?`;
+const query = 'adventure-actions-regression';
+const opening = 'Help me choose an adventure and work out what I should prepare.';
 const corruptedImage = 'media_13959b15a585224ec329fd1f593db0e5da597b8.avif';
 const canonicalImage = 'media_13959b15a585224ec329fd4f1f593db0e5da597b8.avif';
 const browser = await chromium.launch();
@@ -69,13 +70,19 @@ try {
         sections.push(cards.outerHTML);
       });
     });
-    return { sections, sources };
+    const cards = new DOMParser().parseFromString(sections[0], 'text/html');
+    const titles = [...new Set([...cards.querySelectorAll('h2, h3, h4, h5, h6')]
+      .map((heading) => heading.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean))];
+    return { sections, sources, titles };
   }, { content: templates, edgeTitle: title, badImage: corruptedImage });
   assert(fixture.sections.length >= 4, 'Published templates must cover all card intents');
   const events = fixture.sections.map((html, index) => ({
     type: 'section', format: 'html', index, html, stylesheet: null,
   }));
-  events.push({ type: 'done', template: 'recommendation', title: 'Adventure actions' });
+  events.push(
+    { type: 'suggestions', suggestions: [{ label: 'Keep exploring', query: 'Compare the routes' }] },
+    { type: 'done', template: 'recommendation', title: 'Adventure actions' },
+  );
   await page.route('**/api/generate', (route) => route.fulfill({
     contentType: 'application/x-ndjson',
     body: `${events.map((event) => JSON.stringify(event)).join('\n')}\n`,
@@ -84,7 +91,8 @@ try {
     contentType: 'text/javascript',
     body: `
       const queue = window.alloy.q;
-      const execute = ([resolve]) => resolve({});
+      const execute = ([resolve, , [command]]) => resolve(command === 'getIdentity'
+        ? { identity: { ECID: '11111111111111111111111111111111111111' } } : {});
       queue.push = execute;
       queue.forEach(execute);
     `,
@@ -112,17 +120,29 @@ try {
       } } };
     `,
   }));
-  await page.goto(`${base}/of1?q=adventure-actions-regression`);
+  await page.goto(`${base}/of1?q=${query}`);
   await page.waitForFunction((count) => (
     document.querySelectorAll('.generated-section .cards-card-actions').length === count
   ), fixture.sources.length);
   const actions = page.locator('.generated-section .cards-card-actions');
   const sources = await actions.locator('a.secondary').evaluateAll((links) => (
-    links.map((link) => link.pathname)
+    links.map((link) => link.href)
   ));
-  assert.deepEqual(sources, fixture.sources.map((href) => new URL(href, base).pathname));
-  assert.equal(await actions.locator('a.primary').count(), fixture.sources.length);
-  const chat = actions.first().getByRole('link', { name: `Chat with WKND Sherpa about ${title}` });
+  assert.deepEqual(sources, fixture.sources.map((href) => {
+    const url = new URL(href, base);
+    return url.pathname.startsWith('/blog/')
+      ? `https://wknd-adventures.run.place${url.pathname}${url.search}${url.hash}` : url.href;
+  }));
+  assert.equal(await actions.locator('a.primary').count(), 0);
+  assert.equal(await actions.locator('a').count(), fixture.sources.length);
+  const panel = page.locator('.generated-section .sherpa-options');
+  assert.equal(await panel.count(), 1);
+  assert(await panel.evaluate((block) => (
+    !block.closest('.cards')
+    && block.closest('.section').nextElementSibling.querySelector('.cards')
+  )));
+  const chat = panel.getByRole('link', { name: 'Chat with WKND Sherpa', exact: true });
+  const prompt = `${opening} My current search is: ${query}. The options shown include: ${fixture.titles.join('; ')}.`;
   const fragment = `#sherpa?prompt=${encodeURIComponent(prompt)}&send=true`;
   assert.equal(await chat.getAttribute('href'), fragment);
   assert.equal(await chat.getAttribute('aria-haspopup'), 'dialog');
@@ -132,22 +152,84 @@ try {
     .getAttribute('href'), 'https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=FAT&adv=yosemite-rock-climbing');
   const idempotence = await page.evaluate(async (html) => {
     const { decorateMain } = await import(new URL('/scripts/scripts.js', window.location.origin).href);
+    const anchor = document.createElement('div');
+    anchor.className = 'of1-turn-anchor';
+    document.querySelector('main').append(anchor);
     const detached = document.createElement('main');
     detached.innerHTML = `<div>${html}</div>`;
     decorateMain(detached);
     const before = detached.querySelectorAll('.cards-card-actions').length;
+    const panelsBefore = detached.querySelectorAll('.sherpa-options').length;
     decorateMain(detached);
     const after = detached.querySelectorAll('.cards-card-actions').length;
+    const panelsAfter = detached.querySelectorAll('.sherpa-options').length;
     const attached = document.createElement('main');
     attached.innerHTML = `<div>${html}</div>`;
     document.body.append(attached);
     decorateMain(attached);
     const authored = attached.querySelectorAll('.cards-card-actions').length;
+    const authoredPanels = attached.querySelectorAll('.sherpa-options').length;
     attached.remove();
-    return { before, after, authored };
+    anchor.remove();
+    const invalid = document.createElement('main');
+    invalid.innerHTML = '<div><div class="cards"><div>'
+      + '<div>No heading or destination</div></div></div></div>';
+    decorateMain(invalid);
+    const invalidPanels = invalid.querySelectorAll('.sherpa-options').length;
+    return {
+      before, after, authored, panelsBefore, panelsAfter, authoredPanels, invalidPanels,
+    };
   }, fixture.sections[0]);
-  assert.deepEqual(idempotence, { before: 4, after: 4, authored: 0 });
-  process.stdout.write('PASS all card intents, original destinations, encoding, missing fields and idempotence\n');
+  assert.deepEqual(idempotence, {
+    before: 4,
+    after: 4,
+    authored: 0,
+    panelsBefore: 1,
+    panelsAfter: 1,
+    authoredPanels: 0,
+    invalidPanels: 0,
+  });
+  const articleLinks = await page.evaluate(async () => {
+    const { decorateMain } = await import(new URL('/scripts/scripts.js', window.location.origin).href);
+    const article = '/blog/ohrid-macedonia?ref=of1&topic=lake%20walk#field-notes';
+    const canonical = `https://wknd-adventures.run.place${article}`;
+    const cases = [
+      [article, canonical],
+      [`https://main--masterclass-demo--znikolovski${article}`, canonical],
+      [`https://main--masterclass-demo--znikolovski.aem.live${article}`, canonical],
+      [`https://main--masterclass-demo--znikolovski.aem.page${article}`, canonical],
+      [`https://llm-traffic-tracking--masterclass-demo--znikolovski.aem.live${article}`, canonical],
+      [`//main--masterclass-demo--znikolovski.aem.live${article}`, canonical],
+      [canonical, canonical],
+      [`https://example.com${article}`, `https://example.com${article}`],
+      [`https://main--other-site--znikolovski.aem.live${article}`,
+        `https://main--other-site--znikolovski.aem.live${article}`],
+      [`https://main--masterclass-demo--znikolovski.aem.live.evil.example${article}`,
+        `https://main--masterclass-demo--znikolovski.aem.live.evil.example${article}`],
+      ['https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=OHD&adv=ohrid-macedonia',
+        'https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=OHD&adv=ohrid-macedonia'],
+      ['#sherpa?prompt=Ohrid&send=true', '#sherpa?prompt=Ohrid&send=true'],
+      ['mailto:hello@example.com', 'mailto:hello@example.com'],
+    ];
+    const detached = document.createElement('main');
+    const section = document.createElement('div');
+    cases.forEach(([href]) => {
+      const paragraph = document.createElement('p');
+      const link = document.createElement('a');
+      link.setAttribute('href', href);
+      link.textContent = 'Field notes';
+      paragraph.append(link);
+      section.append(paragraph);
+    });
+    detached.append(section);
+    decorateMain(detached);
+    return [...detached.querySelectorAll('a')].map((link, index) => ({
+      actual: link.getAttribute('href'), expected: cases[index][1],
+    }));
+  });
+  articleLinks.forEach(({ actual, expected }) => assert.equal(actual, expected));
+  process.stdout.write('PASS public field-notes origin, AEM aliases, query/fragment preservation and external-link isolation\n');
+  process.stdout.write('PASS pre-card Sherpa panel, browsing-only cards, all intents, destinations, encoding and idempotence\n');
 
   await page.getByRole('button', { name: 'Chat with WKND Sherpa' }).waitFor({ timeout: 60000 });
   await chat.focus();
@@ -159,7 +241,7 @@ try {
   ), prompt);
   assert.equal(await input.evaluate(() => window.testLastSent), prompt);
   assert.equal(await input.evaluate(() => window.testSubmissions), 1);
-  assert.equal(await page.evaluate(() => window.location.search), '?q=adventure-actions-regression');
+  assert.equal(await page.evaluate(() => window.location.search), `?q=${query}`);
   assert.equal(await page.evaluate(() => window.location.hash), fragment);
   await input.fill('A different draft');
   await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
@@ -179,7 +261,7 @@ try {
       grids.map((grid) => getComputedStyle(grid).gridTemplateColumns.split(' ').length)
     ));
     columns.forEach((count) => assert.equal(count, width < 600 ? 1 : 2));
-    const measurements = await actions.locator('a').evaluateAll((links) => links.map((link) => {
+    const measurements = await actions.locator('a').or(chat).evaluateAll((links) => links.map((link) => {
       const bounds = link.getBoundingClientRect();
       const text = document.createRange();
       text.selectNodeContents(link);
@@ -208,6 +290,7 @@ try {
         return image.complete && image.naturalWidth > 0;
       });
       await card.screenshot({ path: path.join(screenshots, `of1-sherpa-actions-${width}.png`) });
+      await panel.screenshot({ path: path.join(screenshots, `of1-sherpa-panel-${width}.png`) });
     }
   }, Promise.resolve());
   const firstImage = page.locator('.generated-section .cards img').first();
@@ -235,10 +318,32 @@ try {
   assert(singleCard.width <= 480);
   assert(Math.abs((singleCard.left + singleCard.right)
     - (singleCard.parent.left + singleCard.parent.right)) < 1);
+  const followUpQuery = 'Compare Ohrid & Ladakh + permits #WKND <camp> "weekend"';
+  await page.locator('.generative-suggestions:not(.dimmed) .suggestion-input').fill(followUpQuery);
+  await page.locator('.generative-suggestions:not(.dimmed) .suggestion-input').press('Enter');
+  await page.waitForFunction(() => document.querySelectorAll('.sherpa-options').length === 2);
+  const followUpChat = panel.last().getByRole('link', { name: 'Chat with WKND Sherpa', exact: true });
+  const followUpPrompt = `${opening} My current search is: ${followUpQuery}. The options shown include: ${fixture.titles.join('; ')}.`;
+  assert.equal(
+    await followUpChat.getAttribute('href'),
+    `#sherpa?prompt=${encodeURIComponent(followUpPrompt)}&send=true`,
+  );
+  assert.equal(await chat.first().getAttribute('href'), fragment);
+  await followUpChat.click();
+  await page.waitForFunction((expected) => (
+    document.querySelector('.wknd-sherpa-frame').contentWindow.testLastSent === expected
+  ), followUpPrompt);
+  assert.equal(await input.evaluate(() => window.testSubmissions), 3);
+  await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
+  await page.locator('.generative-suggestions:not(.dimmed) .suggestion-restart').click();
+  await page.waitForURL(`${base}/of1`);
+  assert.equal(await page.locator('.sherpa-options').count(), 0);
+  process.stdout.write('PASS current-turn follow-up context, one panel per streamed response, retained earlier prompt and restart\n');
   assert.deepEqual(errors, []);
   await page.goto(`${base}/templates/of1/comparison`);
   await page.locator('.cards[data-block-status="loaded"]').waitFor();
   assert.equal(await page.locator('.cards-card-actions').count(), 0);
+  assert.equal(await page.locator('.sherpa-options').count(), 0);
   process.stdout.write('PASS wrapped actions and at most two columns at 375/768/1200/1774 px, authored-card isolation and no page errors\n');
 
   const provenance = await browser.newPage();

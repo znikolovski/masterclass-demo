@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#f4f2ef">
+    <title>WKND Adventures | Market simulator</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./stock-mock.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="./" aria-label="WKND Adventures home"><img src="./assets/wknd-adventures-logo.svg" width="32" height="32" alt=""><span>WKND<br>ADVENTURES</span></a>
+      <span class="header-divider"></span>
+      <span class="header-title">Investor studio</span>
+      <a class="ticker-view-link" href="?view=ticker">Ticker only ↗</a>
+      <span class="mock-badge"><span></span> SIMULATION MODE</span>
+    </header>
+    <main class="stock-mock">
+      <div class="page-heading">
+        <div><p class="eyebrow">THE WKND MARKET STORY</p><h1>New adventures.<br>Same downward trend.</h1></div>
+        <p>Highly requested destinations. Incredible new experiences.<br>So why is WKND stock still sliding?</p>
+      </div>
+      <div class="dashboard">
+        <section class="quote-card" aria-label="WKND stock performance">
+          <div class="company-header">
+            <div class="company-icon" aria-hidden="true"><img src="./assets/wknd-adventures-logo.svg" width="32" height="32" alt=""></div>
+            <div><h2>WKND Adventures</h2><p>WKND <span class="company-separator">·</span> Illustrative equity <span class="company-separator">·</span> USD</p></div>
+            <span class="market-badge">MOCK MARKET</span>
+          </div>
+          <div class="quote-summary" aria-live="polite" aria-atomic="true">
+            <div class="price-line"><strong id="price">$85.00</strong><span class="currency-label">USD</span></div>
+            <p id="price-change" class="negative">−$15.00 (15.00%) over 3 months</p>
+            <p id="quote-date" class="muted">Jul 24 – Oct 22, 2026 · Simulated closing prices</p>
+          </div>
+          <div class="story-note">
+            <strong>The adventures people asked for are here.</strong>
+            <p>WKND has launched Ladakh, India and Ohrid, North Macedonia — both highly requested by users. In the default scenario, the stock is still trending down 15% over three months.</p>
+            <span class="story-disclaimer">Illustrative market scenario. Launch dates and stock effects are mock data, not observed market results.</span>
+          </div>
+          <div class="chart-toolbar">
+            <div class="periods" role="group" aria-label="Chart time range">
+              <button type="button" data-days="7" aria-pressed="false">1W</button>
+              <button type="button" data-days="30" aria-pressed="false">1M</button>
+              <button type="button" data-days="90" aria-pressed="true">3M</button>
+            </div>
+            <label class="baseline-toggle"><input id="show-baseline" type="checkbox" checked> Show baseline</label>
+          </div>
+          <figure class="chart">
+            <svg id="stock-chart" viewBox="0 0 800 330" role="img" aria-labelledby="chart-title chart-description">
+              <title id="chart-title">WKND simulated stock price</title>
+              <desc id="chart-description">The baseline falls from $100 to $85, a decline of 15% over three months.</desc>
+            </svg>
+            <figcaption><span><i class="legend-line"></i> Scenario price</span><span><i class="legend-line dashed"></i> Baseline, no events</span><span id="active-count">0 active datasets</span></figcaption>
+          </figure>
+          <div class="date-explorer">
+            <div><label for="simulation-date">SIMULATION DATE</label><input type="date" id="simulation-date" min="2026-07-24" max="2026-10-22" value="2026-10-22"></div>
+            <label class="scrubber-label" for="date-scrubber">Rewind the scenario<input id="date-scrubber" type="range" min="0" max="90" value="90"></label>
+          </div>
+          <dl class="stats">
+            <div><dt>Period open</dt><dd id="period-open">$100.00</dd></div>
+            <div><dt>Period high</dt><dd id="period-high">$100.00</dd></div>
+            <div><dt>Period low</dt><dd id="period-low">$85.00</dd></div>
+            <div><dt>Event impact vs. baseline</dt><dd id="event-impact">0.00%</dd></div>
+          </dl>
+        </section>
+        <aside class="scenario-card" aria-label="Simulation controls">
+          <div class="panel-heading"><div><p class="eyebrow">THE WHAT-IF LAB</p><h2>Shape the story.</h2></div><span class="lab-icon" aria-hidden="true">↗</span></div>
+          <p class="panel-intro">The requested-destination launches are on by default. Layer on disruptions or a hypothetical recovery to explore a different outcome.</p>
+          <div class="baseline-note"><span aria-hidden="true">↘</span><div><strong>Great launches. A stock still sliding.</strong><p>Ladakh and Ohrid are live, but the default price is $85.00 — still down 15%. No sustained launch-driven lift is modeled.</p></div></div>
+          <div class="dataset-heading"><h3>Event datasets</h3><button id="reset" type="button" class="text-button">Reset all</button></div>
+          <div id="datasets"><p class="muted">Loading mock datasets…</p></div>
+          <div class="import-panel">
+            <h3>Your data. Your scenario.</h3>
+            <p>Load date-specific events from one or more JSON files. Nothing leaves your browser.</p>
+            <label class="import-button">+ Load datasets<input id="file-input" type="file" accept=".json,application/json" multiple></label>
+            <a href="./sample-data.json" download>Download example JSON ↓</a>
+          </div>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+        </aside>
+      </div>
+      <section class="events-card" aria-label="Active event timeline">
+        <div class="events-heading"><div><p class="eyebrow">PRODUCT MOMENTUM ≠ STOCK MOMENTUM</p><h2>Launches &amp; market events</h2></div><span id="event-count">No active events</span></div>
+        <div id="events"><p class="empty-state">A clear trail, for now. Switch on a dataset to see its events here.</p></div>
+      </section>
+      <footer><strong>Made for the what-ifs.</strong><span>Fictional company valuation &amp; synthetic data. Not a real security, live market feed, or investment advice.</span></footer>
+    </main>
+    <noscript>This simulator requires JavaScript. Enable JavaScript to load and combine mock datasets.</noscript>
+  </body>
+</html>

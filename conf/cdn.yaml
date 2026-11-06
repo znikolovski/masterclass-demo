@@ -1,6 +1,18 @@
 kind: 'CDN'
 version: '1'
 data:
+  requestTransformations:
+    rules:
+      - name: wknd-apple-app-association
+        when:
+          allOf:
+            - { reqProperty: tier, in: ["publish", "preview"] }
+            - { reqProperty: domain, equals: "wknd-adventures.run.place" }
+            - { reqProperty: originalPath, equals: "/.well-known/apple-app-site-association" }
+        actions:
+          - type: set
+            reqProperty: path
+            value: /config/apple-app-site-association.json
   originSelectors:
     rules:
       - name: route-faq-inline
@@ -8,6 +20,7 @@ data:
           allOf:
             - { reqProperty: tier, in: ["publish", "preview"] }
             - { reqProperty: domain, equals: "wknd-adventures.run.place" }
+            - { reqProperty: originalPath, doesNotEqual: "/.well-known/apple-app-site-association" }
             - { reqProperty: originalPath, matches: '(/[^./]+|\.html|/)$' } # routed extensions, with .html extension or without extension
         action:
           type: selectAemOrigin

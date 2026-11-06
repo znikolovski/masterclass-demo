@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../masterclass-demo-llmapp"
+		},
+		{
+			"path": "../wknd-adventures-faq"
+		},
+		{
+			"path": "../wknd-automation"
+		},
+		{
+			"path": "../wknd-ios-app"
+		}
+	],
+	"settings": {}
+}

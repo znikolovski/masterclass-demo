@@ -72,7 +72,10 @@ try {
       assert(text.includes(entry.planning.caveat));
       assert.deepEqual(await item.locator('.adventure-planning-sources a').evaluateAll(
         (links) => links.map((link) => link.href),
-      ), entry.planning.sources.map((source) => source.url));
+      ), entry.planning.sources.map((source) => source.url.replace(
+        /^https:\/\/[^/]+--masterclass-demo--znikolovski\.aem\.(?:page|live)(\/blog\/)/,
+        'https://wknd-adventures.run.place$1',
+      )));
       assert.equal(await item.locator('details').count(), 3);
       assert.equal(await item.locator('details[open]').count(), 1);
     }));

@@ -48,6 +48,7 @@ export default async function decorate(block) {
   mount.dataset.depart = params.get('depart') || '';
   mount.dataset.passengers = params.get('passengers') || '1';
   mount.dataset.api = getAeroApiBase();
+  mount.dataset.adventureId = params.get('adv') || attrs.adv || '';
 
   try {
     const mod = await import('./app/index.js');

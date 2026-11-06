@@ -27,6 +27,22 @@ try {
     }));
   const catalogResponse = await page.request.get(`${base}/of1/config/knowledge.json`);
   const entries = (await catalogResponse.json()).filter((entry) => entry.id.startsWith('aero-'));
+  const generated = {
+    id: 'aero-new-zealand-trek',
+    type: 'product',
+    title: 'WKND Aero flight-linked experience: New Zealand trek',
+    url: 'https://wknd-adventures.run.place/blog/new-zealand-trek',
+    sourceLabel: 'Read adventure guide',
+    flightOptions: {
+      destinationTerms: ['new zealand', 'new'],
+      airport: 'NPL',
+      bookingUrl: 'https://main--wknd-aero--znikolovski.aem.live/book/flights?dest=NPL&adv=new-zealand-trek',
+    },
+  };
+  await page.route('**/flight-options.json', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ entries: [generated] }),
+  }));
   let template = templates[0];
   let headings = ['No curated destination'];
   await page.route('**/api/generate', async (route) => {
@@ -68,12 +84,20 @@ try {
     assert.equal(await panel.locator('h2').textContent(), 'WKND Aero flight options');
     assert.equal(await panel.locator('li').count(), expected.length);
     const content = await panel.textContent();
-    assert(content.includes('not full-trip quotes'));
+    assert(content.includes('not a full-trip quote'));
     assert(!/July|August|London|Zurich|Amsterdam/.test(content));
     await Promise.all(expected.map(async (entry, index) => {
       const item = panel.locator('li').nth(index);
       assert((await item.textContent()).includes(`Destination airport: ${entry.flightOptions.airport}`));
-      assert((await item.textContent()).includes(`Flights from ${entry.flightOptions.startingFare}`));
+      if (entry.flightOptions.startingFare) {
+        assert((await item.textContent()).includes(`Flights from ${entry.flightOptions.startingFare}`));
+      } else {
+        assert(!(await item.textContent()).includes('Flights from'));
+      }
+      assert.equal(
+        await item.locator('a.secondary').textContent(),
+        entry.sourceLabel || 'View Aero experience',
+      );
       await Promise.all([
         ['a.secondary', entry.url],
         ['a.primary', entry.flightOptions.bookingUrl],
@@ -84,8 +108,10 @@ try {
         expectedUrl.searchParams.forEach((value, key) => {
           assert.equal(actual.searchParams.get(key), value);
         });
-        assert(actual.searchParams.get('wj'));
-        assert.equal(actual.searchParams.get('ref'), 'wknd-of1');
+        if (selector === 'a.primary') {
+          assert(actual.searchParams.get('wj'));
+          assert.equal(actual.searchParams.get('ref'), 'wknd-of1');
+        }
       }));
     }));
     assert(await panel.evaluate((block) => (
@@ -98,12 +124,26 @@ try {
 
   await entries.reduce(async (previous, entry, index) => {
     await previous;
-    template = templates[index];
+    template = templates[index % templates.length];
     headings = ['No curated destination'];
     await page.goto(`${base}/of1?q=${encodeURIComponent(entry.flightOptions.destinationTerms[0])}`);
     await verify([entry]);
   }, Promise.resolve());
-  process.stdout.write('PASS all five destinations across all templates, exact source facts and full Aero URLs\n');
+  process.stdout.write(`PASS all ${entries.length} destinations across all templates, exact source facts and full Aero URLs\n`);
+
+  const azores = entries.find((entry) => entry.id === 'aero-learn-to-surf-azores');
+  assert(azores);
+  [template] = templates;
+  headings = ['No curated destination'];
+  await page.goto(`${base}/of1?llm_app_ctx=${encodeURIComponent(
+    'Tell me about Learn to Surf in the Azores: São Miguel in March | WKND Adventures',
+  )}`);
+  await verify([azores]);
+  process.stdout.write('PASS the authored Azores llm_app_ctx query receives its PDL booking link\n');
+
+  await page.goto(`${base}/of1?q=${encodeURIComponent('New Zealand')}`);
+  await verify([generated]);
+  process.stdout.write('PASS automatically generated options render without an invented starting fare\n');
 
   [template] = templates;
   await page.goto(`${base}/of1?q=Compare%20Patagonia%20and%20Yosemite`);
@@ -191,6 +231,16 @@ try {
   assert.equal(await page.locator('.aero-options a').count(), 0);
   assert(sourceErrors.some((message) => message.includes('Invalid verified Aero information')));
   process.stdout.write('PASS source recovery on the next turn and inconsistent airport/booking data rejected\n');
+  await page.unroute('**/of1/config/knowledge.json');
+  await page.unroute('**/flight-options.json');
+  await page.route('**/flight-options.json', (route) => route.fulfill({
+    status: 503,
+    body: 'Unavailable',
+  }));
+  await page.goto(`${base}/of1?q=Ohrid`);
+  await verify([entries[0]]);
+  assert((await page.locator('.aero-options').textContent()).includes('showing verified catalog options only'));
+  process.stdout.write('PASS generated-catalog outage is visible while verified curated links remain usable\n');
 } finally {
   await browser.close();
 }

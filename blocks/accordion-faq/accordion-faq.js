@@ -8,11 +8,8 @@ import { pushInteractionEvent } from '../../scripts/analytics-acdl.js';
 
 const FAQ_LABEL_MAX = 100;
 
-// Fallback-only path, used when the CDN edge function didn't already rewrite
-// the block server-side. Same origin, since edge functions are routed by
-// path on the site's own domain (via cdn.yaml), not a separate host.
-// See https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/implementing/developing/edge-functions
-const FAQ_TAG_ENDPOINT = '/faq-accordion';
+// Preview and Workspace frames bypass the custom-domain edge function.
+const FAQ_TAG_ENDPOINT = 'https://wknd-adventures.run.place/faq-accordion';
 
 /**
  * @param {Element} cell
@@ -99,11 +96,20 @@ async function decorateFromTag(block, tag) {
   try {
     const resp = await fetch(`${FAQ_TAG_ENDPOINT}?tag=${encodeURIComponent(tag)}`);
     if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
-    block.innerHTML = await resp.text();
+    const template = document.createElement('template');
+    template.innerHTML = await resp.text();
+    const accordion = template.content.querySelector('.accordion-faq');
+    if (!accordion?.querySelector('details > summary')) {
+      throw new Error('FAQ endpoint returned no accordion items');
+    }
+    block.replaceChildren(...accordion.childNodes);
     block.querySelectorAll('details').forEach(bindFaqAnalytics);
   } catch (error) {
     console.error(`accordion-faq: failed to load FAQs for tag "${tag}"`, error);
-    block.textContent = '';
+    const message = document.createElement('p');
+    message.setAttribute('role', 'status');
+    message.textContent = 'FAQs are temporarily unavailable. Please try again later.';
+    block.replaceChildren(message);
   } finally {
     block.removeAttribute('aria-busy');
   }

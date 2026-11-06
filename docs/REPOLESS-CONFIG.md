@@ -80,6 +80,53 @@ readback: all sitemap `loc` hosts must be `wknd-adventures.run.place`, and
 robots must contain the single custom-domain sitemap reference. Default
 crawler exclusion on the Adobe-owned hosts is intentional and should remain.
 
+## WKND iOS Universal Links
+
+Apple's association file is developer-owned code, not DA author content.
+`config/apple-app-site-association.json` is delivered by AEM Code Sync.
+The request transformation in `conf/cdn.yaml` internally rewrites the exact
+custom-domain path `/.well-known/apple-app-site-association` to that JSON asset.
+It does not redirect the client. The FAQ edge-function selector excludes the
+association path so its extensionless URL does not enter the HTML handler.
+Other paths, domains and existing FAQ/rates routing remain unchanged.
+
+The current app ID is **simulator-only**:
+`FAKETEAMID.com.wknd.adventures`. The iOS project's SDK-specific
+`WKNDSimulator.entitlements` pins that identifier for simulator builds. It is not an Apple
+Developer team ID or a production signing configuration. Before a signed-device
+rollout, replace it with the signed app's actual `application-identifier`.
+Only `/of1` and `/of1/` are associated; OF1 configuration and knowledge paths
+are not. All query parameters are permitted.
+
+Deployment has two independent parts:
+
+1. Merge the JSON asset and CDN rule into `main` using the normal code review
+   process. Code Sync must make
+   `https://main--masterclass-demo--znikolovski.aem.live/config/apple-app-site-association.json`
+   available before the rewrite is activated.
+2. Deploy `conf/cdn.yaml` through the Adobe Cloud Manager configuration pipeline
+   serving `wknd-adventures.run.place`. Code Sync and the repoless migration
+   script do **not** deploy CDN rules. Do not POST the association JSON to the
+   Configuration Service: it is a public code asset, not a site config section.
+
+Verify the public response without following redirects:
+
+```sh
+curl -i https://wknd-adventures.run.place/.well-known/apple-app-site-association
+```
+
+Require HTTP 200, `Content-Type: application/json`, no `Location` header, and the
+expected app ID in the JSON. A 404 means the deployment is not complete.
+Do not convert an upstream error into HTTP 200 in a response transformation.
+
+After deployment, reinstall the simulator app with its Associated Domains
+entitlement and tap an OF1 HTTPS link from Notes or a different-domain page.
+Entering an HTTPS link into Safari's address bar does not launch an app.
+Apple's association CDN may retain an earlier failure; allow for its cache or
+use Apple's documented associated-domains development mode when diagnosing it.
+The existing ChatGPT widget HTTPS link is unchanged and needs no redeployment.
+Native ChatGPT iOS handoff still requires physical-device validation.
+
 ## Spawning additional repoless sites (same codebase)
 
 To add a second site that reuses this repo’s code but has its own DA content:

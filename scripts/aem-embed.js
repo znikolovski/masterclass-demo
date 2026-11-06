@@ -11,7 +11,7 @@ const AERO_BLOCKS = new Set([
 
 const LLM_WIDGET_BLOCKS = new Set([
   'discover-adventures', 'build-route-briefing', 'build-gear-checklist',
-  'plan-permits-and-access', 'audit-pack-weight', 'prepare-field-submission',
+  'plan-permits-and-access', 'audit-pack-weight', 'prepare-field-submission', 'check-booking',
 ]);
 const widgetFontLoads = new Map();
 
@@ -74,7 +74,17 @@ export class AEMEmbed extends HTMLElement {
     try {
       const blockScriptUrl = `${origin}${window.hlx.codeBasePath}/${prefix}/${blockName}/${blockName}.js`;
       const decorateBlock = await import(blockScriptUrl);
-      if (decorateBlock.default) await decorateBlock.default(block);
+      if (decorateBlock.default) {
+        let bridge;
+        if (LLM_WIDGET_BLOCKS.has(blockName)) {
+          const { createApp } = await import(`${origin}${window.hlx.codeBasePath}/scripts/llmapps-sdk.js`);
+          bridge = await createApp({
+            appInfo: { name: `WKND ${blockName}`, version: '1.0.0' },
+            appCapabilities: { availableDisplayModes: ['inline'] },
+          });
+        }
+        await decorateBlock.default(block, bridge);
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('aem-embed block load failed', blockName, e);

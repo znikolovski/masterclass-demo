@@ -15,6 +15,7 @@ import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext, pushErrorPageContext, isAemProductionHost } from './analytics-page.js';
 import { bindJourneyHandoffs, getJourney, pushJourneyEvent } from './journey-analytics.js';
 import { sanitizeJourneyUrl } from './journey-context.js';
+import { getOf1ArticleUrl } from './of1-context.js';
 import {
   getTargetZones,
   hoistTargetLocationToSection,
@@ -36,7 +37,7 @@ import {
   fixDocumentMetaImageUrls,
   isUsableMetaImageUrl,
 } from './media.js';
-import { DEFAULT_AERO_HERO_IMAGE } from './aero-catalog-images.js';
+import { AERO_IMAGE_ORIGIN, DEFAULT_AERO_HERO_IMAGE } from './aero-catalog-images.js';
 import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
@@ -643,11 +644,33 @@ function decorateSections(main) {
 }
 
 /**
+ * Keep WKND Aero booking links on the Aero site when authored HTML normalizes
+ * their absolute destination to a root-relative path.
+ * @param {Element} main The main element
+ */
+function normalizeAeroBookingLinks(main) {
+  const aeroHost = new URL(AERO_IMAGE_ORIGIN).hostname;
+  if (window.location.hostname === aeroHost) return;
+
+  main.querySelectorAll('a[href]').forEach((link) => {
+    const url = new URL(link.href);
+    if (/^\/book\/flights\/?$/.test(url.pathname)
+      && !url.hostname.includes('--wknd-aero--')) {
+      url.hostname = aeroHost;
+      url.protocol = 'https:';
+      url.port = '';
+      link.href = url.href;
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  normalizeAeroBookingLinks(main);
   const tenant = getMetadata('domain').replace(/\.aem\.(page|live)$/, '');
   const isGeneratedOf1 = !main.isConnected && document.querySelector('.of1.block')
     && /^[a-z0-9-]+--[a-z0-9-]+--[a-z0-9-]+$/i.test(tenant);
@@ -681,6 +704,9 @@ export function decorateMain(main) {
         url.hostname = `${tenant}.aem.live`;
         link.href = url.href;
       }
+      if (['http:', 'https:'].includes(link.protocol)) {
+        link.href = getOf1ArticleUrl(link.getAttribute('href'));
+      }
     });
     main.querySelectorAll('img[src]').forEach((image) => {
       const url = new URL(image.getAttribute('src'), origin);
@@ -707,14 +733,6 @@ export function decorateMain(main) {
 
       const actions = document.createElement('span');
       actions.className = 'cards-card-actions';
-      const chat = document.createElement('a');
-      const prompt = `Help me plan this adventure: ${title}. What should I prepare?`;
-      chat.href = `#sherpa?prompt=${encodeURIComponent(prompt)}&send=true`;
-      chat.className = 'button primary';
-      chat.textContent = 'Chat with WKND Sherpa';
-      chat.setAttribute('aria-label', `Chat with WKND Sherpa about ${title}`);
-      chat.setAttribute('aria-haspopup', 'dialog');
-      chat.setAttribute('aria-controls', 'wknd-sherpa-dialog');
       if (isAeroLink(sourceLink)) {
         sourceLink.textContent = sourceLink.pathname.startsWith('/book/')
           ? 'Find flights with WKND Aero' : 'View WKND Aero experience';
@@ -723,8 +741,26 @@ export function decorateMain(main) {
       sourceLink.classList.remove('primary', 'accent');
       sourceLink.classList.add('button', 'secondary');
       sourceLink.replaceWith(actions);
-      actions.append(sourceLink, chat);
+      actions.append(sourceLink);
     });
+    const adventureCards = main.querySelector('.cards .cards-card-actions')?.closest('.cards');
+    const sections = [...document.querySelector('main').children];
+    const turnStart = sections.findLastIndex((section) => (
+      section.classList.contains('of1-turn-anchor')
+    ));
+    const hasSherpa = sections.slice(turnStart + 1)
+      .some((section) => section.querySelector('.sherpa-options'));
+    if (adventureCards && !main.querySelector('.sherpa-options') && !hasSherpa) {
+      const section = document.createElement('div');
+      section.append(buildBlock('sherpa-options', [[
+        '<h2>Talk it through with WKND Sherpa</h2>'
+        + '<p>Need help choosing? Compare your options and discuss what to prepare with '
+        + 'your AI adventure guide, or keep browsing the field notes below.</p>'
+        + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
+      ]]));
+      const cardSection = [...main.children].find((child) => child.contains(adventureCards));
+      main.insertBefore(section, cardSection);
+    }
   }
   // hopefully forward compatible button decoration
   decorateButtons(main);

@@ -5,6 +5,8 @@
 import { syncCatalogFromAdventures, getCatalogIndex, getCatalogEntity } from './catalog.js';
 import { renderPipelinePage } from './pipeline.js';
 import { searchFlights, createBooking, BookingInputError } from './booking.js';
+import { authenticateBooking, checkoutAuthConfig, BookingAuthError } from './booking-auth.js';
+import bookingPreparation from './booking-preparation.js';
 // eslint-disable-next-line import/no-relative-packages -- shared browser/Worker contract
 import { JOURNEY_ID_PATTERN } from '../../../scripts/journey-context.js';
 
@@ -36,6 +38,7 @@ function corsHeaders(request, env) {
     'Access-Control-Allow-Origin': origin || '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Secret',
+    Vary: 'Origin',
   };
 }
 
@@ -61,6 +64,9 @@ export default {
     }
 
     try {
+      if (url.pathname === '/api/auth/config' && request.method === 'GET') {
+        return json(checkoutAuthConfig(env), 200, { ...cors, 'Cache-Control': 'no-store' });
+      }
       if (url.pathname === '/catalog/adventures/index.json' && request.method === 'GET') {
         const catalog = await getCatalogIndex(env);
         return json(catalog, 200, { ...cors, 'Cache-Control': 'public, max-age=300' });
@@ -93,6 +99,7 @@ export default {
       }
 
       if (url.pathname === '/api/bookings' && request.method === 'POST') {
+        const { accountKey } = await authenticateBooking(request, env, 'bookings:create');
         let body;
         try {
           body = await request.json();
@@ -104,11 +111,13 @@ export default {
           throw new BookingInputError('Invalid booking request identifiers');
         }
         const id = `BK_${body.requestId.replace(/-/g, '').slice(0, 16).toLowerCase()}`;
-        const previous = await env.WKND_AERO_CATALOG.get(`booking:${id}`, 'json');
+        const storageKey = `customer-booking:${accountKey}:${id}`;
+        const previous = await env.WKND_AERO_CATALOG.get(storageKey, 'json');
         if (previous) {
           const lead = body.passengers?.[0];
           if (previous.flightId !== body.flightId || previous.quoteId !== body.quoteId
             || previous.passengerCount !== body.passengerCount
+            || (previous.adventure?.id || '') !== (body.adventureId || '')
             || JSON.stringify(previous.seats) !== JSON.stringify(body.seats)
             || !['first', 'last', 'email'].every((key) => (
               previous.passengers[0][key] === lead?.[key]
@@ -119,15 +128,58 @@ export default {
         }
         const flights = await env.WKND_AERO_CATALOG.get(`flight-quote:${body.quoteId}`, 'json');
         const booking = createBooking(body, flights?.find((flight) => flight.id === body.flightId));
-        await env.WKND_AERO_CATALOG.put(`booking:${booking.id}`, JSON.stringify(booking));
+        booking.adventure = null;
+        if (body.adventureId) {
+          if (typeof body.adventureId !== 'string'
+            || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(body.adventureId)
+            || body.adventureId.length > 100) {
+            throw new BookingInputError('Invalid adventure identifier.');
+          }
+          const adventure = await getCatalogEntity(env, body.adventureId);
+          if (!adventure) throw new BookingInputError('The selected adventure is unavailable.');
+          booking.adventure = {
+            id: adventure.sku, title: adventure.name, editorialUrl: adventure.editorialUrl,
+          };
+        }
+        booking.preparation = bookingPreparation(booking.adventure);
+        const expirationTtl = 90 * 86400;
+        await env.WKND_AERO_CATALOG.put(storageKey, JSON.stringify(booking), { expirationTtl });
         return json(booking, 201, { ...cors, 'Cache-Control': 'no-store' });
+      }
+
+      if (url.pathname === '/api/bookings' && request.method === 'GET') {
+        const { accountKey } = await authenticateBooking(request, env, 'bookings:read');
+        const cursor = url.searchParams.get('cursor');
+        if (cursor && (cursor.length > 2048 || !/^[A-Za-z0-9+/=_-]+$/.test(cursor))) {
+          throw new BookingInputError('Invalid booking page cursor.');
+        }
+        const page = await env.WKND_AERO_CATALOG.list({
+          prefix: `customer-booking:${accountKey}:`, limit: 10, ...(cursor ? { cursor } : {}),
+        });
+        const records = await Promise.all(page.keys.map(({ name }) => env.WKND_AERO_CATALOG.get(name, 'json')));
+        const bookings = records.filter(Boolean).map(({
+          id, status, demo, createdAt, flight, adventure,
+        }) => ({
+          id, status, demo, createdAt, flight, adventure,
+        }));
+        return json({ bookings, nextCursor: page.list_complete ? null : page.cursor }, 200, {
+          ...cors, 'Cache-Control': 'no-store',
+        });
       }
 
       const bookingMatch = url.pathname.match(/^\/api\/bookings\/([^/]+)$/);
       if (bookingMatch && request.method === 'GET') {
-        const raw = await env.WKND_AERO_CATALOG.get(`booking:${bookingMatch[1]}`);
-        if (!raw) return json({ error: 'not found' }, 404, cors);
-        return json(JSON.parse(raw), 200, cors);
+        const { accountKey } = await authenticateBooking(request, env, 'bookings:read');
+        const privateHeaders = { ...cors, 'Cache-Control': 'no-store' };
+        if (!/^BK_[0-9a-f]{16}$/.test(bookingMatch[1])) {
+          return json({ error: 'not found' }, 404, privateHeaders);
+        }
+        const raw = await env.WKND_AERO_CATALOG.get(`customer-booking:${accountKey}:${bookingMatch[1]}`);
+        if (!raw) return json({ error: 'not found' }, 404, privateHeaders);
+        const details = JSON.parse(raw);
+        delete details.passengers;
+        delete details.journey;
+        return json(details, 200, privateHeaders);
       }
 
       const pipelineMatch = url.pathname.match(/^\/znikolovski\/wknd-aero\/main\/adventures\/([^/]+)\/?$/);
@@ -146,13 +198,18 @@ export default {
 
       return json({ error: 'not found', path: url.pathname }, 404, cors);
     } catch (err) {
-      const status = err instanceof BookingInputError ? err.status : 500;
+      const status = err instanceof BookingInputError || err instanceof BookingAuthError
+        ? err.status : 500;
       // eslint-disable-next-line no-console
       console.error('WKND Aero API request failed.', { path: url.pathname, status });
       return json({
-        error: status < 500 ? 'invalid booking' : 'internal error',
-        message: status < 500 ? err.message : 'Unable to process the request.',
-      }, status, cors);
+        error: status >= 500 ? 'service unavailable' : 'booking request failed',
+        message: status < 500 || err instanceof BookingAuthError ? err.message : 'Unable to process the request.',
+      }, status, {
+        ...cors,
+        'Cache-Control': 'no-store',
+        ...(status === 401 ? { 'WWW-Authenticate': 'Bearer realm="wknd-bookings"' } : {}),
+      });
     }
   },
 

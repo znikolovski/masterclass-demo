@@ -1,0 +1,44 @@
+<div>
+  <h1>Accordion FAQ — manual authoring (regression)</h1>
+  <div class="accordion-faq">
+    <div>
+      <div>What is this about?</div>
+      <div>This is the answer to the first question. It can contain multiple sentences and detailed information.</div>
+    </div>
+    <div>
+      <div>How does it work?</div>
+      <div>This is the answer to the second question. Each row has a question in the first cell and an answer in the second.</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <h1>Accordion FAQ — tag (edge function already rewrote it server-side)</h1>
+  <p>Simulates the CDN edge function having already swapped the tag div for finished accordion markup before the page reached the browser. The block should just wire up analytics, not transform anything.</p>
+  <div class="accordion-faq">
+    <div>
+      <details class="accordion-faq-item">
+        <summary class="accordion-faq-item-label">What is a pre-rendered FAQ?</summary>
+        <div class="accordion-faq-item-body">
+          <p>This markup was produced by the edge function, not by the block's JS.</p>
+        </div>
+      </details>
+      <details class="accordion-faq-item">
+        <summary class="accordion-faq-item-label">Does the block change this HTML?</summary>
+        <div class="accordion-faq-item-body">
+          <p>No — the block only attaches the toggle-to-analytics listener.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div>
+  <h1>Accordion FAQ — tag (edge function did not intercept, fallback fetch)</h1>
+  <p>Simulates local dev / no CDN in front, or an edge function failure: only the raw tag div reaches the browser. The block should attempt a client-side fetch as a fallback and fail gracefully (no matching endpoint locally), leaving the block empty with a console error — not a broken layout.</p>
+  <div class="accordion-faq">
+    <div>
+      <div>adventure-faqs</div>
+    </div>
+  </div>
+</div>

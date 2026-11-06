@@ -2,6 +2,9 @@
 coverage/*
 logs/*
 node_modules/*
+workers/wknd-aero-api/node_modules/
+workers/wknd-b2b-api/node_modules/
+.wrangler/
 
 helix-importer-ui
 .DS_Store

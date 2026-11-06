@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-underscore-dangle */
 /**
  * Default configuration for the library.
@@ -720,6 +721,7 @@ export async function martechEager() {
   if (config.personalization && config.performanceOptimized) {
     // eslint-disable-next-line no-console
     console.assert(config.alloyInstanceName && window[config.alloyInstanceName], 'Martech needs to be initialized before the `martechEager` method is called');
+    // eslint-disable-next-line consistent-return
     return promiseWithTimeout(
       applyPropositions(config.alloyInstanceName).then(() => whenPropositionsApplied()),
       config.personalizationTimeout,

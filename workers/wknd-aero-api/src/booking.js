@@ -3,6 +3,7 @@
  */
 // eslint-disable-next-line import/no-relative-packages -- shared browser/Worker contract
 import { normalizeJourney, JOURNEY_ID_PATTERN } from '../../../scripts/journey-context.js';
+import flightTimes from './flight-times.js';
 
 export class BookingInputError extends Error {
   constructor(message, status = 400) {
@@ -18,6 +19,12 @@ export function searchFlights(params) {
   const origin = params.get('origin') || 'MEL';
   const dest = params.get('dest') || 'LAX';
   const depart = params.get('depart') || new Date().toISOString().slice(0, 10);
+  if (!/^[A-Z]{3}$/.test(origin) || !/^[A-Z]{3}$/.test(dest)
+    || !/^\d{4}-\d{2}-\d{2}$/.test(depart)
+    || !Number.isFinite(Date.parse(`${depart}T00:00:00Z`))
+    || new Date(`${depart}T00:00:00Z`).toISOString().slice(0, 10) !== depart) {
+    throw new BookingInputError('Select valid airports and a valid departure date.');
+  }
   const base = 199 + Math.floor(Math.random() * 400);
   const quoteId = crypto.randomUUID();
   const expiresAt = Date.now() + 30 * 60 * 1000;
@@ -31,6 +38,7 @@ export function searchFlights(params) {
         origin,
         destination: dest,
         departTime: `${depart} 08:30`,
+        ...flightTimes(origin, dest, `${depart} 08:30`, 320),
         duration: '5h 20m',
         price: base,
         cabin: 'Economy',
@@ -44,6 +52,7 @@ export function searchFlights(params) {
         origin,
         destination: dest,
         departTime: `${depart} 14:15`,
+        ...flightTimes(origin, dest, `${depart} 14:15`, 345),
         duration: '5h 45m',
         price: base + 80,
         cabin: 'Economy',
@@ -57,6 +66,7 @@ export function searchFlights(params) {
         origin,
         destination: dest,
         departTime: `${depart} 19:00`,
+        ...flightTimes(origin, dest, `${depart} 19:00`, 330),
         duration: '5h 30m',
         price: base + 150,
         cabin: 'Premium',
@@ -93,10 +103,28 @@ export function createBooking(body, flight) {
   const taxes = Math.round(baseFare * 0.295);
   const seatSelection = body.seats.length * 15;
   const lead = body.passengers[0];
+  const {
+    id: flightId, origin, destination, departTime, duration, cabin, aircraft,
+    departureAt, arrivalAt, originTimeZone, destinationTimeZone,
+  } = flight;
   return {
+    schemaVersion: 2,
     id,
     status: 'confirmed',
     flightId: body.flightId,
+    flight: {
+      id: flightId,
+      origin,
+      destination,
+      departTime,
+      duration,
+      cabin,
+      aircraft,
+      departureAt,
+      arrivalAt,
+      originTimeZone,
+      destinationTimeZone,
+    },
     quoteId: body.quoteId,
     passengers: [{ first: lead.first, last: lead.last, email: lead.email }],
     passengerCount: body.passengerCount,
@@ -105,6 +133,7 @@ export function createBooking(body, flight) {
     currency: 'USD',
     journey: normalizeJourney(body.journey),
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     demo: true,
   };
 }
