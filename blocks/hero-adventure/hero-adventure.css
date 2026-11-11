@@ -18,6 +18,12 @@
   padding: 0;
 }
 
+.generated-section .hero-adventure.no-image {
+  background-image: url("https://main--masterclass-demo--znikolovski.aem.live/templates/of1/media_1e4b49be43a70d306b1c312d0d78dd369b5ccce40.jpg?width=1600");
+  background-position: center;
+  background-size: cover;
+}
+
 /* Row 1: background image layer */
 .hero-adventure > div:first-child {
   position: absolute;
