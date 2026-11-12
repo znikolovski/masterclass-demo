@@ -271,6 +271,35 @@
   color: var(--text-color);
 }
 
+/* Generated heroes without an image row use one content row for both selectors. */
+.generated-section .hero-adventure.no-image > div:first-child > div {
+  position: static;
+  inset: auto;
+}
+
+.generated-section .hero-adventure.no-image::after {
+  display: block;
+}
+
+.generated-section .hero-adventure.no-image > div:last-child {
+  color: #fff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+}
+
+.generated-section .hero-adventure.no-image > div:last-child > div:first-child p,
+.generated-section .hero-adventure.no-image h1 {
+  color: #fff;
+}
+
+.generated-section .hero-adventure.no-image > div:last-child > div:nth-child(3) p {
+  color: rgb(255 255 255 / 85%);
+}
+
+.generated-section .hero-adventure.no-image > div:last-child > div:nth-child(5) a {
+  border-color: rgb(255 255 255 / 50%);
+  color: #fff;
+}
+
 /* Centered variant — when hero has no buttons (only tag + h1 + description) */
 .hero-adventure > div:last-child:not(:has(div:nth-child(4) a)) {
   display: flex;
