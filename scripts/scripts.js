@@ -1413,6 +1413,9 @@ async function loadLazy(doc) {
   if (hasQE) import('../tools/quick-edit/quick-edit.js').then((mod) => mod.default());
 })();
 
+// Block Source: lets the Experience Workspace plugin preview branch blocks on the canvas.
+if (window.top !== window) import('https://28538-blocksource.adobeio-static.net/agent.js').catch(() => {});
+
 /**
  * Loads everything that happens a lot later,
  * without impacting the user experience.
