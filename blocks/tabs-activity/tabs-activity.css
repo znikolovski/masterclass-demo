@@ -1,5 +1,6 @@
 /* Block: tabs-activity */
 .tabs-activity {
+  background-color: red;
   color: var(--text-color);
 }
 
