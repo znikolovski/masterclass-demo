@@ -1416,6 +1416,10 @@ async function loadLazy(doc) {
 // Block Source: lets the Experience Workspace plugin preview branch blocks on the canvas.
 if (window.top !== window) import('https://28538-blocksource.adobeio-static.net/agent.js').catch(() => {});
 
+// Content check: lets the Experience Workspace sapling.ai plugin access blocks directly
+// on the canvas in order to make content updates.
+if (window.top !== window) import('https://28538-copycheck.adobeio-static.net/agent.js').catch(() => {});
+
 /**
  * Loads everything that happens a lot later,
  * without impacting the user experience.
