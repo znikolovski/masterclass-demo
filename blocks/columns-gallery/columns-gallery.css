@@ -22,6 +22,7 @@
 }
 
 .columns-gallery > div:first-child > div {
+  min-width: 0;
   overflow: hidden;
   border-radius: 16px;
 }
@@ -29,7 +30,7 @@
 .columns-gallery > div:first-child img {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
   object-fit: cover;
   aspect-ratio: 4 / 3;
 }
@@ -50,6 +51,20 @@
 .columns-gallery > div:nth-child(2) picture {
   display: block;
   line-height: 0;
+}
+
+main .columns-gallery .youtube-video {
+  margin: 0;
+  max-width: none;
+}
+
+main .columns-gallery > div:first-child .youtube-video-embed {
+  aspect-ratio: 4 / 3;
+}
+
+main .columns-gallery > div:nth-child(2) .youtube-video-embed {
+  height: 360px;
+  aspect-ratio: auto;
 }
 
 @media (width >= 900px) {

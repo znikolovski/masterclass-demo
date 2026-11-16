@@ -1,3 +1,5 @@
+import { decorateBlock, loadBlock } from '../../scripts/aem.js';
+
 /**
  * Moves a trailing paragraph with only a picture into the block as a full-width row.
  * @param {Element} block
@@ -16,9 +18,10 @@ function adoptOrphanWideImage(block) {
   next.remove();
 }
 
-export default function decorate(block) {
+export default async function decorate(block) {
   adoptOrphanWideImage(block);
 
+  if (!block.firstElementChild) return;
   const cols = [...block.firstElementChild.children];
   block.classList.add(`columns-gallery-${cols.length}-cols`);
 
@@ -35,4 +38,14 @@ export default function decorate(block) {
       }
     });
   });
+
+  await Promise.all([...block.querySelectorAll('.youtube-video')].map((video) => {
+    const paragraph = video.parentElement;
+    if (paragraph.matches('p')
+      && [...paragraph.childNodes].every((node) => node === video || !node.textContent.trim())) {
+      paragraph.replaceWith(video);
+    }
+    if (!video.dataset.blockStatus) decorateBlock(video);
+    return loadBlock(video);
+  }));
 }

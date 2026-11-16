@@ -107,7 +107,10 @@ function isBlockRootCandidate(el) {
 function collectSectionBlocks(section) {
   const candidates = [...section.querySelectorAll(':scope div[class]')].filter(isBlockRootCandidate);
   return candidates.filter(
-    (el) => !candidates.some((other) => other !== el && el.contains(other)),
+    // Galleries own their nested media blocks; layout shells still use innermost roots.
+    (el) => !el.parentElement.closest('.columns-gallery')
+      && (el.classList.contains('columns-gallery')
+        || !candidates.some((other) => other !== el && el.contains(other))),
   );
 }
 
