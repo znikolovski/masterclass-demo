@@ -1423,6 +1423,9 @@ if (window.top !== window) import('https://28538-blocksource.adobeio-static.net/
 // on the canvas in order to make content updates.
 if (window.top !== window) import('https://28538-copycheck.adobeio-static.net/agent.js').catch(() => {});
 
+// Plane: lets the Experience Workspace Plane panel attach screenshots of the canvas to comments.
+if (window.top !== window) import('https://28538-planeew.adobeio-static.net/agent.js').catch(() => {});
+
 /**
  * Loads everything that happens a lot later,
  * without impacting the user experience.
