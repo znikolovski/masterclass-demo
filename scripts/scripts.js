@@ -15,7 +15,7 @@ import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext, pushErrorPageContext, isAemProductionHost } from './analytics-page.js';
 import { bindJourneyHandoffs, getJourney, pushJourneyEvent } from './journey-analytics.js';
 import { sanitizeJourneyUrl } from './journey-context.js';
-import { getOf1ArticleUrl } from './of1-context.js';
+import { getOf1ArticleUrl, getOf1Context } from './of1-context.js';
 import {
   getTargetZones,
   hoistTargetLocationToSection,
@@ -763,6 +763,27 @@ export function decorateMain(main) {
       ]]));
       const cardSection = [...main.children].find((child) => child.contains(adventureCards));
       main.insertBefore(section, cardSection);
+    }
+    // Gear recommendations from the WKND shop, anchored on the adventures this response covers.
+    const adventureSection = adventureCards || main.querySelector('.adventure-facts');
+    const hasGear = sections.slice(turnStart + 1)
+      .some((section) => section.querySelector('.product-recommendations'));
+    if (adventureSection && !main.querySelector('.product-recommendations') && !hasGear) {
+      const slugs = new Set();
+      main.querySelectorAll('a[href]').forEach((link) => {
+        const match = link.pathname.match(/^\/(?:blog|adventures)\/([a-z0-9-]+)\/?$/);
+        if (match) slugs.add(match[1]);
+      });
+      const query = getOf1Context().query.replace(/\s+/g, ' ').trim().slice(0, 120);
+      const section = document.createElement('div');
+      section.append(buildBlock('product-recommendations', [
+        ['unit-id', 'wknd-of1-gear'],
+        ['heading', 'Gear up for this adventure'],
+        ['adventure', [...slugs].slice(0, 6).join(',')],
+        ['context', query],
+      ]));
+      const after = [...main.children].find((child) => child.contains(adventureSection));
+      main.insertBefore(section, after?.nextElementSibling || null);
     }
   }
   // hopefully forward compatible button decoration

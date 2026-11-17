@@ -7,6 +7,8 @@
  *   sku      (optional) anchor product; defaults to the PDP's `sku` metadata
  *   context  (optional) free text (e.g. an adventure) resolved to an anchor product via
  *            product search — used by OF1 generated pages
+ *   adventure (optional) comma-separated adventure slugs (product `adventure` tags, e.g.
+ *            patagonia-trek) that constrain the anchor product — used by OF1 generated pages
  */
 import { events } from '@dropins/tools/event-bus.js';
 import { Button, Icon, provider as UI } from '@dropins/tools/components.js';
@@ -17,16 +19,35 @@ import {
 } from '../../scripts/commerce.js';
 import { getProductViewHistory } from '../../scripts/shop-analytics.js';
 
-const CONTEXT_SEARCH = `query productSearch($phrase: String!) {
-  productSearch(phrase: $phrase, page_size: 1) { items { productView { sku } } }
+const CONTEXT_SEARCH = `query productSearch($phrase: String!, $filter: [SearchClauseInput!]) {
+  productSearch(phrase: $phrase, page_size: 1, filter: $filter) { items { productView { sku } } }
 }`;
 
-async function skuForContext(context) {
-  if (!context) return undefined;
+async function searchAnchor(phrase, adventures) {
   const { data } = await CS_FETCH_GRAPHQL.fetchGraphQl(CONTEXT_SEARCH, {
-    method: 'GET', variables: { phrase: context.slice(0, 120) },
+    method: 'GET',
+    variables: {
+      phrase: phrase.slice(0, 120),
+      ...(adventures.length ? { filter: [{ attribute: 'adventure', in: adventures }] } : {}),
+    },
   });
   return data?.productSearch?.items?.[0]?.productView?.sku;
+}
+
+/** Anchor product for free-text/adventure context: adventure + phrase, adventure, phrase. */
+async function skuForContext(context = '', adventure = '') {
+  const adventures = adventure.split(',').map((a) => a.trim().toLowerCase()).filter(Boolean);
+  const attempts = [
+    adventures.length && context ? [context, adventures] : null,
+    adventures.length ? ['', adventures] : null,
+    context ? [context, []] : null,
+  ].filter(Boolean);
+  for (let i = 0; i < attempts.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const sku = await searchAnchor(...attempts[i]);
+    if (sku) return sku;
+  }
+  return undefined;
 }
 
 function whenNearViewport(el) {
@@ -51,7 +72,7 @@ async function renderUnit(block, $list, config, unitId) {
   ]);
 
   const currentSku = config.sku || getProductSku()
-    || await skuForContext(config.context).catch(() => undefined);
+    || await skuForContext(config.context, config.adventure).catch(() => undefined);
   const cartSkus = (events.lastPayload('cart/data')?.items || []).map((i) => i.topLevelSku || i.sku);
 
   events.on('recommendations/data', (data) => {
@@ -62,7 +83,6 @@ async function renderUnit(block, $list, config, unitId) {
 
   await provider.render(ProductList, {
     recId: unitId,
-    label: config.heading,
     hideHeading: false,
     currentProduct: currentSku ? { sku: currentSku } : undefined,
     currentSku: currentSku || '',
@@ -70,6 +90,14 @@ async function renderUnit(block, $list, config, unitId) {
     userViewHistory: getProductViewHistory(),
     routeProduct: (item) => getProductLink(item.urlKey),
     slots: {
+      // The drop-in's `label` prop selects units by label, so headings are overridden here.
+      ...(config.heading ? {
+        Heading: (ctx) => {
+          const heading = document.createElement('h2');
+          heading.textContent = config.heading;
+          ctx.replaceWith(heading);
+        },
+      } : {}),
       Thumbnail: (ctx) => {
         const { item, defaultImageProps } = ctx;
         const wrapper = document.createElement('a');
