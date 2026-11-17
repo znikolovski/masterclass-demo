@@ -228,6 +228,20 @@ export default async function decorate(block) {
     searchForm.append(searchInput, searchButton);
     searchItem.append(searchForm);
     navSectionList.prepend(searchItem);
+
+    // Progressive enhancement: the form still submits to OF1 if the modal can't load.
+    const openSiteSearch = async (e) => {
+      e?.preventDefault();
+      const query = searchInput.value;
+      searchInput.blur();
+      const { openSearch } = await import('../search/search.js');
+      openSearch(searchButton, query);
+    };
+    searchInput.addEventListener('focus', openSiteSearch);
+    searchForm.addEventListener('submit', openSiteSearch);
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') openSiteSearch(e);
+    });
   }
 
   if (navSections) {
