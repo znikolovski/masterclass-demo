@@ -1242,6 +1242,12 @@ async function loadSiteFooter(footerEl) {
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
+/** WKND Shop pages (drop-ins are only ever loaded on these or by commerce blocks). */
+function isShopPath() {
+  const { pathname } = window.location;
+  return pathname === '/shop' || pathname.startsWith('/shop/') || pathname.startsWith('/drafts/shop');
+}
+
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   doc.body?.classList.add('appear');
@@ -1273,6 +1279,11 @@ async function loadEager(doc) {
       primeLcpImage(main);
     }
     decorateMain(main);
+    if (isShopPath()) {
+      doc.body.classList.add('shop');
+      // start drop-in setup in parallel with section loading; commerce blocks await it
+      import('./commerce.js').then((m) => m.initializeCommerce()).catch((e) => console.error('Shop init failed', e));
+    }
     if (!isLibraryPreview(doc)) {
       bindJourneyHandoffs(main);
       if (getRepolessSiteSlug(doc) === 'wknd-aero') {

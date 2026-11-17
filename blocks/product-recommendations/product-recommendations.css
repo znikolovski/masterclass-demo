@@ -1,0 +1,39 @@
+main .product-recommendations {
+  min-height: 120px;
+}
+
+main .product-recommendations .recommendations-product-list__heading,
+main .product-recommendations h2 {
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-font-size-m);
+  text-transform: uppercase;
+}
+
+main .product-recommendations .recommendations-carousel__slide,
+main .product-recommendations .product-list__product {
+  min-width: 0;
+}
+
+main .product-recommendations img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: var(--light-color);
+}
+
+main .product-recommendations .product-recommendations__cta {
+  display: flex;
+  margin-top: var(--spacing-xsmall);
+}
+
+main .product-recommendations .product-recommendations__cta .dropin-button {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: var(--spacing-xsmall);
+  border-radius: var(--shape-border-radius-3);
+}
+
+main .section.product-recommendations--empty {
+  display: none;
+}

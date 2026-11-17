@@ -344,6 +344,9 @@ header nav .nav-sections ul > li > ul > li {
 /* tools / CTA */
 header nav .nav-tools {
   grid-area: tools;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 @media (width < 600px) {
@@ -443,4 +446,73 @@ header nav .nav-search-icon {
 header nav .nav-tools a:hover {
   box-shadow: 5px 5px 0 0 var(--accent-color);
   transform: translate(-2px, -2px);
+}
+
+/* WKND Shop: account + cart links */
+header nav .nav-tools .nav-commerce {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+header nav .nav-tools .nav-commerce a:any-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-color);
+  box-shadow: none;
+}
+
+header nav .nav-tools .nav-commerce a:hover {
+  background: var(--light-color);
+  color: var(--text-color);
+}
+
+header nav .nav-tools .nav-commerce svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+header nav .nav-commerce .nav-cart-count {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--accent-color);
+  color: #fff;
+  font-family: var(--body-font-family);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+header nav .nav-commerce .nav-cart-count[hidden] {
+  display: none;
+}
+
+@media (width < 600px) {
+  /* keep cart + account reachable while the mobile menu is collapsed */
+  header nav[aria-expanded='false'] .nav-tools {
+    display: flex;
+  }
+
+  header nav[aria-expanded='false'] .nav-tools > :not(.nav-commerce) {
+    display: none;
+  }
 }

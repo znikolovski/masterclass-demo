@@ -1,0 +1,7 @@
+{
+  ":names": ["pdp", "cart"],
+  ":version": 3,
+  ":type": "multi-sheet",
+  "pdp": { "total": 1, "offset": 0, "limit": 1, "data": [{ "Key": "Global.AddProductToCart", "Value": "Add to cart" }] },
+  "cart": { "total": 1, "offset": 0, "limit": 1, "data": [{ "Key": "Cart.Cart.heading", "Value": "Your gear bag ({count})" }] }
+}

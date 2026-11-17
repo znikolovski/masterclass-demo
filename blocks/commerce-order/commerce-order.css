@@ -1,0 +1,29 @@
+main .commerce-order .order__layout {
+  display: grid;
+  gap: var(--spacing-big);
+  margin-top: var(--spacing-medium);
+}
+
+main .commerce-order .order__layout[hidden] {
+  display: none;
+}
+
+main .commerce-order .order__main {
+  display: grid;
+  gap: var(--spacing-medium);
+}
+
+main .commerce-order .order__continue {
+  margin-top: var(--spacing-medium);
+}
+
+main .commerce-order img {
+  background: var(--light-color);
+  object-fit: cover;
+}
+
+@media (width >= 900px) {
+  main .commerce-order .order__layout {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+}

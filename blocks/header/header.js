@@ -108,6 +108,51 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
 }
 
 /**
+ * WKND Shop account + cart links. Lightweight on purpose: no drop-ins load here — the
+ * count is cached by shop pages (localStorage `wknd:cart-count`) and updated live via the
+ * `wknd:cart-count` event when the cart drop-in is active.
+ * @param {Element} nav
+ */
+function decorateShopTools(nav) {
+  if (nav.querySelector('.nav-brand')?.textContent.toLowerCase().includes('business')) return;
+  let tools = nav.querySelector('.nav-tools');
+  if (!tools) {
+    tools = document.createElement('div');
+    tools.className = 'nav-tools';
+    nav.append(tools);
+  }
+  const shopRoot = window.location.pathname.startsWith('/drafts/shop') ? '/drafts/shop' : '/shop';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nav-commerce';
+  wrapper.innerHTML = `
+    <a class="nav-account" href="${shopRoot}/account" aria-label="Your WKND account and orders">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+    </a>
+    <a class="nav-cart" href="${shopRoot}/cart">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+      <span class="nav-cart-count" hidden></span>
+    </a>`;
+  const cart = wrapper.querySelector('.nav-cart');
+  const badge = wrapper.querySelector('.nav-cart-count');
+  const setCount = (value) => {
+    const count = Math.max(0, Number(value) || 0);
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.hidden = count === 0;
+    cart.setAttribute('aria-label', count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart');
+  };
+  try {
+    setCount(localStorage.getItem('wknd:cart-count'));
+  } catch {
+    setCount(0);
+  }
+  window.addEventListener('wknd:cart-count', (e) => setCount(e.detail));
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'wknd:cart-count') setCount(e.newValue);
+  });
+  tools.prepend(wrapper);
+}
+
+/**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element
  */
@@ -274,4 +319,5 @@ export default async function decorate(block) {
   navWrapper.className = 'nav-wrapper';
   navWrapper.append(nav);
   block.append(navWrapper);
+  decorateShopTools(nav);
 }

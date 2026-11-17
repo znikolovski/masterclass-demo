@@ -1,0 +1,104 @@
+main .commerce-checkout .checkout__content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-big) 0;
+}
+
+main .commerce-checkout .checkout__merged-cart-banner {
+  grid-column: 1 / -1;
+}
+
+main .commerce-checkout .checkout__main {
+  display: grid;
+  row-gap: var(--spacing-xbig);
+}
+
+main .commerce-checkout .checkout__aside {
+  display: grid;
+  gap: var(--spacing-xbig);
+  align-content: start;
+}
+
+main .commerce-checkout .checkout__shipping-form,
+main .commerce-checkout .checkout__payment-methods {
+  padding-top: var(--spacing-xbig);
+  border-top: var(--shape-border-width-3) solid var(--color-neutral-300);
+}
+
+main .commerce-checkout .checkout__billing-form[hidden] {
+  display: none;
+}
+
+main .commerce-checkout .checkout__server-error {
+  display: none;
+}
+
+main .commerce-checkout .checkout__server-error:has(.dropin-illustrated-message) {
+  display: block;
+}
+
+main .commerce-checkout .checkout__block:empty,
+main .commerce-checkout .checkout__out-of-stock:has(> :empty),
+main .commerce-checkout .checkout__merged-cart-banner:has(> :empty),
+main .commerce-checkout .checkout__bill-to-shipping:has(> :empty) {
+  display: none;
+}
+
+main .commerce-checkout .checkout__content--error :is(
+  .checkout__login, .checkout__shipping-form, .checkout__bill-to-shipping, .checkout__delivery,
+  .checkout__payment-methods, .checkout__billing-form, .checkout__place-order, .checkout__aside
+) {
+  display: none;
+}
+
+main .commerce-checkout .checkout__loader {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 60%);
+}
+
+main .commerce-checkout .checkout__loader:empty {
+  display: none;
+}
+
+main .commerce-checkout .checkout__loader-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+main .commerce-checkout .checkout__place-order .dropin-button {
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--shape-border-radius-3);
+}
+
+main .commerce-checkout .checkout__block .cart-cart-summary-list {
+  padding: var(--spacing-medium);
+}
+
+main .commerce-checkout [data-testid="default-cart-heading"] {
+  display: none;
+}
+
+@media (width >= 900px) {
+  main .commerce-checkout .checkout__content {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    column-gap: var(--spacing-xbig);
+  }
+
+  main .commerce-checkout .checkout__aside {
+    position: sticky;
+    top: calc(var(--nav-height) + var(--spacing-medium));
+  }
+}

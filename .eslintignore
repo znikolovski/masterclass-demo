@@ -6,3 +6,4 @@ tools/fragment-picker/fragment-picker.js
 blocks/form/**
 blocks/embed-adaptive-form/**
 skills/of1-style-generative-block/assets/of1.js
+scripts/__dropins__/**

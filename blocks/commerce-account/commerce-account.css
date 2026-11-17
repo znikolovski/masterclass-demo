@@ -1,0 +1,30 @@
+main .commerce-account .account__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-medium);
+}
+
+main .commerce-account .account__signin {
+  max-width: 480px;
+  padding: var(--spacing-big);
+  border-radius: var(--shape-border-radius-2);
+  background: var(--light-color);
+}
+
+main .commerce-account .account__error {
+  color: var(--color-alert-800);
+}
+
+main .commerce-account .account__error:empty {
+  display: none;
+}
+
+main .commerce-account h2 {
+  margin-top: var(--spacing-xbig);
+  font-size: var(--heading-font-size-m);
+}
+
+main .commerce-account img {
+  background: var(--light-color);
+  object-fit: cover;
+}
