@@ -102,7 +102,7 @@ Templates and the model contract are unchanged. Test with
 | Product images | Generate with `tools/aem-assets/product-images/image-prompts.csv`, then `npm run shop:upload-images` |
 | PDP overlay | Done: `content.overlay` (from `config/repoless.site.json`) is set on the live site config. Update only the `content` sub-config (`POST /config/znikolovski/sites/masterclass-demo/content.json`); the full `migrate:repoless --apply` would overwrite the live `public.json` (production mixer config) and `headers.json` with the stale repo copies |
 | PDP preview/publish automation | Set `WKND_HLX_ADMIN_API_KEY` in `../wknd-commerce/.env`, then redeploy |
-| Auth0 | Add the site, `*.aem.page`/`*.aem.live` and `localhost` origins to the Aero SPA client's allowed callback, logout and web origins |
+| Auth0 | On the Aero SPA client (`ULTyS938dUNMhSXTjvLXr3b8ZrGOGhyM`), add each storefront origin explicitly (Auth0 can't wildcard `*--…aem.page`): Callback `<origin>/book/flights` (the shared popup `redirect_uri`), Logout `<origin>/shop/` and `<origin>`, Web Origins and Allowed Origins (CORS) `<origin>` |
 | Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `search`, `cart`, `checkout`, `order`, `account` and the `placeholders` sheet, plus a bulk preview of all 99 `/shop/products/*` PDPs via the overlay. Publish once the shop code is on `main` |
 
 ## Testing
