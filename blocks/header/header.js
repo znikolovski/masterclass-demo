@@ -110,7 +110,8 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
 /**
  * WKND Shop account + cart links. Lightweight on purpose: no drop-ins load here — the
  * count is cached by shop pages (localStorage `wknd:cart-count`) and updated live via the
- * `wknd:cart-count` event when the cart drop-in is active.
+ * `wknd:cart-count` event when the cart drop-in is active. The cart icon opens the mini cart
+ * drawer (mini-cart.js, loaded on first click).
  * @param {Element} nav
  */
 function decorateShopTools(nav) {
@@ -146,6 +147,22 @@ function decorateShopTools(nav) {
     setCount(0);
   }
   window.addEventListener('wknd:cart-count', (e) => setCount(e.detail));
+  // Plain clicks open the mini cart; modifier clicks and the cart/checkout pages keep the link.
+  const fullCartPage = [`${shopRoot}/cart`, `${shopRoot}/checkout`]
+    .includes(window.location.pathname.replace(/\/$/, ''));
+  if (!fullCartPage) {
+    cart.setAttribute('aria-haspopup', 'dialog');
+    cart.addEventListener('click', async (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      try {
+        const { default: openMiniCart } = await import('./mini-cart.js');
+        await openMiniCart(cart);
+      } catch {
+        window.location.href = cart.href;
+      }
+    });
+  }
   window.addEventListener('storage', (e) => {
     if (e.key === 'wknd:cart-count') setCount(e.newValue);
   });

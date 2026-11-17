@@ -40,7 +40,7 @@ Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, invento
 - **Drop-ins.** They are pinned in `package.json` and vendored to `scripts/__dropins__` by `npm run install:dropins`. An import map in `head.html` exposes them.
 - **Labels.** Labels default to AU wording (GST, postcode) in `scripts/commerce-utils.js`. Authors can override any drop-in string in the multi-sheet `/shop/placeholders` spreadsheet, using one sheet per drop-in (`pdp`, `cart`, `checkout`, …) with `Key` dot paths such as `Cart.Cart.heading`.
 - **Images.** Product images come from DM OpenAPI renditions (`{asset}/as/{alias}.webp?width=…`). The `pdp-markup` HTML links to images rather than embedding them, so EDS never copies them to the media bus.
-- **Header.** The header shows a cart badge and an account link. The **Ask WKND** pill opens the search modal (also on ⌘/Ctrl+K).
+- **Header.** The header shows a cart badge and an account link. The cart icon opens a mini-cart drawer (`blocks/header/mini-cart.js`, drop-in `MiniCart`). Modifier-clicks and the cart/checkout pages keep the plain link. The **Ask WKND** pill opens the search modal (also on ⌘/Ctrl+K).
 
 ## Search modal (`blocks/search`)
 

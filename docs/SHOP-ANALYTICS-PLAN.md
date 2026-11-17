@@ -19,7 +19,7 @@ search-modal events.
 | `shopCartAdd` | `cart/product/added` | `commerce.productListAdds` | items added (`SKU`, qty, `priceTotal`, variant SKU) |
 | `shopCartRemove` | `cart/product/removed` | `commerce.productListRemovals` | items removed |
 | `shopCartUpdate` | `cart/product/updated` | `commerce.productListUpdates` | items changed |
-| `shopCartView` | First non-empty `cart/data` on `/shop/cart` | `commerce.productListViews` | cart items, `itemCount` |
+| `shopCartView` | First non-empty `cart/data` on `/shop/cart`, or each header mini-cart open | `commerce.productListViews` | cart items, `itemCount`; `surface: 'mini-cart'` for the drawer |
 | `shopCheckoutStart` | `checkout/initialized` | `commerce.checkouts` | cart items, `cartTotal` |
 | `shopCheckoutStep` | First time each step completes | `commerce.checkouts` | `data.wkndShop.checkout.step` (1 email, 2 shipping address + country, 3 shipping method, 4 payment) |
 | `shopPurchase` | `order/placed`, pushed on the **confirmation page** | `commerce.purchases` | `commerce.order` (`purchaseID`, `priceTotal`, AUD, payment `wknd_demo_pay`), items, `data.wkndShop.demo=true`, `guest` |
