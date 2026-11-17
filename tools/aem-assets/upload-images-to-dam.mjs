@@ -18,6 +18,7 @@ import {
   readFileSync, writeFileSync, existsSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { uploadBinary } from './dam-upload.mjs';
 import { fileURLToPath } from 'node:url';
 import {
   applyAssetMetadata, getAuthorUrl, requireAuth,
@@ -34,77 +35,6 @@ function parseArgs(argv) {
     stagedOnly: argv.includes('--staged-only'),
     skipMetadata: argv.includes('--skip-metadata'),
   };
-}
-
-/**
- * @param {string} authorUrl
- * @param {string} damFolder
- * @param {string} fileName
- * @param {Buffer} buffer
- * @param {string} mimeType
- * @param {Record<string, string>} headers
- */
-async function uploadBinary(authorUrl, damFolder, fileName, buffer, mimeType, headers) {
-  const initiateUrl = `${authorUrl}${damFolder}.initiateUpload.json`;
-  const initRes = await fetch(initiateUrl, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `fileName=${encodeURIComponent(fileName)}&fileSize=${buffer.length}`,
-  });
-
-  const initText = await initRes.text();
-  if (!initRes.ok) {
-    throw new Error(`initiateUpload ${initRes.status}: ${initText.slice(0, 300)}`);
-  }
-
-  const initData = JSON.parse(initText);
-  const fileInfo = initData.files?.[0];
-  if (!fileInfo?.uploadURIs?.[0]) {
-    throw new Error(`No upload URI in initiate response: ${initText.slice(0, 200)}`);
-  }
-
-  const putRes = await fetch(fileInfo.uploadURIs[0], {
-    method: 'PUT',
-    body: buffer,
-  });
-  if (!putRes.ok && putRes.status !== 201) {
-    const putText = await putRes.text();
-    throw new Error(`binary PUT ${putRes.status}: ${putText.slice(0, 200)}`);
-  }
-
-  const completePath = initData.completeURI?.startsWith('http')
-    ? initData.completeURI
-    : `${authorUrl}${initData.completeURI}`;
-  const completeBody = [
-    `fileName=${encodeURIComponent(fileInfo.fileName)}`,
-    `mimeType=${encodeURIComponent(fileInfo.mimeType || mimeType)}`,
-    `uploadToken=${encodeURIComponent(fileInfo.uploadToken)}`,
-  ].join('&');
-
-  const affinity = initRes.headers.get('affinity-cookie')
-    || initRes.headers.get('Affinity-Cookie');
-
-  const completeHeaders = {
-    ...headers,
-    'Content-Type': 'application/x-www-form-urlencoded',
-  };
-  if (affinity) completeHeaders['Affinity-cookie'] = affinity;
-
-  const completeRes = await fetch(completePath, {
-    method: 'POST',
-    headers: completeHeaders,
-    body: completeBody,
-  });
-
-  const completeText = await completeRes.text();
-  if (!completeRes.ok) {
-    throw new Error(`completeUpload ${completeRes.status}: ${completeText.slice(0, 300)}`);
-  }
-
-  return `${damFolder}/${fileName}`;
 }
 
 async function main() {

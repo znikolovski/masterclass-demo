@@ -49,7 +49,9 @@
     "analytics:segments:export": "node tools/scripts/publish-wknd-segments.mjs --dry-run --export",
     "analytics:segments:publish": "node tools/scripts/publish-wknd-segments.mjs --apply",
     "analytics:briefing": "node tools/analytics/scripts/generate-performance-briefing.mjs",
-    "deck:analytics-target": "node tools/scripts/export-analytics-target-deck.mjs"
+    "deck:analytics-target": "node tools/scripts/export-analytics-target-deck.mjs",
+    "shop:image-prompts": "node tools/aem-assets/product-image-prompts.mjs",
+    "shop:upload-images": "node tools/aem-assets/upload-product-images.mjs"
   },
   "repository": {
     "type": "git",
