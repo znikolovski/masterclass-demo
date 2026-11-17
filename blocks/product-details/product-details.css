@@ -1,4 +1,22 @@
 /* Product details — WKND shop PDP (site design system: Syncopate headings, pill controls, 10px panels) */
+
+/* Layout tokens (also in styles/commerce.css) so the server-painted content lays out before
+   commerce.css arrives — keep values in sync */
+main .product-details {
+  --grid-1-columns: 4;
+  --grid-1-gutters: 16px;
+  --grid-3-columns: 12;
+  --spacing-small: 16px;
+  --spacing-medium: 24px;
+  --spacing-xbig: 40px;
+  --shop-surface: var(--background-color, #fff);
+  --shop-ink: var(--text-color, #0f1a14);
+  --shop-line: #dadada;
+  --shop-muted: #5f5b55;
+  --shop-accent: var(--accent-color, #e8651a);
+  --color-neutral-800: #34332f;
+}
+
 main .product-details .product-details__wrapper {
   display: grid;
   grid-template-columns: repeat(var(--grid-1-columns), 1fr);

@@ -5,16 +5,11 @@
  * keeps the page crawlable and is replaced on decoration.
  * Images come exclusively from Dynamic Media OpenAPI (tryRenderAemAssetsImage).
  */
+// Only light modules are imported statically: the server content (LCP) is painted before the
+// drop-in libraries load (see renderDropins).
 import {
-  InLineAlert, Icon, Button, provider as UI,
-} from '@dropins/tools/components.js';
-import { h } from '@dropins/tools/preact.js';
-import { events } from '@dropins/tools/event-bus.js';
-import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
-import {
-  configureCommerce, initializeCommerce, SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES, shopPromises,
-} from '../../scripts/commerce.js';
-import { loadCSS } from '../../scripts/aem.js';
+  SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES, shopPromises,
+} from '../../scripts/commerce-utils.js';
 
 // Attributes shown as headline specs (first match wins) and those kept out of the spec grid
 const KEY_SPECS = ['waterproof_rating', 'weight_g', 'capacity_l', 'material', 'warranty'];
@@ -162,7 +157,15 @@ function readServerContent(block) {
   const priceRow = h1?.nextElementSibling;
   const summary = priceRow?.nextElementSibling;
   const image = cell?.querySelector('ul li a[href]');
+  // option lines follow the image list, e.g. <p><strong>Colour:</strong> Red, Blue</p>
+  let optionRows = 0;
+  for (let node = image?.closest('ul')?.nextElementSibling; node; node = node.nextElementSibling) {
+    const strong = node.tagName === 'P' && node.firstElementChild?.tagName === 'STRONG' && !node.querySelector('br');
+    if (!strong || !/:$/.test(node.firstElementChild.textContent.trim())) break;
+    optionRows += 1;
+  }
   return {
+    optionRows,
     title: h1?.textContent.trim() || '',
     price: priceRow?.querySelector('strong')?.textContent.trim() || '',
     summary: summary?.tagName === 'P' ? summary.textContent.trim() : '',
@@ -228,6 +231,9 @@ function paintServerContent(root, ssr) {
     summary.textContent = ssr.summary;
     before('.product-details__short-description', summary);
   }
+  // reserve the measured height of the options + purchase row (76px + 70px + 79px per row)
+  const config = root.querySelector('.product-details__configuration');
+  config.style.minHeight = `${76 + (ssr.optionRows ? 70 + 79 * (ssr.optionRows - 1) : 0)}px`;
   if (!ssr.image) return;
   // only the gallery visible at this breakpoint gets a placeholder (no hidden duplicate download)
   const desktop = window.matchMedia('(min-width: 900px)').matches;
@@ -248,14 +254,21 @@ function paintServerContent(root, ssr) {
 
 export default async function decorate(block) {
   const ssr = readServerContent(block);
-  // layout spacing tokens live in commerce.css: have them before the section is revealed
-  const tokens = loadCSS(`${window.hlx?.codeBasePath || ''}/styles/commerce.css`).catch(() => {});
   // the PDP initializer (product query) runs in parallel with the auth/cart initializers
-  configureCommerce();
-  const pdpReady = import('../../scripts/initializers/pdp.js');
-  const commerceReady = initializeCommerce();
+  const commerce = import('../../scripts/commerce.js').then((m) => {
+    m.configureCommerce();
+    return m;
+  });
+  const pdpReady = commerce.then(() => import('../../scripts/initializers/pdp.js'));
+  const commerceReady = commerce.then((m) => m.initializeCommerce());
+  const tools = Promise.all([
+    import('@dropins/tools/components.js'),
+    import('@dropins/tools/preact.js'),
+    import('@dropins/tools/event-bus.js'),
+    import('@dropins/tools/lib/aem/assets.js'),
+  ]);
 
-  let product = events.lastPayload('pdp/data')?.sku ? events.lastPayload('pdp/data') : null;
+  let product = null;
   let isOutOfStock = false;
 
   const fragment = document.createRange().createContextualFragment(`
@@ -313,6 +326,7 @@ export default async function decorate(block) {
   const $stock = $('.product-details__stock');
   const $info = $('.product-details__info');
   $('.product-details__promises').append(shopPromises(['shipping', 'warranty', 'tested'], 'shop-promises product-details__promise-cards'));
+  let tryRenderAemAssetsImage;
   const slots = {
     CarouselThumbnail: (ctx) => {
       if (ctx.mediaType === 'image') tryRenderAemAssetsImage(ctx, { ...imageSlotConfig(ctx), wrapper: document.createElement('span') });
@@ -331,11 +345,17 @@ export default async function decorate(block) {
   ];
   buildTabs($info, infoPanels);
   paintServerContent(block, ssr);
-  await tokens;
 
   // EDS reveals the section only once decorate() resolves, so the drop-ins render in the
   // background and replace the server content when ready.
   const renderDropins = async () => {
+    const [
+      [{
+        InLineAlert, Icon, Button, provider: UI,
+      }, { h }, { events }, assets],
+    ] = await Promise.all([tools]);
+    ({ tryRenderAemAssetsImage } = assets);
+    product = events.lastPayload('pdp/data')?.sku ? events.lastPayload('pdp/data') : null;
     const [pdpApi, { render: pdpRendered }] = await Promise.all([
       import('@dropins/storefront-pdp/api.js'),
       import('@dropins/storefront-pdp/render.js'),
@@ -376,6 +396,7 @@ export default async function decorate(block) {
       pdpRendered.render(ProductDescription, {})($description),
     ]);
     block.querySelectorAll('.product-details__ssr').forEach((node) => node.remove());
+    block.querySelector('.product-details__configuration').style.minHeight = '';
 
     let inlineAlert;
     const showAlert = async (heading, description, type = 'error') => {
