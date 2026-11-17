@@ -270,6 +270,21 @@ body.shop main h1 {
 }
 
 /* WKND Shop: the first section is content, not a full-bleed hero */
+/* The first section paints before its blocks are decorated: reserve the cart's empty-state
+   height and hide its raw config rows, and keep the empty footer out of the layout until it
+   loads, so growing shop content never pushes a visible footer (layout shift). */
+body.shop main .commerce-cart {
+  min-height: 318px;
+}
+
+body.shop main .commerce-cart:not([data-block-status="loaded"]) > div {
+  visibility: hidden;
+}
+
+body.shop footer:empty {
+  display: none;
+}
+
 body.shop main > .section.lcp-section {
   padding-block: 24px 48px;
 }

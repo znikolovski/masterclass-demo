@@ -9,6 +9,16 @@ main .commerce-cart .cart__wrapper {
   gap: var(--grid-4-gutters);
 }
 
+/* reserved before the drop-ins render (decorate reads the cached cart count): one line item,
+   or the empty state, so the page doesn't reflow when the cart arrives */
+main .commerce-cart .cart__list {
+  min-height: 258px;
+}
+
+main .commerce-cart.commerce-cart--empty .cart__list {
+  min-height: 318px;
+}
+
 main .commerce-cart .cart__right-column {
   display: grid;
   gap: var(--spacing-small);
@@ -120,6 +130,14 @@ main .commerce-cart .cart__note {
 }
 
 @media (width >= 900px) {
+  main .commerce-cart .cart__list {
+    min-height: 298px;
+  }
+
+  main .commerce-cart.commerce-cart--empty .cart__list {
+    min-height: 318px;
+  }
+
   main .commerce-cart .cart__wrapper {
     flex-direction: row;
     align-items: flex-start;

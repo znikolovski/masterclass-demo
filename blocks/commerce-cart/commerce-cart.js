@@ -5,13 +5,21 @@
  * Prices are AUD incl. GST; coupons such as WKND10 are validated by the commerce backend.
  */
 import { readBlockConfig } from '../../scripts/aem.js';
-import {
-  initializeCommerce, getProductLink, SHOP_PATHS, shopPromises,
-} from '../../scripts/commerce.js';
-import { pushShopEvent } from '../../scripts/shop-analytics.js';
+import { SHOP_PATHS } from '../../scripts/commerce-config.js';
+import { shopPromises } from '../../scripts/shop-promises.js';
 
-export default async function decorate(block) {
-  const { 'max-items': maxItems } = readBlockConfig(block);
+/**
+ * Renders the cart drop-ins into the painted layout (runs after decorate() has resolved).
+ * @param {Element} block
+ * @param {{ maxItems?: string, $list: Element, $summary: Element, $rightColumn: Element }} ctx
+ */
+async function renderCart(block, {
+  maxItems, $list, $summary, $rightColumn,
+}) {
+  const [{ initializeCommerce, getProductLink }, { pushShopEvent }] = await Promise.all([
+    import('../../scripts/commerce.js'),
+    import('../../scripts/shop-analytics.js'),
+  ]);
   await initializeCommerce();
   await import('../../scripts/initializers/cart.js');
   const [
@@ -27,21 +35,23 @@ export default async function decorate(block) {
     import('@dropins/tools/event-bus.js'),
   ]);
 
-  const fragment = document.createRange().createContextualFragment(`
-    <div class="cart__wrapper">
-      <div class="cart__left-column"><div class="cart__list"></div></div>
-      <div class="cart__right-column">
-        <div class="cart__order-summary shop-accent"></div>
-        <p class="cart__note">Prices include GST.</p>
-      </div>
-    </div>`);
-  fragment.querySelector('.cart__right-column').append(shopPromises(['shipping', 'warranty', 'demo']));
-  const $list = fragment.querySelector('.cart__list');
-  const $summary = fragment.querySelector('.cart__order-summary');
-  const $rightColumn = fragment.querySelector('.cart__right-column');
-  block.replaceChildren(fragment);
-
   const productLink = (item) => getProductLink(item.url?.urlKey);
+
+  let viewed = false;
+  events.on('cart/data', (cart) => {
+    const empty = !cart || cart.totalQuantity < 1;
+    $rightColumn.hidden = empty;
+    block.classList.toggle('commerce-cart--empty', empty);
+    if (!viewed && cart) {
+      viewed = true;
+      pushShopEvent('shopCartView', {
+        eventType: 'commerce.productListViews',
+        commerce: { productListViews: { value: 1 } },
+        items: cart.items || [],
+        data: { itemCount: cart.totalQuantity || 0 },
+      });
+    }
+  }, { eager: true });
 
   await Promise.all([
     provider.render(CartSummaryList, {
@@ -80,20 +90,32 @@ export default async function decorate(block) {
       },
     })($summary),
   ]);
+}
 
-  let viewed = false;
-  events.on('cart/data', (cart) => {
-    const empty = !cart || cart.totalQuantity < 1;
-    $rightColumn.hidden = empty;
-    block.classList.toggle('commerce-cart--empty', empty);
-    if (!viewed && cart) {
-      viewed = true;
-      pushShopEvent('shopCartView', {
-        eventType: 'commerce.productListViews',
-        commerce: { productListViews: { value: 1 } },
-        items: cart.items || [],
-        data: { itemCount: cart.totalQuantity || 0 },
-      });
-    }
-  }, { eager: true });
+export default function decorate(block) {
+  const { 'max-items': maxItems } = readBlockConfig(block);
+  const fragment = document.createRange().createContextualFragment(`
+    <div class="cart__wrapper">
+      <div class="cart__left-column"><div class="cart__list"></div></div>
+      <div class="cart__right-column">
+        <div class="cart__order-summary shop-accent"></div>
+        <p class="cart__note">Prices include GST.</p>
+      </div>
+    </div>`);
+  fragment.querySelector('.cart__right-column').append(shopPromises(['shipping', 'warranty', 'demo']));
+  const $list = fragment.querySelector('.cart__list');
+  const $summary = fragment.querySelector('.cart__order-summary');
+  const $rightColumn = fragment.querySelector('.cart__right-column');
+  // Shop pages cache the item count, so the layout (empty state vs list + summary) is reserved
+  // before the drop-ins load; the cart/data handler corrects it if the cache is stale.
+  const empty = !(Number(localStorage.getItem('wknd:cart-count')) > 0);
+  block.classList.toggle('commerce-cart--empty', empty);
+  $rightColumn.hidden = empty;
+  block.replaceChildren(fragment);
+
+  // Don't await: the section is revealed when decorate() resolves, so the reserved layout
+  // paints straight away instead of the page reflowing once the drop-ins have rendered.
+  renderCart(block, {
+    maxItems, $list, $summary, $rightColumn,
+  }).catch((e) => console.error('commerce-cart', e));
 }
