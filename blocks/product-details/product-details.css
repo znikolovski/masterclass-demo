@@ -49,6 +49,16 @@ main .product-details .product-details__media--mobile {
   margin-bottom: var(--spacing-medium);
 }
 
+/* server-painted LCP image shown until the drop-in gallery renders */
+main .product-details .product-details__ssr-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #f4f1ea;
+}
+
 main .product-details .product-details__gallery .pdp-carousel {
   width: 100%;
   max-height: none;
@@ -151,6 +161,7 @@ main .product-details .product-details__header {
 }
 
 main .product-details .product-details__header h1,
+main .product-details h1.product-details__ssr,
 main .product-details .pdp-header__title {
   margin: 0 0 4px;
   color: var(--shop-ink);
@@ -174,8 +185,11 @@ main .product-details .product-details__price-panel {
   background: var(--light-color);
 }
 
-main .product-details .product-details__price .dropin-price {
+main .product-details .product-details__price .dropin-price,
+main .product-details .product-details__ssr-price {
+  margin: 0;
   font-size: 28px;
+  font-weight: 700;
   line-height: 1.2;
 }
 

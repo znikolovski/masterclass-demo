@@ -12,8 +12,10 @@ import { h } from '@dropins/tools/preact.js';
 import { events } from '@dropins/tools/event-bus.js';
 import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import {
-  initializeCommerce, SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES, shopPromises,
+  configureCommerce, initializeCommerce, SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES, shopPromises,
 } from '../../scripts/commerce.js';
+import { createDmPicture } from '../../scripts/dm-image.js';
+import { loadCSS } from '../../scripts/aem.js';
 
 // Attributes shown as headline specs (first match wins) and those kept out of the spec grid
 const KEY_SPECS = ['waterproof_rating', 'weight_g', 'capacity_l', 'material', 'warranty'];
@@ -154,26 +156,75 @@ function renderBadges(containers, data) {
   });
 }
 
+/** Title, price, summary and first image from the server-rendered (pdp-markup) block content. */
+function readServerContent(block) {
+  const cell = block.querySelector(':scope > div > div');
+  const h1 = cell?.querySelector('h1');
+  const priceRow = h1?.nextElementSibling;
+  const summary = priceRow?.nextElementSibling;
+  const image = cell?.querySelector('ul li a[href]');
+  return {
+    title: h1?.textContent.trim() || '',
+    price: priceRow?.querySelector('strong')?.textContent.trim() || '',
+    summary: summary?.tagName === 'P' ? summary.textContent.trim() : '',
+    image: image ? { url: image.href, alt: image.textContent.trim() } : null,
+  };
+}
+
+/**
+ * Paints the server content straight away (the LCP image and headline must not wait for the
+ * drop-ins and their GraphQL round trips); removed once the drop-in containers have rendered.
+ */
+function paintServerContent(root, ssr) {
+  const before = (selector, node) => {
+    node.classList.add('product-details__ssr');
+    root.querySelector(selector).before(node);
+  };
+  if (ssr.title) {
+    const h1 = document.createElement('h1');
+    h1.textContent = ssr.title;
+    before('.product-details__header', h1);
+  }
+  if (ssr.price) {
+    const price = document.createElement('p');
+    price.className = 'product-details__ssr-price';
+    price.textContent = ssr.price;
+    before('.product-details__price', price);
+  }
+  if (ssr.summary) {
+    const summary = document.createElement('p');
+    summary.textContent = ssr.summary;
+    before('.product-details__short-description', summary);
+  }
+  if (!ssr.image) return;
+  const desktop = window.matchMedia('(min-width: 900px)').matches;
+  [
+    ['.product-details__left-column .product-details__gallery', desktop],
+    ['.product-details__gallery--mobile', !desktop],
+  ].forEach(([selector, visible]) => {
+    const picture = createDmPicture(ssr.image.url, ssr.image.alt, {
+      widths: [480, 720, 960, 1200],
+      sizes: '(min-width: 900px) 46vw, 100vw',
+      eager: visible,
+      width: IMAGES_SIZES.width,
+      height: IMAGES_SIZES.height,
+    });
+    // wrapper keeps the marker class when optimizePictures() swaps the <picture>
+    const holder = document.createElement('div');
+    holder.className = 'product-details__ssr-image';
+    holder.append(picture);
+    before(selector, holder);
+  });
+}
+
 export default async function decorate(block) {
-  await initializeCommerce();
-  const [pdpApi, { render: pdpRendered }] = await Promise.all([
-    import('@dropins/storefront-pdp/api.js'),
-    import('@dropins/storefront-pdp/render.js'),
-    import('../../scripts/initializers/pdp.js'),
-  ]);
-  const [
-    { default: ProductHeader }, { default: ProductPrice }, { default: ProductShortDescription },
-    { default: ProductOptions }, { default: ProductQuantity }, { default: ProductDescription },
-    { default: ProductGallery },
-  ] = await Promise.all([
-    import('@dropins/storefront-pdp/containers/ProductHeader.js'),
-    import('@dropins/storefront-pdp/containers/ProductPrice.js'),
-    import('@dropins/storefront-pdp/containers/ProductShortDescription.js'),
-    import('@dropins/storefront-pdp/containers/ProductOptions.js'),
-    import('@dropins/storefront-pdp/containers/ProductQuantity.js'),
-    import('@dropins/storefront-pdp/containers/ProductDescription.js'),
-    import('@dropins/storefront-pdp/containers/ProductGallery.js'),
-  ]);
+  const ssr = readServerContent(block);
+  // layout spacing tokens live in commerce.css: have them before the section is revealed
+  const tokens = loadCSS(`${window.hlx?.codeBasePath || ''}/styles/commerce.css`).catch(() => {});
+  // the PDP initializer (product query) runs in parallel with the auth/cart initializers
+  configureCommerce();
+  const pdpReady = import('../../scripts/initializers/pdp.js');
+  const commerceReady = initializeCommerce();
 
   let product = events.lastPayload('pdp/data')?.sku ? events.lastPayload('pdp/data') : null;
   let isOutOfStock = false;
@@ -241,11 +292,6 @@ export default async function decorate(block) {
       if (ctx.mediaType === 'image') tryRenderAemAssetsImage(ctx, imageSlotConfig(ctx));
     },
   };
-  const gallery = (controls, peak) => pdpRendered.render(ProductGallery, {
-    // no arrows: their side padding would letterbox the 4:5 imagery (thumbnails/dots navigate)
-    controls, arrows: false, peak, gap: 'small', loop: false, imageParams: { ...IMAGES_SIZES }, slots,
-  });
-
   const $description = $('.product-details__description');
   block.replaceChildren(fragment);
 
@@ -255,76 +301,108 @@ export default async function decorate(block) {
     { id: 'made-for', label: 'Made for', panel: $madeFor },
   ];
   buildTabs($info, infoPanels);
+  paintServerContent(block, ssr);
+  await tokens;
 
-  await Promise.all([
-    gallery('dots', false)($galleryMobile),
-    gallery('thumbnailsColumn', false)($galleryDesktop),
-    pdpRendered.render(ProductHeader, {})(block.querySelector('.product-details__header')),
-    pdpRendered.render(ProductPrice, {})(block.querySelector('.product-details__price')),
-    pdpRendered.render(ProductShortDescription, {})(block.querySelector('.product-details__short-description')),
-    pdpRendered.render(ProductOptions, {
-      hideSelectedValue: false,
-      slots: {
-        SwatchImage: (ctx) => tryRenderAemAssetsImage(ctx, { ...imageSlotConfig(ctx), wrapper: document.createElement('span') }),
+  // EDS reveals the section only once decorate() resolves, so the drop-ins render in the
+  // background and replace the server content when ready.
+  const renderDropins = async () => {
+    const [pdpApi, { render: pdpRendered }] = await Promise.all([
+      import('@dropins/storefront-pdp/api.js'),
+      import('@dropins/storefront-pdp/render.js'),
+      pdpReady,
+      commerceReady,
+    ]);
+    const [
+      { default: ProductHeader }, { default: ProductPrice }, { default: ProductShortDescription },
+      { default: ProductOptions }, { default: ProductQuantity }, { default: ProductDescription },
+      { default: ProductGallery },
+    ] = await Promise.all([
+      import('@dropins/storefront-pdp/containers/ProductHeader.js'),
+      import('@dropins/storefront-pdp/containers/ProductPrice.js'),
+      import('@dropins/storefront-pdp/containers/ProductShortDescription.js'),
+      import('@dropins/storefront-pdp/containers/ProductOptions.js'),
+      import('@dropins/storefront-pdp/containers/ProductQuantity.js'),
+      import('@dropins/storefront-pdp/containers/ProductDescription.js'),
+      import('@dropins/storefront-pdp/containers/ProductGallery.js'),
+    ]);
+    const gallery = (controls, peak) => pdpRendered.render(ProductGallery, {
+      // no arrows: their side padding would letterbox the 4:5 imagery (thumbnails/dots navigate)
+      controls, arrows: false, peak, gap: 'small', loop: false, imageParams: { ...IMAGES_SIZES }, slots,
+    });
+
+    await Promise.all([
+      gallery('dots', false)($galleryMobile),
+      gallery('thumbnailsColumn', false)($galleryDesktop),
+      pdpRendered.render(ProductHeader, {})(block.querySelector('.product-details__header')),
+      pdpRendered.render(ProductPrice, {})(block.querySelector('.product-details__price')),
+      pdpRendered.render(ProductShortDescription, {})(block.querySelector('.product-details__short-description')),
+      pdpRendered.render(ProductOptions, {
+        hideSelectedValue: false,
+        slots: {
+          SwatchImage: (ctx) => tryRenderAemAssetsImage(ctx, { ...imageSlotConfig(ctx), wrapper: document.createElement('span') }),
+        },
+      })(block.querySelector('.product-details__options')),
+      pdpRendered.render(ProductQuantity, {})(block.querySelector('.product-details__quantity')),
+      pdpRendered.render(ProductDescription, {})($description),
+    ]);
+    block.querySelectorAll('.product-details__ssr').forEach((node) => node.remove());
+
+    let inlineAlert;
+    const showAlert = async (heading, description, type = 'error') => {
+      inlineAlert?.remove();
+      inlineAlert = await UI.render(InLineAlert, {
+        heading,
+        description,
+        type,
+        icon: h(Icon, { source: type === 'success' ? 'CheckWithCircle' : 'Warning' }),
+        'aria-live': 'assertive',
+        role: 'alert',
+        onDismiss: () => inlineAlert.remove(),
+        ...(type === 'success' ? { actionButtonPosition: 'top', additionalActions: [{ label: 'View cart', onClick: () => { window.location.href = SHOP_PATHS.cart; } }] } : {}),
+      })($alert);
+      $alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    const addToCart = await UI.render(Button, {
+      children: 'Add to cart',
+      icon: h(Icon, { source: 'Cart' }),
+      'aria-label': `Add ${product?.name || ''} to cart`,
+      onClick: async () => {
+        addToCart.setProps((prev) => ({ ...prev, children: 'Adding…', disabled: true }));
+        $status.textContent = 'Adding to cart';
+        try {
+          const values = pdpApi.getProductConfigurationValues();
+          if (!pdpApi.isProductConfigurationValid()) throw new Error('Choose a colour and size first.');
+          const { addProductsToCart } = await import('@dropins/storefront-cart/api.js');
+          await addProductsToCart([{ ...values }]);
+          await showAlert('Added to your cart', `${product?.name || 'Item'} is in your cart.`, 'success');
+        } catch (error) {
+          await showAlert('Could not add to cart', error.message);
+        } finally {
+          addToCart.setProps((prev) => ({ ...prev, children: 'Add to cart', disabled: isOutOfStock }));
+          $status.textContent = '';
+        }
       },
-    })(block.querySelector('.product-details__options')),
-    pdpRendered.render(ProductQuantity, {})(block.querySelector('.product-details__quantity')),
-    pdpRendered.render(ProductDescription, {})($description),
-  ]);
+    })($buttons);
 
-  let inlineAlert;
-  const showAlert = async (heading, description, type = 'error') => {
-    inlineAlert?.remove();
-    inlineAlert = await UI.render(InLineAlert, {
-      heading,
-      description,
-      type,
-      icon: h(Icon, { source: type === 'success' ? 'CheckWithCircle' : 'Warning' }),
-      'aria-live': 'assertive',
-      role: 'alert',
-      onDismiss: () => inlineAlert.remove(),
-      ...(type === 'success' ? { actionButtonPosition: 'top', additionalActions: [{ label: 'View cart', onClick: () => { window.location.href = SHOP_PATHS.cart; } }] } : {}),
-    })($alert);
-    $alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    events.on('pdp/data', (data) => {
+      product = data?.sku ? data : product;
+      isOutOfStock = data?.inStock === false;
+      const attributes = data?.attributes || [];
+      $activity.textContent = attributes.find((a) => a.id === 'activity')?.value || 'WKND gear';
+      $stock.textContent = isOutOfStock ? 'Sold out' : 'In stock';
+      $stock.classList.toggle('is-out', isOutOfStock);
+      renderSpecs($specs, attributes);
+      renderKeySpecs($keySpecs, attributes);
+      const hasMadeFor = renderMadeFor($madeFor, attributes);
+      $info.querySelector('#pdp-tab-made-for').hidden = !hasMadeFor;
+      renderBadges($badges, data);
+      addToCart.setProps((prev) => ({ ...prev, disabled: isOutOfStock, children: isOutOfStock ? 'Out of stock' : 'Add to cart' }));
+    }, { eager: true });
+    events.on('pdp/valid', (valid) => {
+      addToCart.setProps((prev) => ({ ...prev, disabled: isOutOfStock || !valid }));
+    }, { eager: true });
   };
-
-  const addToCart = await UI.render(Button, {
-    children: 'Add to cart',
-    icon: h(Icon, { source: 'Cart' }),
-    'aria-label': `Add ${product?.name || ''} to cart`,
-    onClick: async () => {
-      addToCart.setProps((prev) => ({ ...prev, children: 'Adding…', disabled: true }));
-      $status.textContent = 'Adding to cart';
-      try {
-        const values = pdpApi.getProductConfigurationValues();
-        if (!pdpApi.isProductConfigurationValid()) throw new Error('Choose a colour and size first.');
-        const { addProductsToCart } = await import('@dropins/storefront-cart/api.js');
-        await addProductsToCart([{ ...values }]);
-        await showAlert('Added to your cart', `${product?.name || 'Item'} is in your cart.`, 'success');
-      } catch (error) {
-        await showAlert('Could not add to cart', error.message);
-      } finally {
-        addToCart.setProps((prev) => ({ ...prev, children: 'Add to cart', disabled: isOutOfStock }));
-        $status.textContent = '';
-      }
-    },
-  })($buttons);
-
-  events.on('pdp/data', (data) => {
-    product = data?.sku ? data : product;
-    isOutOfStock = data?.inStock === false;
-    const attributes = data?.attributes || [];
-    $activity.textContent = attributes.find((a) => a.id === 'activity')?.value || 'WKND gear';
-    $stock.textContent = isOutOfStock ? 'Sold out' : 'In stock';
-    $stock.classList.toggle('is-out', isOutOfStock);
-    renderSpecs($specs, attributes);
-    renderKeySpecs($keySpecs, attributes);
-    const hasMadeFor = renderMadeFor($madeFor, attributes);
-    $info.querySelector('#pdp-tab-made-for').hidden = !hasMadeFor;
-    renderBadges($badges, data);
-    addToCart.setProps((prev) => ({ ...prev, disabled: isOutOfStock, children: isOutOfStock ? 'Out of stock' : 'Add to cart' }));
-  }, { eager: true });
-  events.on('pdp/valid', (valid) => {
-    addToCart.setProps((prev) => ({ ...prev, disabled: isOutOfStock || !valid }));
-  }, { eager: true });
+  renderDropins().catch((e) => console.error('product-details', e));
 }
