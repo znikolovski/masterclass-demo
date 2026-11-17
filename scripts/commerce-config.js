@@ -13,6 +13,9 @@ export const SHOP_AUTH_CONFIG_URL = `${RUNTIME}/auth-config`;
 export const CONTENT_AI_BASE = `${RUNTIME}/content-ai`;
 export const DM_DELIVERY_ORIGIN = 'https://delivery-p115476-e1135027.adobeaemcloud.com';
 
+// Product imagery is generated 4:5 (1600×2000); PDP renditions are requested at this size.
+export const PDP_IMAGE_SIZES = { width: 960, height: 1200 };
+
 export const SHOP_PATHS = {
   root: SHOP_ROOT,
   search: `${SHOP_ROOT}/search`,

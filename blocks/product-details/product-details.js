@@ -7,9 +7,8 @@
  */
 // Only light modules are imported statically: the server content (LCP) is painted before the
 // drop-in libraries load (see renderDropins).
-import {
-  SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES, shopPromises,
-} from '../../scripts/commerce-utils.js';
+import { SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES } from '../../scripts/commerce-config.js';
+import { shopPromises } from '../../scripts/shop-promises.js';
 
 // Attributes shown as headline specs (first match wins) and those kept out of the spec grid
 const KEY_SPECS = ['waterproof_rating', 'weight_g', 'capacity_l', 'material', 'warranty'];
@@ -164,7 +163,16 @@ function readServerContent(block) {
     if (!strong || !/:$/.test(node.firstElementChild.textContent.trim())) break;
     optionRows += 1;
   }
+  // "Specifications" list → drop-in style attributes, e.g. "Weight (g): 410" → weight_g
+  const attributes = [...(cell?.querySelectorAll('h2 + ul > li') || [])].map((li) => {
+    const label = li.querySelector('strong')?.textContent.replace(/:\s*$/, '').trim() || '';
+    const value = li.textContent.replace(li.querySelector('strong')?.textContent || '', '').trim();
+    const id = label.toLowerCase().replace(/\s*\((\w+)\)/, '_$1').replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+    return { id, label, value };
+  }).filter((a) => a.id && a.value);
   return {
+    attributes,
     optionRows,
     title: h1?.textContent.trim() || '',
     price: priceRow?.querySelector('strong')?.textContent.trim() || '',
@@ -342,6 +350,9 @@ export default async function decorate(block) {
   ];
   buildTabs($info, infoPanels);
   const lcpLoaded = whenLoaded(paintServerContent(block, ssr));
+  // same content the drop-in data renders later, so it appears without a layout shift
+  renderKeySpecs($keySpecs, ssr.attributes);
+  $activity.textContent = ssr.attributes.find((a) => a.id === 'activity')?.value || '';
 
   // Commerce/drop-in work (and its GraphQL calls) starts after the LCP image so it never
   // competes with it; the PDP initializer then runs in parallel with auth/cart.
