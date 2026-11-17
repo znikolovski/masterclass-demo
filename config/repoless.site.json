@@ -8,6 +8,10 @@
     "source": {
       "url": "https://content.da.live/znikolovski/masterclass-demo/",
       "type": "markup"
+    },
+    "overlay": {
+      "url": "https://28538-wkndcommerce-stage.adobeioruntime.net/api/v1/web/commerce/pdp-markup",
+      "type": "markup"
     }
   }
 }

@@ -1,0 +1,117 @@
+# WKND Adventures Shop — architecture and runbook
+
+A demo shopping experience for apparel and travel accessories on
+[wknd-adventures.run.place](https://wknd-adventures.run.place/shop). The storefront uses the
+Adobe Commerce **drop-ins**. A **mock Adobe Commerce backend** built on App Builder and
+**API Mesh** sits behind them. Payment is mocked with **WKND Demo Pay**, so nothing is charged or
+shipped.
+
+| Piece | Where |
+|-------|-------|
+| Storefront (EDS + drop-ins) | this repo, under `/shop` |
+| Mock Commerce backend, API Mesh, admin UI, AEM image linking | sibling App Builder repo `../wknd-commerce` (Console project `wkndcommerce`) |
+| Product images | AEM Assets `/content/dam/wknd-adventures/products/**`, delivered **only** via Dynamic Media OpenAPI |
+| Site search | AEM Content AI (`wknd-adventures` content source) via the `content-ai` proxy action |
+| Sign-in | WKND Aero Auth0 tenant (shared with `/book/flights`) |
+
+```
+Browser (EDS /shop, header search, OF1)
+  ├─ drop-ins ──GraphQL──► API Mesh ──► commerce/storefront-graphql (Core + Catalog Service schema)
+  │                                        └─ aio-lib-db: products, prices, inventory, carts, orders, asset_links
+  ├─ search modal ───────► commerce/content-ai ──► AEM Content AI /adobe/contentAI (search, gensearch)
+  └─ Auth0 SPA (wknd-auth.js) ─ access token ─► auth drop-in cookie ─► Mesh (JWT verified via JWKS)
+AEM Assets ── I/O Events ──► commerce/asset-events (custom asset matcher) ──► asset_links
+EDS preview of /shop/products/* ── content overlay ──► commerce/pdp-markup (BYOM PDP HTML)
+Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, inventory, pricing, orders, images)
+```
+
+## Storefront
+
+| Path | Block(s) | Notes |
+|------|----------|-------|
+| `/shop` | `product-list-page`, `product-recommendations` | Shop home, category grid, trending |
+| `/shop/<category>` | `product-list-page` (`category` key) | Facets: category, price, activity, adventure, colour, size, gender, brand |
+| `/shop/search?q=` | `product-list-page` (search) | Also the "See all products" target of the search modal |
+| `/shop/products/<url-key>` | `product-details`, `product-recommendations` | Served from the BYOM overlay (`pdp-markup`) |
+| `/shop/cart`, `/shop/checkout`, `/shop/order` | `commerce-cart`, `commerce-checkout`, `commerce-order` | Guest or signed-in checkout, WKND Demo Pay |
+| `/shop/account` | `commerce-account` | Auth0 sign-in, orders, addresses |
+
+- **Runtime wiring.** `scripts/commerce.js` and `scripts/initializers/*` set up the drop-ins. `scripts/commerce-config.js` holds the Mesh endpoint, store headers and shop paths. `scripts/scripts.js` starts commerce early on `/shop/**`. Other blocks (OF1 gear, search) load it lazily.
+- **Drop-ins.** They are pinned in `package.json` and vendored to `scripts/__dropins__` by `npm run install:dropins`. An import map in `head.html` exposes them.
+- **Labels.** Labels default to AU wording (GST, postcode) in `scripts/commerce-utils.js`. Authors can override any drop-in string in the multi-sheet `/shop/placeholders` spreadsheet, using one sheet per drop-in (`pdp`, `cart`, `checkout`, …) with `Key` dot paths such as `Cart.Cart.heading`.
+- **Images.** Product images come from DM OpenAPI renditions (`{asset}/as/{alias}.webp?width=…`). The `pdp-markup` HTML links to images rather than embedding them, so EDS never copies them to the media bus.
+- **Header.** The header shows a cart badge and an account link. The **Ask WKND** pill opens the search modal (also on ⌘/Ctrl+K).
+
+## Search modal (`blocks/search`)
+
+- **Opening it.** Focusing the header "Ask WKND" pill opens the modal. Pages can also author a `search` block, which renders a trigger button.
+- **What it shows:**
+  - Content AI page results, deduped per page; OF1 knowledge and infrastructure pages are excluded.
+  - A **grounded** AI summary from `gensearch`, hidden when Content AI has no grounded answer.
+  - Up to 4 products from Mesh `productSearch`.
+  - Trending gear from the `wknd-trending` unit, plus recent searches (stored locally only).
+- **Hand-off.** Enter, or **Ask WKND Sherpa**, goes to `/of1?q=…` as the header form did before.
+- **Indexing.** Content AI crawls the live sitemap daily at 05:00 UTC. Shop pages are indexed once they are published.
+
+## OF1 gear recommendations
+
+`scripts/scripts.js` autoblocks one `product-recommendations` panel (unit `wknd-of1-gear`,
+"Gear up for this adventure") into each generated OF1 response that has adventure cards or facts.
+The panel's anchor product is chosen in three steps:
+1. Products tagged with the response's adventure slugs (`/blog/<slug>`, `/adventures/<slug>` links),
+   combined with the turn's query.
+2. Those adventure tags alone.
+3. The query alone.
+
+Templates and the model contract are unchanged. Test with
+`node tools/scripts/test-of1-gear.mjs http://localhost:3000`.
+
+## Backend (`../wknd-commerce`)
+
+| Action | Purpose |
+|--------|---------|
+| `commerce/storefront-graphql` | Mesh source: carts, checkout, orders, customer, Catalog Service, recommendations |
+| `commerce/auth-config` | Public Auth0 SPA settings for the storefront |
+| `commerce/pdp-markup` | BYOM overlay HTML for `/shop/products/*` (JSON-LD, DM og:image) |
+| `commerce/prerender` | Previews and publishes changed PDPs through the EDS Admin API (needs `HLX_ADMIN_API_KEY`) |
+| `commerce/content-ai` | CORS proxy to AEM Content AI (stable API), with compact hits and a `grounded` flag |
+| `commerce/asset-events`, `asset-to-product`, `product-to-asset`, `reconcile` | AEM image linking using the Adobe Commerce custom-matcher contract and a nightly reconcile |
+| `commerce-admin/admin` | IMS-protected admin RPC used by the ExC Shell UI |
+
+- **Admin UI.** It runs in the Experience Cloud shell (Stage):
+  `https://experience.adobe.com/?devMode=true#/custom-apps/?localDevUrl=https://28538-wkndcommerce-stage.adobeio-static.net/index.html`.
+  It has Dashboard, Products (editor with variants, price and stock, and images), Inventory, Pricing
+  (bulk sales) and Orders.
+- **Image linking.**
+  1. Upload images to `/content/dam/wknd-adventures/products/<category>/<SKU>/…` with
+     `commerce:isCommerce`, `commerce:skus`, `commerce:roles` and `commerce:positions`. Use
+     `npm run shop:upload-images` from this repo, and see `tools/aem-assets/product-images/README.md`.
+  2. The I/O Events registration *WKND AEM Assets product image linking*
+     (`events/aem-assets-registration.json`) triggers `asset-events`.
+  3. In the admin UI, use **Re-match from AEM** to relink a product on demand.
+
+## Environment and setup checklist
+
+| Step | Status / how |
+|------|--------------|
+| App Builder Stage deploy | `aio app deploy` in `../wknd-commerce` |
+| API Mesh | `npm run mesh:build && aio api-mesh update mesh.json` |
+| Seed catalog | `npm run catalog:seed` (99 products / 584 sellable SKUs) |
+| AEM author API allowlist for the S2S client | Deploy `../wknd-commerce/aem-config/config/api.yaml` via the Cloud Manager config pipeline |
+| Product images | Generate with `tools/aem-assets/product-images/image-prompts.csv`, then `npm run shop:upload-images` |
+| PDP overlay | `config/repoless.site.json` `content.overlay` → `npm run migrate:repoless -- --apply` (needs `config_admin`) |
+| PDP preview/publish automation | Set `WKND_HLX_ADMIN_API_KEY` in `../wknd-commerce/.env`, then redeploy |
+| Auth0 | Add the site, `*.aem.page`/`*.aem.live` and `localhost` origins to the Aero SPA client's allowed callback, logout and web origins |
+| Shop content | Author `/shop/**` pages in DA (see `drafts/shop/*` for the block structure), then preview and publish |
+
+## Testing
+
+| Command | Covers |
+|---------|--------|
+| `npm run lint` | ESLint + Stylelint (drop-ins are ignored) |
+| `node tools/scripts/test-booking-checkout.mjs` | WKND Aero sign-in regression (shared Auth0 module) |
+| `node tools/scripts/test-of1-actions.mjs <base>` / `test-of1-gear.mjs <base>` | OF1 decoration and gear panel |
+| `npm test` in `../wknd-commerce` | Drop-in GraphQL contract, linking, PDP, admin, Content AI shaping |
+
+Local shop drafts: run `aem up --html-folder drafts`, then open `/drafts/shop/…`. `SHOP_ROOT` switches to
+`/drafts/shop` automatically.
