@@ -234,7 +234,7 @@ function paintServerContent(root, ssr) {
   // reserve the measured height of the options + purchase row (76px + 70px + 79px per row)
   const config = root.querySelector('.product-details__configuration');
   config.style.minHeight = `${76 + (ssr.optionRows ? 70 + 79 * (ssr.optionRows - 1) : 0)}px`;
-  if (!ssr.image) return;
+  if (!ssr.image) return null;
   // only the gallery visible at this breakpoint gets a placeholder (no hidden duplicate download)
   const desktop = window.matchMedia('(min-width: 900px)').matches;
   const img = document.createElement('img');
@@ -250,24 +250,21 @@ function paintServerContent(root, ssr) {
   holder.append(img);
   before(desktop ? '.product-details__left-column .product-details__gallery'
     : '.product-details__gallery--mobile', holder);
+  return img;
+}
+
+/** Resolves once the LCP image has loaded (or failed / timed out). */
+function whenLoaded(img, timeout = 3000) {
+  if (!img || (img.complete && img.naturalWidth)) return Promise.resolve();
+  return new Promise((resolve) => {
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+    setTimeout(resolve, timeout);
+  });
 }
 
 export default async function decorate(block) {
   const ssr = readServerContent(block);
-  // the PDP initializer (product query) runs in parallel with the auth/cart initializers
-  const commerce = import('../../scripts/commerce.js').then((m) => {
-    m.configureCommerce();
-    return m;
-  });
-  const pdpReady = commerce.then(() => import('../../scripts/initializers/pdp.js'));
-  const commerceReady = commerce.then((m) => m.initializeCommerce());
-  const tools = Promise.all([
-    import('@dropins/tools/components.js'),
-    import('@dropins/tools/preact.js'),
-    import('@dropins/tools/event-bus.js'),
-    import('@dropins/tools/lib/aem/assets.js'),
-  ]);
-
   let product = null;
   let isOutOfStock = false;
 
@@ -344,7 +341,22 @@ export default async function decorate(block) {
     { id: 'made-for', label: 'Made for', panel: $madeFor },
   ];
   buildTabs($info, infoPanels);
-  paintServerContent(block, ssr);
+  const lcpLoaded = whenLoaded(paintServerContent(block, ssr));
+
+  // Commerce/drop-in work (and its GraphQL calls) starts after the LCP image so it never
+  // competes with it; the PDP initializer then runs in parallel with auth/cart.
+  const commerce = lcpLoaded.then(() => import('../../scripts/commerce.js')).then((m) => {
+    m.configureCommerce();
+    return m;
+  });
+  const pdpReady = commerce.then(() => import('../../scripts/initializers/pdp.js'));
+  const commerceReady = commerce.then((m) => m.initializeCommerce());
+  const tools = lcpLoaded.then(() => Promise.all([
+    import('@dropins/tools/components.js'),
+    import('@dropins/tools/preact.js'),
+    import('@dropins/tools/event-bus.js'),
+    import('@dropins/tools/lib/aem/assets.js'),
+  ]));
 
   // EDS reveals the section only once decorate() resolves, so the drop-ins render in the
   // background and replace the server content when ready.
