@@ -261,6 +261,26 @@ function paintServerContent(root, ssr) {
   return img;
 }
 
+/**
+ * Resolves when a stylesheet has loaded — including one already requested elsewhere
+ * (scripts.js starts commerce.css on shop pages; aem.js loadCSS would resolve immediately).
+ */
+function stylesheetReady(href, timeout = 2000) {
+  let link = document.head.querySelector(`link[rel="stylesheet"][href="${href}"]`);
+  if (link?.sheet) return Promise.resolve();
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.append(link);
+  }
+  return new Promise((resolve) => {
+    link.addEventListener('load', resolve, { once: true });
+    link.addEventListener('error', resolve, { once: true });
+    setTimeout(resolve, timeout);
+  });
+}
+
 /** Resolves once the LCP image has loaded (or failed / timed out). */
 function whenLoaded(img, timeout = 3000) {
   if (!img || (img.complete && img.naturalWidth)) return Promise.resolve();
@@ -273,6 +293,8 @@ function whenLoaded(img, timeout = 3000) {
 
 export default async function decorate(block) {
   const ssr = readServerContent(block);
+  // eyebrow, promise and badge styles live in commerce.css: reveal styled, not re-flowed
+  const sharedStyles = stylesheetReady(`${window.hlx?.codeBasePath || ''}/styles/commerce.css`);
   let product = null;
   let isOutOfStock = false;
 
@@ -350,6 +372,7 @@ export default async function decorate(block) {
   ];
   buildTabs($info, infoPanels);
   const lcpLoaded = whenLoaded(paintServerContent(block, ssr));
+  await sharedStyles;
   // same content the drop-in data renders later, so it appears without a layout shift
   renderKeySpecs($keySpecs, ssr.attributes);
   $activity.textContent = ssr.attributes.find((a) => a.id === 'activity')?.value || '';
