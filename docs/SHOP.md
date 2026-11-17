@@ -1,7 +1,7 @@
 # WKND Adventures Shop — architecture and runbook
 
 A demo shopping experience for apparel and travel accessories on
-[wknd-adventures.run.place](https://wknd-adventures.run.place/shop). The storefront uses the
+[wknd-adventures.run.place](https://wknd-adventures.run.place/shop/). The storefront uses the
 Adobe Commerce **drop-ins**. A **mock Adobe Commerce backend** built on App Builder and
 **API Mesh** sits behind them. Payment is mocked with **WKND Demo Pay**, so nothing is charged or
 shipped.
@@ -100,10 +100,10 @@ Templates and the model contract are unchanged. Test with
 | Seed catalog | `npm run catalog:seed` (99 products / 584 sellable SKUs) |
 | AEM author API allowlist for the S2S client | Deploy `../wknd-commerce/aem-config/config/api.yaml` via the Cloud Manager config pipeline |
 | Product images | Generate with `tools/aem-assets/product-images/image-prompts.csv`, then `npm run shop:upload-images` |
-| PDP overlay | `config/repoless.site.json` `content.overlay` → `npm run migrate:repoless -- --apply` (needs `config_admin`) |
+| PDP overlay | Done: `content.overlay` (from `config/repoless.site.json`) is set on the live site config. Update only the `content` sub-config (`POST /config/znikolovski/sites/masterclass-demo/content.json`); the full `migrate:repoless --apply` would overwrite the live `public.json` (production mixer config) and `headers.json` with the stale repo copies |
 | PDP preview/publish automation | Set `WKND_HLX_ADMIN_API_KEY` in `../wknd-commerce/.env`, then redeploy |
 | Auth0 | Add the site, `*.aem.page`/`*.aem.live` and `localhost` origins to the Aero SPA client's allowed callback, logout and web origins |
-| Shop content | Author `/shop/**` pages in DA (see `drafts/shop/*` for the block structure), then preview and publish |
+| Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `search`, `cart`, `checkout`, `order`, `account` and the `placeholders` sheet, plus a bulk preview of all 99 `/shop/products/*` PDPs via the overlay. Publish once the shop code is on `main` |
 
 ## Testing
 

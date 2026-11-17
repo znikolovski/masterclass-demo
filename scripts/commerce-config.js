@@ -17,7 +17,8 @@ export const DM_DELIVERY_ORIGIN = 'https://delivery-p115476-e1135027.adobeaemclo
 export const PDP_IMAGE_SIZES = { width: 960, height: 1200 };
 
 export const SHOP_PATHS = {
-  root: SHOP_ROOT,
+  // The shop home is the folder index (DA shop/index), which EDS serves at /shop/ only.
+  root: `${SHOP_ROOT}/`,
   search: `${SHOP_ROOT}/search`,
   product: (urlKey) => `${SHOP_ROOT}/products/${urlKey}`,
   cart: `${SHOP_ROOT}/cart`,
