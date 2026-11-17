@@ -19,10 +19,100 @@ main .commerce-checkout .checkout__aside {
   align-content: start;
 }
 
-main .commerce-checkout .checkout__shipping-form,
-main .commerce-checkout .checkout__payment-methods {
-  padding-top: var(--spacing-xbig);
-  border-top: var(--shape-border-width-3) solid var(--color-neutral-300);
+/* progress tracker */
+main .commerce-checkout .checkout__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: checkout-step;
+}
+
+main .commerce-checkout .checkout__steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1.5px solid #dadada;
+  border-radius: 10px;
+  color: #5f5b55;
+  font: 700 11px/1.3 var(--heading-font-family);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  counter-increment: checkout-step;
+}
+
+main .commerce-checkout .checkout__steps li::before {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid currentcolor;
+  border-radius: 50%;
+  content: counter(checkout-step);
+  font-size: 11px;
+}
+
+main .commerce-checkout .checkout__steps li[aria-current="step"] {
+  border-color: var(--text-color);
+  color: var(--text-color);
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+}
+
+main .commerce-checkout .checkout__steps li.is-done {
+  border-color: var(--light-color);
+  background: var(--light-color);
+  color: var(--text-color);
+}
+
+main .commerce-checkout .checkout__steps li.is-done::before {
+  border-color: var(--accent-color);
+  background: var(--accent-color);
+  color: #fff;
+  content: "✓";
+}
+
+/* each step is a rounded card */
+main .commerce-checkout :is(.checkout__login, .checkout__shipping-form, .checkout__delivery,
+  .checkout__payment-methods, .checkout__billing-form) {
+  padding: 24px;
+  border: 1px solid #dadada;
+  border-radius: 10px;
+  background: var(--background-color);
+}
+
+main .commerce-checkout :is(.checkout-login-form__title, .account-address-form-wrapper__title,
+  .checkout-shipping-methods__title, .checkout-payment-methods__title) :is(h2, h3),
+main .commerce-checkout .account-address-form-wrapper__title {
+  color: var(--text-color);
+  font: 700 18px/1.3 var(--heading-font-family);
+}
+
+/* shipping options as selectable cards */
+main .commerce-checkout .checkout-shipping-methods__options {
+  display: grid;
+  gap: 10px;
+}
+
+main .commerce-checkout .checkout-shipping-methods__method {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1.5px solid #dadada;
+  border-radius: 10px;
+}
+
+main .commerce-checkout .checkout-shipping-methods__method:has(input:checked) {
+  border-color: var(--text-color);
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+}
+
+main .commerce-checkout .checkout-payment-methods__method {
+  border-radius: 10px;
 }
 
 main .commerce-checkout .checkout__billing-form[hidden] {
@@ -78,16 +168,45 @@ main .commerce-checkout .checkout__loader-status {
 }
 
 main .commerce-checkout .checkout__place-order .dropin-button {
+  justify-content: center;
   width: 100%;
-  min-height: 52px;
-  border-radius: var(--shape-border-radius-3);
+  min-height: 56px;
+}
+
+main .commerce-checkout .checkout__order-summary .cart-order-summary__primary {
+  padding: 24px;
+  border-radius: 10px;
+  background: var(--light-color);
+}
+
+main .commerce-checkout .cart-order-summary__heading-text {
+  color: var(--text-color);
+  font: 700 18px/1.3 var(--heading-font-family);
 }
 
 main .commerce-checkout .checkout__block .cart-cart-summary-list {
   padding: var(--spacing-medium);
+  border: 1px solid #dadada;
+  border-radius: 10px;
 }
 
-main .commerce-checkout [data-testid="default-cart-heading"] {
+main .commerce-checkout .checkout__cart-summary img {
+  border-radius: 8px;
+}
+
+@media (width < 600px) {
+  main .commerce-checkout .checkout__steps li {
+    padding: 8px 6px;
+    font-size: 9px;
+  }
+
+  main .commerce-checkout :is(.checkout__login, .checkout__shipping-form, .checkout__delivery,
+    .checkout__payment-methods, .checkout__billing-form) {
+    padding: 16px;
+  }
+}
+
+main .commerce-checkout .checkout__cart-summary .cart-cart-summary-list__heading {
   display: none;
 }
 

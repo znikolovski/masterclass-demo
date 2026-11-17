@@ -115,6 +115,25 @@ main > .section:first-of-type {
   padding-top: 0;
 }
 
+/* WKND Shop: denser commerce rhythm */
+body.shop main > .section {
+  padding-block: 48px;
+}
+
+@media (width >= 900px) {
+  body.shop main > .section {
+    padding-block: 64px;
+  }
+}
+
+/* Adjacent plain sections share one gap instead of stacking bottom + top padding (200px).
+   Sections with their own background (section styles in lazy-styles.css, carousel-blog)
+   keep full padding on both sides — add new background section styles to both lists. */
+main > .section:not(.accent, .dark, .highlight, .inverse, .light, .secondary, .carousel-blog-container, .carousel-blog-wrapper, .hero-adventure-container)
+  + .section:not(.accent, .dark, .highlight, .inverse, .light, .secondary, .carousel-blog-container, .carousel-blog-wrapper, .hero-adventure-container) {
+  padding-top: 0;
+}
+
 @media (width >= 900px) {
   main > .section {
     padding-block: 100px;
@@ -244,6 +263,12 @@ main .section.target.target-ready {
   visibility: visible;
 }
 
+/* WKND Shop: page titles must fit narrow screens (single long words in Syncopate) */
+body.shop main h1 {
+  font-size: clamp(32px, 9vw, var(--heading-font-size-xxl));
+  overflow-wrap: anywhere;
+}
+
 /* WKND Shop: the first section is content, not a full-bleed hero */
 body.shop main > .section.lcp-section {
   padding-block: 24px 48px;
@@ -256,6 +281,10 @@ body.shop main > .section.lcp-section > div {
 }
 
 @media (width >= 900px) {
+  body.shop main > .section.lcp-section {
+    padding-block: 24px 64px;
+  }
+
   body.shop main > .section.lcp-section > div {
     padding: 0 32px;
   }

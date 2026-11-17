@@ -83,7 +83,7 @@ async function renderUnit(block, $list, config, unitId) {
 
   await provider.render(ProductList, {
     recId: unitId,
-    hideHeading: false,
+    hideHeading: config.hideHeading,
     currentProduct: currentSku ? { sku: currentSku } : undefined,
     currentSku: currentSku || '',
     cartSkus,
@@ -116,7 +116,7 @@ async function renderUnit(block, $list, config, unitId) {
         UI.render(Button, simple ? {
           children: ctx.item.inStock ? 'Add to cart' : 'Out of stock',
           icon: Icon({ source: 'Cart' }),
-          variant: 'secondary',
+          variant: 'primary',
           disabled: !ctx.item.inStock,
           onClick: (event) => {
             event.stopPropagation();
@@ -125,7 +125,7 @@ async function renderUnit(block, $list, config, unitId) {
         } : {
           children: 'Choose options',
           href: getProductLink(ctx.item.urlKey),
-          variant: 'tertiary',
+          variant: 'secondary',
         })($button);
         ctx.replaceWith($button);
       },
@@ -133,8 +133,16 @@ async function renderUnit(block, $list, config, unitId) {
   })($list);
 }
 
+/** True when the author placed a heading directly above the block (avoid a second unit title). */
+function hasAuthoredHeading(block) {
+  const prev = block.parentElement?.previousElementSibling;
+  return !!prev?.classList.contains('default-content-wrapper')
+    && /^H[1-6]$/.test(prev.lastElementChild?.tagName || '');
+}
+
 export default async function decorate(block) {
   const config = readBlockConfig(block);
+  config.hideHeading = !config.heading && hasAuthoredHeading(block);
   const unitId = config['unit-id'] || config.unitid;
   block.textContent = '';
   if (!unitId) return;

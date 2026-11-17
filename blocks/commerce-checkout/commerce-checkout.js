@@ -5,7 +5,9 @@
  *  - the only payment method is WKND Demo Pay — demonstration only, no payment is taken
  * Authoring: none (the block has no configuration).
  */
-import { initializeCommerce, getProductLink, SHOP_PATHS } from '../../scripts/commerce.js';
+import {
+  initializeCommerce, getProductLink, SHOP_PATHS, shopPromises,
+} from '../../scripts/commerce.js';
 import { pushShopEvent } from '../../scripts/shop-analytics.js';
 
 const SHIPPING_FORM_NAME = 'selectedShippingAddress';
@@ -74,6 +76,12 @@ export default async function decorate(block) {
       <div class="checkout__content">
         <div class="checkout__merged-cart-banner"></div>
         <div class="checkout__main">
+          <ol class="checkout__steps" aria-label="Checkout progress">
+            <li data-step="1">Contact</li>
+            <li data-step="2">Shipping address</li>
+            <li data-step="3">Delivery</li>
+            <li data-step="4">Payment</li>
+          </ol>
           <div class="checkout__demo"></div>
           <div class="checkout__server-error checkout__block"></div>
           <div class="checkout__out-of-stock checkout__block"></div>
@@ -83,11 +91,12 @@ export default async function decorate(block) {
           <div class="checkout__delivery checkout__block"></div>
           <div class="checkout__payment-methods checkout__block"></div>
           <div class="checkout__billing-form checkout__block"></div>
-          <div class="checkout__place-order checkout__block"></div>
+          <div class="checkout__place-order checkout__block shop-accent"></div>
         </div>
         <div class="checkout__aside">
           <div class="checkout__order-summary checkout__block"></div>
           <div class="checkout__cart-summary checkout__block"></div>
+          <div class="checkout__promises"></div>
         </div>
       </div>
     </div>`);
@@ -98,6 +107,8 @@ export default async function decorate(block) {
   const $shippingForm = $('.checkout__shipping-form');
   const $billingForm = $('.checkout__billing-form');
   $('.checkout__demo').append(demoNotice('WKND Demo Pay simulates payment — no card details are collected and nothing will be charged or shipped.'));
+  $('.checkout__promises').append(shopPromises(['shipping', 'warranty', 'demo']));
+  const $steps = [...fragment.querySelectorAll('.checkout__steps li')];
   block.replaceChildren(fragment);
 
   const shippingFormRef = { current: null };
@@ -243,9 +254,20 @@ export default async function decorate(block) {
   ]);
 
   const steps = new Set();
+  const renderSteps = () => {
+    const current = [1, 2, 3, 4].find((n) => !steps.has(n)) || 4;
+    $steps.forEach((li) => {
+      const n = Number(li.dataset.step);
+      li.classList.toggle('is-done', steps.has(n));
+      if (n === current && !steps.has(n)) li.setAttribute('aria-current', 'step');
+      else li.removeAttribute('aria-current');
+    });
+  };
+  renderSteps();
   const trackStep = (step, option) => {
     if (steps.has(step)) return;
     steps.add(step);
+    renderSteps();
     pushShopEvent('shopCheckoutStep', { eventType: 'commerce.checkouts', data: { checkout: { step, option } } });
   };
 

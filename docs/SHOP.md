@@ -29,7 +29,7 @@ Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, invento
 
 | Path | Block(s) | Notes |
 |------|----------|-------|
-| `/shop` | `product-list-page`, `product-recommendations` | Shop home, category grid, trending |
+| `/shop` | `shop-hero`, `product-recommendations`, `product-list-page` | Shop home, trending, all gear |
 | `/shop/<category>` | `product-list-page` (`category` key) | Facets: category, price, activity, adventure, colour, size, gender, brand |
 | `/shop/search?q=` | `product-list-page` (search) | Also the "See all products" target of the search modal |
 | `/shop/products/<url-key>` | `product-details`, `product-recommendations` | Served from the BYOM overlay (`pdp-markup`) |
@@ -40,6 +40,7 @@ Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, invento
 - **Drop-ins.** They are pinned in `package.json` and vendored to `scripts/__dropins__` by `npm run install:dropins`. An import map in `head.html` exposes them.
 - **Labels.** Labels default to AU wording (GST, postcode) in `scripts/commerce-utils.js`. Authors can override any drop-in string in the multi-sheet `/shop/placeholders` spreadsheet, using one sheet per drop-in (`pdp`, `cart`, `checkout`, …) with `Key` dot paths such as `Cart.Cart.heading`.
 - **Images.** Product images come from DM OpenAPI renditions (`{asset}/as/{alias}.webp?width=…`). The `pdp-markup` HTML links to images rather than embedding them, so EDS never copies them to the media bus.
+- **Design.** Shop UI reuses the site design system rather than a separate theme: drop-in buttons follow `a.button` (Syncopate pill, 2px border, offset orange shadow; `.shop-accent` = orange conversion CTA), pill tags/chips, 10px rounded cards and `--light-color` panels (`styles/commerce.css`). Product imagery is 4:5 (1600×2000); PDP gallery and cards use 4:5 frames. `shop-hero` is a dark banner block for category/landing pages (tag paragraph, heading, intro, bullet list → highlight pills).
 - **Header.** The header shows a cart badge and an account link. The cart icon opens a mini-cart drawer (`blocks/header/mini-cart.js`, drop-in `MiniCart`). Modifier-clicks and the cart/checkout pages keep the plain link. The **Ask WKND** pill opens the search modal (also on ⌘/Ctrl+K).
 
 ## Search modal (`blocks/search`)

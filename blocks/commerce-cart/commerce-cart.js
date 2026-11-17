@@ -5,7 +5,9 @@
  * Prices are AUD incl. GST; coupons such as WKND10 are validated by the commerce backend.
  */
 import { readBlockConfig } from '../../scripts/aem.js';
-import { initializeCommerce, getProductLink, SHOP_PATHS } from '../../scripts/commerce.js';
+import {
+  initializeCommerce, getProductLink, SHOP_PATHS, shopPromises,
+} from '../../scripts/commerce.js';
 import { pushShopEvent } from '../../scripts/shop-analytics.js';
 
 export default async function decorate(block) {
@@ -29,10 +31,11 @@ export default async function decorate(block) {
     <div class="cart__wrapper">
       <div class="cart__left-column"><div class="cart__list"></div></div>
       <div class="cart__right-column">
-        <div class="cart__order-summary"></div>
-        <p class="cart__note">Prices include GST. Free standard shipping in Australia over $150.</p>
+        <div class="cart__order-summary shop-accent"></div>
+        <p class="cart__note">Prices include GST.</p>
       </div>
     </div>`);
+  fragment.querySelector('.cart__right-column').append(shopPromises(['shipping', 'warranty', 'demo']));
   const $list = fragment.querySelector('.cart__list');
   const $summary = fragment.querySelector('.cart__order-summary');
   const $rightColumn = fragment.querySelector('.cart__right-column');
