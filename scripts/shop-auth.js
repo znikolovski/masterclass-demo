@@ -83,7 +83,7 @@ export async function signOutOfShop() {
   sessionStorage.removeItem('DROPINS_CART_ID');
   localStorage.setItem('wknd:cart-count', '0');
   await emit('authenticated', false).catch(() => {});
-  await signOut(SHOP_AUTH_CONFIG_URL, { returnTo: `${window.location.origin}/shop` });
+  await signOut(SHOP_AUTH_CONFIG_URL, { returnTo: `${window.location.origin}/shop/` });
 }
 
 export { SHOP_AUTH_CONFIG_URL };
