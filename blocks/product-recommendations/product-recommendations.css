@@ -2,12 +2,6 @@ main .product-recommendations {
   min-height: 120px;
 }
 
-/* a rendered unit (heading + card row) is 568–659px; reserve it while the drop-in loads so
-   content below doesn't move. Units without products hide their whole section. */
-main .product-recommendations .product-recommendations__list {
-  min-height: 560px;
-}
-
 /* several units stacked in one section (e.g. PDP "Complete your kit" + "More like this") */
 main .product-recommendations-wrapper + .product-recommendations-wrapper {
   margin-top: var(--spacing-xxbig);

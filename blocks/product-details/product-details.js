@@ -9,6 +9,7 @@
 // drop-in libraries load (see renderDropins).
 import { SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES } from '../../scripts/commerce-config.js';
 import { shopPromises } from '../../scripts/shop-promises.js';
+import { shopStylesReady } from '../../scripts/shop-styles.js';
 
 // Attributes shown as headline specs (first match wins) and those kept out of the spec grid
 const KEY_SPECS = ['waterproof_rating', 'weight_g', 'capacity_l', 'material', 'warranty'];
@@ -261,26 +262,6 @@ function paintServerContent(root, ssr) {
   return img;
 }
 
-/**
- * Resolves when a stylesheet has loaded — including one already requested elsewhere
- * (scripts.js starts commerce.css on shop pages; aem.js loadCSS would resolve immediately).
- */
-function stylesheetReady(href, timeout = 2000) {
-  let link = document.head.querySelector(`link[rel="stylesheet"][href="${href}"]`);
-  if (link?.sheet) return Promise.resolve();
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.append(link);
-  }
-  return new Promise((resolve) => {
-    link.addEventListener('load', resolve, { once: true });
-    link.addEventListener('error', resolve, { once: true });
-    setTimeout(resolve, timeout);
-  });
-}
-
 /** Resolves once the LCP image has loaded (or failed / timed out). */
 function whenLoaded(img, timeout = 3000) {
   if (!img || (img.complete && img.naturalWidth)) return Promise.resolve();
@@ -294,7 +275,7 @@ function whenLoaded(img, timeout = 3000) {
 export default async function decorate(block) {
   const ssr = readServerContent(block);
   // eyebrow, promise and badge styles live in commerce.css: reveal styled, not re-flowed
-  const sharedStyles = stylesheetReady(`${window.hlx?.codeBasePath || ''}/styles/commerce.css`);
+  const sharedStyles = shopStylesReady();
   let product = null;
   let isOutOfStock = false;
 

@@ -7,14 +7,15 @@
 import { readBlockConfig } from '../../scripts/aem.js';
 import { SHOP_PATHS } from '../../scripts/commerce-config.js';
 import { shopPromises } from '../../scripts/shop-promises.js';
+import { shopStylesReady } from '../../scripts/shop-styles.js';
 
 /**
  * Renders the cart drop-ins into the painted layout (runs after decorate() has resolved).
  * @param {Element} block
- * @param {{ maxItems?: string, $list: Element, $summary: Element, $rightColumn: Element }} ctx
+ * @param {{ maxItems?: string, $list: Element, $summary: Element, setEmpty: Function }} ctx
  */
 async function renderCart(block, {
-  maxItems, $list, $summary, $rightColumn,
+  maxItems, $list, $summary, setEmpty,
 }) {
   const [{ initializeCommerce, getProductLink }, { pushShopEvent }] = await Promise.all([
     import('../../scripts/commerce.js'),
@@ -39,9 +40,7 @@ async function renderCart(block, {
 
   let viewed = false;
   events.on('cart/data', (cart) => {
-    const empty = !cart || cart.totalQuantity < 1;
-    $rightColumn.hidden = empty;
-    block.classList.toggle('commerce-cart--empty', empty);
+    setEmpty(!cart || cart.totalQuantity < 1);
     if (!viewed && cart) {
       viewed = true;
       pushShopEvent('shopCartView', {
@@ -92,7 +91,7 @@ async function renderCart(block, {
   ]);
 }
 
-export default function decorate(block) {
+export default async function decorate(block) {
   const { 'max-items': maxItems } = readBlockConfig(block);
   const fragment = document.createRange().createContextualFragment(`
     <div class="cart__wrapper">
@@ -105,17 +104,24 @@ export default function decorate(block) {
   fragment.querySelector('.cart__right-column').append(shopPromises(['shipping', 'warranty', 'demo']));
   const $list = fragment.querySelector('.cart__list');
   const $summary = fragment.querySelector('.cart__order-summary');
-  const $rightColumn = fragment.querySelector('.cart__right-column');
+  const $note = fragment.querySelector('.cart__note');
+  // an empty cart keeps the shop promises, without the order summary
+  const setEmpty = (empty) => {
+    block.classList.toggle('commerce-cart--empty', empty);
+    $summary.hidden = empty;
+    $note.hidden = empty;
+  };
   // Shop pages cache the item count, so the layout (empty state vs list + summary) is reserved
   // before the drop-ins load; the cart/data handler corrects it if the cache is stale.
-  const empty = !(Number(localStorage.getItem('wknd:cart-count')) > 0);
-  block.classList.toggle('commerce-cart--empty', empty);
-  $rightColumn.hidden = empty;
+  setEmpty(!(Number(localStorage.getItem('wknd:cart-count')) > 0));
+  // promise styles live in commerce.css: reveal styled, not re-flowed (the reserved raw block
+  // stays in place meanwhile)
+  await shopStylesReady();
   block.replaceChildren(fragment);
 
   // Don't await: the section is revealed when decorate() resolves, so the reserved layout
   // paints straight away instead of the page reflowing once the drop-ins have rendered.
   renderCart(block, {
-    maxItems, $list, $summary, $rightColumn,
+    maxItems, $list, $summary, setEmpty,
   }).catch((e) => console.error('commerce-cart', e));
 }

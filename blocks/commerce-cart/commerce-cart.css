@@ -24,7 +24,8 @@ main .commerce-cart .cart__right-column {
   gap: var(--spacing-small);
 }
 
-main .commerce-cart .cart__right-column[hidden] {
+main .commerce-cart .cart__order-summary[hidden],
+main .commerce-cart .cart__note[hidden] {
   display: none;
 }
 

@@ -274,7 +274,13 @@ body.shop main h1 {
    height and hide its raw config rows, and keep the empty footer out of the layout until it
    loads, so growing shop content never pushes a visible footer (layout shift). */
 body.shop main .commerce-cart {
-  min-height: 318px;
+  min-height: 516px;
+}
+
+@media (width >= 900px) {
+  body.shop main .commerce-cart {
+    min-height: 318px;
+  }
 }
 
 body.shop main .commerce-cart:not([data-block-status="loaded"]) > div {
