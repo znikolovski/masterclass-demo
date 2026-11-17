@@ -75,6 +75,7 @@ Templates and the model contract are unchanged. Test with
 | `commerce/auth-config` | Public Auth0 SPA settings for the storefront |
 | `commerce/pdp-markup` | BYOM overlay HTML for `/shop/products/*`: everything a shopper sees (price/GST/shipping note, SKU and stock, gallery, options, details, specs, made-for, promises, and both recommendation units as product links) plus JSON-LD and DM og:image, so agents that don't run JavaScript see the full page (82–100% of `<main>` text) |
 | `commerce/prerender` | Previews (and, with `PDP_PUBLISH=true`, publishes) changed PDPs via the EDS Admin API: warms the overlay, waits for the bulk job, retries failures once. `aio rt action invoke commerce/prerender -p all true` re-renders every enabled product. Needs `HLX_ADMIN_API_KEY` (publish role) |
+| `commerce/pdp-scheduler` | Alarm every 15 min: re-renders PDPs whose special price starts/ends, refreshes every PDP daily and whenever `PDP_PUBLISH` changes. With admin/stock/price/image writes, orders that sell out and deletes/imports (all trigger `prerender` directly), no manual prerender runs are needed |
 | `commerce/content-ai` | CORS proxy to AEM Content AI (stable API), with compact hits and a `grounded` flag |
 | `commerce/asset-events`, `asset-to-product`, `product-to-asset`, `reconcile` | AEM image linking using the Adobe Commerce custom-matcher contract and a nightly reconcile |
 | `commerce-admin/admin` | IMS-protected admin RPC used by the ExC Shell UI |
@@ -101,7 +102,7 @@ Templates and the model contract are unchanged. Test with
 | AEM author API allowlist for the S2S client | Deploy `../wknd-commerce/aem-config/config/api.yaml` via the Cloud Manager config pipeline |
 | Product images | Generate with `tools/aem-assets/product-images/image-prompts.csv`, then `npm run shop:upload-images` |
 | PDP overlay | Done: `content.overlay` (from `config/repoless.site.json`) is set on the live site config. Update only the `content` sub-config (`POST /config/znikolovski/sites/masterclass-demo/content.json`); the full `migrate:repoless --apply` would overwrite the live `public.json` (production mixer config) and `headers.json` with the stale repo copies |
-| PDP preview/publish automation | Done: publish-role key in `../wknd-commerce/.env`; all 99 PDPs seeded by `prerender`. `WKND_PDP_PUBLISH=false` (preview only) until the shop code is on `main`; then set it to `true`, redeploy and run `prerender` with `all: true` |
+| PDP preview/publish automation | Done: publish-role key in `../wknd-commerce/.env`; PDPs re-render automatically (see `prerender` / `pdp-scheduler`). Preview-only (`WKND_PDP_PUBLISH=false`) until the shop code is on `main`; go-live = set it to `true` and `aio app deploy` — the next scheduler tick publishes every PDP |
 | Auth0 | On the Aero SPA client (`ULTyS938dUNMhSXTjvLXr3b8ZrGOGhyM`), add each storefront origin explicitly (Auth0 can't wildcard `*--…aem.page`): Callback `<origin>/book/flights` (the shared popup `redirect_uri`), Logout `<origin>/shop/` and `<origin>`, Web Origins and Allowed Origins (CORS) `<origin>` |
 | Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `accessories`, `search`, `cart`, `checkout`, `order`, `account` and the `placeholders` sheet. No product pages are authored. Publish once the shop code is on `main` |
 
