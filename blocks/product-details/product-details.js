@@ -14,7 +14,6 @@ import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import {
   configureCommerce, initializeCommerce, SHOP_PATHS, PDP_IMAGE_SIZES as IMAGES_SIZES, shopPromises,
 } from '../../scripts/commerce.js';
-import { createDmPicture } from '../../scripts/dm-image.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 // Attributes shown as headline specs (first match wins) and those kept out of the spec grid
@@ -172,8 +171,30 @@ function readServerContent(block) {
 }
 
 /**
+ * URL head.html already preloads for the og:image (fetchpriority=high): same base, width for
+ * the viewport, webp. Keep in sync with buildHeroLcpUrl() in head.html so the placeholder is
+ * served from that preload.
+ */
+function preloadedImageUrl(fallback) {
+  const og = document.head.querySelector('meta[property="og:image"]')?.content;
+  try {
+    const url = new URL(og || fallback);
+    if (!url.pathname.includes('/adobe/assets/')) return fallback;
+    const width = Math.min(1600, Math.max(640, Math.ceil((window.innerWidth || 412)
+      * (window.devicePixelRatio || 1))));
+    ['width', 'format', 'height', 'preferwebp'].forEach((p) => url.searchParams.delete(p));
+    url.searchParams.set('width', String(width));
+    url.searchParams.set('format', 'webp');
+    return url.toString();
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Paints the server content straight away (the LCP image and headline must not wait for the
  * drop-ins and their GraphQL round trips); removed once the drop-in containers have rendered.
+ * Markup mirrors the drop-in output so the swap does not shift the layout.
  */
 function paintServerContent(root, ssr) {
   const before = (selector, node) => {
@@ -181,9 +202,20 @@ function paintServerContent(root, ssr) {
     root.querySelector(selector).before(node);
   };
   if (ssr.title) {
+    const header = document.createElement('div');
+    header.className = 'pdp-header';
     const h1 = document.createElement('h1');
+    h1.className = 'pdp-header__title';
     h1.textContent = ssr.title;
-    before('.product-details__header', h1);
+    header.append(h1);
+    const sku = document.head.querySelector('meta[name="sku"]')?.content;
+    if (sku) {
+      const skuLine = document.createElement('div');
+      skuLine.className = 'pdp-header__sku';
+      skuLine.textContent = sku;
+      header.append(skuLine);
+    }
+    before('.product-details__header', header);
   }
   if (ssr.price) {
     const price = document.createElement('p');
@@ -197,24 +229,21 @@ function paintServerContent(root, ssr) {
     before('.product-details__short-description', summary);
   }
   if (!ssr.image) return;
+  // only the gallery visible at this breakpoint gets a placeholder (no hidden duplicate download)
   const desktop = window.matchMedia('(min-width: 900px)').matches;
-  [
-    ['.product-details__left-column .product-details__gallery', desktop],
-    ['.product-details__gallery--mobile', !desktop],
-  ].forEach(([selector, visible]) => {
-    const picture = createDmPicture(ssr.image.url, ssr.image.alt, {
-      widths: [480, 720, 960, 1200],
-      sizes: '(min-width: 900px) 46vw, 100vw',
-      eager: visible,
-      width: IMAGES_SIZES.width,
-      height: IMAGES_SIZES.height,
-    });
-    // wrapper keeps the marker class when optimizePictures() swaps the <picture>
-    const holder = document.createElement('div');
-    holder.className = 'product-details__ssr-image';
-    holder.append(picture);
-    before(selector, holder);
-  });
+  const img = document.createElement('img');
+  img.src = preloadedImageUrl(ssr.image.url);
+  img.alt = ssr.image.alt;
+  img.width = IMAGES_SIZES.width;
+  img.height = IMAGES_SIZES.height;
+  img.loading = 'eager';
+  img.fetchPriority = 'high';
+  img.decoding = 'async';
+  const holder = document.createElement('div');
+  holder.className = 'product-details__ssr-image';
+  holder.append(img);
+  before(desktop ? '.product-details__left-column .product-details__gallery'
+    : '.product-details__gallery--mobile', holder);
 }
 
 export default async function decorate(block) {

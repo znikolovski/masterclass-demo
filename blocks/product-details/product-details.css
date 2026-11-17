@@ -120,6 +120,7 @@ main .product-details .product-details__keyspec strong {
 
 /* ---------- headline ---------- */
 main .product-details .product-details__topline {
+  min-height: 18px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
@@ -175,6 +176,7 @@ main .product-details .pdp-header__title {
 main .product-details .pdp-header__sku {
   color: var(--shop-muted);
   font-size: 13px;
+  line-height: 24px;
   letter-spacing: 0.04em;
 }
 
@@ -185,12 +187,20 @@ main .product-details .product-details__price-panel {
   background: var(--light-color);
 }
 
+main .product-details .product-details__price .pdp-price {
+  margin: 0;
+}
+
 main .product-details .product-details__price .dropin-price,
 main .product-details .product-details__ssr-price {
   margin: 0;
   font-size: 28px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+main .product-details .product-details__ssr-price {
+  line-height: 35px;
 }
 
 main .product-details .product-details__price-note {
