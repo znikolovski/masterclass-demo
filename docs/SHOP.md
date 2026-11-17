@@ -73,7 +73,7 @@ Templates and the model contract are unchanged. Test with
 |--------|---------|
 | `commerce/storefront-graphql` | Mesh source: carts, checkout, orders, customer, Catalog Service, recommendations |
 | `commerce/auth-config` | Public Auth0 SPA settings for the storefront |
-| `commerce/pdp-markup` | BYOM overlay HTML for `/shop/products/*` (JSON-LD, DM og:image) |
+| `commerce/pdp-markup` | BYOM overlay HTML for `/shop/products/*`: everything a shopper sees (price/GST/shipping note, SKU and stock, gallery, options, details, specs, made-for, promises, and both recommendation units as product links) plus JSON-LD and DM og:image, so agents that don't run JavaScript see the full page (82–100% of `<main>` text) |
 | `commerce/prerender` | Previews (and, with `PDP_PUBLISH=true`, publishes) changed PDPs via the EDS Admin API: warms the overlay, waits for the bulk job, retries failures once. `aio rt action invoke commerce/prerender -p all true` re-renders every enabled product. Needs `HLX_ADMIN_API_KEY` (publish role) |
 | `commerce/content-ai` | CORS proxy to AEM Content AI (stable API), with compact hits and a `grounded` flag |
 | `commerce/asset-events`, `asset-to-product`, `product-to-asset`, `reconcile` | AEM image linking using the Adobe Commerce custom-matcher contract and a nightly reconcile |
@@ -103,7 +103,7 @@ Templates and the model contract are unchanged. Test with
 | PDP overlay | Done: `content.overlay` (from `config/repoless.site.json`) is set on the live site config. Update only the `content` sub-config (`POST /config/znikolovski/sites/masterclass-demo/content.json`); the full `migrate:repoless --apply` would overwrite the live `public.json` (production mixer config) and `headers.json` with the stale repo copies |
 | PDP preview/publish automation | Done: publish-role key in `../wknd-commerce/.env`; all 99 PDPs seeded by `prerender`. `WKND_PDP_PUBLISH=false` (preview only) until the shop code is on `main`; then set it to `true`, redeploy and run `prerender` with `all: true` |
 | Auth0 | On the Aero SPA client (`ULTyS938dUNMhSXTjvLXr3b8ZrGOGhyM`), add each storefront origin explicitly (Auth0 can't wildcard `*--…aem.page`): Callback `<origin>/book/flights` (the shared popup `redirect_uri`), Logout `<origin>/shop/` and `<origin>`, Web Origins and Allowed Origins (CORS) `<origin>` |
-| Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `search`, `cart`, `checkout`, `order`, `account` and the `placeholders` sheet. No product pages are authored. Publish once the shop code is on `main` |
+| Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `accessories`, `search`, `cart`, `checkout`, `order`, `account` and the `placeholders` sheet. No product pages are authored. Publish once the shop code is on `main` |
 
 ## Testing
 
