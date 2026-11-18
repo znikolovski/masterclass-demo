@@ -42,6 +42,7 @@ import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
   getLaunchUrls,
+  shouldProcessDataLayerEvent,
 } from './martech-config.js';
 import addMarkdownAlternateLink from './markdown-alternate.js';
 import {
@@ -1024,6 +1025,7 @@ async function loadMartech(doc = document) {
         personalization: isPersonalizationEnabled(doc),
         analytics: isAnalyticsEnabled(doc),
         trackPageView: isAnalyticsEnabled(doc),
+        shouldProcessEvent: shouldProcessDataLayerEvent,
         launchUrls: getLaunchUrls(),
         decisionScopes: getTargetDecisionScopes(main, doc),
         propositionMetadata: buildTargetApplyMetadata(main, doc),

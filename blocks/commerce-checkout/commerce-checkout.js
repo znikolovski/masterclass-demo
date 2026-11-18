@@ -129,7 +129,7 @@ export default async function decorate(block) {
       error.textContent = '';
       button.disabled = true;
       try {
-        await shopAuth.signInToShop({ signup: button.dataset.action === 'signup' });
+        await shopAuth.signInToShop({ signup: button.dataset.action === 'signup', surface: 'checkout' });
       } catch {
         error.textContent = 'Sign-in was cancelled. You can still check out as a guest.';
       } finally {
@@ -230,8 +230,8 @@ export default async function decorate(block) {
     })(block.querySelector('.checkout__out-of-stock')),
     CheckoutProvider.render(LoginForm, {
       name: LOGIN_FORM_NAME,
-      onSignInClick: () => shopAuth.signInToShop().catch((e) => console.warn('Sign-in cancelled', e)),
-      onSignOutClick: () => shopAuth.signOutOfShop(),
+      onSignInClick: () => shopAuth.signInToShop({ surface: 'checkout' }).catch((e) => console.warn('Sign-in cancelled', e)),
+      onSignOutClick: () => shopAuth.signOutOfShop({ surface: 'checkout' }),
     })(block.querySelector('.checkout__login')),
     CheckoutProvider.render(BillToShippingAddress, {
       onChange: (checked) => {

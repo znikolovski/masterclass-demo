@@ -36,10 +36,10 @@ async function runAuth(action, trigger) {
   try {
     const shopAuth = await import('../../scripts/shop-auth.js');
     if (action === 'signout') {
-      await shopAuth.signOutOfShop();
+      await shopAuth.signOutOfShop({ surface: 'header' });
       return;
     }
-    await shopAuth.signInToShop({ signup: action === 'signup' });
+    await shopAuth.signInToShop({ signup: action === 'signup', surface: 'header' });
     close({ focus: true });
     // rebuild the account page for the signed-in state; elsewhere the drop-ins react to the event
     if (window.location.pathname.replace(/\/$/, '') === ACCOUNT_PATH) window.location.reload();

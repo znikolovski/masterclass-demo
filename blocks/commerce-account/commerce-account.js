@@ -57,7 +57,7 @@ function renderSignedOut(block, { expired = false } = {}) {
       button.disabled = true;
       try {
         const shopAuth = await import('../../scripts/shop-auth.js');
-        await shopAuth.signInToShop({ signup: button.dataset.action === 'signup' });
+        await shopAuth.signInToShop({ signup: button.dataset.action === 'signup', surface: 'account' });
         window.location.reload();
       } catch (e) {
         error.textContent = e?.message && !/cancel|closed/i.test(e.message)
@@ -117,7 +117,7 @@ function renderSignedInShell(block, state) {
   fragment.querySelector('.account__signout').addEventListener('click', async (e) => {
     e.currentTarget.disabled = true;
     const shopAuth = await import('../../scripts/shop-auth.js');
-    shopAuth.signOutOfShop();
+    shopAuth.signOutOfShop({ surface: 'account' });
   });
   block.classList.add('commerce-account--signed-in');
   block.replaceChildren(fragment);

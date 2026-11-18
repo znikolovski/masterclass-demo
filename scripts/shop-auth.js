@@ -12,6 +12,7 @@ import { SHOP_AUTH_CONFIG_URL } from './commerce-config.js';
 import {
   ACCOUNT_PATH, clearAccountState, setAccountState,
 } from './account-state.js';
+import { pushShopEvent } from './shop-analytics.js';
 
 // Auth0 Allowed Callback + Logout URL: <origin>/account; the session persists across reloads.
 configureAuth({ callbackPath: ACCOUNT_PATH, persist: true });
@@ -91,15 +92,25 @@ export function syncShopSession() {
   return false;
 }
 
-/** @param {{ signup?: boolean }} [opts] signup opens Auth0's "create account" screen */
-export async function signInToShop({ signup = false } = {}) {
+/**
+ * @param {{ signup?: boolean, surface?: string }} [opts] signup opens Auth0's "create account"
+ *   screen; surface (header, account, checkout) is reported to Analytics
+ */
+export async function signInToShop({ signup = false, surface = 'unknown' } = {}) {
   await signIn(SHOP_AUTH_CONFIG_URL, { signup });
   await storeToken();
+  pushShopEvent('shopSignIn', {
+    eventType: 'web.webinteraction.linkClicks',
+    data: { auth: { method: signup ? 'signup' : 'signin', surface } },
+  });
   await emit('authenticated', true);
   return true;
 }
 
-export async function signOutOfShop() {
+/** @param {{ surface?: string }} [opts] where sign-out was chosen (Analytics) */
+export async function signOutOfShop({ surface = 'unknown' } = {}) {
+  // pushed before the token is cleared and Auth0 redirects (sent with sendBeacon)
+  pushShopEvent('shopSignOut', { eventType: 'web.webinteraction.linkClicks', data: { auth: { surface } } });
   clearToken();
   clearAccountState();
   sessionStorage.removeItem('DROPINS_CART_ID');

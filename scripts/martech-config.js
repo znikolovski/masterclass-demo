@@ -12,6 +12,18 @@ export const WEB_SDK_CONFIG = {
   onBeforeEventSend: (content) => mapPageToAnalytics(content),
 };
 
+/**
+ * The ACDL forwarder sends every data-layer event to the Web SDK. Skip the Adobe Commerce
+ * drop-ins' storefront-collector events (kebab-case: `product-page-view`, `add-to-cart`,
+ * `recs-api-request-sent`, ...): they are for the Commerce event collector, would each count
+ * as an extra Analytics page view, and the shop's own `shop*` events cover the same moments.
+ * Site events are camelCase.
+ * @param {{ event?: string }} payload ACDL event
+ */
+export function shouldProcessDataLayerEvent(payload) {
+  return !/^[a-z0-9]+(-[a-z0-9]+)+$/.test(payload?.event || '');
+}
+
 /** Launch embed URLs — martech loads one library per page (see getLaunchUrls). */
 export const MARTECH_CONFIG = {
   stagingLaunchUrl:

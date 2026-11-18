@@ -91,6 +91,12 @@ function pushSearchEvent(event, search = {}) {
     event,
     interaction: { label: phrase, block: 'search', detail: search.target || '' },
     search: { source: 'site-search-modal', ...search, phrase },
+    // forwarded to the Web SDK as an Analytics link event; mapped by mapShopToAnalytics()
+    xdm: {
+      eventType: 'siteSearch',
+      web: { webInteraction: { type: 'other', name: event, linkClicks: { value: 1 } } },
+    },
+    data: { wkndSearch: { event, ...search, phrase } },
   });
 }
 

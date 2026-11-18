@@ -37,6 +37,14 @@ export function toProductListItem(item = {}) {
   };
 }
 
+const signedIn = () => typeof document !== 'undefined'
+  && document.cookie.split('; ').some((c) => c.startsWith('auth_dropin_user_token='));
+
+/**
+ * Push a shop event. The martech ACDL forwarder sends every pushed event to the Web SDK; the
+ * webInteraction signal makes it an Analytics link event (not an extra page view), and
+ * mapShopToAnalytics() maps data.wkndShop to the shop eVars/events.
+ */
 export function pushShopEvent(event, {
   eventType, commerce = {}, items = [], data = {},
 } = {}) {
@@ -47,14 +55,77 @@ export function pushShopEvent(event, {
     event,
     xdm: {
       eventType,
+      web: { webInteraction: { type: 'other', name: event, linkClicks: { value: 1 } } },
       ...(Object.keys(commerce).length ? { commerce } : {}),
       ...(items.length ? { productListItems: items.map(toProductListItem) } : {}),
     },
     data: {
-      wkndShop: { event, currency: CURRENCY, ...data },
+      wkndShop: {
+        event, currency: CURRENCY, customer: signedIn() ? 'signed-in' : 'guest', ...data,
+      },
       ...(journey ? { wkndJourney: { id: journey.id, source: journey.source } } : {}),
     },
   });
+}
+
+/* ---------- Analytics mapping (Web SDK onBeforeEventSend) ---------- */
+
+/*
+ * Report suite slots (docs/SHOP-ANALYTICS-PLAN.md). Standard commerce metrics (prodView, scAdd,
+ * scRemove, scView, scCheckout, purchase, products, revenue) come from the XDM commerce fields.
+ */
+const SHOP_EVENT_NUMBERS = {
+  shopRecsImpression: 50,
+  shopRecsClick: 51,
+  shopSearch: 52,
+  siteSearch: 52,
+  siteSearchSummary: 53,
+  shopCheckoutStep: 55,
+  shopSignIn: 56,
+  shopSignOut: 58,
+};
+const CHECKOUT_STEPS = {
+  1: 'contact', 2: 'shipping-address', 3: 'delivery', 4: 'payment',
+};
+
+/**
+ * Maps shop and site-search events to Analytics as link events with their eVars/events.
+ * @param {Object} content Web SDK onBeforeEventSend payload (data.__adobe.analytics prepared)
+ */
+export function mapShopToAnalytics(content) {
+  const shop = content.data?.wkndShop;
+  const search = content.data?.wkndSearch;
+  const name = shop?.event || search?.event;
+  if (!name) return;
+  /* eslint-disable no-underscore-dangle -- Adobe's documented Analytics mapping */
+  const s = content.data.__adobe.analytics;
+  /* eslint-enable no-underscore-dangle */
+  s.linkType = 'o';
+  s.linkName = name;
+  const events = [];
+  const add = (metric) => metric && events.push(metric);
+  add(SHOP_EVENT_NUMBERS[name] && `event${SHOP_EVENT_NUMBERS[name]}`);
+
+  if (shop) {
+    s.eVar44 = shop.customer;
+    if (shop.recommendation?.unitId) s.eVar40 = shop.recommendation.unitId;
+    if (shop.checkout?.step) {
+      s.eVar41 = `${shop.checkout.step}-${CHECKOUT_STEPS[shop.checkout.step] || 'step'}`;
+    }
+    if (shop.search?.phrase) s.eVar42 = shop.search.phrase.toLowerCase();
+    if (shop.auth) {
+      s.eVar45 = `${shop.auth.surface || 'unknown'}:${shop.auth.method || 'signout'}`;
+      if (name === 'shopSignIn' && shop.auth.method === 'signup') add('event57');
+    }
+  }
+  if (search) {
+    if (search.phrase) s.eVar42 = search.phrase.toLowerCase();
+    if (search.resultType) s.eVar43 = search.resultType;
+    if (name === 'siteSearchClick' && search.resultType === 'sherpa') add('event54');
+  }
+  if (events.length) {
+    s.events = [...new Set([...(s.events || '').split(',').filter(Boolean), ...events])].join(',');
+  }
 }
 
 /* ---------- consented product view history (feeds recommendations) ---------- */
@@ -94,7 +165,6 @@ export async function startShopAnalytics() {
   flushPendingPurchase();
   const { events } = await import('@dropins/tools/event-bus.js');
   const viewed = new Set();
-  let lastAuthState;
 
   events.on('pdp/data', (product) => {
     if (!product?.sku || viewed.has(product.sku)) return;
@@ -187,14 +257,6 @@ export async function startShopAnalytics() {
       });
     });
   });
-
-  events.on('authenticated', (signedIn) => {
-    // the auth drop-in announces the initial state on load — only track real transitions
-    if (lastAuthState !== undefined && signedIn !== lastAuthState) {
-      pushShopEvent(signedIn ? 'shopSignIn' : 'shopSignOut', { eventType: 'web.webinteraction.linkClicks' });
-    }
-    lastAuthState = signedIn;
-  }, { eager: true });
 
   document.addEventListener('click', (e) => {
     const link = e.target.closest?.('.product-recommendations a[href*="/products/"]');
