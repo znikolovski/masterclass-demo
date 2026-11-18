@@ -134,8 +134,12 @@ Authors search the catalog and insert products from the **Commerce Catalog** lib
   5. CTA link (optional)
 
   It sends one `products(skus)` request to the mesh, uses Dynamic Media renditions, and drops
-  unknown SKUs. It is registered as **Commerce Cards** in the block library. The test page is
-  `drafts/cards-commerce.plain.html`.
+  unknown SKUs. Each card shows the same details as the shop search grid
+  (`scripts/product-card.js`): a sale badge with the percentage off, a sold-out badge, the main
+  material, a spec bar, the activity eyebrow, and the sale price with the regular price struck
+  through and the saving. Cards keep their own colours inside `accent`, `inverse` and `dark`
+  sections, and rows are centred. It is registered as **Commerce Cards** in the block library.
+  The test page is `drafts/cards-commerce.plain.html`.
 
 ## Environments
 

@@ -9,6 +9,7 @@
  */
 import { readBlockConfig } from '../../scripts/aem.js';
 import { initializeCommerce, getProductLink } from '../../scripts/commerce.js';
+import { cardBadges, cardSpecs, productAttr } from '../../scripts/product-card.js';
 import { getSearchStateFromUrl, applySearchStateToUrl } from './search-url.js';
 
 const el = (tag, className, text) => {
@@ -17,41 +18,6 @@ const el = (tag, className, text) => {
   if (text != null) node.textContent = text;
   return node;
 };
-
-const attr = (product, name) => product.attributes?.find((a) => a.name === name)?.value;
-
-/** Up to two short spec fragments for the card spec bar, e.g. "410 g · 20 000 mm". */
-function cardSpecs(product) {
-  const specs = [];
-  const weight = attr(product, 'weight_g');
-  if (weight) specs.push(`${new Intl.NumberFormat('en-AU').format(Number(weight))} g`);
-  const capacity = attr(product, 'capacity_l');
-  if (capacity) specs.push(`${capacity} L`);
-  const waterproof = attr(product, 'waterproof_rating');
-  if (waterproof) specs.push(String(waterproof));
-  if (specs.length < 2) {
-    const material = String(attr(product, 'material') || '').split(',')[0].trim();
-    if (material) specs.push(material);
-  }
-  return specs.slice(0, 2);
-}
-
-function priceOf(product) {
-  const p = product.price || product.priceRange?.minimum;
-  return { final: p?.final?.amount?.value, regular: p?.regular?.amount?.value };
-}
-
-function cardBadges(product) {
-  const badges = [];
-  const { final, regular } = priceOf(product);
-  if (final && regular && final < regular) {
-    badges.push(['sale', `Sale −${Math.round((1 - final / regular) * 100)}%`]);
-  }
-  if (product.inStock === false) badges.push(['muted', 'Sold out']);
-  const material = String(attr(product, 'material') || '').split(',')[0].trim();
-  if (material && material.length <= 28) badges.push(['', material]);
-  return badges.slice(0, 2);
-}
 
 const filterValueLabel = (filter) => {
   if (!filter.range) return filter.eq;
@@ -205,7 +171,7 @@ export default async function decorate(block) {
         ProductName: (ctx) => {
           const { product } = ctx;
           const wrapper = el('div', 'shop-card__heading');
-          const activity = attr(product, 'activity');
+          const activity = productAttr(product, 'activity');
           if (activity) wrapper.append(el('span', 'shop-eyebrow', activity));
           const link = el('a', 'shop-card__name', product.name);
           link.href = getProductLink(product.urlKey);
