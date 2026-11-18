@@ -434,6 +434,88 @@ header nav .nav-search-icon {
 }
 
 @media (width < 900px) {
+  header nav[aria-expanded='true'] {
+    position: fixed;
+    inset: 0;
+    grid-template:
+      'hamburger brand' var(--nav-height)
+      'sections sections' minmax(0, 1fr)
+      'tools tools' auto / auto 1fr;
+    max-width: none;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  header nav[aria-expanded='true'] .nav-sections {
+    align-self: stretch;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  header nav .nav-sections > ul {
+    margin: 0;
+    padding-block: 16px;
+  }
+
+  header nav .nav-sections > ul > li + li {
+    margin-top: 24px;
+    border-top: 1px solid rgb(221 216 207);
+    padding-top: 24px;
+  }
+
+  header nav .nav-drop > p,
+  header nav .nav-panel-heading,
+  header nav .nav-panel-section > p {
+    display: block;
+    margin-bottom: 16px;
+    font-family: var(--heading-font-family);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    line-height: 1.4;
+  }
+
+  header nav .nav-panel,
+  header nav .nav-panel-articles {
+    display: grid;
+    gap: 20px;
+    margin: 0;
+  }
+
+  header nav .nav-panel-link,
+  header nav .nav-article {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dark-color);
+  }
+
+  header nav .nav-panel p {
+    line-height: inherit;
+  }
+
+  header nav .nav-panel-link a,
+  header nav .nav-article a {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  header nav .nav-panel-link a:hover,
+  header nav .nav-article a:hover {
+    color: var(--accent-color);
+  }
+
+  header nav .nav-tools {
+    flex-wrap: wrap;
+    padding-block: 16px 24px;
+    border-top: 1px solid rgb(221 216 207);
+  }
+
   header nav .nav-search-item form {
     width: min(100%, 320px);
   }
@@ -536,6 +618,15 @@ header nav .nav-commerce .nav-account-menu {
 
 header nav .nav-commerce .nav-account-menu[hidden] {
   display: none;
+}
+
+@media (width < 900px) {
+  header nav[aria-expanded='true'] .nav-commerce .nav-account-menu {
+    inset: auto auto calc(100% + 10px) 0;
+    width: min(320px, calc(100vw - 48px));
+    max-height: calc(100dvh - var(--nav-height) - 110px);
+    overflow-y: auto;
+  }
 }
 
 header nav .nav-commerce .nav-account-menu p {
