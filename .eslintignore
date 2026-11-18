@@ -7,3 +7,5 @@ blocks/form/**
 blocks/embed-adaptive-form/**
 skills/of1-style-generative-block/assets/of1.js
 scripts/__dropins__/**
+# vendored from markszulc/ew-ext-commerce (keep in sync with upstream; WKND patch marked in-file)
+tools/commerce-catalog/**

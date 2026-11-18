@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Commerce Catalog</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./commerce-catalog.css"/>
+    <!-- Import DA App SDK -->
+    <script src="https://da.live/nx/utils/sdk.js" type="module"></script>
+    <!-- Spectrum Web Components (vendored bundle, see src/spectrum.js) -->
+    <script src="./vendor/spectrum.js" type="module"></script>
+    <!-- Plugin logic -->
+    <script src="./commerce-catalog.js" type="module"></script>
+  </head>
+  <body>
+    <sp-theme system="spectrum-two" color="light" scale="medium">
+      <main id="app" aria-live="polite">
+        <!-- Browse view -->
+        <section id="browse-view" class="view">
+          <header class="toolbar">
+            <div class="toolbar-row">
+              <sp-search id="search" label="Search products" placeholder="Search by name or SKU" size="m"></sp-search>
+              <sp-action-button id="settings-btn" quiet label="Catalog settings" title="Catalog settings">
+                <sp-icon-settings slot="icon"></sp-icon-settings>
+              </sp-action-button>
+            </div>
+            <div class="toolbar-row">
+              <sp-picker id="category" label="Category" size="s" value="">
+                <sp-menu-item value="">All categories</sp-menu-item>
+              </sp-picker>
+              <sp-picker id="sort" label="Sort" size="s" value="relevance">
+                <sp-menu-item value="relevance">Relevance</sp-menu-item>
+                <sp-menu-item value="name:ASC">Name A–Z</sp-menu-item>
+                <sp-menu-item value="name:DESC">Name Z–A</sp-menu-item>
+                <sp-menu-item value="price:ASC">Price low–high</sp-menu-item>
+                <sp-menu-item value="price:DESC">Price high–low</sp-menu-item>
+              </sp-picker>
+            </div>
+            <div class="toolbar-row">
+              <sp-field-label for="format" side-aligned="start" size="s">Insert as</sp-field-label>
+              <sp-picker id="format" label="Insert as" size="s"></sp-picker>
+            </div>
+            <div class="toolbar-row meta-row">
+              <span id="result-count" class="result-count"></span>
+              <sp-switch id="thumbs" size="s" emphasized>Thumbnails</sp-switch>
+            </div>
+          </header>
+          <sp-divider size="s"></sp-divider>
+          <div id="notice" class="notice" hidden></div>
+          <ul id="results" class="results" role="list"></ul>
+          <div id="status" class="status" hidden></div>
+          <div class="load-more">
+            <sp-button id="load-more" variant="secondary" treatment="outline" size="s" hidden>Load more</sp-button>
+          </div>
+          <div id="selection-bar" class="selection-bar" hidden>
+            <span id="selection-count" class="selection-count"></span>
+            <sp-button id="selection-clear" variant="secondary" treatment="outline" size="s">Clear</sp-button>
+            <sp-button id="selection-insert" variant="accent" size="s">Insert</sp-button>
+          </div>
+        </section>
+
+        <!-- Product detail view -->
+        <section id="detail-view" class="view" hidden>
+          <header class="toolbar detail-toolbar">
+            <sp-action-button id="back-btn" quiet label="Back to results">
+              <sp-icon-chevron-left slot="icon"></sp-icon-chevron-left>
+              Back
+            </sp-action-button>
+          </header>
+          <sp-divider size="s"></sp-divider>
+          <div id="detail" class="detail"></div>
+        </section>
+
+        <!-- Settings view -->
+        <section id="settings-view" class="view" hidden>
+          <header class="toolbar detail-toolbar">
+            <sp-action-button id="settings-back-btn" quiet label="Back to results">
+              <sp-icon-chevron-left slot="icon"></sp-icon-chevron-left>
+              Back
+            </sp-action-button>
+          </header>
+          <sp-divider size="s"></sp-divider>
+          <form id="settings-form" class="settings">
+            <h2 class="heading">Catalog connection</h2>
+            <p id="config-source" class="body-s"></p>
+            <sp-field-label for="cfg-endpoint" size="s">Catalog Service endpoint</sp-field-label>
+            <sp-textfield id="cfg-endpoint" size="s" placeholder="https://…/graphql"></sp-textfield>
+            <sp-field-label for="cfg-headers" size="s">Request headers (JSON)</sp-field-label>
+            <sp-textfield id="cfg-headers" size="s" multiline grows></sp-textfield>
+            <sp-help-text id="cfg-help" size="s">Magento-Environment-Id, Magento-Website-Code, Magento-Store-Code, Magento-Store-View-Code, x-api-key…</sp-help-text>
+
+            <h2 class="heading settings-heading">Insert formats</h2>
+            <p id="templates-source" class="body-s"></p>
+            <sp-field-label for="cfg-templates" size="s">Templates (JSON)</sp-field-label>
+            <sp-textfield id="cfg-templates" size="s" multiline grows></sp-textfield>
+            <sp-help-text size="s">
+              List of { "name", "template" }. Placeholders: {{sku}} {{name}} {{price}} {{url}} {{urlKey}} {{image}}.
+              Plain text is typed at the cursor; HTML is inserted, and AEM block markup
+              (&lt;div class="block-name"&gt;&lt;div&gt;&lt;div&gt;…) becomes a block table.
+              Site-wide formats come from a "commerce-templates" tab (name, template) in the site config.
+            </sp-help-text>
+            <div class="button-row">
+              <sp-button id="cfg-reset" variant="secondary" treatment="outline" size="s">Reset to site config</sp-button>
+              <sp-button id="cfg-save" variant="accent" size="s">Save</sp-button>
+            </div>
+          </form>
+        </section>
+      </main>
+      <div id="toasts" class="toasts"></div>
+    </sp-theme>
+  </body>
+</html>

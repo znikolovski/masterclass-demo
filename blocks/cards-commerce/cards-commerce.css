@@ -1,0 +1,140 @@
+/* Commerce cards — WKND site cards (10px radius, light border, pill CTA). Self-contained: used
+   on any page, not only shop pages where styles/commerce.css loads. */
+.cards-commerce .cards-commerce__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cards-commerce .cards-commerce__card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dadada;
+  border-radius: 10px;
+  background: var(--background-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cards-commerce .cards-commerce__card:not(.cards-commerce__card--loading):hover {
+  border-color: var(--text-color);
+  box-shadow: 4px 4px 0 0 var(--accent-color);
+}
+
+.cards-commerce .cards-commerce__media {
+  display: block;
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--light-color);
+}
+
+.cards-commerce .cards-commerce__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.cards-commerce .cards-commerce__card:hover .cards-commerce__media img {
+  transform: scale(1.03);
+}
+
+.cards-commerce .cards-commerce__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 5px 8px 3px;
+  border-radius: 9999px;
+  background: var(--text-color);
+  color: #fff;
+  font: 700 10.4px/1.2 var(--heading-font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cards-commerce .cards-commerce__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.cards-commerce .cards-commerce__body p {
+  margin: 0;
+}
+
+.cards-commerce .cards-commerce__eyebrow {
+  color: var(--accent-color);
+  font: 700 11px/1.3 var(--heading-font-family);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cards-commerce .cards-commerce__name {
+  margin: 0;
+  font: 700 16px/1.3 var(--heading-font-family);
+}
+
+.cards-commerce .cards-commerce__name a:any-link {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.cards-commerce .cards-commerce__name a:hover {
+  color: var(--accent-color);
+}
+
+.cards-commerce .cards-commerce__description {
+  color: var(--text-color);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.cards-commerce .cards-commerce__price {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 18px;
+}
+
+.cards-commerce .cards-commerce__price del {
+  color: #6b6b6b;
+  font-size: 15px;
+}
+
+.cards-commerce .cards-commerce__cta {
+  padding-top: 8px;
+}
+
+/* skeleton while the catalog loads (reserves the card's space) */
+.cards-commerce .cards-commerce__card--loading .cards-commerce__body p {
+  height: 14px;
+  border-radius: 4px;
+  background: var(--light-color);
+}
+
+.cards-commerce .cards-commerce__card--loading .cards-commerce__body p:nth-child(2) {
+  width: 70%;
+  height: 20px;
+}
+
+.cards-commerce .cards-commerce__card--loading .cards-commerce__body p:nth-child(3) {
+  width: 40%;
+  margin-top: 24px;
+}
+
+main .section.cards-commerce--empty {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cards-commerce .cards-commerce__card,
+  .cards-commerce .cards-commerce__media img {
+    transition: none;
+  }
+}

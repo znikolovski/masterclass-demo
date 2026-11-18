@@ -93,6 +93,48 @@ Templates and the model contract are unchanged. Test with
      (`events/aem-assets-registration.json`) triggers `asset-events`.
   3. In the admin UI, use **Re-match from AEM** to relink a product on demand.
 
+## Commerce Catalog in Experience Workspace
+
+Authors search the catalog and insert products from the **Commerce Catalog** library plugin.
+
+- **Plugin.** `tools/commerce-catalog/` is vendored from
+  [markszulc/ew-ext-commerce](https://github.com/markszulc/ew-ext-commerce) and lint-ignored.
+  There is one WKND patch (marked in the file): the category picker also accepts the
+  `categoryPath` facet that this backend returns. Keep the rest in sync with upstream.
+- **Library rows.** These are in the DA site config Library tab and are managed by
+  `tools/sidekick/setup-da-library.mjs`:
+  - `Commerce Catalog` points at `main`.
+  - A temporary `Commerce Catalog (shop-storefront)` row with `ref = shop-storefront` points at
+    the branch preview. Use it with `da.live/edit?ref=shop-storefront#/…`, and remove it after
+    the merge.
+- **Catalog connection.** The plugin reads `public.default.commerce-endpoint` and
+  `headers.all` / `headers.cs` from the site's `/config.json`. That is the Config Service
+  `public.json` `default` entry, which mirrors the default export of `scripts/commerce-config.js`.
+  If the mesh endpoint or headers change, update both.
+- **Insert formats.** These come from the `commerce-templates` sheet in the DA site config. It is
+  seeded once, and authors can edit it:
+
+  | Format | Inserts |
+  |---|---|
+  | Product cards | A `cards-commerce` block with one row per selected product |
+  | Product link | `/shop/products/{{urlKey}}` |
+  | SKU | The SKU as plain text |
+  | Similar gear | `product-recommendations` with `wknd-pdp-more-like-this` and `sku` |
+  | Complete the kit | `product-recommendations` with `wknd-pdp-complete-kit` and `sku` |
+
+  The recommendation formats use one anchor product. If several products are selected, the last
+  one wins.
+- **`cards-commerce` block.** Use it on any page. It has one row per product with these cells:
+  1. SKU
+  2. Eyebrow (optional)
+  3. Description (optional)
+  4. CTA text (optional)
+  5. CTA link (optional)
+
+  It sends one `products(skus)` request to the mesh, uses Dynamic Media renditions, and drops
+  unknown SKUs. It is registered as **Commerce Cards** in the block library. The test page is
+  `drafts/cards-commerce.plain.html`.
+
 ## Environment and setup checklist
 
 | Step | Status / how |

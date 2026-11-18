@@ -163,6 +163,12 @@ function buildLibraryRows(existingRows = []) {
       experience: 'dialog',
     },
     {
+      // Commerce catalog search/insert (vendored markszulc/ew-ext-commerce; formats come from
+      // the commerce-templates sheet, catalog connection from the site's /config.json)
+      title: 'Commerce Catalog',
+      path: `${PREVIEW_BASE}/tools/commerce-catalog/commerce-catalog.html`,
+    },
+    {
       // EW Extensions panel (classic DA uses Prepare → Send to Adobe Target OOTB).
       title: 'Send to Adobe Target',
       path: `${PREVIEW_BASE}/tools/adobe-target/adobe-target.html`,
@@ -172,6 +178,28 @@ function buildLibraryRows(existingRows = []) {
   ];
   required.forEach((row) => byTitle.set(row.title, { ...byTitle.get(row.title), ...row }));
   return [...byTitle.values()];
+}
+
+/**
+ * Insert formats for the Commerce Catalog plugin (seeded once; authors edit the sheet in DA).
+ * Product cards = blocks/cards-commerce (one row per selected product).
+ */
+const COMMERCE_TEMPLATES = [
+  { name: 'Product cards', template: '<div class="cards-commerce"><div><div>{{sku}}</div></div></div>' },
+  { name: 'Product link', template: '<p><a href="/shop/products/{{urlKey}}">{{name}}</a></p>' },
+  { name: 'SKU', template: '{{sku}}' },
+  { name: 'Similar gear (recommendations)', template: '<div class="product-recommendations"><div><div>unit-id</div><div>wknd-pdp-more-like-this</div></div><div><div>sku</div><div>{{sku}}</div></div></div>' },
+  { name: 'Complete the kit (recommendations)', template: '<div class="product-recommendations"><div><div>unit-id</div><div>wknd-pdp-complete-kit</div></div><div><div>sku</div><div>{{sku}}</div></div></div>' },
+];
+
+function commerceTemplatesSheet(existing) {
+  if (existing?.['commerce-templates']) return existing['commerce-templates'];
+  return {
+    total: COMMERCE_TEMPLATES.length,
+    limit: COMMERCE_TEMPLATES.length,
+    offset: 0,
+    data: COMMERCE_TEMPLATES,
+  };
 }
 
 function orderMultiSheetConfig(sheets, names) {
@@ -211,9 +239,11 @@ function buildDaConfig(existing) {
     if (!names.includes(n)) names.push(n);
   });
 
+  if (!names.includes('commerce-templates')) names.push('commerce-templates');
+
   if (existing?.[':type'] === 'multi-sheet') {
     return orderMultiSheetConfig(
-      { ...existing, library: librarySheet },
+      { ...existing, library: librarySheet, 'commerce-templates': commerceTemplatesSheet(existing) },
       names,
     );
   }
@@ -240,8 +270,9 @@ function buildDaConfig(existing) {
       data,
       permissions,
       library: librarySheet,
+      'commerce-templates': commerceTemplatesSheet(existing),
     },
-    ['data', 'permissions', 'library'],
+    ['data', 'permissions', 'library', 'commerce-templates'],
   );
 }
 
