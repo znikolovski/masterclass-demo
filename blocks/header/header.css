@@ -583,9 +583,12 @@ header nav .nav-tools .nav-commerce .nav-account-menu__links a:any-link {
   padding: 12px 0;
   border-radius: 0;
   color: var(--text-color);
+  font-family: var(--body-font-family);
   font-size: 16px;
   font-weight: 500;
+  letter-spacing: normal;
   text-decoration: none;
+  text-transform: none;
 }
 
 header nav .nav-tools .nav-commerce .nav-account-menu__links a:hover {

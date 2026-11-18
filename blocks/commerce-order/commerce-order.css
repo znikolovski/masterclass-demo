@@ -27,3 +27,24 @@ main .commerce-order img {
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
+
+/* drop-in cards and headings on the site design system */
+main .commerce-order .dropin-card {
+  border: 1px solid #dadada;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+main .commerce-order .dropin-header-container__title {
+  font-family: var(--heading-font-family);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+main .commerce-order .order-customer-details-content__container-title {
+  color: var(--accent-color);
+  font: 700 11px/1.4 var(--heading-font-family);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}

@@ -180,26 +180,25 @@ main .commerce-account .account-orders-list__controls {
   margin-bottom: 20px;
 }
 
-main .commerce-account .dropin-picker {
-  display: inline-flex;
-  position: relative;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 260px;
-  background: transparent;
-}
-
-main .commerce-account .dropin-picker__floatingLabel {
-  position: static;
-  order: -1;
-  transform: none;
+main .commerce-account .account-orders-list__date-select .dropin-field__label {
+  margin-bottom: 6px;
   color: var(--shop-muted, #5c5c5c);
   font: 700 11px/1.4 var(--heading-font-family);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-main .commerce-account .dropin-picker__select {
+main .commerce-account .dropin-picker {
+  position: relative;
+  display: block;
+  width: max-content;
+  min-width: 220px;
+  height: auto;
+  background: transparent;
+}
+
+main .commerce-account .dropin-picker .dropin-picker__select {
+  width: 100%;
   height: 44px;
   padding: 0 44px 0 18px;
   border: 1.5px solid var(--text-color);
@@ -210,15 +209,16 @@ main .commerce-account .dropin-picker__select {
   cursor: pointer;
 }
 
-main .commerce-account .dropin-picker__select:focus-visible {
+main .commerce-account .dropin-picker .dropin-picker__select:focus-visible {
   outline: none;
   box-shadow: 3px 3px 0 0 var(--accent-color);
 }
 
 main .commerce-account .dropin-picker__chevronDown {
   position: absolute;
+  top: 50%;
   right: 16px;
-  bottom: 12px;
+  transform: translateY(-50%);
   pointer-events: none;
 }
 
@@ -239,28 +239,50 @@ main .commerce-account .account-orders-list-card:hover {
   border-color: var(--text-color);
 }
 
+/* order card: status as an eyebrow, compact facts, total emphasised */
+main .commerce-account .account-orders-list-card .account-orders-list-card__content > * {
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+main .commerce-account .account-orders-list-card .account-orders-list-card__content > :first-child {
+  margin-bottom: 10px;
+  color: var(--accent-color);
+  font: 700 11px/1.4 var(--heading-font-family);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+main .commerce-account .account-orders-list-card .account-orders-list-card__content > p:nth-of-type(3) {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+main .commerce-account .account-orders-list-card__product-list {
+  margin-top: 10px;
+  color: var(--shop-muted, #5c5c5c);
+}
+
 main .commerce-account .account-orders-list-card img {
   border-radius: 8px;
   background: var(--light-color);
   object-fit: cover;
 }
 
-main .commerce-account .account-empty-list {
-  padding: 40px 24px;
+/* empty states: one light panel (the drop-in nests a card inside its wrapper) */
+main .commerce-account .account-empty-list .dropin-card {
+  border: 0;
   border-radius: 10px;
   background: var(--light-color);
   box-shadow: none;
-  text-align: center;
 }
 
 main .commerce-account .account-empty-list svg {
   color: var(--accent-color);
 }
 
-/* the empty-state labels inherit the display font: keep them readable sentence case */
-main .commerce-account .account-empty-list :is(p, span, h2, h3) {
-  font-family: var(--body-font-family);
-  font-size: 16px;
+main .commerce-account .account-empty-list .dropin-illustrated-message__message {
+  font: 600 16px/1.4 var(--body-font-family);
   letter-spacing: normal;
   text-transform: none;
 }

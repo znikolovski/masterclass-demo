@@ -4,7 +4,7 @@
  * Authoring: none. The page paints from the cached account state (no flash of the sign-in
  * prompt for returning customers); the session is restored and the drop-ins load afterwards.
  */
-import { getAccountState } from '../../scripts/account-state.js';
+import { getAccountState, setAccountState } from '../../scripts/account-state.js';
 import { shopPromises } from '../../scripts/shop-promises.js';
 import { shopStylesReady } from '../../scripts/shop-styles.js';
 
@@ -137,8 +137,12 @@ async function hydrate(block) {
 
   shopAuth.getShopProfile().then((profile) => {
     if (!profile) return;
-    const name = profile.name && profile.name !== profile.email ? profile.name : '';
-    block.querySelector('.account__name').textContent = name || profile.given_name || 'Your account';
+    const state = setAccountState(profile);
+    block.querySelector('.account__avatar').textContent = state.initials;
+    const realName = (v) => (v && !v.includes('@') ? v : '');
+    const name = realName([profile.given_name, profile.family_name].filter(Boolean).join(' '))
+      || realName(profile.name) || realName(profile.nickname);
+    block.querySelector('.account__name').textContent = name || 'Your account';
     block.querySelector('.account__email').textContent = profile.email || '';
     block.querySelector('.account__detail-name').textContent = name || '—';
     block.querySelector('.account__detail-email').textContent = profile.email || '—';

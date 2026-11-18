@@ -22,11 +22,15 @@ function announce(state) {
 }
 
 /**
- * @param {{ given_name?: string, family_name?: string, name?: string, nickname?: string }} profile
+ * @param {{ given_name?: string, family_name?: string, name?: string, nickname?: string,
+ *   email?: string }} profile
  */
 export function setAccountState(profile) {
-  const [first = '', ...rest] = (profile?.name || '').split(' ').filter(Boolean);
-  const firstName = profile?.given_name || first || profile?.nickname || '';
+  // database (email/password) users often have their email as `name`; never show it as a name
+  const realName = (v) => (v && !v.includes('@') ? v : '');
+  const [first = '', ...rest] = realName(profile?.name).split(' ').filter(Boolean);
+  const firstName = profile?.given_name || first || realName(profile?.nickname)
+    || (profile?.email || '').split('@')[0];
   const lastName = profile?.family_name || rest.at(-1) || '';
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'W';
   const state = { firstName, initials };
