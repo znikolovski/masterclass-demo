@@ -5,6 +5,7 @@
 
 import { deriveAdventureCategory } from './adventure-category.js';
 import { mapJourneyToAnalytics } from './journey-analytics.js';
+import { mapShopToAnalytics } from './shop-analytics.js';
 import { sanitizeJourneyUrl } from './journey-context.js';
 
 const JOURNEY_STAGE_SEGMENTS = {
@@ -247,5 +248,6 @@ export function mapPageToAnalytics(content) {
   if (cid) s.eVar1 = cid;
 
   mapJourneyToAnalytics(content);
+  mapShopToAnalytics(content);
   return true;
 }

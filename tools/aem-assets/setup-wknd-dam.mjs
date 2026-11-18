@@ -15,12 +15,14 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureFolderTree as ensureTree } from './dam-upload.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SPEC = JSON.parse(readFileSync(join(__dirname, 'wknd-adventures-metadata-form.spec.json'), 'utf8'));
 
 const DEFAULT_AUTHOR = `https://${SPEC.authorUrl}`;
 const DRY_RUN = process.argv.includes('--dry-run');
+const ensureFolderTree = (authorUrl, damPath, title, headers) => ensureTree(authorUrl, damPath, title, headers, { dryRun: DRY_RUN });
 
 function getAuthHeaders() {
   const token = process.env.AEM_ACCESS_TOKEN?.trim();
@@ -34,77 +36,6 @@ function getAuthHeaders() {
     return { Authorization: `Basic ${basic}` };
   }
   return null;
-}
-
-/**
- * AEM Assets API paths omit /content/dam prefix.
- * @param {string} damPath e.g. /content/dam/wknd-adventures/heroes
- */
-function toApiPath(damPath) {
-  const prefix = '/content/dam/';
-  if (!damPath.startsWith(prefix)) {
-    throw new Error(`Invalid DAM path: ${damPath}`);
-  }
-  return damPath.slice(prefix.length);
-}
-
-async function folderExists(authorUrl, apiPath, headers) {
-  const res = await fetch(`${authorUrl}/api/assets/${apiPath}.json`, { headers });
-  if (res.status === 200) return true;
-  if (res.status === 404) return false;
-  const body = await res.text();
-  throw new Error(`GET /api/assets/${apiPath}.json → ${res.status}: ${body.slice(0, 200)}`);
-}
-
-async function createFolder(authorUrl, parentApiPath, folderName, title, headers) {
-  const url = parentApiPath
-    ? `${authorUrl}/api/assets/${parentApiPath}/${folderName}`
-    : `${authorUrl}/api/assets/${folderName}`;
-
-  if (DRY_RUN) {
-    console.log(`[dry-run] POST ${url} (title: ${title})`);
-    return { status: 201, dryRun: true };
-  }
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      class: 'assetFolder',
-      properties: { 'jcr:title': title, title },
-    }),
-  });
-
-  const body = await res.text();
-  if (res.status === 201) {
-    console.log(`✓ Created ${folderName} (${res.status})`);
-    return { status: res.status };
-  }
-  if (res.status === 409) {
-    console.log(`· Exists  ${folderName} (409)`);
-    return { status: res.status };
-  }
-  throw new Error(`POST ${url} → ${res.status}: ${body.slice(0, 300)}`);
-}
-
-async function ensureFolderTree(authorUrl, damPath, title, headers) {
-  const segments = toApiPath(damPath).split('/');
-  let parent = '';
-  for (let i = 0; i < segments.length; i += 1) {
-    const name = segments[i];
-    const apiPath = segments.slice(0, i + 1).join('/');
-    const exists = await folderExists(authorUrl, apiPath, headers);
-    if (exists) {
-      console.log(`· Exists  /content/dam/${apiPath}`);
-    } else {
-      const segmentTitle = i === segments.length - 1 ? title : name;
-      await createFolder(authorUrl, parent || null, name, segmentTitle, headers);
-    }
-    parent = apiPath;
-  }
 }
 
 async function main() {

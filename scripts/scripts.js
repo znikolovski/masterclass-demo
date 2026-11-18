@@ -15,7 +15,7 @@ import { initAssetAnalytics } from './asset-analytics.js';
 import { pushAnalyticsPageContext, pushErrorPageContext, isAemProductionHost } from './analytics-page.js';
 import { bindJourneyHandoffs, getJourney, pushJourneyEvent } from './journey-analytics.js';
 import { sanitizeJourneyUrl } from './journey-context.js';
-import { getOf1ArticleUrl } from './of1-context.js';
+import { getOf1ArticleUrl, getOf1Context } from './of1-context.js';
 import {
   getTargetZones,
   hoistTargetLocationToSection,
@@ -42,6 +42,7 @@ import {
   WEB_SDK_CONFIG,
   isMartechConfigured,
   getLaunchUrls,
+  shouldProcessDataLayerEvent,
 } from './martech-config.js';
 import addMarkdownAlternateLink from './markdown-alternate.js';
 import {
@@ -764,6 +765,27 @@ export function decorateMain(main) {
       const cardSection = [...main.children].find((child) => child.contains(adventureCards));
       main.insertBefore(section, cardSection);
     }
+    // Gear recommendations from the WKND shop, anchored on the adventures this response covers.
+    const adventureSection = adventureCards || main.querySelector('.adventure-facts');
+    const hasGear = sections.slice(turnStart + 1)
+      .some((section) => section.querySelector('.product-recommendations'));
+    if (adventureSection && !main.querySelector('.product-recommendations') && !hasGear) {
+      const slugs = new Set();
+      main.querySelectorAll('a[href]').forEach((link) => {
+        const match = link.pathname.match(/^\/(?:blog|adventures)\/([a-z0-9-]+)\/?$/);
+        if (match) slugs.add(match[1]);
+      });
+      const query = getOf1Context().query.replace(/\s+/g, ' ').trim().slice(0, 120);
+      const section = document.createElement('div');
+      section.append(buildBlock('product-recommendations', [
+        ['unit-id', 'wknd-of1-gear'],
+        ['heading', 'Gear up for this adventure'],
+        ['adventure', [...slugs].slice(0, 6).join(',')],
+        ['context', query],
+      ]));
+      const after = [...main.children].find((child) => child.contains(adventureSection));
+      main.insertBefore(section, after?.nextElementSibling || null);
+    }
   }
   // hopefully forward compatible button decoration
   decorateButtons(main);
@@ -1003,6 +1025,7 @@ async function loadMartech(doc = document) {
         personalization: isPersonalizationEnabled(doc),
         analytics: isAnalyticsEnabled(doc),
         trackPageView: isAnalyticsEnabled(doc),
+        shouldProcessEvent: shouldProcessDataLayerEvent,
         launchUrls: getLaunchUrls(),
         decisionScopes: getTargetDecisionScopes(main, doc),
         propositionMetadata: buildTargetApplyMetadata(main, doc),
@@ -1242,6 +1265,14 @@ async function loadSiteFooter(footerEl) {
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
+/**
+ * WKND Shop and account pages (drop-ins are only ever loaded on these or by commerce blocks).
+ */
+function isShopPath() {
+  const { pathname } = window.location;
+  return /^\/(shop|account)(\/|$)/.test(pathname) || /^\/drafts\/(shop|account)/.test(pathname);
+}
+
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   doc.body?.classList.add('appear');
@@ -1273,6 +1304,11 @@ async function loadEager(doc) {
       primeLcpImage(main);
     }
     decorateMain(main);
+    if (isShopPath()) {
+      doc.body.classList.add('shop');
+      // start drop-in setup in parallel with section loading; commerce blocks await it
+      import('./commerce.js').then((m) => m.initializeCommerce()).catch((e) => console.error('Shop init failed', e));
+    }
     if (!isLibraryPreview(doc)) {
       bindJourneyHandoffs(main);
       if (getRepolessSiteSlug(doc) === 'wknd-aero') {

@@ -40,7 +40,10 @@ The repository provides the basic structure, blocks, and configuration needed to
     ├── aem.js           # Core AEM Library for Edge Delivery page decoration logic (NEVER MODIFY THIS FILE)
     ├── scripts.js       # Global JavaScript utilities, main entry point for page decoration
     ├── delayed.js       # Delayed functionality (non-martech)
-    └── martech-config.js # Web SDK datastream + Launch URLs (see docs/MARTECH.md; Target: skills/adobe-target-personalization)
+    ├── martech-config.js # Web SDK datastream + Launch URLs (see docs/MARTECH.md; Target: skills/adobe-target-personalization)
+    ├── commerce*.js     # WKND shop: Adobe Commerce drop-ins bootstrap/config (see docs/SHOP.md)
+    ├── initializers/    # Drop-in initializers (one per drop-in)
+    └── __dropins__/     # Vendored, pinned @dropins/* (npm run install:dropins; never edit, lint-ignored)
 ├── .agents/skills/  # Primary Adobe agent skill library (see Agent Skills)
 ├── skills/          # Project-specific agent skills (e.g. Target personalization)
 ├── fonts/           # Web fonts
@@ -138,7 +141,7 @@ This project ships **Adobe agent skills** — structured workflows that agents m
 1. **Read the skill file first** — Before starting a task, open the matching `SKILL.md` and follow its workflow end to end. Do not improvise when a skill exists.
 2. **Match task to skill** — Use the catalog below. For orchestrator skills (`aem-workflow`, `dispatcher`, `aem-replication`, `content-distribution`, `stardust`), read the orchestrator first; it routes to sub-skills.
 3. **Use MCP when the skill requires it** — Analytics skills use Adobe Analytics or CJA MCP; Target delivery uses Target MCP; Dispatcher skills use Dispatcher MCP. Authenticate per the skill (e.g. [auth](.agents/skills/auth/SKILL.md), [da-auth](.agents/skills/da-auth/SKILL.md)).
-4. **Project plans** — Martech and analytics implementation details are also documented in [`docs/TARGET-PERSONALIZATION-PLAN.md`](docs/TARGET-PERSONALIZATION-PLAN.md), [`docs/ANALYTICS-LAUNCH-PLAN.md`](docs/ANALYTICS-LAUNCH-PLAN.md), and related `docs/*-PLAN.md` files.
+4. **Project plans** — Martech and analytics implementation details are also documented in [`docs/TARGET-PERSONALIZATION-PLAN.md`](docs/TARGET-PERSONALIZATION-PLAN.md), [`docs/ANALYTICS-LAUNCH-PLAN.md`](docs/ANALYTICS-LAUNCH-PLAN.md), and related `docs/*-PLAN.md` files. The WKND shop (Commerce drop-ins, mock Commerce backend in the sibling App Builder repo `../wknd-commerce`, Content AI search, OF1 gear recommendations) is documented in [`docs/SHOP.md`](docs/SHOP.md) and [`docs/SHOP-ANALYTICS-PLAN.md`](docs/SHOP-ANALYTICS-PLAN.md).
 
 ### Default EDS development workflow
 

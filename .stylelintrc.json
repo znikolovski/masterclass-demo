@@ -1,3 +1,17 @@
 {
-  "extends": ["stylelint-config-standard"]
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "blocks/product-*/**/*.css",
+        "blocks/commerce-*/**/*.css",
+        "styles/commerce.css"
+      ],
+      "rules": {
+        "selector-class-pattern": null
+      }
+    }
+  ]
 }

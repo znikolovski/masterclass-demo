@@ -10,7 +10,7 @@
       "path",
       "value"
     ],
-    "total": 28,
+    "total": 29,
     "data": [
       {
         "name": "Adventure Facts",
@@ -41,6 +41,11 @@
         "name": "Cards Steps",
         "path": "/blocks/cards-steps/cards-steps.html",
         "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/cards-steps/cards-steps.html"
+      },
+      {
+        "name": "Commerce Cards",
+        "path": "/blocks/cards-commerce/cards-commerce.html",
+        "value": "https://main--masterclass-demo--znikolovski.aem.page/blocks/cards-commerce/cards-commerce.html"
       },
       {
         "name": "Carousel Blog",

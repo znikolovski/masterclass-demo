@@ -311,6 +311,12 @@ async function pushSiteConfig(opts, token) {
   const contentBody = {
     source: { url: opts.contentUrl, type: 'markup' },
   };
+  // BYOM overlay (WKND shop PDPs from the wknd-commerce pdp-markup action) for the main site
+  const defaultManifest = join(CONFIG_DIR, 'repoless.site.json');
+  if (opts.site === DEFAULTS.site && existsSync(defaultManifest)) {
+    const { overlay } = JSON.parse(readFileSync(defaultManifest, 'utf8')).content || {};
+    if (overlay?.url) contentBody.overlay = overlay;
+  }
 
   const siteManifest = join(CONFIG_DIR, `repoless.${opts.site}.site.json`);
   const rootSitePath = `/config/${opts.org}/sites/${opts.site}.json`;

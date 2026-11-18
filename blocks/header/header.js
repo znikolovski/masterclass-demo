@@ -1,4 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { ACCOUNT_EVENT, getAccountState } from '../../scripts/account-state.js';
 
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
@@ -107,6 +108,100 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   }
 }
 
+const ACCOUNT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>';
+
+/**
+ * Header account control: initials when signed in (from the cached account state, so no Auth0
+ * code loads on page view), a person icon otherwise. The menu (sign in / create account, or
+ * account links and sign out) is loaded on first use from account-menu.js.
+ * @param {HTMLButtonElement} button
+ */
+function decorateAccount(button) {
+  const render = (state) => {
+    button.classList.toggle('nav-account--signed-in', !!state);
+    if (state) {
+      button.innerHTML = '<span class="nav-account-initials" aria-hidden="true"></span>';
+      button.firstElementChild.textContent = state.initials;
+      button.setAttribute('aria-label', `Your WKND account${state.firstName ? `, signed in as ${state.firstName}` : ''}`);
+    } else {
+      button.innerHTML = ACCOUNT_ICON;
+      button.setAttribute('aria-label', 'Sign in or create a WKND account');
+    }
+  };
+  render(getAccountState());
+  window.addEventListener(ACCOUNT_EVENT, (e) => render(e.detail));
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'wknd:account') render(getAccountState());
+  });
+  button.addEventListener('click', async () => {
+    const { default: toggleAccountMenu } = await import('./account-menu.js');
+    toggleAccountMenu(button);
+  });
+}
+
+/**
+ * WKND Shop account + cart links. Lightweight on purpose: no drop-ins load here — the
+ * count is cached by shop pages (localStorage `wknd:cart-count`) and updated live via the
+ * `wknd:cart-count` event when the cart drop-in is active. The cart icon opens the mini cart
+ * drawer (mini-cart.js, loaded on first click).
+ * @param {Element} nav
+ */
+function decorateShopTools(nav) {
+  if (nav.querySelector('.nav-brand')?.textContent.toLowerCase().includes('business')) return;
+  let tools = nav.querySelector('.nav-tools');
+  if (!tools) {
+    tools = document.createElement('div');
+    tools.className = 'nav-tools';
+    nav.append(tools);
+  }
+  const shopRoot = window.location.pathname.startsWith('/drafts/shop') ? '/drafts/shop' : '/shop';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nav-commerce';
+  wrapper.innerHTML = `
+    <div class="nav-account-wrap">
+      <button type="button" class="nav-account" aria-haspopup="true" aria-expanded="false" aria-controls="nav-account-menu"></button>
+    </div>
+    <a class="nav-cart" href="${shopRoot}/cart">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+      <span class="nav-cart-count" hidden></span>
+    </a>`;
+  decorateAccount(wrapper.querySelector('.nav-account'));
+  const cart = wrapper.querySelector('.nav-cart');
+  const badge = wrapper.querySelector('.nav-cart-count');
+  const setCount = (value) => {
+    const count = Math.max(0, Number(value) || 0);
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.hidden = count === 0;
+    cart.setAttribute('aria-label', count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart');
+  };
+  try {
+    setCount(localStorage.getItem('wknd:cart-count'));
+  } catch {
+    setCount(0);
+  }
+  window.addEventListener('wknd:cart-count', (e) => setCount(e.detail));
+  // Plain clicks open the mini cart; modifier clicks and the cart/checkout pages keep the link.
+  const fullCartPage = [`${shopRoot}/cart`, `${shopRoot}/checkout`]
+    .includes(window.location.pathname.replace(/\/$/, ''));
+  if (!fullCartPage) {
+    cart.setAttribute('aria-haspopup', 'dialog');
+    cart.addEventListener('click', async (e) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      try {
+        const { default: openMiniCart } = await import('./mini-cart.js');
+        await openMiniCart(cart);
+      } catch {
+        window.location.href = cart.href;
+      }
+    });
+  }
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'wknd:cart-count') setCount(e.newValue);
+  });
+  tools.prepend(wrapper);
+}
+
 /**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -183,6 +278,20 @@ export default async function decorate(block) {
     searchForm.append(searchInput, searchButton);
     searchItem.append(searchForm);
     navSectionList.prepend(searchItem);
+
+    // Progressive enhancement: the form still submits to OF1 if the modal can't load.
+    const openSiteSearch = async (e) => {
+      e?.preventDefault();
+      const query = searchInput.value;
+      searchInput.blur();
+      const { openSearch } = await import('../search/search.js');
+      openSearch(searchButton, query);
+    };
+    searchInput.addEventListener('focus', openSiteSearch);
+    searchForm.addEventListener('submit', openSiteSearch);
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') openSiteSearch(e);
+    });
   }
 
   if (navSections) {
@@ -274,4 +383,5 @@ export default async function decorate(block) {
   navWrapper.className = 'nav-wrapper';
   navWrapper.append(nav);
   block.append(navWrapper);
+  decorateShopTools(nav);
 }
