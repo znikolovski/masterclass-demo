@@ -291,6 +291,11 @@ body.shop footer:empty {
   display: none;
 }
 
+/* recommendations authored in the cart's section (so their heading paints with it) */
+body.shop main .commerce-cart-wrapper + .default-content-wrapper {
+  margin-top: 48px;
+}
+
 body.shop main > .section.lcp-section {
   padding-block: 24px 48px;
 }
