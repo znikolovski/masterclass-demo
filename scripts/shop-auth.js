@@ -5,9 +5,13 @@
  * drop-in event bus so the cart merges guest carts and checkout/account switch to customer mode.
  */
 import {
-  getAccessToken, getUserProfile, hasSignedInBefore, restoreSession, signIn, signOut,
+  getAccessToken, getUserProfile, hasSignedInBefore, restoreSession, setCallbackPath, signIn,
+  signOut,
 } from './wknd-auth.js';
 import { SHOP_AUTH_CONFIG_URL } from './commerce-config.js';
+
+// Auth0 Allowed Callback URL for the shop is <origin>/shop/ (also used on /drafts/shop pages)
+setCallbackPath('/shop/');
 
 const TOKEN_COOKIE = 'auth_dropin_user_token';
 const PROFILE_COOKIES = ['auth_dropin_firstname', 'auth_dropin_lastname'];

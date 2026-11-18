@@ -19,6 +19,14 @@ let revision = 0;
 const listeners = new Set();
 
 const SIGNED_IN_HINT = 'wknd:signed-in';
+// Sign-in is popup-only, so nothing is ever loaded at the callback URL; Auth0 still requires it
+// to be an Allowed Callback URL. Aero uses its booking page; the shop sets /shop/.
+let callbackPath = '/book/flights';
+
+/** Callback path for this page's Auth0 client; call before the first sign-in/session call. */
+export function setCallbackPath(path) {
+  callbackPath = path;
+}
 
 function updateSession(value) {
   revision += 1;
@@ -76,7 +84,7 @@ async function createClient(configUrl) {
     authorizationParams: {
       audience: config.audience,
       scope: SCOPE,
-      redirect_uri: `${window.location.origin}/book/flights`,
+      redirect_uri: new URL(callbackPath, window.location.origin).href,
     },
   });
 }
