@@ -8,9 +8,13 @@
  *   cell 3  description (optional; defaults to the short description)
  *   cell 4  CTA text (optional; default "View gear")
  *   cell 5  CTA link (optional; default the product page)
- * Light on purpose: no drop-ins; one GraphQL request for all cards.
+ * Light on purpose: no drop-ins; one GraphQL request for all cards. Card details (sale and stock
+ * badges, spec bar, discount) match the shop search grid via scripts/product-card.js.
  */
 import commerceConfig, { MESH_ENDPOINT, SHOP_PATHS } from '../../scripts/commerce-config.js';
+import {
+  cardBadges, cardSpecs, discountPercent, priceOf, productAttr,
+} from '../../scripts/product-card.js';
 
 const QUERY = `query CARDS_COMMERCE($skus: [String]) {
   products(skus: $skus) {
@@ -61,21 +65,28 @@ const money = (amount) => {
     .format(amount.value);
 };
 
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
 function priceMarkup(product) {
-  const p = document.createElement('p');
-  p.className = 'cards-commerce__price';
-  const final = product.price?.final?.amount || product.priceRange?.minimum?.final?.amount;
-  const regular = product.price?.regular?.amount || product.priceRange?.minimum?.regular?.amount;
+  const p = el('p', 'cards-commerce__price');
+  const { final, regular } = priceOf(product);
   const max = product.priceRange?.maximum?.final?.amount;
   const from = max && final && max.value !== final.value ? 'From ' : '';
-  const strong = document.createElement('strong');
-  strong.textContent = `${from}${money(final)}`;
-  p.append(strong);
-  if (regular && final && regular.value > final.value) {
-    const del = document.createElement('del');
-    del.textContent = money(regular);
-    p.append(' ', del);
+  p.append(el('strong', '', `${from}${money(final)}`));
+  const percent = discountPercent(product);
+  if (percent) {
+    p.classList.add('cards-commerce__price--sale');
+    p.append(' ', el('del', '', money(regular)));
+    const saving = { value: regular.value - final.value, currency: final.currency };
+    p.append(el('span', 'cards-commerce__saving', `Save ${money(saving)} (${percent}% off)`));
   }
+  // the badges sit in the aria-hidden image link, so stock is repeated for assistive tech
+  if (product.inStock === false) p.append(el('span', 'cards-commerce__sr', ' Sold out'));
   return p;
 }
 
@@ -114,8 +125,7 @@ function link(href, className, content) {
 
 function renderCard(card, row, product) {
   const href = row.ctaHref || SHOP_PATHS.product(product.urlKey);
-  const eyebrowText = row.eyebrow
-    || product.attributes?.find((a) => a.name === 'activity')?.value || '';
+  const eyebrowText = row.eyebrow || productAttr(product, 'activity') || '';
   card.classList.remove('cards-commerce__card--loading');
   card.replaceChildren();
 
@@ -123,12 +133,16 @@ function renderCard(card, row, product) {
   const media = link(href, 'cards-commerce__media', picture(product));
   media.tabIndex = -1;
   media.setAttribute('aria-hidden', 'true');
-  if (!product.inStock) {
-    const badge = document.createElement('span');
-    badge.className = 'cards-commerce__badge';
-    badge.textContent = 'Sold out';
-    media.append(badge);
+  const badges = cardBadges(product);
+  if (badges.length) {
+    const list = el('span', 'cards-commerce__badges');
+    badges.forEach(([variant, text]) => {
+      list.append(el('span', `cards-commerce__badge${variant ? ` cards-commerce__badge--${variant}` : ''}`, text));
+    });
+    media.append(list);
   }
+  const specs = cardSpecs(product);
+  if (specs.length) media.append(el('span', 'cards-commerce__specbar', `Specs: ${specs.join(' / ')}`));
 
   const body = document.createElement('div');
   body.className = 'cards-commerce__body';
