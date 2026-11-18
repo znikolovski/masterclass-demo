@@ -85,6 +85,17 @@ export default async function decorate(block) {
           <div class="checkout__demo"></div>
           <div class="checkout__server-error checkout__block"></div>
           <div class="checkout__out-of-stock checkout__block"></div>
+          <div class="checkout__account-prompt" hidden>
+            <div>
+              <p class="checkout__account-prompt-title">Have a WKND account?</p>
+              <p>Sign in to check out faster with your details and saved addresses, or continue as a guest below.</p>
+            </div>
+            <div class="checkout__account-prompt-actions">
+              <button type="button" class="button primary" data-action="signin">Sign in</button>
+              <button type="button" class="button secondary" data-action="signup">Create account</button>
+            </div>
+            <p class="checkout__account-prompt-error" role="alert"></p>
+          </div>
           <div class="checkout__login checkout__block"></div>
           <div class="checkout__shipping-form checkout__block"></div>
           <div class="checkout__bill-to-shipping checkout__block"></div>
@@ -109,6 +120,23 @@ export default async function decorate(block) {
   $('.checkout__demo').append(demoNotice('WKND Demo Pay simulates payment — no card details are collected and nothing will be charged or shipped.'));
   $('.checkout__promises').append(shopPromises(['shipping', 'warranty', 'demo']));
   const $steps = [...fragment.querySelectorAll('.checkout__steps li')];
+  // guests: offer sign-in up front (the drop-in reloads checkout in customer mode on success)
+  const $prompt = $('.checkout__account-prompt');
+  $prompt.hidden = shopAuth.hasShopToken();
+  $prompt.querySelectorAll('[data-action]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const error = $prompt.querySelector('.checkout__account-prompt-error');
+      error.textContent = '';
+      button.disabled = true;
+      try {
+        await shopAuth.signInToShop({ signup: button.dataset.action === 'signup' });
+      } catch {
+        error.textContent = 'Sign-in was cancelled. You can still check out as a guest.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
   block.replaceChildren(fragment);
 
   const shippingFormRef = { current: null };

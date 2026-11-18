@@ -24,7 +24,8 @@ export const SHOP_PATHS = {
   cart: `${SHOP_ROOT}/cart`,
   checkout: `${SHOP_ROOT}/checkout`,
   order: `${SHOP_ROOT}/order`,
-  account: `${SHOP_ROOT}/account`,
+  // site-wide WKND account (sign-in is shared across WKND Adventures, not shop-only)
+  account: '/account',
 };
 
 export default {

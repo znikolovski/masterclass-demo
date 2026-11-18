@@ -1,4 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { ACCOUNT_EVENT, getAccountState } from '../../scripts/account-state.js';
 
 // media query match that indicates mobile/tablet width
 const isDesktop = window.matchMedia('(min-width: 900px)');
@@ -107,6 +108,37 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   }
 }
 
+const ACCOUNT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>';
+
+/**
+ * Header account control: initials when signed in (from the cached account state, so no Auth0
+ * code loads on page view), a person icon otherwise. The menu (sign in / create account, or
+ * account links and sign out) is loaded on first use from account-menu.js.
+ * @param {HTMLButtonElement} button
+ */
+function decorateAccount(button) {
+  const render = (state) => {
+    button.classList.toggle('nav-account--signed-in', !!state);
+    if (state) {
+      button.innerHTML = '<span class="nav-account-initials" aria-hidden="true"></span>';
+      button.firstElementChild.textContent = state.initials;
+      button.setAttribute('aria-label', `Your WKND account${state.firstName ? `, signed in as ${state.firstName}` : ''}`);
+    } else {
+      button.innerHTML = ACCOUNT_ICON;
+      button.setAttribute('aria-label', 'Sign in or create a WKND account');
+    }
+  };
+  render(getAccountState());
+  window.addEventListener(ACCOUNT_EVENT, (e) => render(e.detail));
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'wknd:account') render(getAccountState());
+  });
+  button.addEventListener('click', async () => {
+    const { default: toggleAccountMenu } = await import('./account-menu.js');
+    toggleAccountMenu(button);
+  });
+}
+
 /**
  * WKND Shop account + cart links. Lightweight on purpose: no drop-ins load here — the
  * count is cached by shop pages (localStorage `wknd:cart-count`) and updated live via the
@@ -126,13 +158,14 @@ function decorateShopTools(nav) {
   const wrapper = document.createElement('div');
   wrapper.className = 'nav-commerce';
   wrapper.innerHTML = `
-    <a class="nav-account" href="${shopRoot}/account" aria-label="Your WKND account and orders">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-    </a>
+    <div class="nav-account-wrap">
+      <button type="button" class="nav-account" aria-haspopup="true" aria-expanded="false" aria-controls="nav-account-menu"></button>
+    </div>
     <a class="nav-cart" href="${shopRoot}/cart">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
       <span class="nav-cart-count" hidden></span>
     </a>`;
+  decorateAccount(wrapper.querySelector('.nav-account'));
   const cart = wrapper.querySelector('.nav-cart');
   const badge = wrapper.querySelector('.nav-cart-count');
   const setCount = (value) => {

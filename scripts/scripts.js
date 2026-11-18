@@ -1263,10 +1263,12 @@ async function loadSiteFooter(footerEl) {
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
-/** WKND Shop pages (drop-ins are only ever loaded on these or by commerce blocks). */
+/**
+ * WKND Shop and account pages (drop-ins are only ever loaded on these or by commerce blocks).
+ */
 function isShopPath() {
   const { pathname } = window.location;
-  return pathname === '/shop' || pathname.startsWith('/shop/') || pathname.startsWith('/drafts/shop');
+  return /^\/(shop|account)(\/|$)/.test(pathname) || /^\/drafts\/(shop|account)/.test(pathname);
 }
 
 async function loadEager(doc) {

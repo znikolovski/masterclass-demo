@@ -1,30 +1,310 @@
-main .commerce-account .account__toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--spacing-medium);
+/* WKND account — site design system: 10px cards, pill controls, ink + orange offset shadows */
+
+/* ---------- signed out ---------- */
+main .commerce-account .account__signin {
+  display: grid;
+  gap: 24px;
+  align-items: start;
 }
 
-main .commerce-account .account__signin {
-  max-width: 480px;
-  padding: var(--spacing-big);
-  border-radius: var(--shape-border-radius-2);
+main .commerce-account .account__signin-card {
+  padding: 32px 24px;
+  border-radius: 10px;
   background: var(--light-color);
 }
 
+main .commerce-account .account__signin-card h2 {
+  margin: 0 0 8px;
+  font-size: var(--heading-font-size-m);
+}
+
+main .commerce-account .account__signin-card p {
+  margin: 0 0 24px;
+}
+
+main .commerce-account .account__signin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+main .commerce-account .account__benefits {
+  gap: 16px;
+  padding: 24px;
+  background: transparent;
+  border: 1px solid #dadada;
+}
+
 main .commerce-account .account__error {
-  color: var(--color-alert-800);
+  margin: 16px 0 0;
+  color: #b42318;
 }
 
 main .commerce-account .account__error:empty {
   display: none;
 }
 
-main .commerce-account h2 {
-  margin-top: var(--spacing-xbig);
+/* ---------- signed in ---------- */
+main .commerce-account .account__layout {
+  display: grid;
+  gap: 32px;
+}
+
+main .commerce-account .account__aside {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+main .commerce-account .account__profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+main .commerce-account .account__avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--text-color);
+  color: #fff;
+  font: 700 18px/1 var(--heading-font-family);
+  letter-spacing: 0.04em;
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+}
+
+main .commerce-account .account__profile p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+main .commerce-account .account__name {
+  font: 700 18px/1.3 var(--heading-font-family);
+}
+
+main .commerce-account .account__email {
+  color: var(--shop-muted, #5c5c5c);
+  font-size: 15px;
+}
+
+/* section links: horizontal pills on mobile, a vertical list on desktop */
+main .commerce-account .account__nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+main .commerce-account .account__nav a:any-link {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1.5px solid var(--text-color);
+  border-radius: 9999px;
+  color: var(--text-color);
+  font: 700 12px/1.3 var(--heading-font-family);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+main .commerce-account .account__nav a:hover,
+main .commerce-account .account__nav a:focus-visible {
+  background: var(--text-color);
+  color: #fff;
+}
+
+main .commerce-account .account__signout {
+  justify-self: start;
+}
+
+main .commerce-account .account__content {
+  display: grid;
+  gap: 48px;
+  min-width: 0;
+}
+
+main .commerce-account .account__section {
+  scroll-margin-top: calc(var(--nav-height, 64px) + 24px);
+}
+
+main .commerce-account .account__section > h2 {
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--text-color);
   font-size: var(--heading-font-size-m);
 }
 
-main .commerce-account img {
+main .commerce-account .account__details {
+  display: grid;
+  margin: 0 0 20px;
+  border: 1px solid #dadada;
+  border-radius: 10px;
+}
+
+main .commerce-account .account__details > div {
+  display: grid;
+  gap: 4px;
+  padding: 16px 20px;
+}
+
+main .commerce-account .account__details > div + div {
+  border-top: 1px solid #dadada;
+}
+
+main .commerce-account .account__details dt {
+  color: var(--accent-color);
+  font: 700 11px/1.4 var(--heading-font-family);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+main .commerce-account .account__details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+main .commerce-account .account__loading {
+  margin: 0;
+  color: var(--shop-muted, #5c5c5c);
+}
+
+/* ---------- orders + addresses drop-ins ---------- */
+main .commerce-account .account-orders-list__controls {
+  margin-bottom: 20px;
+}
+
+main .commerce-account .dropin-picker {
+  display: inline-flex;
+  position: relative;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 260px;
+  background: transparent;
+}
+
+main .commerce-account .dropin-picker__floatingLabel {
+  position: static;
+  order: -1;
+  transform: none;
+  color: var(--shop-muted, #5c5c5c);
+  font: 700 11px/1.4 var(--heading-font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+main .commerce-account .dropin-picker__select {
+  height: 44px;
+  padding: 0 44px 0 18px;
+  border: 1.5px solid var(--text-color);
+  border-radius: 9999px;
+  background: var(--background-color);
+  color: var(--text-color);
+  font: 600 15px/1.2 var(--body-font-family);
+  cursor: pointer;
+}
+
+main .commerce-account .dropin-picker__select:focus-visible {
+  outline: none;
+  box-shadow: 3px 3px 0 0 var(--accent-color);
+}
+
+main .commerce-account .dropin-picker__chevronDown {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  pointer-events: none;
+}
+
+main .commerce-account .account-orders-list-card,
+main .commerce-account .account-address-card,
+main .commerce-account .account-actions-address {
+  border: 1px solid #dadada;
+  border-radius: 10px;
+  background: var(--background-color);
+  box-shadow: none;
+}
+
+main .commerce-account .account-orders-list-card {
+  margin-bottom: 16px;
+}
+
+main .commerce-account .account-orders-list-card:hover {
+  border-color: var(--text-color);
+}
+
+main .commerce-account .account-orders-list-card img {
+  border-radius: 8px;
   background: var(--light-color);
   object-fit: cover;
+}
+
+main .commerce-account .account-empty-list {
+  padding: 40px 24px;
+  border-radius: 10px;
+  background: var(--light-color);
+  box-shadow: none;
+  text-align: center;
+}
+
+main .commerce-account .account-empty-list svg {
+  color: var(--accent-color);
+}
+
+/* the empty-state labels inherit the display font: keep them readable sentence case */
+main .commerce-account .account-empty-list :is(p, span, h2, h3) {
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+@media (width >= 900px) {
+  main .commerce-account .account__signin {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  main .commerce-account .account__signin-card {
+    padding: 40px;
+  }
+
+  main .commerce-account .account__layout {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 64px;
+  }
+
+  main .commerce-account .account__aside {
+    position: sticky;
+    top: calc(var(--nav-height, 64px) + 24px);
+  }
+
+  main .commerce-account .account__nav ul {
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid #dadada;
+  }
+
+  main .commerce-account .account__nav li {
+    border-bottom: 1px solid #dadada;
+  }
+
+  main .commerce-account .account__nav a:any-link {
+    display: block;
+    padding: 14px 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  main .commerce-account .account__nav a:hover,
+  main .commerce-account .account__nav a:focus-visible {
+    background: transparent;
+    color: var(--accent-color);
+  }
 }

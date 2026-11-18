@@ -1,17 +1,20 @@
 /**
- * Bridges the shared WKND customer sign-in (Auth0, reused from WKND Aero) to the Adobe Commerce
+ * WKND Adventures sign-in (Auth0, shared with WKND Aero) and its bridge to the Adobe Commerce
  * drop-ins: the Auth0 access token becomes the drop-ins' customer token
  * (`auth_dropin_user_token` cookie + Authorization header), and sign-in/out is announced on the
  * drop-in event bus so the cart merges guest carts and checkout/account switch to customer mode.
  */
 import {
-  getAccessToken, getUserProfile, hasSignedInBefore, restoreSession, setCallbackPath, signIn,
+  configureAuth, getAccessToken, getUserProfile, hasSignedInBefore, restoreSession, signIn,
   signOut,
 } from './wknd-auth.js';
 import { SHOP_AUTH_CONFIG_URL } from './commerce-config.js';
+import {
+  ACCOUNT_PATH, clearAccountState, setAccountState,
+} from './account-state.js';
 
-// Auth0 Allowed Callback URL for the shop is <origin>/shop/ (also used on /drafts/shop pages)
-setCallbackPath('/shop/');
+// Auth0 Allowed Callback + Logout URL: <origin>/account; the session persists across reloads.
+configureAuth({ callbackPath: ACCOUNT_PATH, persist: true });
 
 const TOKEN_COOKIE = 'auth_dropin_user_token';
 const PROFILE_COOKIES = ['auth_dropin_firstname', 'auth_dropin_lastname'];
@@ -52,11 +55,28 @@ async function storeToken() {
     setCookie(PROFILE_COOKIES[0], profile.given_name || profile.name?.split(' ')[0] || '', ttl);
     setCookie(PROFILE_COOKIES[1], profile.family_name || '', ttl);
   }
+  setAccountState(profile || {});
   return token;
 }
 
 function clearToken() {
   [TOKEN_COOKIE, ...PROFILE_COOKIES].forEach(clearCookie);
+}
+
+/**
+ * Restore a previous session (refresh token / Auth0 session) and hand the token to the drop-ins.
+ * @returns {Promise<boolean>} signed in
+ */
+export async function restoreShopSession() {
+  if (hasShopToken()) return true;
+  if (!hasSignedInBefore()) return false;
+  if (!await restoreSession(SHOP_AUTH_CONFIG_URL)) {
+    clearAccountState();
+    return false;
+  }
+  await storeToken();
+  await emit('authenticated', true);
+  return true;
 }
 
 /**
@@ -67,16 +87,13 @@ function clearToken() {
 export function syncShopSession() {
   if (hasShopToken()) return true;
   if (!hasSignedInBefore()) return false;
-  (async () => {
-    if (!await restoreSession(SHOP_AUTH_CONFIG_URL)) return;
-    await storeToken();
-    await emit('authenticated', true);
-  })().catch(() => {});
+  restoreShopSession().catch(() => {});
   return false;
 }
 
-export async function signInToShop() {
-  await signIn(SHOP_AUTH_CONFIG_URL);
+/** @param {{ signup?: boolean }} [opts] signup opens Auth0's "create account" screen */
+export async function signInToShop({ signup = false } = {}) {
+  await signIn(SHOP_AUTH_CONFIG_URL, { signup });
   await storeToken();
   await emit('authenticated', true);
   return true;
@@ -84,10 +101,16 @@ export async function signInToShop() {
 
 export async function signOutOfShop() {
   clearToken();
+  clearAccountState();
   sessionStorage.removeItem('DROPINS_CART_ID');
   localStorage.setItem('wknd:cart-count', '0');
   await emit('authenticated', false).catch(() => {});
-  await signOut(SHOP_AUTH_CONFIG_URL, { returnTo: `${window.location.origin}/shop/` });
+  await signOut(SHOP_AUTH_CONFIG_URL, { returnTo: `${window.location.origin}${ACCOUNT_PATH}` });
+}
+
+/** Auth0 profile (name, email) of the signed-in customer, or null. */
+export async function getShopProfile() {
+  return getUserProfile(SHOP_AUTH_CONFIG_URL).catch(() => null);
 }
 
 export { SHOP_AUTH_CONFIG_URL };

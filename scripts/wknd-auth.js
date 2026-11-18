@@ -19,13 +19,19 @@ let revision = 0;
 const listeners = new Set();
 
 const SIGNED_IN_HINT = 'wknd:signed-in';
-// Sign-in is popup-only, so nothing is ever loaded at the callback URL; Auth0 still requires it
-// to be an Allowed Callback URL. Aero uses its booking page; the shop sets /shop/.
-let callbackPath = '/book/flights';
+// Per-site client options (configureAuth). Sign-in is popup-only, so nothing is ever loaded at
+// the callback URL; Auth0 still requires it to be an Allowed Callback URL. Aero keeps its
+// booking page and in-memory tokens; WKND Adventures sets /account and persists the session.
+const clientOptions = { callbackPath: '/book/flights', persist: false };
 
-/** Callback path for this page's Auth0 client; call before the first sign-in/session call. */
-export function setCallbackPath(path) {
-  callbackPath = path;
+/**
+ * Configure this page's Auth0 client; call before the first sign-in/session call.
+ * @param {{ callbackPath?: string, persist?: boolean }} opts persist = rotating refresh tokens
+ *   cached in localStorage, so the session survives reloads in browsers that block third-party
+ *   cookies (falls back to silent iframe auth when the tenant issues no refresh token)
+ */
+export function configureAuth(opts) {
+  Object.assign(clientOptions, opts);
 }
 
 function updateSession(value) {
@@ -79,12 +85,13 @@ async function createClient(configUrl) {
   return new window.auth0.Auth0Client({
     domain: issuer.host,
     clientId: config.clientId,
-    cacheLocation: 'memory',
-    useRefreshTokens: false,
+    cacheLocation: clientOptions.persist ? 'localstorage' : 'memory',
+    useRefreshTokens: clientOptions.persist,
+    useRefreshTokensFallback: clientOptions.persist,
     authorizationParams: {
       audience: config.audience,
       scope: SCOPE,
-      redirect_uri: new URL(callbackPath, window.location.origin).href,
+      redirect_uri: new URL(clientOptions.callbackPath, window.location.origin).href,
     },
   });
 }
@@ -105,14 +112,21 @@ export function getAuthConfigUrl() {
   return clientConfigUrl;
 }
 
-export async function signIn(configUrl) {
+/**
+ * @param {string} configUrl
+ * @param {{ signup?: boolean }} [opts] signup opens Auth0's sign-up screen instead of log-in
+ */
+export async function signIn(configUrl, { signup = false } = {}) {
   if (loginPromise) return loginPromise;
   // Open on the click, before network requests, so browsers do not block the popup.
   const popup = window.open('', 'wknd-customer-login', 'width=500,height=700');
   if (!popup) throw new Error('Allow the sign-in popup to continue.');
   loginPromise = (async () => {
     const client = await getAuthClient(configUrl);
-    await client.loginWithPopup({}, { popup, timeoutInSeconds: 120 });
+    await client.loginWithPopup(
+      signup ? { authorizationParams: { screen_hint: 'signup' } } : {},
+      { popup, timeoutInSeconds: 120 },
+    );
     updateSession(true);
   })().finally(() => {
     if (!popup.closed) popup.close();
