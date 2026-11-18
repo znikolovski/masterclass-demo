@@ -7,8 +7,8 @@
 // Local/preview test content lives under /drafts/shop; production under /shop.
 export const SHOP_ROOT = typeof window !== 'undefined' && window.location.pathname.startsWith('/drafts/shop') ? '/drafts/shop' : '/shop';
 
-const RUNTIME = 'https://28538-wkndcommerce-stage.adobeioruntime.net/api/v1/web/commerce';
-export const MESH_ENDPOINT = 'https://edge-sandbox-graph.adobe.io/api/fd2c6dc7-f3ce-426a-83bd-63227acbcdb4/graphql';
+const RUNTIME = 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce';
+export const MESH_ENDPOINT = 'https://edge-graph.adobe.io/api/46e0d9f5-4d7a-463d-bebb-678c9106d482/graphql';
 export const SHOP_AUTH_CONFIG_URL = `${RUNTIME}/auth-config`;
 export const CONTENT_AI_BASE = `${RUNTIME}/content-ai`;
 export const DM_DELIVERY_ORIGIN = 'https://delivery-p115476-e1135027.adobeaemcloud.com';

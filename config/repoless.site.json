@@ -10,7 +10,7 @@
       "type": "markup"
     },
     "overlay": {
-      "url": "https://28538-wkndcommerce-stage.adobeioruntime.net/api/v1/web/commerce/pdp-markup",
+      "url": "https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce/pdp-markup",
       "type": "markup"
     }
   }

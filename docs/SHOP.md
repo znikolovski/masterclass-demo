@@ -81,8 +81,10 @@ Templates and the model contract are unchanged. Test with
 | `commerce/asset-events`, `asset-to-product`, `product-to-asset`, `reconcile` | AEM image linking using the Adobe Commerce custom-matcher contract and a nightly reconcile |
 | `commerce-admin/admin` | IMS-protected admin RPC used by the ExC Shell UI |
 
-- **Admin UI.** It runs in the Experience Cloud shell (Stage):
-  `https://experience.adobe.com/?devMode=true#/custom-apps/?localDevUrl=https://28538-wkndcommerce-stage.adobeio-static.net/index.html`.
+- **Admin UI.** It runs in the Experience Cloud shell. Production (submitted for approval, then listed
+  under Custom Apps):
+  `https://experience.adobe.com/?devMode=true#/custom-apps/?localDevUrl=https://28538-wkndcommerce.adobeio-static.net/index.html`.
+  Stage: the same URL with `28538-wkndcommerce-stage`.
   It has Dashboard, Products (editor with variants, price and stock, and images), Inventory, Pricing
   (bulk sales) and Orders.
 - **Image linking.**
@@ -135,19 +137,41 @@ Authors search the catalog and insert products from the **Commerce Catalog** lib
   unknown SKUs. It is registered as **Commerce Cards** in the block library. The test page is
   `drafts/cards-commerce.plain.html`.
 
+## Environments
+
+The live site runs on the App Builder **Production** workspace. Stage is for development and has its
+own database, mesh and event registration.
+
+| | Production (live site) | Stage |
+|-|------------------------|-------|
+| Runtime namespace | `28538-wkndcommerce` | `28538-wkndcommerce-stage` |
+| API Mesh | `https://edge-graph.adobe.io/api/46e0d9f5-4d7a-463d-bebb-678c9106d482/graphql` | `https://edge-sandbox-graph.adobe.io/api/fd2c6dc7-f3ce-426a-83bd-63227acbcdb4/graphql` |
+| AEM Assets event registration | `af306307-5bb3-4863-ae4a-9a5ba8ec9e71` | `93b74c5e-7d9b-4ac8-96b1-afba56a394f6` |
+| `WKND_PDP_PUBLISH` | `true` | `false` |
+
+The storefront points at Production in `scripts/commerce-config.js` (`RUNTIME`, `MESH_ENDPOINT`), in
+the Config Service `public.json` `default` commerce config, and in the site `content.overlay`
+(`config/repoless.site.json`). Change all three together.
+
+- **Switch workspace.** `aio app use -w Production --no-input` (or `-w Stage`) in `../wknd-commerce`.
+  It rewrites the `AIO_*` values in `.env`; the `WKND_*` values stay, so also set
+  `WKND_PDP_MARKUP_URL` (the namespace's `pdp-markup`) and `WKND_PDP_PUBLISH` for that workspace.
+- **Database.** aio-lib-db is scoped per namespace. Production was seeded by copying Stage at
+  go-live (all collections except `events` and `carts`, and the Stage `pdp_scheduler` state).
+
 ## Environment and setup checklist
 
 | Step | Status / how |
 |------|--------------|
-| App Builder Stage deploy | `aio app deploy` in `../wknd-commerce` |
-| API Mesh | `npm run mesh:build && aio api-mesh update mesh.json` |
+| App Builder deploy | `aio app deploy` in `../wknd-commerce` (in the workspace selected above) |
+| API Mesh | `npm run mesh:build && aio api-mesh update mesh.json` (mesh.json is generated for the selected namespace) |
 | Seed catalog | `npm run catalog:seed` (99 products / 584 sellable SKUs) |
 | AEM author API allowlist for the S2S client | Deploy `../wknd-commerce/aem-config/config/api.yaml` via the Cloud Manager config pipeline |
 | Product images | Generate with `tools/aem-assets/product-images/image-prompts.csv`, then `npm run shop:upload-images` |
 | PDP overlay | Done: `content.overlay` (from `config/repoless.site.json`) is set on the live site config. Update only the `content` sub-config (`POST /config/znikolovski/sites/masterclass-demo/content.json`); the full `migrate:repoless --apply` would overwrite the live `public.json` (production mixer config) and `headers.json` with the stale repo copies |
-| PDP preview/publish automation | Done: publish-role key in `../wknd-commerce/.env`; PDPs re-render automatically (see `prerender` / `pdp-scheduler`). Preview-only (`WKND_PDP_PUBLISH=false`) until the shop code is on `main`; go-live = set it to `true` and `aio app deploy` — the next scheduler tick publishes every PDP |
+| PDP preview/publish automation | Done: publish-role key in `../wknd-commerce/.env`; PDPs re-render automatically (see `prerender` / `pdp-scheduler`). Production publishes (`WKND_PDP_PUBLISH=true`); Stage previews only. Changing the flag and running `aio app deploy` makes the next scheduler tick re-render every PDP |
 | Auth0 | On the Aero SPA client (`ULTyS938dUNMhSXTjvLXr3b8ZrGOGhyM`), add each storefront origin explicitly (Auth0 can't wildcard `*--…aem.page`): Allowed Callback URLs and Allowed Logout URLs `<origin>/account`, Allowed Web Origins and Allowed Origins (CORS) `<origin>`; **Allow Refresh Token Rotation** on the application and **Allow Offline Access** on the `wknd-aero-api` API (persistent sessions). Sign-in is popup-only (`web_message`), so the callback URL is validated but never loaded; Aero keeps its own `/book/flights` callback |
-| Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `accessories`, `search`, `cart`, `checkout`, `order` and the `placeholders` sheet, plus `/account` and the root `redirects` sheet (`/shop/account` → `/account`). No product pages are authored. Publish once the shop code is on `main` |
+| Shop content | Done (previewed): DA `shop/index` (served at `/shop/`), `apparel`, `accessories`, `search`, `cart`, `checkout`, `order` and the `placeholders` sheet, plus `/account` and the root `redirects` sheet (`/shop/account` → `/account`). No product pages are authored. Published at go-live |
 
 ## Testing
 
