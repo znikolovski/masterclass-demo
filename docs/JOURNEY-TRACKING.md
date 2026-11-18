@@ -7,6 +7,16 @@ optional branch: direct bookings are valid conversions, not abandonment.
 
 ## Handoff
 
+The native iOS companion preserves the same validated UUID/24-hour journey
+parameters across native pages and its real-origin OF1 WebView. Controlled
+outbound navigation uses mobile Edge Identity's SDK-generated URL variables
+with a 1.5-second bound. Incoming web/LLM `adobe_mc` is retained for its web
+consumer; the app does not decode it or overwrite its native ECID from the URL.
+OF1/Sherpa/Aero milestones remain web-owned rather than replayed by native code.
+The bounded native consent/customer-identity context is described in
+[MARTECH.md](./MARTECH.md); journey correlation is still not a person identifier
+or proof of cross-device reporting.
+
 Discovery's custom Analytics wrapper emits one `llmAppResult` milestone and
 returns `_meta.wkndJourney` plus, when Adobe Edge succeeds,
 `_meta.wkndEdge`. These are private widget metadata, not new author fields or

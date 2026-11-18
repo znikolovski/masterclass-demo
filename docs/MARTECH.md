@@ -25,6 +25,38 @@ Leave `target` off on most pages to protect LCP. Enable only on pages with activ
 
 Web SDK defaults to `pending` consent. Wire a CMP and call `updateUserConsent()` from `scripts/scripts.js` before enabling personalization on production `.aem.live` hosts.
 
+## Native iOS companion
+
+The companion uses the Adobe Edge Mobile SDK, not a second web Launch embed.
+Its `WKWebView` installs `window.wkndNativeContext` at document start only on
+`https://wknd-adventures.run.place`. `scripts/native-context.js` makes its collection
+and personalization settings override demo auto-consent and gates Sherpa startup.
+The martech event hook rejects collection when disabled. Standalone browsers keep
+their existing policy. Native context also takes precedence over standalone web
+customer identity, avoiding accidental association with a different browser login.
+
+Deploy these hooks together before enabling the app's `WKNDAdobeWebBridgeEnabled`
+flag. Until then the app pauses OF1 for opted-out users. Do not remove the hooks
+while released clients rely on them.
+
+Signed-in customer mapping is configured in `scripts/customer-identity.js` with
+the confirmed **WKND Customer ID** / **`wkndCustomerId`** namespace and Auth0 `sub`.
+The website's public Auth0 configuration and native app use the same issuer.
+Only the verified profile's subject is mapped; tokens/emails/raw profiles are
+never added. Existing shop cookies still trigger background profile restoration
+on page load. Logout, auth invalidation and a new login invalidate older pending
+profile lookups so they cannot restore the previous customer's in-memory identity
+mapping.
+
+The namespace symbol must match the mobile app and each datastream's
+**Adobe Target → Target Third Party ID Namespace**. Its creation/configuration
+has been confirmed by the site owner. This does not provision Analytics
+cross-device reporting or guarantee identical Target assignments. Signed-in
+cross-device receipt and account isolation still need Assurance validation.
+
+Validate with `node tools/scripts/test-native-context.mjs`. OF1/Sherpa events
+remain web-owned: do not replay them natively or add duplicate Send Event rules.
+
 ## Demo traffic (Analytics)
 
 Daily simulated traffic can run via GitHub Actions (`.github/workflows/daily-traffic-simulation.yaml`, 06:00 UTC) or locally:

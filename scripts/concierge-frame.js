@@ -3,6 +3,7 @@ import stylingConfigurations from './concierge-config.js';
 import { WEB_SDK_CONFIG } from './martech-config.js';
 import { isAeroUrl } from './journey-context.js';
 import { prepareAeroUrl } from './journey-analytics.js';
+import { applyNativeContext, getNativeContext } from './native-context.js';
 
 function notify(type, detail = {}) {
   window.parent.postMessage({ source: 'wknd-sherpa', type, ...detail }, window.location.origin);
@@ -98,6 +99,10 @@ window.addEventListener('message', (event) => {
 });
 
 async function initialize() {
+  const native = getNativeContext();
+  if (native && (!native.collect || !native.personalize)) {
+    throw new Error('WKND Sherpa is disabled by your app privacy preferences.');
+  }
   // A separate browsing context prevents Launch from replacing the Concierge SDK.
   const queue = [];
   window.__alloyNS = ['alloy']; // eslint-disable-line no-underscore-dangle
@@ -118,6 +123,7 @@ async function initialize() {
     idMigrationEnabled: false,
     thirdPartyCookiesEnabled: false,
     conversation: { stickyConversationSession: false, region: 'aus5' },
+    onBeforeEventSend: applyNativeContext,
   });
   // The vendor continues bootstrap even when getIdentity returns {} after an opt-out.
   const { identity } = await window.alloy('getIdentity', { namespaces: ['ECID'] });

@@ -29,6 +29,7 @@ import {
   shouldRequestNamedTargetScopes,
 } from './target-delivery.js';
 import { initTargetAnalytics, pushTargetPageContext } from './target-analytics.js';
+import { getNativeContext } from './native-context.js';
 import {
   optimizePictures,
   buildHeroAdventureLcpUrls,
@@ -982,6 +983,7 @@ function isPageMetadataOn(name, doc = document) {
  * @returns {boolean}
  */
 function isAnalyticsEnabled(doc = document) {
+  if (getNativeContext()?.collect === false) return false;
   const value = getPageMetadataValue('analytics', doc).toLowerCase();
   if (value === 'off' || value === 'false' || value === 'no') return false;
   return true;
@@ -992,6 +994,8 @@ function isAnalyticsEnabled(doc = document) {
  * @returns {boolean}
  */
 function isConsentGiven() {
+  const native = getNativeContext();
+  if (native) return native.collect;
   const { hostname } = window.location;
   return hostname === 'localhost'
     || hostname === 'localhost.local'
@@ -1004,6 +1008,7 @@ function isConsentGiven() {
  * @returns {boolean}
  */
 function isPersonalizationEnabled(doc = document) {
+  if (getNativeContext()?.personalize === false) return false;
   const enabled = TARGET_METADATA_KEYS.some((key) => isPageMetadataOn(key, doc));
   return enabled && isConsentGiven();
 }
@@ -1031,12 +1036,12 @@ async function loadMartech(doc = document) {
         propositionMetadata: buildTargetApplyMetadata(main, doc),
       },
     ).then(() => {
-      if (!isConsentGiven()) return undefined;
+      if (!isConsentGiven() && !getNativeContext()) return undefined;
       return martech.updateUserConsent({
-        collect: true,
+        collect: isConsentGiven(),
         personalize: isPersonalizationEnabled(doc),
-        marketing: true,
-        share: true,
+        marketing: isConsentGiven(),
+        share: isConsentGiven(),
       });
     }));
   }

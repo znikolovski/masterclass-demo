@@ -5,6 +5,7 @@
  * both serve the same tenant, client and API audience).
  */
 import { loadScript } from './aem.js';
+import { updateCustomerIdentity } from './customer-identity.js';
 
 const SDK_URL = 'https://cdn.auth0.com/js/auth0-spa-js/2.5/auth0-spa-js.production.js';
 // profile/email let the shop backend resolve the customer's name and email via /userinfo.
@@ -35,6 +36,7 @@ export function configureAuth(opts) {
 }
 
 function updateSession(value) {
+  if (!value) updateCustomerIdentity(null);
   revision += 1;
   authenticated = value;
   // hint lets pages skip a silent Auth0 round trip for visitors who never signed in
@@ -127,6 +129,7 @@ export async function signIn(configUrl, { signup = false } = {}) {
       signup ? { authorizationParams: { screen_hint: 'signup' } } : {},
       { popup, timeoutInSeconds: 120 },
     );
+    updateCustomerIdentity(null);
     updateSession(true);
   })().finally(() => {
     if (!popup.closed) popup.close();

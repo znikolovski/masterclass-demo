@@ -5,11 +5,16 @@
  */
 
 import { mapPageToAnalytics, isAemProductionHost } from './analytics-page.js';
+import { applyNativeContext, getNativeContext } from './native-context.js';
+import { applyCustomerIdentity } from './customer-identity.js';
 
 export const WEB_SDK_CONFIG = {
   datastreamId: '56dee4fc-21a9-4e37-83ab-bdd874957aba',
   orgId: '28260E2056581D3B7F000101@AdobeOrg',
-  onBeforeEventSend: (content) => mapPageToAnalytics(content),
+  onBeforeEventSend: (content) => {
+    if (!getNativeContext()) applyCustomerIdentity(content);
+    return applyNativeContext(content) && mapPageToAnalytics(content);
+  },
 };
 
 /**

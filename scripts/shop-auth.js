@@ -13,6 +13,7 @@ import {
   ACCOUNT_PATH, clearAccountState, setAccountState,
 } from './account-state.js';
 import { pushShopEvent } from './shop-analytics.js';
+import { restoreCustomerIdentity, updateCustomerIdentity } from './customer-identity.js';
 
 // Auth0 Allowed Callback + Logout URL: <origin>/account; the session persists across reloads.
 configureAuth({ callbackPath: ACCOUNT_PATH, persist: true });
@@ -47,11 +48,21 @@ async function emit(event, payload) {
   events.emit(event, payload);
 }
 
+/** Auth0 profile (name, email) of the signed-in customer, or null. */
+export async function getShopProfile() {
+  try {
+    return await restoreCustomerIdentity(() => getUserProfile(SHOP_AUTH_CONFIG_URL));
+  } catch {
+    console.warn('WKND customer profile is unavailable; Adobe customer identity was not restored.'); // eslint-disable-line no-console
+    return null;
+  }
+}
+
 async function storeToken() {
   const token = await getAccessToken(SHOP_AUTH_CONFIG_URL);
   const ttl = (decodeExp(token) - Date.now()) / 1000 - 60;
   setCookie(TOKEN_COOKIE, token, ttl);
-  const profile = await getUserProfile(SHOP_AUTH_CONFIG_URL).catch(() => null);
+  const profile = await getShopProfile();
   if (profile) {
     setCookie(PROFILE_COOKIES[0], profile.given_name || profile.name?.split(' ')[0] || '', ttl);
     setCookie(PROFILE_COOKIES[1], profile.family_name || '', ttl);
@@ -61,6 +72,7 @@ async function storeToken() {
 }
 
 function clearToken() {
+  updateCustomerIdentity(null);
   [TOKEN_COOKIE, ...PROFILE_COOKIES].forEach(clearCookie);
 }
 
@@ -69,7 +81,10 @@ function clearToken() {
  * @returns {Promise<boolean>} signed in
  */
 export async function restoreShopSession() {
-  if (hasShopToken()) return true;
+  if (hasShopToken()) {
+    await getShopProfile();
+    return true;
+  }
   if (!hasSignedInBefore()) return false;
   if (!await restoreSession(SHOP_AUTH_CONFIG_URL)) {
     clearAccountState();
@@ -81,15 +96,16 @@ export async function restoreShopSession() {
 }
 
 /**
- * On page load: if the drop-in token is missing but this browser has signed in before,
- * restore the Auth0 session silently in the background (never blocks rendering) and announce
- * it on the event bus, which switches cart/checkout to the customer.
+ * Restore the customer identity on page load. If the drop-in token is missing,
+ * also restore the Auth0 session and announce it on the drop-in event bus.
  */
 export function syncShopSession() {
-  if (hasShopToken()) return true;
-  if (!hasSignedInBefore()) return false;
-  restoreShopSession().catch(() => {});
-  return false;
+  const signedIn = hasShopToken();
+  if (!signedIn && !hasSignedInBefore()) return false;
+  restoreShopSession().catch(() => {
+    console.warn('WKND customer session could not be restored. Sign in again to restore account tracking.'); // eslint-disable-line no-console
+  });
+  return signedIn;
 }
 
 /**
@@ -117,11 +133,6 @@ export async function signOutOfShop({ surface = 'unknown' } = {}) {
   localStorage.setItem('wknd:cart-count', '0');
   await emit('authenticated', false).catch(() => {});
   await signOut(SHOP_AUTH_CONFIG_URL, { returnTo: `${window.location.origin}${ACCOUNT_PATH}` });
-}
-
-/** Auth0 profile (name, email) of the signed-in customer, or null. */
-export async function getShopProfile() {
-  return getUserProfile(SHOP_AUTH_CONFIG_URL).catch(() => null);
 }
 
 export { SHOP_AUTH_CONFIG_URL };
