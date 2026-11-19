@@ -176,13 +176,6 @@ main .shop-widget .shop-widget-totals .shop-widget-tax {
 
 /* Product cards */
 
-main .shop-widget .shop-product-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-block: 12px;
-}
-
 main .shop-widget .shop-product-card {
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
@@ -362,20 +355,6 @@ main .shop-widget :is(.shop-cart-step, .shop-widget-link, .shop-product-value):f
 }
 
 @media (width >= 600px) {
-  main .shop-widget .shop-product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  main .shop-widget .shop-product-grid .shop-product-card {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-
-  main .shop-widget .shop-product-grid .shop-product-image {
-    aspect-ratio: 4 / 5;
-    height: auto;
-  }
-
   main .shop-widget .shop-cart-line {
     grid-template-columns: 80px minmax(0, 1fr);
   }
@@ -383,11 +362,5 @@ main .shop-widget :is(.shop-cart-step, .shop-widget-link, .shop-product-value):f
   main .shop-widget .shop-cart-thumb {
     width: 80px;
     height: 100px;
-  }
-}
-
-@media (width >= 900px) {
-  main .shop-widget .shop-product-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

@@ -1,1 +1,103 @@
 @import url('../../styles/llmapp-shop.css');
+
+/* Results carousel: one card per view, two from 600px and three from 900px of widget width. */
+main .search-shop-products {
+  container-type: inline-size;
+  container-name: shop-search;
+}
+
+main .search-shop-products .shop-carousel {
+  position: relative;
+  margin-block: 12px;
+}
+
+main .search-shop-products .shop-carousel-track {
+  display: flex;
+  gap: 16px;
+  padding: 4px 2px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+main .search-shop-products .shop-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+main .search-shop-products .shop-carousel-track:focus-visible {
+  outline: 2px solid var(--widget-accent);
+  outline-offset: 2px;
+}
+
+main .search-shop-products .shop-carousel-track .shop-product-card {
+  flex: 0 0 100%;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  scroll-snap-align: start;
+}
+
+main .search-shop-products .shop-carousel-track .shop-product-image {
+  aspect-ratio: 4 / 3;
+  height: auto;
+  min-height: 0;
+  object-fit: contain;
+}
+
+main .search-shop-products .shop-carousel-fade {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 48px;
+  background: linear-gradient(to right, transparent, var(--widget-surface));
+  pointer-events: none;
+}
+
+main .search-shop-products .shop-carousel-nav {
+  position: absolute;
+  top: var(--shop-carousel-nav-top, 50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--widget-ink);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+  transform: translateY(-50%);
+}
+
+main .search-shop-products .shop-carousel-prev {
+  left: 4px;
+}
+
+main .search-shop-products .shop-carousel-next {
+  right: 4px;
+}
+
+main .search-shop-products :is(.shop-carousel-nav, .shop-carousel-fade)[hidden] {
+  display: none;
+}
+
+main .search-shop-products .shop-carousel-nav:focus-visible {
+  outline: 2px solid var(--widget-accent);
+  outline-offset: 2px;
+}
+
+@container shop-search (width >= 600px) {
+  main .search-shop-products .shop-carousel-track .shop-product-card {
+    flex-basis: calc((100% - 16px) / 2);
+  }
+}
+
+@container shop-search (width >= 900px) {
+  main .search-shop-products .shop-carousel-track .shop-product-card {
+    flex-basis: calc((100% - 32px) / 3);
+  }
+}
