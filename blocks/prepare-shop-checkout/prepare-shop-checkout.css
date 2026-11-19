@@ -1,0 +1,106 @@
+@import url('../../styles/llmapp-shop.css');
+
+main .prepare-shop-checkout {
+  max-width: 780px;
+}
+
+main .prepare-shop-checkout .shop-checkout-panel {
+  margin-block: 12px;
+  border: 1px solid var(--widget-border);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--widget-surface);
+}
+
+main .prepare-shop-checkout address {
+  font-style: normal;
+}
+
+main .prepare-shop-checkout .shop-checkout-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+main .prepare-shop-checkout .shop-checkout-field {
+  min-width: 0;
+  margin-bottom: 10px;
+}
+
+main .prepare-shop-checkout .shop-checkout-fields .shop-checkout-field {
+  margin-bottom: 0;
+}
+
+main .prepare-shop-checkout :is(label, legend) {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+main .prepare-shop-checkout :is(input:not([type="radio"]), select) {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  border: 1px solid var(--widget-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--widget-surface);
+  color: var(--widget-text);
+  font: inherit;
+}
+
+main .prepare-shop-checkout [aria-invalid="true"] {
+  border-color: var(--widget-accent);
+}
+
+main .prepare-shop-checkout :is(input, select):focus-visible {
+  outline: 2px solid var(--widget-accent);
+  outline-offset: 3px;
+}
+
+main .prepare-shop-checkout .shop-checkout-methods {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+main .prepare-shop-checkout .shop-checkout-methods label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+main .prepare-shop-checkout .shop-checkout-coupon {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+}
+
+main .prepare-shop-checkout .shop-checkout-coupon .shop-checkout-field {
+  flex: 1 1 180px;
+  margin: 0;
+}
+
+main .prepare-shop-checkout .shop-checkout-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (width >= 600px) {
+  main .prepare-shop-checkout .shop-checkout-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  main .prepare-shop-checkout .shop-checkout-fields .is-wide {
+    grid-column: 1 / -1;
+  }
+}

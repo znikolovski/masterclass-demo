@@ -1,0 +1,393 @@
+/*
+ * Shared styles for the WKND shop LLM app widgets (search-shop-products, get-shop-product,
+ * get-shop-cart, prepare-shop-checkout). Each block adds the `shop-widget` class to itself.
+ * Buttons (.shop-widget-btn) and widget tokens come from llmapp-widgets.css.
+ */
+@import url('./llmapp-widgets.css');
+
+main .shop-widget {
+  box-sizing: border-box;
+  padding: 12px;
+  font-size: 15px;
+}
+
+main .shop-widget *,
+main .shop-widget *::before,
+main .shop-widget *::after {
+  box-sizing: border-box;
+}
+
+main .shop-widget :is(h2, h3) {
+  margin: 0 0 8px;
+  color: inherit;
+  font-family: var(--widget-heading-font);
+  line-height: 1.3;
+}
+
+main .shop-widget h2 {
+  font-size: 18px;
+}
+
+main .shop-widget h2:focus {
+  outline: none;
+}
+
+main .shop-widget h3 {
+  font-size: 14px;
+}
+
+main .shop-widget p {
+  margin: 0 0 8px;
+}
+
+main .shop-widget .shop-widget-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+main .shop-widget .shop-widget-header h2 {
+  margin: 0;
+}
+
+main .shop-widget .shop-widget-muted,
+main .shop-widget .shop-widget-note {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+main .shop-widget .shop-widget-note {
+  margin-top: 12px;
+}
+
+main .shop-widget .shop-widget-notice {
+  margin-block: 12px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--widget-paper);
+  color: var(--widget-ink);
+  font-size: 13px;
+}
+
+main .shop-widget .shop-widget-banner {
+  margin-block: 8px;
+  border-left: 3px solid var(--widget-accent);
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+main .shop-widget .shop-widget-banner.is-info {
+  border-left-color: var(--widget-border);
+}
+
+main .shop-widget .shop-widget-status {
+  min-height: 1lh;
+  margin: 0;
+  font-size: 13px;
+}
+
+main .shop-widget .shop-widget-status.is-error {
+  border-left: 3px solid var(--widget-accent);
+  padding-left: 10px;
+}
+
+main .shop-widget .shop-widget-placeholder {
+  background: var(--widget-paper);
+}
+
+main .shop-widget .shop-widget-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+main .shop-widget .shop-widget-amount,
+main .shop-widget .shop-widget-price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+main .shop-widget .shop-widget-was {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+main .shop-widget .shop-widget-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-block: 12px 4px;
+}
+
+main .shop-widget .shop-widget-btn-secondary {
+  background: transparent;
+  color: inherit;
+}
+
+main .shop-widget button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+main .shop-widget .shop-widget-link {
+  min-height: 44px;
+  border: 0;
+  padding: 0 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Totals */
+
+main .shop-widget .shop-widget-totals {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  margin: 12px 0;
+}
+
+main .shop-widget .shop-widget-totals dd {
+  margin: 0;
+  text-align: right;
+}
+
+main .shop-widget .shop-widget-totals .shop-widget-grand {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+main .shop-widget .shop-widget-totals .shop-widget-tax {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Product cards */
+
+main .shop-widget .shop-product-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-block: 12px;
+}
+
+main .shop-widget .shop-product-card {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  border: 1px solid var(--widget-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--widget-surface);
+}
+
+main .shop-widget .shop-product-media {
+  background: var(--widget-paper);
+}
+
+main .shop-widget .shop-product-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  object-fit: cover;
+}
+
+main .shop-widget .shop-product-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+}
+
+main .shop-widget .shop-product-body h3 {
+  margin: 0;
+}
+
+main .shop-widget .shop-product-body p {
+  margin: 0;
+}
+
+main .shop-widget .shop-product-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--widget-accent);
+}
+
+main .shop-widget .shop-product-eyebrow.is-sold-out {
+  color: inherit;
+  opacity: 0.7;
+}
+
+main .shop-widget .shop-product-option {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+main .shop-widget .shop-product-option legend {
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+main .shop-widget .shop-product-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+main .shop-widget .shop-product-value {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  border: 1px solid var(--widget-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+main .shop-widget .shop-product-value[aria-pressed="true"] {
+  border-color: var(--widget-text);
+  box-shadow: inset 0 0 0 1px var(--widget-text);
+  font-weight: 600;
+}
+
+main .shop-widget .shop-product-value.is-sold-out {
+  text-decoration: line-through;
+}
+
+main .shop-widget .shop-product-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--widget-border);
+  border-radius: 50%;
+}
+
+main .shop-widget .shop-product-body .shop-widget-actions {
+  margin-top: auto;
+}
+
+/* Cart lines */
+
+main .shop-widget .shop-cart-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+main .shop-widget .shop-cart-line {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  border-bottom: 1px solid var(--widget-border);
+  padding-bottom: 12px;
+}
+
+main .shop-widget .shop-cart-thumb {
+  display: block;
+  width: 64px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+main .shop-widget .shop-cart-line-body {
+  min-width: 0;
+}
+
+main .shop-widget .shop-cart-line-body h3 {
+  margin: 0 0 4px;
+}
+
+main .shop-widget .shop-cart-unavailable {
+  color: var(--widget-accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+main .shop-widget .shop-cart-qty {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+main .shop-widget .shop-cart-step {
+  width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--widget-border);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+main .shop-widget .shop-cart-count {
+  min-width: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+main .shop-widget :is(.shop-cart-step, .shop-widget-link, .shop-product-value):focus-visible {
+  outline: 2px solid var(--widget-accent);
+  outline-offset: 3px;
+}
+
+@media (width >= 600px) {
+  main .shop-widget .shop-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  main .shop-widget .shop-product-grid .shop-product-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  main .shop-widget .shop-product-grid .shop-product-image {
+    aspect-ratio: 4 / 5;
+    height: auto;
+  }
+
+  main .shop-widget .shop-cart-line {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+
+  main .shop-widget .shop-cart-thumb {
+    width: 80px;
+    height: 100px;
+  }
+}
+
+@media (width >= 900px) {
+  main .shop-widget .shop-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

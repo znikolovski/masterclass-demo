@@ -1,0 +1,5 @@
+@import url('../../styles/llmapp-shop.css');
+
+main .get-shop-cart {
+  max-width: 780px;
+}
