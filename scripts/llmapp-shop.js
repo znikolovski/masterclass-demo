@@ -235,6 +235,8 @@ function optionPicker(option, selected, onChange) {
   const buttons = (option.values || []).map((value) => {
     const choice = el('button', `shop-product-value${value.in_stock ? '' : ' is-sold-out'}`);
     choice.type = 'button';
+    choice.dataset.optionId = option.id;
+    choice.dataset.valueId = value.id;
     choice.setAttribute('aria-pressed', String(selected[option.id] === value.id && value.in_stock));
     choice.setAttribute('aria-label', `${option.title} ${value.title}${value.in_stock ? '' : ', sold out'}`);
     choice.disabled = !value.in_stock;
@@ -273,9 +275,32 @@ export function productCard(product, bridge, {
   status.setAttribute('role', 'status');
   const add = button(product.in_stock ? 'Add to cart' : 'Sold out');
 
-  const ready = () => product.in_stock && (product.options || []).every((o) => (
+  // A colour/size combination can be sold out while each value is in stock (`sold_out` lists them).
+  const options = product.options || [];
+  const soldOut = (choice) => {
+    const ids = options.map((o) => choice[o.id]);
+    return ids.every(Boolean) && (product.sold_out || []).some((combo) => (
+      combo.length === ids.length && combo.every((id) => ids.includes(id))));
+  };
+  const ready = () => product.in_stock && !soldOut(selected) && options.every((o) => (
     (o.values || []).some((v) => v.id === selected[o.id] && v.in_stock)));
-  const refresh = () => { add.disabled = !ready(); };
+  const syncAvailability = () => card.querySelectorAll('.shop-product-value').forEach((choice) => {
+    const { optionId, valueId } = choice.dataset;
+    const option = options.find((o) => o.id === optionId);
+    const value = option?.values.find((v) => v.id === valueId);
+    if (!value) return;
+    const unavailable = !value.in_stock || soldOut({ ...selected, [optionId]: valueId });
+    choice.disabled = unavailable;
+    choice.classList.toggle('is-sold-out', unavailable);
+    choice.setAttribute('aria-label', `${option.title} ${value.title}${unavailable ? ', sold out' : ''}`);
+  });
+  const refresh = () => {
+    syncAvailability();
+    add.disabled = !ready();
+    if (soldOut(selected) && !status.textContent) {
+      status.textContent = 'That combination is sold out — choose another option.';
+    }
+  };
 
   const media = el('div', 'shop-product-media');
   media.append(productImage(product.image, product.image_alt || product.name, 'shop-product-image'));
