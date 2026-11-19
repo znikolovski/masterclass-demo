@@ -174,7 +174,8 @@ export function connectWidget(block, bridge, {
     resized();
   };
   bridge.onToolResult?.(receive);
-  const timer = setTimeout(() => receive({ view: 'error', error: { message: timeoutMessage } }), 20000);
+  // Outlasts the tool's own Commerce wait (28 s for a cold backend) so a slow first call renders.
+  const timer = setTimeout(() => receive({ view: 'error', error: { message: timeoutMessage } }), 35000);
   bridge.toolResult.then((output) => {
     clearTimeout(timer);
     receive(output);

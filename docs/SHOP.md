@@ -87,7 +87,7 @@ the WKND LLM app (`../masterclass-demo-llmapp`, tools `search-shop-products`, `g
 `place-shop-demo-order`). Its README has the tool contract and LLM Apps UI settings.
 
 - **One dedicated widget per tool with a UI**, each an EDS block named after its tool and rendered
-  by `aem-embed`:
+  by `<aem-embed>` from `scripts/llmapp-embed.js` (the widgets' script URL; see the README):
 
   | Block / widget page | Shows |
   |---|---|
