@@ -303,7 +303,7 @@ export function productCard(product, bridge, {
     status.textContent = 'Adding to your WKND cart…';
     try {
       const data = await callShopTool(bridge, 'add-shop-cart-items', {
-        items: [{ sku: product.sku, quantity: 1, options: { ...selected } }],
+        sku: product.sku, quantity: 1, options: { ...selected },
       });
       if (data.error) throw new Error(data.error.message);
       const count = data.cart?.item_count;

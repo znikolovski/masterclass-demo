@@ -178,7 +178,7 @@ function shopMatch(product, bridge) {
     action.disabled = true;
     status.textContent = 'Adding…';
     try {
-      const data = await callShopTool(bridge, 'add-shop-cart-items', { items: [{ sku: product.sku, quantity: 1 }] });
+      const data = await callShopTool(bridge, 'add-shop-cart-items', { sku: product.sku, quantity: 1 });
       if (data.error) throw new Error(data.error.message);
       status.textContent = 'Added to your WKND cart.';
     } catch (error) {

@@ -32,7 +32,7 @@ export default async function decorate(block, bridge) {
     }
     try {
       const data = await callShopTool(bridge, 'update-shop-cart-items', {
-        items: [{ line_id: line.line_id, quantity }], cart_version: current.cart.version,
+        line_id: line.line_id, quantity, cart_version: current.cart.version,
       });
       render(data.cart ? data : { ...current, error: data.error }, true);
     } catch (error) {
