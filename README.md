@@ -27,9 +27,11 @@ npm run lint
 
 ## LLM app widget branding
 
-The six action widgets (`discover-adventures`, `build-route-briefing`,
-`build-gear-checklist`, `plan-permits-and-access`, `audit-pack-weight`, and
-`prepare-field-submission`) import `styles/llmapp-widgets.css` through their block
+The action widgets (`discover-adventures`, `build-route-briefing`,
+`build-gear-checklist`, `plan-permits-and-access`, `audit-pack-weight`,
+`prepare-field-submission`, `check-booking`, and the shop widgets `search-shop-products`,
+`get-shop-product`, `get-shop-cart` and `prepare-shop-checkout`) import
+`styles/llmapp-widgets.css` through their block
 stylesheets. It shares the site's font and colour tokens with standalone fallbacks:
 Syncopate headings and action buttons, Instrument Sans body text, forest pill
 buttons with orange offset shadows, and white/cream surfaces. Fonts retain the

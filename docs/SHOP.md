@@ -69,6 +69,52 @@ The panel's anchor product is chosen in three steps:
 Templates and the model contract are unchanged. Test with
 `node tools/scripts/test-of1-gear.mjs http://localhost:3000`.
 
+The authored `/of1` block routes product APIs through the `wknd-mcp/of1-gateway`
+App Builder action in `../wknd-automation`; `api-endpoint` still serves the OF1
+SDK. The gateway allows the canonical domain, `http://localhost:3000`, and HTTPS
+`<branch>--masterclass-demo--znikolovski.aem.page` / `.aem.live` origins.
+It keeps the upstream tenant fixed to `main--masterclass-demo--znikolovski`.
+An `API error: 403` with response `Origin is not allowed` comes from this
+gateway's origin policy, not the page's content or Commerce configuration.
+Gateway tests and targeted deployment instructions are in
+`../wknd-automation/actions/of1-gateway/README.md`.
+
+## Shop in ChatGPT (WKND LLM app)
+
+Shoppers can browse gear, manage their cart and check out with WKND Demo Pay inside ChatGPT through
+the WKND LLM app (`../masterclass-demo-llmapp`, tools `search-shop-products`, `get-shop-product`,
+`get-shop-cart`, `add-shop-cart-items`, `update-shop-cart-items`, `prepare-shop-checkout`,
+`place-shop-demo-order`). Its README has the tool contract and LLM Apps UI settings.
+
+- **One dedicated widget per tool with a UI**, each an EDS block named after its tool and rendered
+  by `aem-embed`:
+
+  | Block / widget page | Shows |
+  |---|---|
+  | `search-shop-products` | Results grid with option pickers and Add to cart |
+  | `get-shop-product` | One product in detail; options the shopper named are preselected |
+  | `get-shop-cart` | The cart with quantity controls; "Check out" hands off to checkout |
+  | `prepare-shop-checkout` | Delivery details, delivery method, coupon, Demo Pay review, receipt |
+
+  `add-shop-cart-items`, `update-shop-cart-items` and `place-shop-demo-order` are tool-only (the
+  widgets call them). Shared rendering is in `scripts/llmapp-shop.js` and `styles/llmapp-shop.css`;
+  preview data is in `scripts/llmapp-shop-samples.js`, loaded only for previews. Like the other tool
+  widgets, each widget page is `/eds-widgets/<tool>-demo`: the block with a `placeholder` cell (local
+  copies in `content/<tool>-demo.plain.html`). Preview with `/tools/widget-preview.html?block=<tool>`.
+  Previews use sample data and never call tools.
+- **Gear checklist.** The `build-gear-checklist` widget shows the matching WKND product under each
+  checklist item it sells. Simple products get Add to cart; products with options get Choose options
+  (opens `get-shop-product`); there is also a View My Cart action.
+- **One cart.** Signed-in shoppers have the same customer and active cart in ChatGPT and on the site:
+  the LLM app sends `storefront-graphql` a delegated assertion for the shopper's Auth0 `sub` (see
+  the backend README). `scripts/initializers/cart.js` refreshes a signed-in cart when the tab regains
+  focus, so edits or an order made in ChatGPT appear without a reload.
+- **Safe checkout.** Orders need the reviewed cart version and total plus an explicit button press in
+  the widget; a cart changed elsewhere is re-shown, never silently ordered. The backend claims a cart
+  atomically, so one cart produces at most one order.
+- **Demo only.** Production ChatGPT checkout is gated by OpenAI (external checkout; native checkout
+  for approved partners only) and is not part of this demo.
+
 ## Backend (`../wknd-commerce`)
 
 | Action | Purpose |

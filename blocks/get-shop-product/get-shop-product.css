@@ -1,0 +1,16 @@
+@import url('../../styles/llmapp-shop.css');
+
+main .get-shop-product {
+  max-width: 780px;
+}
+
+main .get-shop-product .shop-product-card.is-detail .shop-product-image {
+  aspect-ratio: 4 / 5;
+  height: auto;
+}
+
+@media (width >= 600px) {
+  main .get-shop-product .shop-product-card.is-detail {
+    grid-template-columns: minmax(200px, 2fr) 3fr;
+  }
+}

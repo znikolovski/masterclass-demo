@@ -1,4 +1,10 @@
 // codegen:layout-pattern=generic-detail
+import {
+  callShopTool, money, productImage, isPreview as isShopPreview,
+} from '../../scripts/llmapp-shop.js';
+
+const DM = 'https://delivery-p115476-e1135027.adobeaemcloud.com/adobe/assets/urn:aaid:aem:';
+
 // Sample data for standalone/preview mode.
 // In production, data comes dynamically from bridge.toolResult.structuredContent.
 // outputSchema is a single checklist object (detail concept) — read structuredContent directly.
@@ -56,6 +62,35 @@ const SAMPLE_DATA = {
     'River crossing depth after rain not confirmed',
   ],
   safety_note: 'Gear supports good decisions but does not replace them — turn back if conditions exceed your experience.',
+  shop_status: 'ok',
+  shop_matches: [
+    {
+      group: 'essentials',
+      item: 'Headlamp + spare batteries',
+      product: {
+        sku: 'WKND-LGT-001',
+        name: 'Alpine Start Headlamp 400',
+        type: 'simple',
+        url: 'https://wknd-adventures.run.place/shop/products/alpine-start-headlamp-400',
+        image: `${DM}130bee34-2743-4b3d-9f58-c1d3410ab2dc/as/alpine-start-headlamp-400.webp?width=480`,
+        in_stock: true,
+        price: { currency: 'AUD', min: 69 },
+      },
+    },
+    {
+      group: 'clothing',
+      item: 'Waterproof hardshell jacket',
+      product: {
+        sku: 'WKND-JKT-003',
+        name: 'Torrent Rain Jacket',
+        type: 'configurable',
+        url: 'https://wknd-adventures.run.place/shop/products/torrent-rain-jacket',
+        image: `${DM}d6d5b8f3-540b-4be5-88a6-dbd99c3f30a1/as/torrent-rain-jacket.webp?width=480`,
+        in_stock: true,
+        price: { currency: 'AUD', min: 249 },
+      },
+    },
+  ],
 };
 
 const GROUPS = [
@@ -107,7 +142,59 @@ export default async function decorate(block, bridge) {
   }
 }
 
+/**
+ * The WKND shop product matched to a checklist item: simple products are added to the shopper's
+ * cart directly (add-shop-cart-items); products with sizes/colours hand off to get-shop-product.
+ */
+function shopMatch(product, bridge) {
+  const wrap = document.createElement('div');
+  wrap.className = 'bgc-shop';
+  wrap.append(productImage(product.image, '', 'bgc-shop-thumb'));
+
+  const text = document.createElement('span');
+  text.className = 'bgc-shop-text';
+  text.textContent = `WKND: ${product.name} · ${money({ value: product.price?.min, currency: product.price?.currency })}`;
+  wrap.append(text);
+
+  const status = document.createElement('span');
+  status.className = 'bgc-shop-status';
+  status.setAttribute('role', 'status');
+
+  const action = document.createElement('button');
+  action.type = 'button';
+  action.className = 'bgc-shop-btn';
+  const configurable = product.type === 'configurable';
+  action.textContent = configurable ? 'Choose options' : 'Add to cart';
+  action.setAttribute('aria-label', `${action.textContent}: ${product.name}`);
+  action.addEventListener('click', async () => {
+    if (isShopPreview(bridge)) {
+      status.textContent = 'Preview only — open this in ChatGPT to shop this gear.';
+      return;
+    }
+    if (configurable) {
+      bridge.sendMessage(`Show me the WKND ${product.name} (SKU ${product.sku}) so I can choose options`);
+      return;
+    }
+    action.disabled = true;
+    status.textContent = 'Adding…';
+    try {
+      const data = await callShopTool(bridge, 'add-shop-cart-items', { sku: product.sku, quantity: 1 });
+      if (data.error) throw new Error(data.error.message);
+      status.textContent = 'Added to your WKND cart.';
+    } catch (error) {
+      status.textContent = error?.message || 'Could not add this item.';
+    } finally {
+      action.disabled = false;
+    }
+  });
+  wrap.append(action, status);
+  return wrap;
+}
+
 function renderChecklist(block, data, bridge) {
+  const matches = new Map((Array.isArray(data.shop_matches) ? data.shop_matches : [])
+    .filter((m) => m && typeof m.item === 'string' && m.product?.sku && m.product.in_stock !== false)
+    .map((m) => [`${m.group}::${m.item}`, m.product]));
   const card = document.createElement('div');
   card.className = 'bgc-card';
 
@@ -177,6 +264,8 @@ function renderChecklist(block, data, bridge) {
       row.appendChild(badge);
 
       section.appendChild(row);
+      const product = matches.get(`${group.key}::${it}`);
+      if (product) section.appendChild(shopMatch(product, bridge));
     });
 
     scroll.appendChild(section);
@@ -205,6 +294,14 @@ function renderChecklist(block, data, bridge) {
 
   cta.appendChild(primary);
   cta.appendChild(secondary);
+  if (matches.size) {
+    const cart = document.createElement('button');
+    cart.className = 'bgc-btn bgc-btn-secondary';
+    cart.type = 'button';
+    cart.textContent = 'View My Cart';
+    if (bridge) cart.addEventListener('click', () => bridge.sendMessage('Show my WKND cart'));
+    cta.appendChild(cart);
+  }
   card.appendChild(cta);
 
   block.appendChild(card);
