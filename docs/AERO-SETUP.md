@@ -88,9 +88,9 @@ anonymous booking creation and the previous unrestricted booking lookup.
 7. Deploy the Worker, website code and companion app, then refresh host tools.
 
 Check Booking is an **EDS widget**, configured with script URL
-`https://main--masterclass-demo--znikolovski.aem.page/scripts/aem-embed.js`
+`https://main--masterclass-demo--znikolovski.aem.live/scripts/llmapp-embed.js`
 and widget URL
-`https://main--masterclass-demo--znikolovski.aem.page/eds-widgets/check-booking`.
+`https://main--masterclass-demo--znikolovski.aem.live/eds-widgets/check-booking`.
 Author the page using a `Check Booking` block with one optional H2 title cell
 (default: “Your WKND bookings”); see `drafts/eds-widgets/check-booking.plain.html`.
 There are no authored customer identifiers, bookings, credentials, or sample

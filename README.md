@@ -40,6 +40,16 @@ existing Google Fonts source; the embed host must permit that source in its CSP.
 since font faces declared only inside a shadow root are not registered by the browser.
 It waits for the fonts before decorating the block and reporting its dimensions.
 
+Configure every widget in the LLM Apps UI with script URL
+`https://main--masterclass-demo--znikolovski.aem.live/scripts/llmapp-embed.js` and widget URL
+`https://main--masterclass-demo--znikolovski.aem.live/eds-widgets/{block-name}-demo`
+(Check Booking: `/eds-widgets/check-booking`).
+`scripts/llmapp-embed.js` registers the same `<aem-embed>` element as `scripts/aem-embed.js`
+(shared code in `scripts/embed-core.js`) but decorates with `aem.js` only, without `scripts.js`.
+Gemini inlines each widget's JavaScript at deploy and fails on the commerce drop-ins' bare
+`@dropins/*` imports that `scripts.js` reaches; MCP host CSPs also block the site-only agent scripts
+it loads. `scripts/aem-embed.js` remains for content embeds that need full site decoration.
+
 Widget-specific layouts and safety/status treatments remain in each block.
 Light, system-dark, and `body.dark` host themes are supported. Shared layout resets
 only affect sections containing these widgets, not the rest of the website.
