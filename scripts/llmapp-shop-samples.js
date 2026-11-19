@@ -41,6 +41,8 @@ export const SAMPLE_JACKET = {
     weight_g: { label: 'Weight (g)', value: 290 },
   },
   options: [{ id: 'color', title: 'Colour', values: COLOURS }, { id: 'size', title: 'Size', values: SIZES }],
+  // Glacier Blue / M is sold out although both values are in stock on their own.
+  sold_out: [['Y29uZmlndXJhYmxlL2NvbG9yL2dsYWNpZXI=', btoa('configurable/size/m')]],
 };
 
 export const SAMPLE_HEADLAMP = {
