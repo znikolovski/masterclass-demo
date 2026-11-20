@@ -754,19 +754,6 @@ export function decorateMain(main) {
     const turnStart = sections.findLastIndex((section) => (
       section.classList.contains('of1-turn-anchor')
     ));
-    const hasSherpa = sections.slice(turnStart + 1)
-      .some((section) => section.querySelector('.sherpa-options'));
-    if (adventureCards && !main.querySelector('.sherpa-options') && !hasSherpa) {
-      const section = document.createElement('div');
-      section.append(buildBlock('sherpa-options', [[
-        '<h2>Talk it through with WKND Sherpa</h2>'
-        + '<p>Need help choosing? Compare your options and discuss what to prepare with '
-        + 'your AI adventure guide, or keep browsing the field notes below.</p>'
-        + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
-      ]]));
-      const cardSection = [...main.children].find((child) => child.contains(adventureCards));
-      main.insertBefore(section, cardSection);
-    }
     // Gear recommendations from the WKND shop, anchored on the adventures this response covers.
     const adventureSection = adventureCards || main.querySelector('.adventure-facts');
     const hasGear = sections.slice(turnStart + 1)
@@ -787,6 +774,27 @@ export function decorateMain(main) {
       ]));
       const after = [...main.children].find((child) => child.contains(adventureSection));
       main.insertBefore(section, after?.nextElementSibling || null);
+    }
+  }
+  if (isGeneratedOf1) {
+    const result = isProductOf1 || main.querySelector('.cards .cards-card-actions')?.closest('.cards');
+    const sections = [...document.querySelector('main').children];
+    const turnStart = sections.findLastIndex((section) => section.classList.contains('of1-turn-anchor'));
+    const hasSherpa = sections.slice(turnStart + 1)
+      .some((section) => section.querySelector('.sherpa-options'));
+    if (result && !main.querySelector('.sherpa-options') && !hasSherpa) {
+      const section = document.createElement('div');
+      const description = isProductOf1
+        ? 'Need help choosing gear? Compare products and find the options that fit your needs with WKND Sherpa.'
+        : 'Need help choosing? Compare your options and discuss what to prepare with '
+          + 'your AI adventure guide, or keep browsing the field notes below.';
+      section.append(buildBlock('sherpa-options', [[
+        '<h2>Talk it through with WKND Sherpa</h2>'
+        + `<p>${description}</p>`
+        + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
+      ]]));
+      const resultSection = [...main.children].find((child) => child.contains(result));
+      main.insertBefore(section, resultSection);
     }
   }
   // hopefully forward compatible button decoration
