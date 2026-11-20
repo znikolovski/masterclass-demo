@@ -79,6 +79,47 @@ gateway's origin policy, not the page's content or Commerce configuration.
 Gateway tests and targeted deployment instructions are in
 `../wknd-automation/actions/of1-gateway/README.md`.
 
+### Product-first OF1
+
+The gateway can also route shopping questions into catalog-grounded product results.
+`OF1_PRODUCT_FIRST_ENABLED` is **off by default** in its deployment manifest. When enabled:
+
+- The read-only Commerce `of1Discovery(query, history)` query distinguishes shopping,
+  adventure planning and requests needing clarification. The existing generator still
+  handles adventure turns. No remote SDK fork or new model provider is involved.
+- Product results lead with up to three products, factual specification comparisons,
+  live AUD prices, inline variant selection and direct add-to-cart. One matching
+  product renders without an artificial comparison. Hard budgets also apply to the
+  selected variant; missing specifications are never inferred.
+- Up to three related adventures follow, resolved from product adventure slugs against
+  the published `/blog-index.json`. Generic activity tags do not become invented URLs.
+  Adventure enrichment failure is visible without removing usable product results.
+- Product-first turns do not trigger the adventure-first gear, flight or Sherpa panels.
+  Subsequent trip-planning searches still use those existing integrations.
+- Follow-ups use the SDK's recent query history. Unresolvable references such as “the
+  second one” prompt clarification rather than guessing previous result identities.
+- Catalog failures and no matches are distinct. Cart actions require an explicit click,
+  use the existing guest/signed-in cart, and never retry uncertain writes automatically.
+
+The reusable [product-comparison block](../blocks/product-comparison/README.md) takes
+SKU identities and optional criteria, not generated price/spec text. Product explanations
+are deterministic compositions of catalog facts, not free-form generated endorsements.
+
+Validate without touching live carts:
+
+```sh
+node tools/scripts/test-of1-products.mjs http://localhost:3001
+```
+
+Use an AEM server with `--html-folder drafts` (and the canonical site as `--url` if
+preview content is unavailable). The test requires the sibling backend/gateway workspaces
+and replays real SDK, gateway and Commerce operations against an in-memory catalog/cart.
+
+Deploy the Commerce storefront schema/action and Mesh, then the new website block/code,
+before enabling the gateway flag. Publish/sync the updated landing suggestions only
+after activation. Disabling the flag restores the previous gateway forwarding behavior.
+See the gateway README for the rollout checks; no adventure DA template migration is needed.
+
 ## Shop in ChatGPT (WKND LLM app)
 
 Shoppers can browse gear, manage their cart and check out with WKND Demo Pay inside ChatGPT through
@@ -87,7 +128,7 @@ the WKND LLM app (`../masterclass-demo-llmapp`, tools `search-shop-products`, `g
 `place-shop-demo-order`). Its README has the tool contract and LLM Apps UI settings.
 
 - **One dedicated widget per tool with a UI**, each an EDS block named after its tool and rendered
-  by `<aem-embed>` from `scripts/llmapp-embed.js` (the widgets' script URL; see the README):
+  by `aem-embed`:
 
   | Block / widget page | Shows |
   |---|---|
