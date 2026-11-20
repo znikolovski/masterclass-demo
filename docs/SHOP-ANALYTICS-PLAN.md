@@ -83,6 +83,18 @@ send `commerce.purchases`, so Orders and Revenue in `ags050wknd` are shop orders
 
 These are kept clear of the journey slots (eVar30–35 / event30–41).
 
+### Product-first OF1 attribution
+
+The product-comparison block reuses `shopRecsImpression` and `shopRecsClick` with unit
+`wknd-of1-products`. Its impression fires once on visibility per block, not on resize.
+`data.wkndShop.of1` includes `experience: product`, compared SKUs and clicked paths
+where applicable. Supporting adventure links emit `shopOf1AdventureClick` as a normal
+link interaction through the existing forwarder. No new report-suite slots are allocated.
+
+The cart drop-in remains the sole source of successful `shopCartAdd` events; the OF1
+button does not push a second cart-add event. These events inherit the existing journey
+context and analytics-off/consent handling. No full conversation history is collected.
+
 | Slot | Name | Values | Set on | Expiration |
 |---|---|---|---|---|
 | eVar40 | Shop Recommendation Unit | `wknd-pdp-complete-kit`, `wknd-pdp-more-like-this`, `wknd-cart-addons`, `wknd-trending`, `wknd-of1-gear` | Recs impressions/clicks | Visit |

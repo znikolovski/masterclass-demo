@@ -1,8 +1,18 @@
 {
-  "title": "Find your next WKND adventure",
-  "subtitle": "Ask about real routes, field notes, gear, and the details that help you plan.",
-  "placeholder": "Ask about an adventure, route, or gear...",
+  "title": "Find your next adventure and the gear for it",
+  "subtitle": "Explore real routes and field notes, or compare WKND products and find the gear that fits.",
+  "placeholder": "Ask about adventures, compare products, or find gear...",
   "suggestions": [
+    {
+      "type": "comparison",
+      "label": "Compare waterproof jackets",
+      "query": "Compare waterproof jackets under AUD 500 for Patagonia."
+    },
+    {
+      "type": "recommendation",
+      "label": "Find a lightweight backpack",
+      "query": "Recommend lightweight backpacks for trekking."
+    },
     {
       "type": "comparison",
       "label": "Compare Patagonia and Yosemite",
