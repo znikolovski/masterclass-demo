@@ -3,6 +3,7 @@
  * Real OF1 SDK + gateway + Commerce/drop-ins, backed by an isolated in-memory catalog/cart.
  * Requires the sibling wknd-commerce and wknd-automation workspaces; never mutates live carts.
  * Run: node tools/scripts/test-of1-products.mjs [http://localhost:3001]
+ * Pass an explicit /of1 URL to replay a published site.
  * Start AEM with --html-folder drafts.
  */
 /* eslint-disable no-await-in-loop, no-restricted-syntax -- sequential browser interactions */
@@ -19,7 +20,8 @@ const { main: gateway } = require('../../../wknd-automation/actions/of1-gateway/
 // eslint-disable-next-line import/extensions
 const catalog = structuredClone(require('../../../wknd-commerce/data/catalog.json'));
 
-const base = process.argv[2] || 'http://localhost:3001';
+const pageUrl = new URL(process.argv[2] || 'http://localhost:3001');
+const of1Url = new URL(pageUrl.pathname === '/' ? '/drafts/of1' : pageUrl.pathname, pageUrl.origin).href;
 const screenshots = process.argv[3];
 const torrent = catalog.products.find((p) => p.sku === 'WKND-JKT-003');
 // Make a real variant-price boundary deterministic, independent of the seed's stock pattern.
@@ -97,7 +99,7 @@ try {
     body: 'const q = window.alloy.q; const run = ([resolve]) => resolve({}); q.push = run; q.forEach(run);',
   }));
   const query = 'Compare Alpine Shell Jacket and Torrent Rain Jacket';
-  await page.goto(`${base}/drafts/of1?q=${encodeURIComponent(query)}`);
+  await page.goto(`${of1Url}?q=${encodeURIComponent(query)}`);
   const panel = page.locator('.generated-section .product-comparison').first();
   await panel.locator('.product-comparison__card').first().waitFor({ timeout: 45000 });
   assert.equal(await panel.locator('.product-comparison__card').count(), 2);
@@ -244,7 +246,7 @@ try {
   assert.deepEqual(pageErrors, [], `page errors: ${pageErrors.join(' | ')}`);
   console.log('PASS no page errors');
   await page.route('**/scripts/initializers/cart.js', (route) => route.abort());
-  await page.goto(`${base}/drafts/of1?q=WKND-PCK-005`);
+  await page.goto(`${of1Url}?q=WKND-PCK-005`);
   await page.locator('.product-comparison').getByRole('button', { name: 'Reload page', exact: true }).waitFor();
   console.log('PASS failed Commerce initialization offers reload instead of a cached failing retry');
 } catch (error) {
