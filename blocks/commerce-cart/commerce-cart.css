@@ -29,6 +29,43 @@ main .commerce-cart .cart__note[hidden] {
   display: none;
 }
 
+/* backend recovery offer (signed-in, eligible carts only) */
+main .commerce-cart .cart-recovery-offer {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--accent-color);
+  border-radius: 10px;
+  background: var(--background-color);
+}
+
+main .commerce-cart .cart-recovery-offer__title {
+  margin: 0;
+  color: var(--accent-color);
+  font: 700 12px/1.4 var(--heading-font-family);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+main .commerce-cart .cart-recovery-offer__text,
+main .commerce-cart .cart-recovery-offer__status {
+  margin: 0;
+}
+
+main .commerce-cart .cart-recovery-offer__apply {
+  justify-self: start;
+  margin: 0;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font: 700 12px/1.4 var(--heading-font-family);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+main .commerce-cart .cart-recovery-offer__status:empty {
+  display: none;
+}
+
 /* heading row: "Shopping cart (n)" as a site eyebrow */
 main .commerce-cart .cart-cart-summary-list__heading {
   padding-bottom: var(--spacing-small);

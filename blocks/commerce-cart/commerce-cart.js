@@ -3,6 +3,8 @@
  * Authoring (key/value rows, all optional):
  *   max-items  limit the number of line items shown
  * Prices are AUD incl. GST; coupons such as WKND10 are validated by the commerce backend.
+ * Signed-in shoppers with an eligible inactive cart see the backend recovery offer
+ * (recovery-offer.js); no authoring is needed.
  */
 import { readBlockConfig } from '../../scripts/aem.js';
 import { SHOP_PATHS } from '../../scripts/commerce-config.js';
@@ -37,6 +39,12 @@ async function renderCart(block, {
   ]);
 
   const productLink = (item) => getProductLink(item.url?.urlKey);
+
+  // Backend-decided recovery offer for signed-in shoppers (lazy; never blocks the cart render).
+  import('./recovery-offer.js')
+    .then(({ default: init }) => init($summary, { events, pushShopEvent }))
+    // eslint-disable-next-line no-console
+    .catch((e) => console.error('commerce-cart recovery offer', e));
 
   let viewed = false;
   events.on('cart/data', (cart) => {
