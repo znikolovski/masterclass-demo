@@ -11,12 +11,16 @@ let catalogCacheAt = 0;
 const CACHE_MS = 300000;
 
 /**
+ * @param {AbortSignal} [signal]
  * @returns {Promise<object>}
  */
-export async function fetchAdventureCatalog() {
+export async function fetchAdventureCatalog(signal) {
   if (catalogCache && Date.now() - catalogCacheAt < CACHE_MS) return catalogCache;
   const base = getAeroApiBase();
-  const resp = await fetch(`${base}/catalog/adventures/index.json`);
+  const resp = await fetch(`${base}/catalog/adventures/index.json`, {
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(10000)])
+      : AbortSignal.timeout(10000),
+  });
   if (!resp.ok) throw new Error('catalog unavailable');
   catalogCache = await resp.json();
   catalogCacheAt = Date.now();

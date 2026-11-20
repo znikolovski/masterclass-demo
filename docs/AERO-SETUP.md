@@ -69,6 +69,15 @@ anonymous booking creation and the previous unrestricted booking lookup.
    origin `https://main--wknd-aero--znikolovski.aem.live`.
    Local browser testing uses `http://localhost:3000/book/flights` and
    `http://localhost:3000`. Do not wildcard callback URLs.
+   The checkout shares the shop's **WKND Checkout** application. Keep its existing
+   `/account` callbacks and shop origins when adding Aero. A `Callback URL mismatch`
+   screen is an Auth0 application allowlist error, not a password or Worker error.
+   Both Aero preview and live origins must be configured separately:
+
+   | Setting | Aero entries to add (preserve existing entries) |
+   |---------|------------------------------------------------|
+   | Allowed Callback URLs | `https://main--wknd-aero--znikolovski.aem.page/book/flights`, `https://main--wknd-aero--znikolovski.aem.live/book/flights`, `http://localhost:3000/book/flights` |
+   | Allowed Web Origins / Allowed Origins (CORS) / Allowed Logout URLs | `https://main--wknd-aero--znikolovski.aem.page`, `https://main--wknd-aero--znikolovski.aem.live`, `http://localhost:3000` |
 4. The public checkout SPA client ID is configured as `AUTH0_CHECKOUT_CLIENT_ID`
    under `[vars]` in `workers/wknd-aero-api/wrangler.toml`.
    The issuer, Worker audience and MCP resource are also configured there; change them together when deploying
@@ -144,6 +153,7 @@ Focused regression checks:
 node tools/scripts/test-booking-auth.mjs
 node tools/scripts/test-journey-context.mjs
 node tools/scripts/test-booking-checkout.mjs
+node tools/scripts/test-aero-shop.mjs
 node tools/scripts/test-check-booking-widget.mjs
 ```
 
@@ -151,6 +161,28 @@ Before enabling the live tool, create a new booking signed in as customer A,
 retrieve it in the host signed in as A, then verify customer B cannot retrieve it
 through either the direct API or the tool. Host login alone does not validate
 the website client, delegated secret, or ownership mapping.
+
+### Booking-aware shopping
+
+The existing `Booking Journey` block needs no new author fields. After a flight
+is selected, it shows up to four in-stock products tagged with the booking's
+adventure. Confirmation uses the confirmed booking's adventure first. Direct
+flight searches without an adventure use matching destination entries from the
+public Aero adventure catalog. No matching adventure/products produces an
+explicit empty state, not unrelated trending recommendations.
+
+Products and prices come from the existing Commerce Mesh `productSearch` API.
+Only public adventure slugs are sent to Commerce: no booking reference, access
+token, passenger details, or payment information. This read-only integration
+does not change promotions or the shared customer identity implementation.
+Product links open the canonical WKND Adventures shop in a new tab to preserve
+in-progress checkout; shoppers choose sizes/options and purchase there. Gear
+is optional and separate from the flight. No cross-domain cart or sign-in
+transfer is implied. Catalog failures show a retry action and never block booking.
+
+The shared [page head](../head.html) supplies both Commerce and Preact import-map
+entries. Keep both: the booking block's standalone import-map fallback cannot
+replace a head map that already exists.
 
 ## Local dev
 

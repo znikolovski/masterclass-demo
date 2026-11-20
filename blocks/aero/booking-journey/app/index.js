@@ -5,12 +5,82 @@ import { pushBookingEvent } from '../../../../scripts/aero-analytics.js';
 import { DEFAULT_FLIGHT_ORIGIN } from '../../../../scripts/aero-blocks.js';
 import { getJourney } from '../../../../scripts/journey-analytics.js';
 import { JOURNEY_ID_PATTERN } from '../../../../scripts/journey-context.js';
+import { fetchAdventureCatalog, getCatalogItems } from '../../../../scripts/aero-catalog.js';
+import { fetchBookingProducts, getAeroShopLink, AERO_SHOP_ORIGIN } from '../../../../scripts/aero-shop.js';
+import { dmRendition, isDmUrl } from '../../../../scripts/dm-image.js';
 import {
   signInForBooking, getBookingAccessToken, invalidateBookingAuth,
   restoreBookingSession, subscribeToBookingAuth,
 } from '../../../../scripts/aero-auth.js';
 
 const STEPS = ['Flights', 'Seats', 'Passengers', 'Payment'];
+
+function BookingGear({ adventureId, destination, confirmed }) {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(false);
+    setProducts([]);
+    (async () => {
+      let adventures = adventureId ? [adventureId] : [];
+      if (!adventures.length && destination) {
+        const catalog = await fetchAdventureCatalog(controller.signal);
+        adventures = getCatalogItems(catalog)
+          .filter((item) => (item.destinationIata || item.extensions?.destinationIata) === destination)
+          .map((item) => item.sku || item.slug);
+      }
+      return fetchBookingProducts(adventures, controller.signal);
+    })().then((items) => {
+      if (!controller.signal.aborted) setProducts(items);
+    }).catch((err) => {
+      if (controller.signal.aborted) return;
+      setError(true);
+      // eslint-disable-next-line no-console
+      console.error('WKND booking gear unavailable.', { reason: err.name });
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoading(false);
+    });
+    return () => controller.abort();
+  }, [adventureId, destination, attempt]);
+
+  return h('section', { class: 'booking-gear', 'aria-label': 'Recommended adventure gear', 'aria-busy': loading }, [
+    h('h2', null, confirmed ? 'Gear up for your booked adventure' : 'Gear for the adventure you are planning'),
+    h('p', null, 'Optional gear from WKND Adventures. Shop opens in a new tab; products are purchased separately and are not included in your flight.'),
+    loading && h('p', { role: 'status' }, 'Finding gear for your adventure...'),
+    error && h('div', null, [
+      h('p', { role: 'alert' }, 'Recommended gear is unavailable. Your flight booking is unchanged.'),
+      h('button', { type: 'button', class: 'booking-btn booking-btn-secondary', onClick: () => setAttempt((value) => value + 1) }, 'Retry gear recommendations'),
+    ]),
+    !loading && !error && !products.length && h('p', { role: 'status' }, 'No matching gear is available for this adventure yet.'),
+    !loading && !error && products.length > 0 && h('ul', { class: 'booking-gear-products' }, products.map((product) => {
+      const amount = (product.price || product.priceRange?.minimum)?.final?.amount;
+      const price = Number.isFinite(amount?.value) && /^[A-Z]{3}$/.test(amount.currency)
+        ? new Intl.NumberFormat('en-AU', { style: 'currency', currency: amount.currency }).format(amount.value) : '';
+      const image = product.images?.find((item) => isDmUrl(item.url));
+      return h('li', { key: product.sku }, h('a', {
+        href: getAeroShopLink(product.urlKey), target: '_blank', rel: 'noopener noreferrer',
+      }, [
+        image && h('img', {
+          src: dmRendition(image.url, { width: 480, alias: product.urlKey }),
+          alt: '',
+          loading: 'lazy',
+          decoding: 'async',
+          width: 384,
+          height: 480,
+        }),
+        h('h3', null, product.name),
+        price && h('p', null, `${product.priceRange ? 'From ' : ''}${price}`),
+        h('span', null, 'View product (opens in a new tab)'),
+      ]));
+    })),
+    h('a', { href: `${AERO_SHOP_ORIGIN}/shop/`, target: '_blank', rel: 'noopener noreferrer' }, 'Browse all WKND gear (opens in a new tab)'),
+  ]);
+}
 
 /** @typedef {{ rows: number, sections: string[][], label: string }} SeatLayout */
 
@@ -817,6 +887,11 @@ function BookingApp({ mount }) {
         h('p', null, `${selected?.origin} → ${selected?.destination} · ${formatTime(selected?.departTime)}`),
         h('a', { href: '/', class: 'booking-btn booking-btn-primary' }, 'Return home'),
       ]),
+      h(BookingGear, {
+        adventureId: confirmed.adventure?.id || adventureId,
+        destination: confirmed.flight?.destination || selected?.destination,
+        confirmed: true,
+      }),
     ]);
   }
 
@@ -957,6 +1032,9 @@ function BookingApp({ mount }) {
       seats,
       passengers: pax,
       step,
+    }),
+    selected && h(BookingGear, {
+      adventureId, destination: selected.destination, confirmed: false,
     }),
   ]);
 }
