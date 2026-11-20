@@ -23,6 +23,12 @@ const env = {
   },
 };
 const root = resolve('.');
+const head = await readFile(resolve(root, 'head.html'), 'utf8');
+const importMap = head.match(/<script[^>]*type="importmap"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+assert(importMap, 'The shared page head must provide the booking and Commerce import map');
+values.set('catalog:adventures:patagonia-trek', JSON.stringify({
+  sku: 'patagonia-trek', name: 'Patagonia trek',
+}));
 const server = createServer(async (req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
   if (pathname === '/__checkout-test') {
@@ -32,16 +38,14 @@ const server = createServer(async (req, res) => {
       <meta name="aero-api" content="https://worker.test">
       <link rel="stylesheet" href="/blocks/aero/aero-header/aero-header.css">
       <link rel="stylesheet" href="/blocks/aero/booking-journey/booking-journey.css">
-      <script type="importmap">{"imports":{"preact":"https://esm.sh/preact@10.24.3","preact/hooks":"https://esm.sh/preact@10.24.3/hooks"}}</script>
+      <script type="importmap">${importMap}</script>
       </head><body class="appear"><header><div class="aero-header"></div></header>
       <main><div class="booking-journey"><div id="mount"></div></div></main>
       <script type="module">
         import header from '/blocks/aero/aero-header/aero-header.js';
-        import init from '/blocks/aero/booking-journey/app/index.js';
+        import decorate from '/blocks/aero/booking-journey/booking-journey.js';
         await header(document.querySelector('.aero-header'));
-        const mount=document.querySelector('#mount');
-        Object.assign(mount.dataset,{api:'https://worker.test',origin:'MEL',dest:'PUQ',depart:'2026-12-01',passengers:'1'});
-        init(mount);
+        await decorate(document.querySelector('.booking-journey'));
       </script></body></html>`);
     return;
   }
@@ -76,7 +80,40 @@ try {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   const token = await auth.token();
+  const checkoutUrl = `${base}/__checkout-test?origin=MEL&dest=PUQ&adv=patagonia-trek&depart=2026-12-01&passengers=1`;
+  let gearFailure = false;
+  let gearEmpty = false;
+  let gearRequests = 0;
+  await context.route('https://edge-graph.adobe.io/**', async (route) => {
+    gearRequests += 1;
+    const url = new URL(route.request().url());
+    assert.deepEqual(JSON.parse(url.searchParams.get('variables')), {
+      filter: [{ attribute: 'adventure', in: ['patagonia-trek'] }],
+    });
+    assert(!url.href.includes('private'));
+    assert(!url.href.includes('BK_'));
+    if (gearFailure) return route.fulfill({ status: 503 });
+    return route.fulfill({
+      json: {
+        data: {
+          productSearch: {
+            items: gearEmpty ? [] : [{
+              productView: {
+                sku: 'WKND-JKT-001',
+                name: 'Alpine Shell Jacket',
+                urlKey: 'alpine-shell-jacket',
+                inStock: true,
+                images: [],
+                priceRange: { minimum: { final: { amount: { value: 449, currency: 'AUD' } } } },
+              },
+            }],
+          },
+        },
+      },
+    });
+  });
   let posts = 0;
+  let catalogRequests = 0;
   let booking;
   await context.route('https://worker.test/**', async (route) => {
     const req = route.request();
@@ -88,6 +125,13 @@ try {
           'Access-Control-Allow-Headers': 'authorization,content-type',
           'Access-Control-Allow-Methods': 'GET,POST',
         },
+      });
+    }
+    if (new URL(req.url()).pathname === '/catalog/adventures/index.json') {
+      catalogRequests += 1;
+      return route.fulfill({
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        json: { data: [{ sku: 'patagonia-trek', destinationIata: 'PUQ' }] },
       });
     }
     if (new URL(req.url()).pathname === '/api/bookings') posts += 1;
@@ -122,8 +166,25 @@ try {
       }
     }};`,
   }));
-  await page.goto(`${base}/__checkout-test`);
+  await page.goto(checkoutUrl);
+  assert.equal(gearRequests, 0, 'No product request before a flight is selected');
+  gearFailure = true;
   await page.locator('.flight-card button').first().click();
+  const gear = page.getByRole('region', { name: 'Recommended adventure gear' });
+  await gear.getByRole('alert').waitFor();
+  gearFailure = false;
+  gearEmpty = true;
+  await gear.getByRole('button', { name: 'Retry gear recommendations' }).click();
+  await gear.getByRole('status').filter({ hasText: 'No matching gear' }).waitFor();
+  gearEmpty = false;
+  await page.reload();
+  await page.locator('.flight-card button').first().click();
+  await gear.getByRole('heading', { name: 'Alpine Shell Jacket' }).waitFor();
+  const product = gear.getByRole('link', { name: /Alpine Shell Jacket/ });
+  assert.equal(await product.getAttribute('href'), 'https://wknd-adventures.run.place/shop/products/alpine-shell-jacket');
+  assert.equal(await product.getAttribute('target'), '_blank');
+  assert.equal(await product.getAttribute('rel'), 'noopener noreferrer');
+  assert((await gear.innerText()).includes('From $449.00'));
   await page.getByRole('button', { name: 'Seat 2A', exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByLabel('First name', { exact: true }).fill('Test');
@@ -207,6 +268,8 @@ try {
   await page.getByRole('button', { name: 'Continue to payment' }).click();
   await complete.click();
   await page.getByRole('heading', { name: 'Demo booking confirmed' }).waitFor();
+  await gear.getByRole('heading', { name: 'Gear up for your booked adventure' }).waitFor();
+  await gear.getByRole('heading', { name: 'Alpine Shell Jacket' }).waitFor();
   assert.equal(posts, 2);
   assert.equal(booking.seats[0], '2A');
   assert.equal(booking.flight.origin, 'MEL');
@@ -215,9 +278,12 @@ try {
   assert(!stored.includes('private@example.test'));
   const restored = await context.newPage();
   await restored.addInitScript(() => { window.testRestoreSession = true; });
-  await restored.goto(`${base}/__checkout-test`);
+  await restored.goto(checkoutUrl.replace('&adv=patagonia-trek', ''));
   await restored.locator('.aero-header').getByRole('button', { name: 'SIGN OUT', exact: true }).waitFor();
   await restored.locator('.flight-card button').first().click();
+  await restored.getByRole('region', { name: 'Recommended adventure gear' })
+    .getByRole('heading', { name: 'Alpine Shell Jacket' }).waitFor();
+  assert(catalogRequests > 0, 'Direct flight bookings must resolve gear using destination catalog tags');
   await restored.getByRole('button', { name: 'Seat 2A', exact: true }).click();
   await restored.getByRole('button', { name: 'Continue', exact: true }).click();
   await restored.getByLabel('First name', { exact: true }).fill('Restored');
@@ -228,7 +294,7 @@ try {
   assert.equal(await restored.getByRole('button', { name: 'Sign in to book', exact: true }).count(), 0);
   await restored.close();
   assert.equal(errors.length, 0, errors.join('\n'));
-  console.log('PASS header/widget login and logout synchronization, cancellation, expired sessions, SSO restoration, preserved selections, authenticated confirmation and responsive memory-only checkout');
+  console.log('PASS shared-head booking bootstrap; synchronized login/logout, cancellation, expiry, SSO restoration, preserved selections, authenticated confirmation; adventure-tagged shopping, failure/retry/empty states, canonical product links, confirmed and in-progress recommendations; responsive memory-only checkout');
 } finally {
   if (browser) await browser.close();
   await new Promise((done) => { server.close(done); });
