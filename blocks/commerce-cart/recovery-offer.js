@@ -2,11 +2,12 @@
  * Cart recovery offer for signed-in shoppers. Eligibility (24h–7d inactive cart, no purchase
  * since, one redemption per campaign) is decided only by the Commerce backend
  * (wkndRecoveryOffer / claimWkndRecoveryOffer); this UI never grants a discount itself.
- * The shopper applies the offer explicitly; an existing coupon is never replaced silently.
+ * The shopper applies the offer explicitly; an existing coupon is never replaced silently, and the
+ * offer is only shown when the engine says it saves more than the promotion already applied.
  */
 import { CORE_FETCH_GRAPHQL, checkIsAuthenticated } from '../../scripts/commerce.js';
 
-const OFFER_FIELDS = 'status coupon_code percent_off max_discount { value } expires_at';
+const OFFER_FIELDS = 'status coupon_code percent_off max_discount { value } expires_at saving { value } current_saving { value }';
 const OFFER_QUERY = `query WkndRecoveryOffer($cartId: String!) { wkndRecoveryOffer(cart_id: $cartId) { ${OFFER_FIELDS} } }`;
 const CLAIM_MUTATION = `mutation ClaimWkndRecoveryOffer($cartId: String!) { claimWkndRecoveryOffer(cart_id: $cartId) { ${OFFER_FIELDS} } }`;
 const AVAILABLE = ['ELIGIBLE', 'CLAIMED'];
@@ -17,7 +18,14 @@ async function request(query, cartId) {
   return data;
 }
 
-const formatAud = (value) => new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }).format(value);
+const formatAud = (value, digits = 0) => new Intl.NumberFormat('en-AU', {
+  style: 'currency', currency: 'AUD', minimumFractionDigits: digits, maximumFractionDigits: digits,
+}).format(value);
+
+/** Only offers that beat what the cart already gets (both figures from the backend engine). */
+const beatsCurrent = (offer) => (
+  Number(offer.saving?.value) > Number(offer.current_saving?.value ?? 0)
+);
 
 function formatEnds(iso) {
   const date = new Date(iso);
@@ -31,14 +39,20 @@ function renderOffer(offer, { replacing }) {
   const ends = formatEnds(offer.expires_at);
   const fragment = document.createRange().createContextualFragment(`
     <section class="cart-recovery-offer" aria-labelledby="cart-recovery-offer-title">
-      <h2 id="cart-recovery-offer-title" class="cart-recovery-offer__title">Welcome back</h2>
+      <p class="cart-recovery-offer__eyebrow">Welcome back</p>
+      <h2 id="cart-recovery-offer-title" class="cart-recovery-offer__title"></h2>
       <p class="cart-recovery-offer__text"></p>
-      <button type="button" class="dropin-button dropin-button--primary cart-recovery-offer__apply"></button>
+      <button type="button" class="cart-recovery-offer__apply">Apply this offer</button>
       <p class="cart-recovery-offer__status" role="status" aria-live="polite"></p>
     </section>`);
-  const text = `Take ${offer.percent_off}% off your gear, up to ${formatAud(offer.max_discount?.value)}${ends ? ` — ends ${ends}` : ''}. One use per account.`;
-  fragment.querySelector('.cart-recovery-offer__text').textContent = text;
-  fragment.querySelector('.cart-recovery-offer__apply').textContent = replacing ? 'Use this offer instead of your code' : 'Apply offer';
+  const details = [
+    `${offer.percent_off}% off your gear, up to ${formatAud(offer.max_discount?.value)}.`,
+    ends ? `Ends ${ends}.` : '',
+    'One use per account.',
+    replacing ? `Replaces code ${replacing}.` : '',
+  ].filter(Boolean).join(' ');
+  fragment.querySelector('.cart-recovery-offer__title').textContent = `Save ${formatAud(offer.saving.value, 2)} on this cart`;
+  fragment.querySelector('.cart-recovery-offer__text').textContent = details;
   return fragment.firstElementChild;
 }
 
@@ -51,6 +65,7 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
   let $offer = null;
   let checkedKey = null;
   let busy = false;
+  let latest = 0;
 
   const remove = () => {
     $offer?.remove();
@@ -58,17 +73,21 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
   };
 
   async function show(cart) {
+    latest += 1;
+    const run = latest;
     let offer;
     try {
       offer = (await request(OFFER_QUERY, cart.id))?.wkndRecoveryOffer;
     } catch (e) {
-      return; // backend without recovery offers or transient failure: keep the standard cart
+      offer = null; // backend without recovery offers or transient failure: keep the standard cart
     }
-    if (!offer || !AVAILABLE.includes(offer.status) || !offer.coupon_code) return;
-    const applied = (cart.appliedCoupons || []).map((c) => c.code?.toUpperCase());
-    if (applied.includes(offer.coupon_code)) return;
+    if (run !== latest) return; // a newer cart state is being checked
     remove();
-    $offer = renderOffer(offer, { replacing: applied.length > 0 });
+    const usable = offer && AVAILABLE.includes(offer.status) && offer.coupon_code;
+    if (!usable || !beatsCurrent(offer)) return;
+    const applied = (cart.appliedCoupons || []).map((c) => c.code?.toUpperCase()).filter(Boolean);
+    if (applied.includes(offer.coupon_code)) return;
+    $offer = renderOffer(offer, { replacing: applied[0] || null });
     container.before($offer);
     pushShopEvent('shopRecoveryOfferView', { eventType: 'web.webinteraction.linkClicks', data: { offerStatus: offer.status } });
 
@@ -103,7 +122,9 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
       remove();
       return;
     }
-    const key = `${cart.id}|${(cart.appliedCoupons || []).map((c) => c.code).join(',')}`;
+    // Savings depend on the lines too, so quantity edits re-check the comparison.
+    const lines = (cart.items || []).map((i) => `${i.uid}:${i.quantity}`).join(',');
+    const key = `${cart.id}|${(cart.appliedCoupons || []).map((c) => c.code).join(',')}|${lines}`;
     if (key === checkedKey) return;
     checkedKey = key;
     show(cart);

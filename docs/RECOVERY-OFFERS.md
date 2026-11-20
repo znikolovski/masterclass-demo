@@ -9,13 +9,16 @@ returns.
 
 1. `blocks/commerce-cart/recovery-offer.js` runs on `/shop/cart` after the cart drop-in loads.
    For signed-in shoppers with items it queries `wkndRecoveryOffer(cart_id)`.
-2. When the status is `ELIGIBLE` or `CLAIMED`, a "Welcome back" card appears above the order
-   summary. Nothing renders for guests, empty carts, `INELIGIBLE`/`REDEEMED`/`UNAVAILABLE`, or if
-   the backend does not support the query yet.
-3. **Apply offer** calls `claimWkndRecoveryOffer(cart_id)` (issues the server entitlement), then
-   applies the returned code with the cart drop-in's `applyCouponsToCart(..., REPLACE)`, so the
-   drop-in refreshes totals. If another code is already applied the button reads
-   "Use this offer instead of your code" — codes are never replaced silently.
+2. When the status is `ELIGIBLE` or `CLAIMED` **and** the offer saves more than the promotion
+   already on the cart, a dark "Welcome back" card appears above the order summary
+   ("Save $X on this cart"). Both figures (`saving`, `current_saving`) come from the Commerce
+   promotion engine, so the shopper is always steered to the highest discount available. Nothing
+   renders for guests, empty carts, `INELIGIBLE`/`REDEEMED`/`UNAVAILABLE`, when the current
+   promotion saves as much or more, or if the backend does not support the query yet.
+3. **Apply this offer** calls `claimWkndRecoveryOffer(cart_id)` (issues the server entitlement),
+   then applies the returned code with the cart drop-in's `applyCouponsToCart(..., REPLACE)`, so the
+   drop-in refreshes totals. If a (smaller) code is already applied the card says
+   "Replaces code X." — codes are never replaced silently.
 4. Totals, eligibility and the single redemption per account are enforced by Commerce
    (`wknd.promotions/v1`, see `../wknd-commerce/docs/PROMOTIONS.md`) at both order paths.
 
@@ -35,7 +38,7 @@ Events go through the existing ACDL → Web SDK path (`pushShopEvent`), with `da
 
 | Event | When |
 | --- | --- |
-| `shopRecoveryOfferView` | Offer card shown (once per cart/code state) |
+| `shopRecoveryOfferView` | Offer card shown (once per cart/code/line state) |
 | `shopRecoveryOfferApply` | Offer claimed and applied |
 | `shopRecoveryOfferError` | Claim or apply failed (card stays with the reason) |
 
