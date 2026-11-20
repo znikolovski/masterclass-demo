@@ -48,3 +48,13 @@ entitlements or codes are sent.
 The backend fields must be deployed (Commerce storefront action + API Mesh). Until then the card
 stays hidden. Component behaviour (eligible, claim failure, ineligible, backend error) was
 verified headlessly with the GraphQL client and cart API stubbed at the module boundary.
+
+## Cart-reminder email preference
+
+The account page (`blocks/commerce-account/email-preferences.js`) adds an **Email preferences**
+section with an unchecked opt-in: "Email me a reminder if I leave items in my cart". It reads and
+writes `Customer.wknd_recovery_email_opt_in` / `setWkndRecoveryEmailOptIn`, is independent of
+checkout, and stays hidden when the backend does not support it. Consent is never inferred from
+sign-in or an email entered at checkout. Reminder emails (Brevo, at most one per inactive cart,
+human-approved runs, test allowlist on by default) are described in
+`../wknd-commerce/docs/PROMOTIONS.md`; Brevo unsubscribe/bounce webhooks turn the preference off.

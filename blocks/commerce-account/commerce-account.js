@@ -109,6 +109,14 @@ function renderSignedInShell(block, state) {
           <h2 id="account-addresses-title">Saved addresses</h2>
           <div class="account__addresses"><p class="account__loading">Loading your addresses…</p></div>
         </section>
+        <section id="preferences" class="account__section" aria-labelledby="account-preferences-title" hidden>
+          <h2 id="account-preferences-title">Email preferences</h2>
+          <label class="account__preference">
+            <input type="checkbox" name="recovery-email">
+            <span>Email me a reminder if I leave items in my cart (at most one per cart, sometimes with an offer). This is a demo store.</span>
+          </label>
+          <p class="account__preference-status" role="status" aria-live="polite"></p>
+        </section>
       </div>
     </div>`);
   fragment.querySelector('.account__avatar').textContent = state.initials;
@@ -147,6 +155,10 @@ async function hydrate(block) {
     block.querySelector('.account__detail-name').textContent = name || '—';
     block.querySelector('.account__detail-email').textContent = profile.email || '—';
   });
+
+  import('./email-preferences.js')
+    .then(({ default: init }) => init(block.querySelector('#preferences')))
+    .catch(() => {});
 
   await import('../../scripts/initializers/account.js');
   const [
