@@ -235,6 +235,8 @@ The deployed site-side card/Sherpa handoff, `send=true`, two-column grids, and
 unique-caption image recovery pass independently of this ingestion failure.
 Their deterministic browser checks do not prove live Aero retrieval.
 
+Product and adventure results both generate a visible Sherpa handoff panel.
+Product results still exclude adventure-only gear, planning and flight panels.
 Sherpa handoffs use the originating OF1 turn. A product-comparison result asks for
 help choosing and comparing WKND products, including the search and loaded product
 names rather than its supporting adventure cards. The prompt refreshes on activation
