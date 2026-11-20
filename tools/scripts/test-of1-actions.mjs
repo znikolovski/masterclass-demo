@@ -364,10 +364,22 @@ try {
     document.querySelector('main').append(section);
   }, names);
   const nextTurn = async (text, panels) => {
+    await page.waitForFunction(() => (
+      document.querySelector('.wknd-sherpa-launcher')?.getAttribute('aria-expanded') === 'false'
+    ));
     const search = page.locator('.generative-suggestions:not(.dimmed) .suggestion-input');
     await search.fill(text);
     await search.press('Enter');
-    await page.waitForFunction((count) => document.querySelectorAll('.sherpa-options').length === count, panels);
+    await page.waitForFunction((count) => document.querySelectorAll('.sherpa-options').length === count, panels)
+      .catch(async (error) => {
+        process.stderr.write(`${JSON.stringify({
+          expectedPanels: panels,
+          actualPanels: await panel.count(),
+          pageErrors: errors,
+          content: (await page.locator('main').innerText()).slice(-1800),
+        })}\n`);
+        throw error;
+      });
   };
   await nextTurn(productQuery, 3);
   // Product data can finish loading after the Sherpa block is decorated.
