@@ -50,21 +50,43 @@ export function initOf1Query(block) {
   }, true);
 }
 
-export function getOf1Context() {
+export function getOf1Context(source) {
   const main = document.querySelector('main');
-  const anchor = [...main.querySelectorAll('.of1-turn-anchor')].at(-1);
+  const children = [...main.children];
+  const sourceIndex = children.findIndex((section) => section.contains(source));
+  const anchor = (source?.isConnected
+    ? children.slice(0, sourceIndex + 1).findLast((section) => section.classList.contains('of1-turn-anchor'))
+    : null) || [...main.querySelectorAll('.of1-turn-anchor')].at(-1);
   // Breadcrumb titles retain the complete follow-up query, even when its label is truncated.
   const topic = [...main.querySelectorAll('.generative-breadcrumb .breadcrumb-item')]
     .find((link) => link.hash === `#${anchor?.id}`);
   const headings = [];
+  const sections = [];
   for (let section = anchor?.nextElementSibling; section; section = section.nextElementSibling) {
+    if (section.classList.contains('of1-turn-anchor')) break;
     if (section.classList.contains('generated-section')) {
-      section.querySelectorAll('.hero-adventure h1, .cards :is(h2, h3, h4, h5, h6)').forEach((heading) => {
-        headings.push(heading.textContent);
-      });
+      sections.push(section);
     }
   }
-  return { query: topic?.title || initialQuery, headings };
+  // Pending blocks are decorated before the SDK attaches their result sections.
+  const pending = source?.closest('main');
+  if (pending && pending !== main) sections.push(pending);
+  sections.forEach((section) => {
+    section.querySelectorAll('.hero-adventure h1, .cards :is(h2, h3, h4, h5, h6)').forEach((heading) => {
+      headings.push(heading.textContent);
+    });
+  });
+  const productBlocks = sections.flatMap((section) => [...section.querySelectorAll('.product-comparison')]);
+  const products = [...new Set(productBlocks.flatMap((block) => (
+    [...block.querySelectorAll('.product-comparison__card h3')]
+      .map((heading) => heading.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean)
+  )))];
+  return {
+    query: topic?.title || initialQuery,
+    headings,
+    experience: productBlocks.length ? 'product' : 'adventure',
+    products,
+  };
 }
 
 export function getOf1ArticleUrl(href) {

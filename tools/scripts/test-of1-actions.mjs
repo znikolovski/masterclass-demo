@@ -343,6 +343,68 @@ try {
   ), followUpPrompt);
   assert.equal(await input.evaluate(() => window.testSubmissions), 3);
   await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
+
+  const productOpening = 'Help me choose WKND products and compare which options best fit my needs.';
+  const productQuery = 'waterproof jacket & layers #WKND';
+  const productNames = ['Alpine & Shell + Jacket #WKND "storm"', 'Torrent Rain Jacket'];
+  const addProductResult = async (names) => page.evaluate((titles) => {
+    const section = document.createElement('div');
+    section.className = 'section generated-section';
+    const comparison = document.createElement('div');
+    comparison.className = 'product-comparison';
+    titles.forEach((name) => {
+      const card = document.createElement('article');
+      card.className = 'product-comparison__card';
+      const heading = document.createElement('h3');
+      heading.textContent = name;
+      card.append(heading);
+      comparison.append(card);
+    });
+    section.append(comparison);
+    document.querySelector('main').append(section);
+  }, names);
+  const nextTurn = async (text, panels) => {
+    const search = page.locator('.generative-suggestions:not(.dimmed) .suggestion-input');
+    await search.fill(text);
+    await search.press('Enter');
+    await page.waitForFunction((count) => document.querySelectorAll('.sherpa-options').length === count, panels);
+  };
+  await nextTurn(productQuery, 3);
+  // Product data can finish loading after the Sherpa block is decorated.
+  await addProductResult([...productNames, productNames[0]]);
+  const productChat = panel.last().getByRole('link', { name: 'Chat with WKND Sherpa', exact: true });
+  const productPrompt = `${productOpening} My current search is: ${productQuery}. The products shown include: ${productNames.join('; ')}.`;
+  await productChat.click();
+  await page.waitForFunction((expected) => (
+    document.querySelector('.wknd-sherpa-frame').contentWindow.testLastSent === expected
+  ), productPrompt);
+  assert.equal(await input.evaluate(() => window.testSubmissions), 4);
+  assert.equal(await productChat.getAttribute('href'), `#sherpa?prompt=${encodeURIComponent(productPrompt)}&send=true`);
+  await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
+
+  await nextTurn('Show waterproof jackets under AUD 1', 4);
+  await addProductResult([]);
+  await panel.last().getByRole('link', { name: 'Chat with WKND Sherpa', exact: true }).click();
+  const emptyProductPrompt = `${productOpening} My current search is: Show waterproof jackets under AUD 1.`;
+  await page.waitForFunction((expected) => (
+    document.querySelector('.wknd-sherpa-frame').contentWindow.testLastSent === expected
+  ), emptyProductPrompt);
+  assert.equal(await input.evaluate(() => window.testSubmissions), 5);
+  await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
+
+  await panel.nth(2).getByRole('link', { name: 'Chat with WKND Sherpa', exact: true }).click();
+  await page.waitForFunction((expected) => (
+    document.querySelector('.wknd-sherpa-frame').contentWindow.testLastSent === expected
+  ), productPrompt);
+  assert.equal(await input.evaluate(() => window.testSubmissions), 6);
+  await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
+  await chat.first().click();
+  await page.waitForFunction((expected) => (
+    document.querySelector('.wknd-sherpa-frame').contentWindow.testLastSent === expected
+  ), prompt);
+  assert.equal(await input.evaluate(() => window.testSubmissions), 7);
+  await page.getByRole('button', { name: 'Close WKND Sherpa' }).click();
+  process.stdout.write('PASS product-specific auto-send, delayed product names, no-match context and retained per-turn adventure/product handoffs\n');
   await page.locator('.generative-suggestions:not(.dimmed) .suggestion-restart').click();
   await page.waitForURL(`${base}/of1`);
   assert.equal(await page.locator('.sherpa-options').count(), 0);
