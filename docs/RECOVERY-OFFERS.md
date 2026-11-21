@@ -52,12 +52,22 @@ The backend fields must be deployed (Commerce storefront action + API Mesh). Unt
 stays hidden. Component behaviour (eligible, claim failure, ineligible, backend error) was
 verified headlessly with the GraphQL client and cart API stubbed at the module boundary.
 
-## Cart-reminder email preference
+## Email preferences (express consent)
 
-The account page (`blocks/commerce-account/email-preferences.js`) adds an **Email preferences**
-section with an unchecked opt-in: "Email me a reminder if I leave items in my cart". It reads and
-writes `Customer.wknd_recovery_email_opt_in` / `setWkndRecoveryEmailOptIn`, is independent of
-checkout, and stays hidden when the backend does not support it. Consent is never inferred from
-sign-in or an email entered at checkout. Reminder emails (Brevo, at most one per inactive cart,
-human-approved runs, test allowlist on by default) are described in
-`../wknd-commerce/docs/PROMOTIONS.md`; Brevo unsubscribe/bounce webhooks turn the preference off.
+The account page (`blocks/commerce-account/email-preferences.js`) has an **Email preferences**
+section with two independent, unticked opt-ins that each save on their own:
+
+| Option | Backend field / mutation | Wording version |
+| --- | --- | --- |
+| Cart reminders | `wknd_recovery_email_opt_in` / `setWkndRecoveryEmailOptIn` | `recovery-2026-11` |
+| WKND news & offers | `wknd_marketing_email_opt_in` / `setWkndMarketingEmailOptIn` | `news-offers-2026-11` |
+
+This follows Australian Spam Act 2003 express-consent practice and APP 5/7: no pre-ticked boxes,
+no bundling with sign-in, checkout or T&Cs, the sender and content are named, tailoring to site/app
+activity is disclosed, withdrawal is as easy as opting in, and the Privacy Policy is linked.
+The backend records every change (wording version, source `WEB`/`IOS`, time) as consent evidence.
+**Bump the wording version in `email-preferences.js` whenever the text in `commerce-account.js`
+changes.** Options the backend does not support stay hidden. A Brevo unsubscribe withdraws both.
+
+Before production marketing sends: author the `/privacy` page (currently missing) and have the
+wording legally reviewed. Sending is described in `../wknd-commerce/docs/PROMOTIONS.md`.

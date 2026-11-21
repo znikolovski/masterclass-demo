@@ -340,7 +340,27 @@ main .commerce-account .account__preference {
   display: flex;
   gap: 12px;
   align-items: flex-start;
+  margin-top: 16px;
   cursor: pointer;
+}
+
+main .commerce-account .account__preference[hidden] {
+  display: none;
+}
+
+main .commerce-account .account__preference strong {
+  display: block;
+}
+
+main .commerce-account .account__preference-intro,
+main .commerce-account .account__preference-note {
+  margin: 0;
+  color: #5f5b55;
+  font-size: var(--body-font-size-xs);
+}
+
+main .commerce-account .account__preference-note {
+  margin-top: 16px;
 }
 
 main .commerce-account .account__preference input {
