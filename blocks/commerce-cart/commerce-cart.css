@@ -29,6 +29,74 @@ main .commerce-cart .cart__note[hidden] {
   display: none;
 }
 
+/* backend recovery offer (signed-in, eligible carts only) */
+main .commerce-cart .cart-recovery-offer {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--dark-color);
+  color: var(--background-color);
+}
+
+main .commerce-cart .cart-recovery-offer__eyebrow {
+  margin: 0;
+  color: var(--accent-color);
+  font: 700 12px/1.4 var(--heading-font-family);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+main .commerce-cart .cart-recovery-offer__title {
+  margin: 0;
+  color: inherit;
+  font: 700 var(--heading-font-size-s)/1.25 var(--heading-font-family);
+  text-transform: uppercase;
+}
+
+main .commerce-cart .cart-recovery-offer__text,
+main .commerce-cart .cart-recovery-offer__status {
+  margin: 0;
+  color: rgb(255 255 255 / 80%);
+  font-size: var(--body-font-size-xs);
+  line-height: 1.5;
+}
+
+main .commerce-cart .cart-recovery-offer__apply {
+  justify-self: start;
+  margin: 8px 0 0;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-color);
+  color: var(--dark-color);
+  font: 700 12px/1.4 var(--heading-font-family);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+main .commerce-cart .cart-recovery-offer__apply:hover,
+main .commerce-cart .cart-recovery-offer__apply:focus-visible {
+  background: var(--background-color);
+  color: var(--dark-color);
+}
+
+main .commerce-cart .cart-recovery-offer__apply:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+main .commerce-cart .cart-recovery-offer__apply:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+main .commerce-cart .cart-recovery-offer__status:empty {
+  display: none;
+}
+
 /* heading row: "Shopping cart (n)" as a site eyebrow */
 main .commerce-cart .cart-cart-summary-list__heading {
   padding-bottom: var(--spacing-small);

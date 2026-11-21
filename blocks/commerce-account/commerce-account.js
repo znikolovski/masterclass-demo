@@ -109,6 +109,20 @@ function renderSignedInShell(block, state) {
           <h2 id="account-addresses-title">Saved addresses</h2>
           <div class="account__addresses"><p class="account__loading">Loading your addresses…</p></div>
         </section>
+        <section id="preferences" class="account__section" aria-labelledby="account-preferences-title" hidden>
+          <h2 id="account-preferences-title">Email preferences</h2>
+          <p class="account__preference-intro">Choose the emails you’d like from WKND Adventures. Each one is optional and off unless you turn it on.</p>
+          <label class="account__preference" data-purpose="recovery">
+            <input type="checkbox" name="recovery-email">
+            <span><strong>Cart reminders</strong> Email me a reminder if I leave gear in my cart — at most one per cart, sometimes with a one-off offer.</span>
+          </label>
+          <label class="account__preference" data-purpose="audience" hidden>
+            <input type="checkbox" name="marketing-email">
+            <span><strong>WKND news &amp; offers</strong> Email me gear offers, trip ideas and member deals from WKND Adventures. These may be tailored to what I browse and buy on WKND websites and apps.</span>
+          </label>
+          <p class="account__preference-status" role="status" aria-live="polite"></p>
+          <p class="account__preference-note">You can change your mind at any time here or with the unsubscribe link in every email — unsubscribing stops all marketing email from us. We use your email address and activity as described in our <a href="/privacy">Privacy Policy</a>. This is a demo store.</p>
+        </section>
       </div>
     </div>`);
   fragment.querySelector('.account__avatar').textContent = state.initials;
@@ -147,6 +161,10 @@ async function hydrate(block) {
     block.querySelector('.account__detail-name').textContent = name || '—';
     block.querySelector('.account__detail-email').textContent = profile.email || '—';
   });
+
+  import('./email-preferences.js')
+    .then(({ default: init }) => init(block.querySelector('#preferences')))
+    .catch(() => {});
 
   await import('../../scripts/initializers/account.js');
   const [
