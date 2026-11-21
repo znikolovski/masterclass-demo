@@ -376,12 +376,18 @@ function formatEnds(iso) {
 /**
  * The welcome-back offer reported by `get-shop-cart` / `prepare-shop-checkout`. The shop decides
  * eligibility and the saving; the card is only shown when it beats the cart's current discount.
+ * An `UNAVAILABLE` offer (eligibility could not be checked) is a plain note with no Apply button.
  * Same copy as the website cart (blocks/commerce-cart/recovery-offer.js).
  * @param {object|null} offer `structuredContent.offer`
  * @param {{ onApply?: Function }} [opts]
  * @returns {HTMLElement|null}
  */
 export function offerCard(offer, { onApply } = {}) {
+  if (offer?.status === 'UNAVAILABLE') {
+    const note = el('p', 'shop-widget-muted shop-offer-unavailable', offer.message || 'The welcome-back offer can’t be checked right now.');
+    note.setAttribute('role', 'status');
+    return note;
+  }
   const saving = Number(offer?.saving?.value);
   const current = Number(offer?.current_saving?.value ?? 0);
   if (!offer || !Number.isFinite(saving) || !(saving > current)) return null;
