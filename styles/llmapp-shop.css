@@ -83,6 +83,33 @@ main .shop-widget .shop-widget-banner.is-info {
   border-left-color: var(--widget-border);
 }
 
+main .shop-widget .shop-offer {
+  margin-block: 12px;
+  border: 1px solid var(--widget-accent);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--widget-paper);
+  color: var(--widget-ink);
+}
+
+main .shop-widget .shop-offer-eyebrow {
+  margin: 0;
+  color: var(--widget-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+main .shop-widget .shop-offer-title {
+  margin: 4px 0;
+}
+
+main .shop-widget .shop-offer-text {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
 main .shop-widget .shop-widget-status {
   min-height: 1lh;
   margin: 0;

@@ -1,15 +1,15 @@
 /*
  * Prepare Shop Checkout — dedicated LLM app widget for the `prepare-shop-checkout` tool.
  * Checkout for the signed-in shopper's WKND cart: contact email, a new or saved address, delivery
- * method and coupon (each step re-runs `prepare-shop-checkout`), then an explicit
- * "Place demo order" that calls `place-shop-demo-order` with the reviewed cart version and total,
- * and the receipt. WKND Demo Pay — no payment is taken and nothing ships.
+ * method, coupon and the welcome-back offer (each step re-runs `prepare-shop-checkout`), then an
+ * explicit "Place demo order" that calls `place-shop-demo-order` with the reviewed cart version
+ * and total, and the receipt. WKND Demo Pay — no payment is taken and nothing ships.
  * Widget page: /eds-widgets/prepare-shop-checkout-demo (placeholder cell, as for the other tools).
  * An optional H2 replaces the default title ("Checkout").
  */
 import {
-  el, button, linkButton, alertBox, money, cartLines, totalsList, followUpButton, connectWidget,
-  isPreview, callShopTool, openSiteLink, busyRunner, DEMO_NOTICE,
+  el, button, linkButton, alertBox, money, cartLines, totalsList, offerCard, followUpButton,
+  connectWidget, isPreview, callShopTool, openSiteLink, busyRunner, DEMO_NOTICE,
 } from '../../scripts/llmapp-shop.js';
 
 const AU_STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'];
@@ -220,9 +220,18 @@ export default async function decorate(block, bridge) {
     return panel(group);
   }
 
-  function summaryPanel(cart) {
-    const section = panel(el('h3', undefined, 'Order summary'), cartLines(cart), totalsList(cart.totals));
-    if (cart.coupons?.length) {
+  function summaryPanel(cart, offer) {
+    const section = panel(el('h3', undefined, 'Order summary'), cartLines(cart));
+    const card = offerCard(offer, { onApply: () => prepare({ apply_offer: true }) });
+    if (card) section.append(card);
+    section.append(totalsList(cart.totals));
+    if (cart.offer_applied) {
+      const note = el('p', 'shop-widget-muted', 'Welcome-back offer applied. ');
+      const remove = linkButton('Remove offer');
+      remove.addEventListener('click', () => prepare({ apply_offer: false }));
+      note.append(remove);
+      section.append(note);
+    } else if (cart.coupons?.length) {
       section.append(el('p', 'shop-widget-muted', `Coupon: ${cart.coupons.join(', ')}`));
     } else {
       const form = el('form', 'shop-checkout-coupon');
@@ -254,7 +263,7 @@ export default async function decorate(block, bridge) {
     }
     nodes.push(!c.shipping_address || !c.email || editing ? detailsForm(data) : addressPanel(c));
     if (c.shipping_methods?.length) nodes.push(methodsPanel(c));
-    nodes.push(summaryPanel(cart), el('p', 'shop-widget-notice', data.notice || DEMO_NOTICE));
+    nodes.push(summaryPanel(cart, data.offer), el('p', 'shop-widget-notice', data.notice || DEMO_NOTICE));
 
     const actions = el('div', 'shop-widget-actions');
     const place = button(`Place demo order · ${money(cart.totals.grand_total)}`);

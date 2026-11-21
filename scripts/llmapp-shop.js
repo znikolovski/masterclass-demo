@@ -359,6 +359,56 @@ export function productCard(product, bridge, {
   return card;
 }
 
+/* ---------------- welcome-back offer ---------------- */
+
+const formatAud = (value, digits = 0) => new Intl.NumberFormat('en-AU', {
+  style: 'currency', currency: 'AUD', minimumFractionDigits: digits, maximumFractionDigits: digits,
+}).format(value);
+
+function formatEnds(iso) {
+  const date = new Date(iso);
+  if (!iso || Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en-AU', {
+    weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+  }).format(date);
+}
+
+/**
+ * The welcome-back offer reported by `get-shop-cart` / `prepare-shop-checkout`. The shop decides
+ * eligibility and the saving; the card is only shown when it beats the cart's current discount.
+ * Same copy as the website cart (blocks/commerce-cart/recovery-offer.js).
+ * @param {object|null} offer `structuredContent.offer`
+ * @param {{ onApply?: Function }} [opts]
+ * @returns {HTMLElement|null}
+ */
+export function offerCard(offer, { onApply } = {}) {
+  const saving = Number(offer?.saving?.value);
+  const current = Number(offer?.current_saving?.value ?? 0);
+  if (!offer || !Number.isFinite(saving) || !(saving > current)) return null;
+  const card = el('section', 'shop-offer');
+  card.setAttribute('aria-label', 'Welcome-back offer');
+  const ends = formatEnds(offer.expires_at);
+  const details = [
+    offer.percent_off
+      ? `${offer.percent_off}% off your gear${offer.max_discount ? `, up to ${formatAud(offer.max_discount.value)}` : ''}.`
+      : '',
+    ends ? `Ends ${ends}.` : '',
+    'One use per account.',
+    offer.replaces_code ? `Replaces code ${offer.replaces_code}.` : '',
+  ].filter(Boolean).join(' ');
+  card.append(
+    el('p', 'shop-offer-eyebrow', 'Welcome back'),
+    el('h3', 'shop-offer-title', `Save ${formatAud(saving, 2)} on this cart`),
+    el('p', 'shop-offer-text', details),
+  );
+  if (onApply) {
+    const apply = button('Apply this offer');
+    apply.addEventListener('click', () => onApply(offer));
+    card.append(apply);
+  }
+  return card;
+}
+
 /* ---------------- cart ---------------- */
 
 /** Subtotal, discounts, shipping, total and included GST. */

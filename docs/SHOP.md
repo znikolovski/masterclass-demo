@@ -134,8 +134,8 @@ the WKND LLM app (`../masterclass-demo-llmapp`, tools `search-shop-products`, `g
   |---|---|
   | `search-shop-products` | Results grid with option pickers and Add to cart |
   | `get-shop-product` | One product in detail; options the shopper named are preselected |
-  | `get-shop-cart` | The cart with quantity controls; "Check out" hands off to checkout |
-  | `prepare-shop-checkout` | Delivery details, delivery method, coupon, Demo Pay review, receipt |
+  | `get-shop-cart` | The cart with quantity controls and the welcome-back offer card; "Check out" hands off to checkout |
+  | `prepare-shop-checkout` | Delivery details, delivery method, coupon or welcome-back offer, Demo Pay review, receipt |
 
   `add-shop-cart-items`, `update-shop-cart-items` and `place-shop-demo-order` are tool-only (the
   widgets call them). Shared rendering is in `scripts/llmapp-shop.js` and `styles/llmapp-shop.css`;
