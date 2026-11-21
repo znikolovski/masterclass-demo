@@ -361,9 +361,49 @@ export function productCard(product, bridge, {
 
 /* ---------------- welcome-back offer ---------------- */
 
-const formatAud = (value, digits = 0) => new Intl.NumberFormat('en-AU', {
-  style: 'currency', currency: 'AUD', minimumFractionDigits: digits, maximumFractionDigits: digits,
-}).format(value);
+const UNAVAILABLE_COPY = 'The welcome-back offer can’t be checked right now. Please try again shortly.';
+
+/** A Money with a finite, non-negative number and an ISO currency (no coercion), or null. */
+function strictMoney(m) {
+  if (!m || typeof m.value !== 'number' || !Number.isFinite(m.value) || m.value < 0) return null;
+  if (typeof m.currency !== 'string' || !/^[A-Z]{3}$/.test(m.currency)) return null;
+  return { value: m.value, currency: m.currency };
+}
+
+/**
+ * How to show the tool's `offer` (the shop decides eligibility; this only checks the shape):
+ * - `{ kind: 'actionable', ... }` ELIGIBLE/CLAIMED, valid same-currency savings, saving > current
+ * - `{ kind: 'unavailable', message }` UNAVAILABLE or an ELIGIBLE/CLAIMED offer that is malformed
+ * - `null` no offer, another status, or not beneficial
+ * @param {object|null} offer `structuredContent.offer`
+ */
+export function offerState(offer) {
+  if (!offer || typeof offer !== 'object') return null;
+  if (offer.status === 'UNAVAILABLE') {
+    return { kind: 'unavailable', message: typeof offer.message === 'string' && offer.message ? offer.message : UNAVAILABLE_COPY };
+  }
+  if (offer.status !== 'ELIGIBLE' && offer.status !== 'CLAIMED') return null;
+  const saving = strictMoney(offer.saving);
+  const current = strictMoney(offer.current_saving);
+  if (!saving || !current || saving.currency !== current.currency) return { kind: 'unavailable', message: UNAVAILABLE_COPY };
+  if (!(saving.value > current.value)) return null;
+  const max = strictMoney(offer.max_discount);
+  const percent = typeof offer.percent_off === 'number' && Number.isFinite(offer.percent_off) && offer.percent_off > 0
+    ? offer.percent_off : null;
+  return {
+    kind: 'actionable',
+    saving,
+    current,
+    percent,
+    max: max && max.currency === saving.currency ? max : null,
+    expiresAt: typeof offer.expires_at === 'string' ? offer.expires_at : null,
+    replaces: typeof offer.replaces_code === 'string' && offer.replaces_code ? offer.replaces_code : null,
+  };
+}
+
+const formatAmount = (m, digits = 0) => new Intl.NumberFormat('en-AU', {
+  style: 'currency', currency: m.currency, minimumFractionDigits: digits, maximumFractionDigits: digits,
+}).format(m.value);
 
 function formatEnds(iso) {
   const date = new Date(iso);
@@ -374,37 +414,36 @@ function formatEnds(iso) {
 }
 
 /**
- * The welcome-back offer reported by `get-shop-cart` / `prepare-shop-checkout`. The shop decides
- * eligibility and the saving; the card is only shown when it beats the cart's current discount.
- * An `UNAVAILABLE` offer (eligibility could not be checked) is a plain note with no Apply button.
+ * The welcome-back offer reported by `get-shop-cart` / `prepare-shop-checkout` (see offerState):
+ * an Apply card when actionable, a plain non-actionable note when it can't be checked, or null.
  * Same copy as the website cart (blocks/commerce-cart/recovery-offer.js).
  * @param {object|null} offer `structuredContent.offer`
  * @param {{ onApply?: Function }} [opts]
  * @returns {HTMLElement|null}
  */
 export function offerCard(offer, { onApply } = {}) {
-  if (offer?.status === 'UNAVAILABLE') {
-    const note = el('p', 'shop-widget-muted shop-offer-unavailable', offer.message || 'The welcome-back offer can’t be checked right now.');
+  const state = offerState(offer);
+  if (!state) return null;
+  if (state.kind === 'unavailable') {
+    const note = el('p', 'shop-widget-muted shop-offer-unavailable', state.message);
     note.setAttribute('role', 'status');
     return note;
   }
-  const saving = Number(offer?.saving?.value);
-  const current = Number(offer?.current_saving?.value ?? 0);
-  if (!offer || !Number.isFinite(saving) || !(saving > current)) return null;
   const card = el('section', 'shop-offer');
   card.setAttribute('aria-label', 'Welcome-back offer');
-  const ends = formatEnds(offer.expires_at);
+  const ends = formatEnds(state.expiresAt);
+  const terms = state.percent
+    ? `${state.percent}% off your gear${state.max ? `, up to ${formatAmount(state.max)}` : ''}.`
+    : '';
   const details = [
-    offer.percent_off
-      ? `${offer.percent_off}% off your gear${offer.max_discount ? `, up to ${formatAud(offer.max_discount.value)}` : ''}.`
-      : '',
+    terms,
     ends ? `Ends ${ends}.` : '',
     'One use per account.',
-    offer.replaces_code ? `Replaces code ${offer.replaces_code}.` : '',
+    state.replaces ? `Replaces code ${state.replaces}.` : '',
   ].filter(Boolean).join(' ');
   card.append(
     el('p', 'shop-offer-eyebrow', 'Welcome back'),
-    el('h3', 'shop-offer-title', `Save ${formatAud(saving, 2)} on this cart`),
+    el('h3', 'shop-offer-title', `Save ${formatAmount(state.saving, 2)} on this cart`),
     el('p', 'shop-offer-text', details),
   );
   if (onApply) {

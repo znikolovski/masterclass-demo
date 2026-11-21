@@ -228,7 +228,7 @@ export default async function decorate(block, bridge) {
     if (cart.offer_applied) {
       const note = el('p', 'shop-widget-muted', 'Welcome-back offer applied. ');
       const remove = linkButton('Remove offer');
-      remove.addEventListener('click', () => prepare({ apply_offer: false }));
+      remove.addEventListener('click', () => prepare({ remove_offer: true }));
       note.append(remove);
       section.append(note);
     } else if (cart.coupons?.length) {
