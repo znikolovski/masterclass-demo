@@ -127,12 +127,30 @@
       renderPreview(slug);
     }
 
+    // Resolves once the stylesheet (including its nested @imports) has loaded, or failed.
+    function loadStylesheet(href) {
+      return new Promise((resolve) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.onload = resolve;
+        link.onerror = resolve;
+        document.head.appendChild(link);
+      });
+    }
+
+    // Reveal only after the block is styled and web fonts have settled, so the first paint
+    // is the final layout (an unstyled first paint caused large layout shifts).
+    async function reveal() {
+      if (document.fonts?.ready) {
+        await Promise.race([document.fonts.ready, new Promise((r) => { setTimeout(r, 1000); })]);
+      }
+      document.body.classList.add('appear');
+    }
+
     async function renderPreview(name) {
       // Block CSS — code bus, same branch.
-      const css = document.createElement('link');
-      css.rel = 'stylesheet';
-      css.href = `/blocks/${name}/${name}.css`;
-      document.head.appendChild(css);
+      const cssLoaded = loadStylesheet(`/blocks/${name}/${name}.css`);
 
       // Reproduce the EDS decorated DOM: main > section > "<name> block".
       const main = document.createElement('main');
@@ -151,14 +169,14 @@
       await bridge.connect();
 
       try {
-        const mod = await import(`/blocks/${name}/${name}.js`);
+        const [mod] = await Promise.all([import(`/blocks/${name}/${name}.js`), cssLoaded]);
         if (typeof mod.default !== 'function') {
           throw new Error('block has no default decorate() export');
         }
         await mod.default(block, bridge);
         // EDS styles.css keeps <body> hidden until `.appear` is set (normally
         // added by scripts.js/aem-embed). Reveal it now that the block is in.
-        document.body.classList.add('appear');
+        await reveal();
       } catch (err) {
         showError(`Failed to load block "${name}": ${err && err.message ? err.message : err}`);
       }

@@ -56,12 +56,14 @@ export default async function decorate(block) {
   let rows = [...block.children].filter((row) => row.textContent.trim());
   if (!rows.length) {
     const paths = footerPath === '/footer' ? [footerPath] : [footerPath, '/footer'];
-    for (let i = 0; i < paths.length && !rows.length; i += 1) {
-      const resp = await fetch(`${paths[i]}.plain.html`);
-      if (resp.ok) {
-        rows = parseFooterRows(await resp.text());
-      }
-    }
+    // Sequential on purpose: only fall back to /footer when the page's own footer has no rows.
+    const loadRows = async ([path, ...rest]) => {
+      if (!path) return [];
+      const resp = await fetch(`${path}.plain.html`);
+      const found = resp.ok ? parseFooterRows(await resp.text()) : [];
+      return found.length ? found : loadRows(rest);
+    };
+    rows = await loadRows(paths);
     if (!rows.length) {
       rows = parseFooterRows(DEFAULT_FOOTER_HTML);
     }

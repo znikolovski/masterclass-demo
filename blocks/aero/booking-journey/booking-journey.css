@@ -317,16 +317,16 @@
   white-space: nowrap;
 }
 
-.booking-journey .flight-card button:hover,
-.booking-journey .booking-btn-primary:hover {
-  background: var(--aero-orange-hover);
-}
-
 .booking-journey .booking-btn-primary {
   background: var(--aero-orange);
   color: #fff;
   padding: 16px 32px;
   margin-top: 24px;
+}
+
+.booking-journey .flight-card button:hover,
+.booking-journey .booking-btn-primary:hover {
+  background: var(--aero-orange-hover);
 }
 
 .booking-journey .booking-btn-secondary {
@@ -432,7 +432,7 @@
   margin-bottom: 4px;
 }
 
-.booking-journey .seat-row--header {
+.booking-journey .seat-row-header {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -451,7 +451,7 @@
   text-align: right;
 }
 
-.booking-journey .seat-row-num--header {
+.booking-journey .seat-row-num-header {
   visibility: hidden;
 }
 
@@ -557,11 +557,6 @@
   background: transparent;
 }
 
-.booking-journey .booking-field input:focus {
-  outline: none;
-  border-bottom-color: var(--aero-orange);
-}
-
 /* Sidebar summary */
 .booking-journey .booking-sidebar {
   background: #fff;
@@ -640,7 +635,7 @@
 }
 
 /* Payment step — Figma Payment & Review */
-.booking-journey .booking-app--payment .booking-main {
+.booking-journey .booking-app-payment .booking-main {
   grid-column: 1 / -1;
 }
 
@@ -702,7 +697,7 @@
   flex-shrink: 0;
 }
 
-.booking-journey .payment-tab-icon--paypal {
+.booking-journey .payment-tab-icon-paypal {
   width: 19px;
   height: 18px;
 }
@@ -747,6 +742,23 @@
   background: #fff;
 }
 
+.booking-journey .booking-payment-input-wrap input {
+  padding-right: 40px;
+}
+
+.booking-journey .payment-save-card input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--aero-forest);
+}
+
+.booking-journey .booking-field input:focus {
+  outline: none;
+  border-bottom-color: var(--aero-orange);
+}
+
 .booking-journey .booking-payment-field input::placeholder {
   color: #6b7280;
   text-transform: none;
@@ -759,10 +771,6 @@
 
 .booking-journey .booking-payment-input-wrap {
   position: relative;
-}
-
-.booking-journey .booking-payment-input-wrap input {
-  padding-right: 40px;
 }
 
 .booking-journey .payment-lock-icon {
@@ -785,14 +793,6 @@
   line-height: 1.45;
   color: rgb(27 28 26 / 60%);
   cursor: pointer;
-}
-
-.booking-journey .payment-save-card input {
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
-  flex-shrink: 0;
-  accent-color: var(--aero-forest);
 }
 
 .booking-journey .payment-alt-method {
@@ -959,13 +959,13 @@
   cursor: pointer;
 }
 
-.booking-journey .booking-complete-btn:hover:not(:disabled) {
-  background: var(--aero-orange-hover);
-}
-
 .booking-journey .booking-complete-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.booking-journey .booking-complete-btn:hover:not(:disabled) {
+  background: var(--aero-orange-hover);
 }
 
 .booking-journey .booking-complete-arrow {

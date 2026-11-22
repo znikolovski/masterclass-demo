@@ -360,7 +360,7 @@ function SeatMap({
   const atCapacity = selected.length >= travellerCount;
 
   const headerCells = [
-    h('span', { class: 'seat-row-num seat-row-num--header', key: 'hdr-num' }),
+    h('span', { class: 'seat-row-num seat-row-num-header', key: 'hdr-num' }),
   ];
   layout.sections.forEach((section, si) => {
     if (si > 0) headerCells.push(h('div', { class: 'seat-aisle', key: `hdr-aisle-${si}`, 'aria-hidden': 'true' }));
@@ -414,7 +414,7 @@ function SeatMap({
     ]),
     h('div', { class: 'seat-map-cabin', role: 'group', 'aria-label': 'Seat map' }, [
       h('div', { class: 'seat-map-nose', 'aria-hidden': 'true' }, 'Front of aircraft'),
-      h('div', { class: 'seat-row seat-row--header', 'aria-hidden': 'true' }, headerCells),
+      h('div', { class: 'seat-row seat-row-header', 'aria-hidden': 'true' }, headerCells),
       ...rows,
     ]),
   ]);
@@ -453,7 +453,7 @@ function PaymentTabIcon({ type }) {
     ]);
   }
   return h('svg', {
-    class: 'payment-tab-icon payment-tab-icon--paypal', viewBox: '0 0 20 18', fill: 'currentColor', 'aria-hidden': 'true',
+    class: 'payment-tab-icon payment-tab-icon-paypal', viewBox: '0 0 20 18', fill: 'currentColor', 'aria-hidden': 'true',
   }, h('text', {
     x: '2', y: '14', 'font-size': '14', 'font-weight': '700', 'font-family': 'sans-serif',
   }, 'P'));
@@ -897,7 +897,7 @@ function BookingApp({ mount }) {
 
   const showSidebar = step < 3 && selected;
 
-  return h('div', { class: `booking-app${showSidebar ? ' has-sidebar' : ''}${step === 3 ? ' booking-app--payment' : ''}` }, [
+  return h('div', { class: `booking-app${showSidebar ? ' has-sidebar' : ''}${step === 3 ? ' booking-app-payment' : ''}` }, [
     h(TripBar, {
       origin, dest, depart, passengers,
     }),

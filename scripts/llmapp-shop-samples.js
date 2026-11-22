@@ -132,12 +132,13 @@ export const SAMPLE_CART = {
     lines: LINES,
     totals: {
       subtotal: aud(567),
-      discounts: [{ label: 'WKND10 — 10% off gear', amount: aud(56.7) }],
+      discounts: [{ label: 'TRAILREADY — $20 off orders over $200', amount: aud(20) }],
       shipping: null,
-      tax_included: [{ label: 'GST (10% incl.)', amount: aud(46.39) }],
-      grand_total: aud(510.3),
+      tax_included: [{ label: 'GST (10% incl.)', amount: aud(49.73) }],
+      grand_total: aud(547),
     },
-    coupons: ['WKND10'],
+    coupons: ['TRAILREADY'],
+    offer_applied: false,
     checkout: {
       email: null,
       shipping_address: null,
@@ -147,6 +148,17 @@ export const SAMPLE_CART = {
     },
     missing: ['available_items', 'email', 'shipping_address', 'shipping_method'],
     ready: false,
+  },
+  // Welcome-back offer as reported by the shop (beats TRAILREADY's $20).
+  offer: {
+    kind: 'welcome_back',
+    status: 'ELIGIBLE',
+    saving: aud(25),
+    current_saving: aud(20),
+    percent_off: 10,
+    max_discount: aud(25),
+    expires_at: '2026-12-01T09:00:00.000Z',
+    replaces_code: 'TRAILREADY',
   },
 };
 
@@ -170,11 +182,13 @@ export const SAMPLE_CHECKOUT = {
     lines: [LINES[0]],
     totals: {
       subtotal: aud(498),
-      discounts: [{ label: 'WKND10 — 10% off gear', amount: aud(49.8) }],
+      discounts: [{ label: 'Welcome back — 10% off your gear (max $25)', amount: aud(25) }],
       shipping: aud(19.95),
-      tax_included: [{ label: 'GST (10% incl.)', amount: aud(42.56) }],
-      grand_total: aud(468.15),
+      tax_included: [{ label: 'GST (10% incl.)', amount: aud(44.81) }],
+      grand_total: aud(492.95),
     },
+    coupons: [],
+    offer_applied: true,
     checkout: {
       email: 'sam@example.com',
       shipping_address: {

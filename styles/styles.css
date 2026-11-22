@@ -149,6 +149,22 @@ main .section.hero-adventure-container {
   padding-inline: 0;
 }
 
+.hero-adventure > div:first-child {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-adventure > div:last-child {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #fff;
+}
+
 main .section.hero-adventure-container > div {
   max-width: 100%;
   padding-inline: 0;
@@ -167,12 +183,6 @@ main .section.hero-adventure-container > div {
   min-height: 55vh;
   overflow: hidden;
   padding: 0;
-}
-
-.hero-adventure > div:first-child {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
 }
 
 .hero-adventure > div:first-child > div,
@@ -194,16 +204,6 @@ main .section.hero-adventure-container > div {
   background: linear-gradient(to right, rgb(0 0 0 / 45%) 0%, rgb(0 0 0 / 15%) 100%);
   z-index: 1;
   pointer-events: none;
-}
-
-.hero-adventure > div:last-child {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px;
-  color: #fff;
 }
 
 @media (width >= 900px) {
@@ -270,6 +270,7 @@ body.shop main h1 {
 }
 
 /* WKND Shop: the first section is content, not a full-bleed hero */
+
 /* The first section paints before its blocks are decorated: reserve the cart's empty-state
    height and hide its raw config rows, and keep the empty footer out of the layout until it
    loads, so growing shop content never pushes a visible footer (layout shift). */

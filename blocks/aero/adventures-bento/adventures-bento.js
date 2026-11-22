@@ -39,12 +39,12 @@ function getTitleLengthClass(length) {
  * @returns {string}
  */
 function getTileSizeClass(index) {
-  if (index === 0) return 'adventures-bento-tile--feature';
-  if (index === 1) return 'adventures-bento-tile--medium';
-  if (index === 2) return 'adventures-bento-tile--tall';
-  if (index === 5) return 'adventures-bento-tile--wide';
-  if (index >= 3 && index <= 4) return 'adventures-bento-tile--compact';
-  return 'adventures-bento-tile--standard';
+  if (index === 0) return 'adventures-bento-tile-feature';
+  if (index === 1) return 'adventures-bento-tile-medium';
+  if (index === 2) return 'adventures-bento-tile-tall';
+  if (index === 5) return 'adventures-bento-tile-wide';
+  if (index >= 3 && index <= 4) return 'adventures-bento-tile-compact';
+  return 'adventures-bento-tile-standard';
 }
 
 /**
@@ -52,7 +52,7 @@ function getTileSizeClass(index) {
  * @param {Element} grid
  */
 function fitBentoTitles(grid) {
-  grid.querySelectorAll('.adventures-bento-tile--compact .adventures-bento-copy, .adventures-bento-tile--tall .adventures-bento-copy, .adventures-bento-tile--medium .adventures-bento-copy').forEach((copy) => {
+  grid.querySelectorAll('.adventures-bento-tile-compact .adventures-bento-copy, .adventures-bento-tile-tall .adventures-bento-copy, .adventures-bento-tile-medium .adventures-bento-copy').forEach((copy) => {
     const h3 = copy.querySelector('h3');
     const desc = copy.querySelector('p');
     if (!h3) return;
@@ -85,7 +85,7 @@ function fitBentoTitles(grid) {
     }
   });
 
-  grid.querySelectorAll('.adventures-bento-tile--wide .adventures-bento-copy h3, .adventures-bento-tile--standard .adventures-bento-copy h3').forEach((h3) => {
+  grid.querySelectorAll('.adventures-bento-tile-wide .adventures-bento-copy h3, .adventures-bento-tile-standard .adventures-bento-copy h3').forEach((h3) => {
     const copy = h3.closest('.adventures-bento-copy');
     if (!copy || h3.scrollHeight <= copy.clientHeight * 0.55) return;
     let size = parseFloat(getComputedStyle(h3).fontSize) || 18;

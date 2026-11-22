@@ -282,33 +282,57 @@ main .build-route-briefing .build-route-briefing-cta.is-primary {
 
 /* ── Dark mode ────────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  main .build-route-briefing { color: #f4f2ef; background: #12201a; }
+  main .build-route-briefing {
+    color: #f4f2ef;
+    background: #12201a;
+  }
   main .build-route-briefing-empty { color: #f4f2ef; }
   main .build-route-briefing-step-day { color: #f2925a; }
   main .build-route-briefing-step { background: #1a2620; }
   main .build-route-briefing-step-text { color: #e6ebe8; }
   main .build-route-briefing-panel { background: #1a2620; }
   main .build-route-briefing-panel-text { color: #cdd6d1; }
-  main .build-route-briefing-chip { background: #0f1a14; border-color: rgb(255 255 255 / 14%); color: #f4f2ef; }
+
+  main .build-route-briefing-chip {
+    background: #0f1a14;
+    border-color: rgb(255 255 255 / 14%);
+    color: #f4f2ef;
+  }
 
   main .build-route-briefing-section-label,
   main .build-route-briefing-panel-label { color: #a7b0aa; }
-  main .build-route-briefing-flag { background: rgb(232 101 26 / 10%); border-color: rgb(232 101 26 / 55%); }
+
+  main .build-route-briefing-flag {
+    background: rgb(232 101 26 / 10%);
+    border-color: rgb(232 101 26 / 55%);
+  }
   main .build-route-briefing-flag-label { color: #f2925a; }
   main .build-route-briefing-flag-item { color: #cdd6d1; }
 }
 
-body.dark main .build-route-briefing { color: #f4f2ef; background: #12201a; }
+body.dark main .build-route-briefing {
+  color: #f4f2ef;
+  background: #12201a;
+}
 body.dark main .build-route-briefing-step-day { color: #f2925a; }
 body.dark main .build-route-briefing-empty { color: #f4f2ef; }
 body.dark main .build-route-briefing-step { background: #1a2620; }
 body.dark main .build-route-briefing-step-text { color: #e6ebe8; }
 body.dark main .build-route-briefing-panel { background: #1a2620; }
 body.dark main .build-route-briefing-panel-text { color: #cdd6d1; }
-body.dark main .build-route-briefing-chip { background: #0f1a14; border-color: rgb(255 255 255 / 14%); color: #f4f2ef; }
+
+body.dark main .build-route-briefing-chip {
+  background: #0f1a14;
+  border-color: rgb(255 255 255 / 14%);
+  color: #f4f2ef;
+}
 
 body.dark main .build-route-briefing-section-label,
 body.dark main .build-route-briefing-panel-label { color: #a7b0aa; }
-body.dark main .build-route-briefing-flag { background: rgb(232 101 26 / 10%); border-color: rgb(232 101 26 / 55%); }
+
+body.dark main .build-route-briefing-flag {
+  background: rgb(232 101 26 / 10%);
+  border-color: rgb(232 101 26 / 55%);
+}
 body.dark main .build-route-briefing-flag-label { color: #f2925a; }
 body.dark main .build-route-briefing-flag-item { color: #cdd6d1; }

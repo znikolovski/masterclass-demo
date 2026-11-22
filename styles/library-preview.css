@@ -6,18 +6,18 @@ body.sidekick-library {
   display: block;
 }
 
-body.library-preview main > .section,
-body.sidekick-library main > .section,
 body.library-preview main > div,
-body.sidekick-library main > div {
+body.sidekick-library main > div,
+body.library-preview main > .section,
+body.sidekick-library main > .section {
   margin: 0;
   padding: 2rem 0;
 }
 
-body.library-preview main > .section > div,
-body.sidekick-library main > .section > div,
 body.library-preview main > div > div,
-body.sidekick-library main > div > div {
+body.sidekick-library main > div > div,
+body.library-preview main > .section > div,
+body.sidekick-library main > .section > div {
   max-width: var(--section-max-width, 1200px);
   margin: 0 auto;
   padding: 0 1.5rem;

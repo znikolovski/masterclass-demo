@@ -77,7 +77,7 @@ function renderAudit(block, data, bridge) {
     { key: 'savings', label: 'Savings', value: data.estimated_savings_grams },
   ];
   stats.forEach((s) => {
-    const stat = el('div', `apw-stat apw-stat--${s.key}`);
+    const stat = el('div', `apw-stat apw-stat-${s.key}`);
     stat.appendChild(el('span', 'apw-stat-num', fmtWeight(s.value)));
     stat.appendChild(el('span', 'apw-stat-label', s.label));
     summary.appendChild(stat);
@@ -109,7 +109,7 @@ function renderAudit(block, data, bridge) {
   const lists = el('div', 'apw-lists');
   const makeList = (title, items, variant, glyph) => {
     if (!items || !items.length) return;
-    const panel = el('div', `apw-list apw-list--${variant}`);
+    const panel = el('div', `apw-list apw-list-${variant}`);
     const head = el('div', 'apw-list-head');
     if (glyph) head.appendChild(el('span', 'apw-list-glyph', glyph));
     head.appendChild(el('span', 'apw-list-title', title));
@@ -149,8 +149,8 @@ export default async function decorate(block, bridge) {
       data = SAMPLE_DATA;
     } else {
       // Detail concept — structuredContent IS the audit object (flat). No wrapper key.
-      const _result = await bridge.toolResult;
-      data = _result?.structuredContent || {};
+      const result = await bridge.toolResult;
+      data = result?.structuredContent || {};
     }
   } else {
     data = SAMPLE_DATA;
