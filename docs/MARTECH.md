@@ -59,6 +59,40 @@ remain web-owned: do not replay them natively or add duplicate Send Event rules.
 
 ## Demo traffic (Analytics)
 
+### Isolated Audience Manager Stage pilot
+
+Only `feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page` uses the
+Stage web datastream `77b2a52a-e8b9-4333-8d3b-f539db7acc11`.
+All other hosts, including main preview, localhost and production, retain
+`56dee4fc-21a9-4e37-83ab-bdd874957aba`. Selecting a staging Launch library
+alone does not isolate Edge services; this routing is in the Web SDK configuration.
+
+The pilot deliberately sends only `web.webpagedetails.pageViews`, with
+`page.environment=preview`, `page.adventureCategory` and `page.journeyStage`.
+Unrelated ACDL state and data-layer identities are discarded before applying
+the current verified `wkndCustomerId` profile and the existing Analytics mapping.
+Commerce, form, asset and proposition events are not collected by this pilot.
+Existing non-pilot behavior is unchanged.
+
+The Stage web stream enables Analytics (`ags050wkndaamstage`) and Audience Manager
+for this pilot only. The authenticated
+AAM source is `1547309`, with CURRENT/NONE profile merge rule `1547344`.
+Climbing and planning traits are `27507401` and `27507402`; Interest and Planner
+segments are `27507403` and `27507404`. Their rules require the preview page-view
+signals above. Seven-day AAM recency is not a proven exact rolling 168-hour window.
+
+Do not treat a successful Edge response as proof of segment qualification.
+Authenticated qualification, account/logout isolation, cross-device receipt,
+Target/Analytics activation and trusted backend membership provenance remain
+release gates. Public audience identifiers or cookies cannot authorize discounts.
+The Stage stream has no Target or AEP service; do not use this pilot branch for
+existing Target experiments. Cookie and URL destinations remain disabled.
+
+Validate routing, signal minimization and logout behavior with
+`node --test tools/tests/aam-pilot-routing.test.mjs`, then inspect the actual
+Edge request configuration on `/blog/yosemite-rock-climbing` and `/gear`.
+The pilot branch must not be merged as a general production activation.
+
 Daily simulated traffic can run via GitHub Actions (`.github/workflows/daily-traffic-simulation.yaml`, 06:00 UTC) or locally:
 
 ```bash

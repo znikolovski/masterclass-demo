@@ -8,10 +8,37 @@ import { mapPageToAnalytics, isAemProductionHost } from './analytics-page.js';
 import { applyNativeContext, getNativeContext } from './native-context.js';
 import { applyCustomerIdentity } from './customer-identity.js';
 
+export const AAM_PILOT_HOST = 'feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page';
+
+export function isAamPilotHost(hostname) {
+  return hostname === AAM_PILOT_HOST;
+}
+
+const isAamPilot = typeof window !== 'undefined' && isAamPilotHost(window.location.hostname);
+
+/** The isolated pilot collects only page-view signals, not the full ACDL state. */
+export function applyAamPilotSignals(content) {
+  if (content.xdm?.eventType !== 'web.webpagedetails.pageViews') return false;
+  const { page = {} } = content.xdm;
+  content.xdm = {
+    eventType: 'web.webpagedetails.pageViews',
+    page: {
+      environment: 'preview',
+      adventureCategory: typeof page.adventureCategory === 'string' ? page.adventureCategory : '',
+      journeyStage: typeof page.journeyStage === 'string' ? page.journeyStage : '',
+    },
+  };
+  content.data = { __adobe: { target: {} } };
+  return true;
+}
+
 export const WEB_SDK_CONFIG = {
-  datastreamId: '56dee4fc-21a9-4e37-83ab-bdd874957aba',
+  datastreamId: isAamPilot
+    ? '77b2a52a-e8b9-4333-8d3b-f539db7acc11'
+    : '56dee4fc-21a9-4e37-83ab-bdd874957aba',
   orgId: '28260E2056581D3B7F000101@AdobeOrg',
   onBeforeEventSend: (content) => {
+    if (isAamPilot && !applyAamPilotSignals(content)) return false;
     if (!getNativeContext()) applyCustomerIdentity(content);
     return applyNativeContext(content) && mapPageToAnalytics(content);
   },
