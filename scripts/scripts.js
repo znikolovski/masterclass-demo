@@ -44,6 +44,7 @@ import {
   isMartechConfigured,
   getLaunchUrls,
   shouldProcessDataLayerEvent,
+  isAamPilotHost,
 } from './martech-config.js';
 import addMarkdownAlternateLink from './markdown-alternate.js';
 import {
@@ -1033,18 +1034,23 @@ async function loadMartech(doc = document) {
   if (!isMartechConfigured()) return null;
   if (!martechLoadedPromise) {
     const main = doc.querySelector('main');
-    martechLoadedPromise = getMartechModule().then((martech) => martech.initMartech(
-      WEB_SDK_CONFIG,
-      {
-        personalization: isPersonalizationEnabled(doc),
-        analytics: isAnalyticsEnabled(doc),
-        trackPageView: isAnalyticsEnabled(doc),
-        shouldProcessEvent: shouldProcessDataLayerEvent,
-        launchUrls: getLaunchUrls(),
-        decisionScopes: getTargetDecisionScopes(main, doc),
-        propositionMetadata: buildTargetApplyMetadata(main, doc),
-      },
-    ).then(() => {
+    martechLoadedPromise = getMartechModule().then(async (martech) => {
+      if (isAamPilotHost(window.location.hostname) && !getNativeContext()) {
+        const { hasShopToken, getShopProfile } = await import('./shop-auth.js');
+        if (hasShopToken()) await getShopProfile();
+      }
+      await martech.initMartech(
+        WEB_SDK_CONFIG,
+        {
+          personalization: isPersonalizationEnabled(doc),
+          analytics: isAnalyticsEnabled(doc),
+          trackPageView: isAnalyticsEnabled(doc),
+          shouldProcessEvent: shouldProcessDataLayerEvent,
+          launchUrls: getLaunchUrls(),
+          decisionScopes: getTargetDecisionScopes(main, doc),
+          propositionMetadata: buildTargetApplyMetadata(main, doc),
+        },
+      );
       if (!isConsentGiven() && !getNativeContext()) return undefined;
       return martech.updateUserConsent({
         collect: isConsentGiven(),
@@ -1052,7 +1058,7 @@ async function loadMartech(doc = document) {
         marketing: isConsentGiven(),
         share: isConsentGiven(),
       });
-    }));
+    });
   }
   return martechLoadedPromise;
 }

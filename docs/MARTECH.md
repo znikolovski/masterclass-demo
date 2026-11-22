@@ -99,6 +99,43 @@ No Production datastream requests or customer subjects were observed.
 The existing staging Launch library was unchanged. This proves routing and
 Edge acceptance, not authenticated AAM qualification or Analytics report availability.
 
+The approved diagnostic cookie destination `120277` is saved and read back:
+`wknd_aam_stage_diagnostic`, single key `segment`, one-day expiry, and only the
+exact pilot hostname above. Its only active mappings are Interest `27507403`
+to `climbing-interest` and Planner `27507404` to `climbing-planner`.
+Stage cookie delivery remains disabled: the datastream-wide switch could also
+activate existing all-domain cookie destinations `35002` and `40858`.
+Those destinations were not modified; broader delivery requires separate approval
+or a supported destination-specific restriction.
+
+With explicit approval, a bounded Stage cookie-delivery test returned an
+`activation:push` cookie instruction for the existing `aam_check` destination,
+and that cookie was present in the browser. Authenticated climbing and planning
+requests both returned HTTP 200, but neither returned the pilot diagnostic cookie.
+Delivery was disabled again after testing and the editor readback confirmed
+cookie/URL/flattened-field options off. Destination propagation or qualification
+still needs verification; the working existing cookie is not proof of either
+pilot segment. Gear navigation reproduced missing early customer identity;
+the planning request required explicit profile restoration before sending.
+
+Authenticated climbing requests carried `wkndCustomerId` on the actual Stage
+`interact` request (HTTP 200). Normal sign-out returned to the pilot `/account`;
+a subsequent climbing request remained on Stage and omitted `wkndCustomerId`,
+with signed-out UI visible. No diagnostic cookie was delivered, so neither
+membership nor stale-cookie isolation is proved. Automatic profile restoration
+timing and second-account/cross-device isolation remain unverified.
+
+The pilot now restores the verified profile (when a shop token exists) before
+martech initialization, so the first automatic page view includes the current
+authenticated identity rather than relying on the cached account-menu state.
+This wait is restricted to the exact pilot hostname and excludes native context;
+other hosts retain their loading behavior. Profile failures use the existing
+warning and clear-identity behavior; no cached subject is substituted.
+Browser testing of local code on the deployed content verified automatic Gear
+planning and climbing inspiration requests with authenticated identity, without
+manual profile restoration. Second-account/cross-device and destination
+qualification remain separate gates.
+
 Daily simulated traffic can run via GitHub Actions (`.github/workflows/daily-traffic-simulation.yaml`, 06:00 UTC) or locally:
 
 ```bash

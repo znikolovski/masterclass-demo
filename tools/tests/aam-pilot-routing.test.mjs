@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFile } from 'node:fs/promises';
+import { runInNewContext } from 'node:vm';
 import {
   AAM_PILOT_HOST, isAamPilotHost, applyAamPilotSignals,
 } from '../../scripts/martech-config.js';
@@ -85,4 +87,56 @@ test('anonymous page views remain anonymous and non-page events are not collecte
   for (const eventType of [undefined, 'commerce.purchases', 'decisioning.propositionDisplay']) {
     assert.equal(applyAamPilotSignals({ xdm: { eventType } }), false);
   }
+});
+
+test('pilot collection waits for profile restoration; other hosts and native do not', async () => {
+  const source = await readFile(new URL('../../scripts/scripts.js', import.meta.url), 'utf8');
+  const start = source.indexOf('async function loadMartech(');
+  const end = source.indexOf('\n/**', start);
+  await Promise.all([
+    [AAM_PILOT_HOST, null, true],
+    ['main--masterclass-demo--znikolovski.aem.page', null, false],
+    [AAM_PILOT_HOST, { surface: 'native' }, false],
+  ].map(async ([hostname, native, expectedRestore]) => {
+    let finishProfile;
+    let restored = false;
+    let initialized = false;
+    const profile = new Promise((resolve) => { finishProfile = resolve; });
+    const martech = {
+      initMartech: () => { initialized = true; },
+      updateUserConsent: () => undefined,
+    };
+    // Substitute only the auth module boundary; exercise the real initialization ordering.
+    const authSource = source.slice(start, end).replace(
+      "await import('./shop-auth.js')", 'await getAuthModule()',
+    );
+    const context = {
+      martechLoadedPromise: null,
+      isMartechConfigured: () => true,
+      getMartechModule: async () => martech,
+      getAuthModule: async () => ({
+        hasShopToken: () => true,
+        getShopProfile: () => { restored = true; return profile; },
+      }),
+      window: { location: { hostname } },
+      isAamPilotHost,
+      getNativeContext: () => native,
+      WEB_SDK_CONFIG: {},
+      isPersonalizationEnabled: () => false,
+      isAnalyticsEnabled: () => true,
+      shouldProcessDataLayerEvent: () => true,
+      getLaunchUrls: () => [],
+      getTargetDecisionScopes: () => [],
+      buildTargetApplyMetadata: () => ({}),
+      isConsentGiven: () => false,
+    };
+    const initialize = runInNewContext(`${authSource}; loadMartech`, context);
+    const pending = initialize({ querySelector: () => null });
+    await new Promise((resolve) => { setImmediate(resolve); });
+    assert.equal(restored, expectedRestore);
+    assert.equal(initialized, !expectedRestore);
+    finishProfile();
+    await pending;
+    assert.equal(initialized, true);
+  }));
 });
