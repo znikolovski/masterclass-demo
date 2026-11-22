@@ -44,7 +44,7 @@ function isActionLink(link) {
 function renderActionLink(link) {
   const label = link.textContent.trim();
   const isPrimary = label.toUpperCase() === 'SIGN IN' || label.toUpperCase() === 'SIGN IN / JOIN';
-  const cls = isPrimary ? 'aero-header-action aero-header-action--primary' : 'aero-header-action';
+  const cls = isPrimary ? 'aero-header-action aero-header-action-primary' : 'aero-header-action';
   return isPrimary
     ? `<button type="button" class="${cls}" data-aero-auth>${label}</button>`
     : `<a href="${link.href}" class="${cls}">${label}</a>`;

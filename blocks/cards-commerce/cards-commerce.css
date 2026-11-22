@@ -1,7 +1,7 @@
 /* Commerce cards — WKND site cards (10px radius, light border, pill CTA). Self-contained: used
    on any page, not only shop pages where styles/commerce.css loads. Badges, spec bar and sale
    price mirror the shop search grid (blocks/product-list-page). */
-.cards-commerce .cards-commerce__list {
+.cards-commerce .cards-commerce-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -11,7 +11,7 @@
   list-style: none;
 }
 
-.cards-commerce .cards-commerce__card {
+.cards-commerce .cards-commerce-card {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -26,18 +26,18 @@
 
 /* fixed-width cards, centred, so short and partial rows sit in the middle of the section */
 @media (width >= 600px) {
-  .cards-commerce .cards-commerce__card {
+  .cards-commerce .cards-commerce-card {
     flex: 0 1 280px;
     min-width: 240px;
   }
 }
 
-.cards-commerce .cards-commerce__card:not(.cards-commerce__card--loading):hover {
+.cards-commerce .cards-commerce-card:not(.cards-commerce-card-loading):hover {
   border-color: var(--text-color);
   box-shadow: 4px 4px 0 0 var(--accent-color);
 }
 
-.cards-commerce .cards-commerce__media {
+.cards-commerce .cards-commerce-media {
   display: block;
   position: relative;
   aspect-ratio: 4 / 5;
@@ -45,7 +45,7 @@
   background: var(--light-color);
 }
 
-.cards-commerce .cards-commerce__media img {
+.cards-commerce .cards-commerce-media img {
   display: block;
   width: 100%;
   height: 100%;
@@ -53,11 +53,11 @@
   transition: transform 0.4s ease;
 }
 
-.cards-commerce .cards-commerce__card:hover .cards-commerce__media img {
+.cards-commerce .cards-commerce-card:hover .cards-commerce-media img {
   transform: scale(1.03);
 }
 
-.cards-commerce .cards-commerce__badges {
+.cards-commerce .cards-commerce-badges {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -67,7 +67,7 @@
   pointer-events: none;
 }
 
-.cards-commerce .cards-commerce__badge {
+.cards-commerce .cards-commerce-badge {
   padding: 5px 8px 3px;
   border-radius: 9999px;
   background: var(--text-color);
@@ -77,15 +77,15 @@
   text-transform: uppercase;
 }
 
-.cards-commerce .cards-commerce__badge--sale {
+.cards-commerce .cards-commerce-badge-sale {
   background: var(--accent-color);
 }
 
-.cards-commerce .cards-commerce__badge--muted {
+.cards-commerce .cards-commerce-badge-muted {
   background: #8a857d;
 }
 
-.cards-commerce .cards-commerce__specbar {
+.cards-commerce .cards-commerce-specbar {
   position: absolute;
   inset: auto 0 0;
   padding: 8px 12px;
@@ -98,7 +98,7 @@
   white-space: nowrap;
 }
 
-.cards-commerce .cards-commerce__body {
+.cards-commerce .cards-commerce-body {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -106,62 +106,62 @@
   padding: 16px;
 }
 
-.cards-commerce .cards-commerce__body p {
+.cards-commerce .cards-commerce-body p {
   margin: 0;
 }
 
-.cards-commerce .cards-commerce__eyebrow {
+.cards-commerce .cards-commerce-eyebrow {
   color: var(--accent-color);
   font: 700 11px/1.3 var(--heading-font-family);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.cards-commerce .cards-commerce__name {
+.cards-commerce .cards-commerce-name {
   margin: 0;
   font: 700 16px/1.3 var(--heading-font-family);
 }
 
 /* the card is its own light surface: outrank section link/button colours (e.g. inverse, accent) */
-.cards-commerce .cards-commerce__card .cards-commerce__name a:any-link {
+.cards-commerce .cards-commerce-card .cards-commerce-name a:any-link {
   color: var(--text-color);
   text-decoration: none;
 }
 
-.cards-commerce .cards-commerce__card .cards-commerce__name a:hover {
+.cards-commerce .cards-commerce-card .cards-commerce-name a:hover {
   color: var(--accent-color);
 }
 
-.cards-commerce .cards-commerce__description {
+.cards-commerce .cards-commerce-description {
   color: var(--text-color);
   font-size: 15px;
   line-height: 1.5;
 }
 
 /* pushes price and CTA to the bottom so they line up across a row */
-.cards-commerce .cards-commerce__body .cards-commerce__price {
+.cards-commerce .cards-commerce-body .cards-commerce-price {
   margin-top: auto;
   padding-top: 4px;
   font-size: 18px;
 }
 
-.cards-commerce .cards-commerce__price del {
+.cards-commerce .cards-commerce-price del {
   color: #6b6b6b;
   font-size: 15px;
 }
 
-.cards-commerce .cards-commerce__price--sale strong {
+.cards-commerce .cards-commerce-price-sale strong {
   color: #b3261e;
 }
 
-.cards-commerce .cards-commerce__saving {
+.cards-commerce .cards-commerce-saving {
   display: block;
   color: #b3261e;
   font-size: 13px;
   font-weight: 600;
 }
 
-.cards-commerce .cards-commerce__sr {
+.cards-commerce .cards-commerce-sr {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -170,40 +170,40 @@
   white-space: nowrap;
 }
 
-.cards-commerce .cards-commerce__cta {
+.cards-commerce .cards-commerce-cta {
   padding-top: 8px;
 }
 
-.cards-commerce .cards-commerce__card .cards-commerce__cta a.button:any-link {
+.cards-commerce .cards-commerce-card .cards-commerce-cta a.button:any-link {
   border-color: var(--text-color);
   background-color: transparent;
   color: var(--text-color);
 }
 
 /* skeleton while the catalog loads (reserves the card's space) */
-.cards-commerce .cards-commerce__card--loading .cards-commerce__body p {
+.cards-commerce .cards-commerce-card-loading .cards-commerce-body p {
   height: 14px;
   border-radius: 4px;
   background: var(--light-color);
 }
 
-.cards-commerce .cards-commerce__card--loading .cards-commerce__body p:nth-child(2) {
+.cards-commerce .cards-commerce-card-loading .cards-commerce-body p:nth-child(2) {
   width: 70%;
   height: 20px;
 }
 
-.cards-commerce .cards-commerce__card--loading .cards-commerce__body p:nth-child(3) {
+.cards-commerce .cards-commerce-card-loading .cards-commerce-body p:nth-child(3) {
   width: 40%;
   margin-top: 24px;
 }
 
-main .section.cards-commerce--empty {
+main .section.cards-commerce-empty {
   display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cards-commerce .cards-commerce__card,
-  .cards-commerce .cards-commerce__media img {
+  .cards-commerce .cards-commerce-card,
+  .cards-commerce .cards-commerce-media img {
     transition: none;
   }
 }

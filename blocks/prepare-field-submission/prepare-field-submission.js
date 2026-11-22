@@ -75,7 +75,7 @@ function makeChip(text, cls) {
 
 function makePanel(title, entries, variant) {
   const panel = document.createElement('section');
-  panel.className = `pfs-panel pfs-panel--${variant}`;
+  panel.className = `pfs-panel pfs-panel-${variant}`;
 
   const h = document.createElement('h3');
   h.className = 'pfs-panel-title';
@@ -146,9 +146,9 @@ function renderSubmission(block, item, bridge) {
 
   const chips = document.createElement('div');
   chips.className = 'pfs-chips';
-  if (item.submission_type) chips.appendChild(makeChip(item.submission_type, 'pfs-chip--type'));
+  if (item.submission_type) chips.appendChild(makeChip(item.submission_type, 'pfs-chip-type'));
   if (item.readiness_status) {
-    chips.appendChild(makeChip(item.readiness_status, isReady(item.readiness_status) ? 'pfs-chip--ready' : 'pfs-chip--warn'));
+    chips.appendChild(makeChip(item.readiness_status, isReady(item.readiness_status) ? 'pfs-chip-ready' : 'pfs-chip-warn'));
   }
   header.appendChild(chips);
 
@@ -224,7 +224,7 @@ function renderSubmission(block, item, bridge) {
 
   const primary = document.createElement('button');
   primary.type = 'button';
-  primary.className = 'pfs-btn pfs-btn--primary';
+  primary.className = 'pfs-btn pfs-btn-primary';
   primary.textContent = 'Copy Submission Package';
   primary.addEventListener('click', () => {
     const text = assemblePackage(item);
@@ -239,7 +239,7 @@ function renderSubmission(block, item, bridge) {
 
   const secondary = document.createElement('button');
   secondary.type = 'button';
-  secondary.className = 'pfs-btn pfs-btn--secondary';
+  secondary.className = 'pfs-btn pfs-btn-secondary';
   secondary.textContent = 'Review Missing Details';
   secondary.addEventListener('click', () => {
     if (bridge && bridge.sendMessage) {

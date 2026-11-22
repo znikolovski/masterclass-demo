@@ -277,7 +277,7 @@ body.executive-report-page main > .section {
   }
 
   .executive-report .kpi-row {
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .executive-report .kpi-tile,

@@ -275,8 +275,8 @@ async function decorateLanding(block, rows) {
         <h1>${heroTitle}</h1>
         <p class="aero-pass-hero-intro">${heroIntro}</p>
         <div class="aero-pass-hero-actions">
-          <a href="${heroPrimaryUrl}" class="aero-pass-btn aero-pass-btn--primary">${heroPrimaryCta}</a>
-          <a href="${heroSecondaryUrl}" class="aero-pass-btn aero-pass-btn--outline">${heroSecondaryCta}</a>
+          <a href="${heroPrimaryUrl}" class="aero-pass-btn aero-pass-btn-primary">${heroPrimaryCta}</a>
+          <a href="${heroSecondaryUrl}" class="aero-pass-btn aero-pass-btn-outline">${heroSecondaryCta}</a>
         </div>
       </div>
     </section>
@@ -324,7 +324,7 @@ async function decorateLanding(block, rows) {
         <p class="aero-pass-pricing-label">MONTHLY SUBSCRIPTION</p>
         <p class="aero-pass-pricing-amount"><strong>${pricingAmount}</strong><span>${pricingSuffix}</span></p>
         <p class="aero-pass-pricing-note">${pricingNote}</p>
-        <a href="${heroPrimaryUrl}" class="aero-pass-btn aero-pass-btn--primary aero-pass-btn--block">${pricingCta}</a>
+        <a href="${heroPrimaryUrl}" class="aero-pass-btn aero-pass-btn-primary aero-pass-btn-block">${pricingCta}</a>
         <p class="aero-pass-pricing-spots">${pricingSpots}</p>
       </aside>
     </section>

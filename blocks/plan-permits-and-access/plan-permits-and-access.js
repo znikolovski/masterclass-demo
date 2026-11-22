@@ -100,7 +100,7 @@ function renderPlan(block, item, bridge) {
       const { lead, body } = splitStep(raw);
 
       const li = document.createElement('li');
-      li.className = `ppa-step ppa-step--${status}`;
+      li.className = `ppa-step ppa-step-${status}`;
 
       const node = document.createElement('span');
       node.className = 'ppa-node';
@@ -121,7 +121,7 @@ function renderPlan(block, item, bridge) {
       }
 
       const badge = document.createElement('span');
-      badge.className = `ppa-badge ppa-badge--${status}`;
+      badge.className = `ppa-badge ppa-badge-${status}`;
       badge.textContent = STATUS_LABEL[status];
       topRow.appendChild(badge);
 
