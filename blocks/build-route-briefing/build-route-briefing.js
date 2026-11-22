@@ -47,49 +47,6 @@ const SAMPLE_DATA = {
 };
 
 // Brand tokens (designTokens.color): ember accent on near-black ink / paper-white.
-const ACCENT = '#e8651a';
-const INK = '#0f1a14';
-const PAPER = '#f4f2ef';
-const CARD_COLORS = ['#0f1a14', '#3a2a1a', '#1a2a3a', '#2a1a2a'];
-
-export default async function decorate(block, bridge) {
-  let item;
-
-  if (bridge) {
-    bridge.applyHostStyles();
-    const isPreview = bridge.hostContext?.preview === true;
-    if (isPreview) {
-      item = SAMPLE_DATA;
-    } else {
-      // Detail / single-object concept — structuredContent IS the briefing (flat).
-      const _result = await bridge.toolResult;
-      item = _result?.structuredContent || {};
-    }
-  } else {
-    item = SAMPLE_DATA;
-  }
-
-  block.textContent = '';
-
-  if (!item || !item.title) {
-    const empty = document.createElement('p');
-    empty.className = 'build-route-briefing-empty';
-    empty.textContent = 'No matching route report was found.';
-    block.appendChild(empty);
-  } else {
-    renderBriefing(block, item, bridge);
-  }
-
-  if (bridge) {
-    bridge.reportSize(block.offsetWidth, block.offsetHeight);
-    let resizeTimer;
-    const ro = new ResizeObserver(() => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
-    });
-    ro.observe(block);
-  }
-}
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -122,11 +79,14 @@ function renderBriefing(block, item, bridge) {
   if (item.verified_status || item.last_verified_date) {
     const verify = el('div', 'build-route-briefing-verified');
     verify.appendChild(el('span', 'build-route-briefing-verified-dot'));
-    verify.appendChild(el('span', 'build-route-briefing-verified-text',
-      item.verified_status || ('Last verified ' + item.last_verified_date)));
+    verify.appendChild(el(
+      'span',
+      'build-route-briefing-verified-text',
+      item.verified_status || (`Last verified ${item.last_verified_date}`),
+    ));
     if (item.verified_status && item.last_verified_date
         && item.verified_status.indexOf(item.last_verified_date) === -1) {
-      verify.appendChild(el('span', 'build-route-briefing-verified-date', '· ' + item.last_verified_date));
+      verify.appendChild(el('span', 'build-route-briefing-verified-date', `· ${item.last_verified_date}`));
     }
     header.appendChild(verify);
   }
@@ -139,7 +99,7 @@ function renderBriefing(block, item, bridge) {
     const timeline = el('div', 'build-route-briefing-timeline');
     item.daily_stages.forEach((stage, i) => {
       const step = el('div', 'build-route-briefing-step');
-      step.appendChild(el('span', 'build-route-briefing-step-day', 'Day ' + (i + 1)));
+      step.appendChild(el('span', 'build-route-briefing-step-day', `Day ${i + 1}`));
       step.appendChild(el('span', 'build-route-briefing-step-text', String(stage)));
       timeline.appendChild(step);
     });
@@ -213,13 +173,13 @@ function renderBriefing(block, item, bridge) {
   // ── CTAs ──────────────────────────────────────────────────────────────────
   const routeName = item.title || 'this route';
   const actions = [
-    ['Create Gear Checklist', 'Create a gear checklist for ' + routeName],
-    ['Plan Permits & Access', 'Help me plan permits and access for ' + routeName],
-    ['Compare Another Route', 'Compare another route with ' + routeName],
+    ['Create Gear Checklist', `Create a gear checklist for ${routeName}`],
+    ['Plan Permits & Access', `Help me plan permits and access for ${routeName}`],
+    ['Compare Another Route', `Compare another route with ${routeName}`],
   ];
   const ctaRow = el('div', 'build-route-briefing-ctas');
   actions.forEach(([label, message], i) => {
-    const btn = el('button', 'build-route-briefing-cta' + (i === 0 ? ' is-primary' : ''), label);
+    const btn = el('button', `build-route-briefing-cta${i === 0 ? ' is-primary' : ''}`, label);
     btn.type = 'button';
     if (bridge) {
       btn.addEventListener('click', () => bridge.sendMessage(message));
@@ -229,4 +189,43 @@ function renderBriefing(block, item, bridge) {
   root.appendChild(ctaRow);
 
   block.appendChild(root);
+}
+
+export default async function decorate(block, bridge) {
+  let item;
+
+  if (bridge) {
+    bridge.applyHostStyles();
+    const isPreview = bridge.hostContext?.preview === true;
+    if (isPreview) {
+      item = SAMPLE_DATA;
+    } else {
+      // Detail / single-object concept — structuredContent IS the briefing (flat).
+      const result = await bridge.toolResult;
+      item = result?.structuredContent || {};
+    }
+  } else {
+    item = SAMPLE_DATA;
+  }
+
+  block.textContent = '';
+
+  if (!item || !item.title) {
+    const empty = document.createElement('p');
+    empty.className = 'build-route-briefing-empty';
+    empty.textContent = 'No matching route report was found.';
+    block.appendChild(empty);
+  } else {
+    renderBriefing(block, item, bridge);
+  }
+
+  if (bridge) {
+    bridge.reportSize(block.offsetWidth, block.offsetHeight);
+    let resizeTimer;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
+    });
+    ro.observe(block);
+  }
 }

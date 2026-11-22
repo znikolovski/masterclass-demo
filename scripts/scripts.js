@@ -1466,15 +1466,23 @@ async function loadLazy(doc) {
   if (hasQE) import('../tools/quick-edit/quick-edit.js').then((mod) => mod.default());
 })();
 
+/**
+ * Loads an Experience Workspace canvas agent (remote ES module) when the page is framed.
+ * @param {string} url Absolute module URL
+ */
+function loadCanvasAgent(url) {
+  if (window.top !== window) import(url).catch(() => {});
+}
+
 // Block Source: lets the Experience Workspace plugin preview branch blocks on the canvas.
-if (window.top !== window) import('https://28538-blocksource.adobeio-static.net/agent.js').catch(() => {});
+loadCanvasAgent('https://28538-blocksource.adobeio-static.net/agent.js');
 
 // Content check: lets the Experience Workspace sapling.ai plugin access blocks directly
 // on the canvas in order to make content updates.
-if (window.top !== window) import('https://28538-copycheck.adobeio-static.net/agent.js').catch(() => {});
+loadCanvasAgent('https://28538-copycheck.adobeio-static.net/agent.js');
 
 // Plane: lets the Experience Workspace Plane panel attach screenshots of the canvas to comments.
-if (window.top !== window) import('https://28538-planeew.adobeio-static.net/agent.js').catch(() => {});
+loadCanvasAgent('https://28538-planeew.adobeio-static.net/agent.js');
 
 /**
  * Loads everything that happens a lot later,

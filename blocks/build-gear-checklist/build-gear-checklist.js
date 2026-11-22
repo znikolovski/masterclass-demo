@@ -103,45 +103,6 @@ const GROUPS = [
   { key: 'optional_items', label: 'Optional Comforts', badge: 'conditional' },
 ];
 
-export default async function decorate(block, bridge) {
-  let data;
-
-  if (bridge) {
-    bridge.applyHostStyles();
-    const isPreview = bridge.hostContext?.preview === true;
-    if (isPreview) {
-      data = SAMPLE_DATA;
-    } else {
-      // Detail concept — structuredContent IS the checklist object (flat). No wrapper key.
-      const _result = await bridge.toolResult;
-      data = _result?.structuredContent || {};
-    }
-  } else {
-    data = SAMPLE_DATA;
-  }
-
-  block.textContent = '';
-
-  if (!data || !data.checklist_title) {
-    const empty = document.createElement('p');
-    empty.className = 'bgc-empty';
-    empty.textContent = 'No packing checklist was generated.';
-    block.appendChild(empty);
-  } else {
-    renderChecklist(block, data, bridge);
-  }
-
-  if (bridge) {
-    bridge.reportSize(block.offsetWidth, block.offsetHeight);
-    let resizeTimer;
-    const ro = new ResizeObserver(() => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
-    });
-    ro.observe(block);
-  }
-}
-
 /**
  * The WKND shop product matched to a checklist item: simple products are added to the shopper's
  * cart directly (add-shop-cart-items); products with sizes/colours hand off to get-shop-product.
@@ -305,4 +266,43 @@ function renderChecklist(block, data, bridge) {
   card.appendChild(cta);
 
   block.appendChild(card);
+}
+
+export default async function decorate(block, bridge) {
+  let data;
+
+  if (bridge) {
+    bridge.applyHostStyles();
+    const isPreview = bridge.hostContext?.preview === true;
+    if (isPreview) {
+      data = SAMPLE_DATA;
+    } else {
+      // Detail concept — structuredContent IS the checklist object (flat). No wrapper key.
+      const result = await bridge.toolResult;
+      data = result?.structuredContent || {};
+    }
+  } else {
+    data = SAMPLE_DATA;
+  }
+
+  block.textContent = '';
+
+  if (!data || !data.checklist_title) {
+    const empty = document.createElement('p');
+    empty.className = 'bgc-empty';
+    empty.textContent = 'No packing checklist was generated.';
+    block.appendChild(empty);
+  } else {
+    renderChecklist(block, data, bridge);
+  }
+
+  if (bridge) {
+    bridge.reportSize(block.offsetWidth, block.offsetHeight);
+    let resizeTimer;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
+    });
+    ro.observe(block);
+  }
 }

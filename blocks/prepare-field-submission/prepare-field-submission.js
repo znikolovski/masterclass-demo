@@ -262,8 +262,8 @@ export default async function decorate(block, bridge) {
       item = SAMPLE_DATA;
     } else {
       // Detail concept — structuredContent IS the item (flat). No wrapper key.
-      const _result = await bridge.toolResult;
-      item = _result?.structuredContent || {};
+      const result = await bridge.toolResult;
+      item = result?.structuredContent || {};
     }
   } else {
     item = SAMPLE_DATA;

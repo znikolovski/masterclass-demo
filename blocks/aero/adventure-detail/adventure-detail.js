@@ -46,7 +46,9 @@ function categoryLabel(entity) {
 function renderDetail(block, entity) {
   const iata = entity.destinationIata || entity.extensions?.destinationIata || '';
   const slug = entity.sku || '';
-  const img = normalizeLocalDevMediaUrl(getCatalogItemImage(entity) || resolveCatalogImageUrl(entity.images?.[0]?.url));
+  const img = normalizeLocalDevMediaUrl(
+    getCatalogItemImage(entity) || resolveCatalogImageUrl(entity.images?.[0]?.url),
+  );
   const desc = escapeHtml((entity.description || '').replace(/<[^>]+>/g, ''));
   const price = entity.price?.final || 399;
   const editorial = escapeHtml(entity.editorialUrl || `https://main--masterclass-demo--znikolovski.aem.live/blog/${slug}`);

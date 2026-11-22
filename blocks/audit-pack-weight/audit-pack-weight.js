@@ -149,8 +149,8 @@ export default async function decorate(block, bridge) {
       data = SAMPLE_DATA;
     } else {
       // Detail concept — structuredContent IS the audit object (flat). No wrapper key.
-      const _result = await bridge.toolResult;
-      data = _result?.structuredContent || {};
+      const result = await bridge.toolResult;
+      data = result?.structuredContent || {};
     }
   } else {
     data = SAMPLE_DATA;
