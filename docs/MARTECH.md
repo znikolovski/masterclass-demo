@@ -93,6 +93,12 @@ Validate routing, signal minimization and logout behavior with
 Edge request configuration on `/blog/yosemite-rock-climbing` and `/gear`.
 The pilot branch must not be merged as a general production activation.
 
+Deployed anonymous browser validation confirmed both signals on this Stage
+configuration, `interact` HTTP 200 and `collect` HTTP 204, at 390/768/1280 widths.
+No Production datastream requests or customer subjects were observed.
+The existing staging Launch library was unchanged. This proves routing and
+Edge acceptance, not authenticated AAM qualification or Analytics report availability.
+
 Daily simulated traffic can run via GitHub Actions (`.github/workflows/daily-traffic-simulation.yaml`, 06:00 UTC) or locally:
 
 ```bash
