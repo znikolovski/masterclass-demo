@@ -103,6 +103,14 @@ The approved diagnostic cookie destination `120277` is saved and read back:
 `wknd_aam_stage_diagnostic`, single key `segment`, one-day expiry, and only the
 exact pilot hostname above. Its only active mappings are Interest `27507403`
 to `climbing-interest` and Planner `27507404` to `climbing-planner`.
+Both mapping start dates were corrected from `2026-11-23` to `2026-11-22`
+and independently read back with the same mapping IDs, aliases and ACTIVE
+statuses. Audience Manager interprets destination start dates as midnight UTC,
+not the operator's local date. At server time `2026-11-22T23:27:40Z`, the
+original dates were still in the future (11:00 am Sydney on November 23), so
+earlier cookie tests could not establish delivery readiness. This removes a
+scheduling blocker; propagation and actual qualification still require proof.
+See [Audience Manager time zones](https://experienceleague.adobe.com/en/docs/audience-manager/user-guide/reference/aam-time-zones).
 Stage cookie delivery remains disabled: the datastream-wide switch could also
 activate existing all-domain cookie destinations `35002` and `40858`.
 Those destinations were not modified; broader delivery requires separate approval
