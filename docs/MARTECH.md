@@ -55,6 +55,23 @@ no raw subject or client-supplied identity is used as a replacement. Account
 identity-linking controls remain explicit and default unchecked; they do not
 enable this bridge or establish cross-channel qualification on their own.
 
+The source-only consumer in `scripts/person-binding.js` implements backend
+contract `wknd.person-binding/v1` from source
+`0b552525257a1080d51d755698520dde80277d12`. It posts only `person-binding`,
+`person-status`, or `person-withdrawal` to the Production `target-diagnostic`
+action using an individual Auth0 shopper Bearer; signed delegation is not
+supported by that action. Status does not mint an alias or grant consent.
+Receipts must carry the exact Production scope, server-issued `wpa_` alias,
+consent-generation UUID, and a five-minute lifetime with exclusive expiry.
+Pending responses are invalidated by logout or consent updates; withdrawal
+does not assert upstream trait deletion.
+
+`serverBindingEnabled` remains **false**. Profile restoration does not invoke
+the new backend while disabled. The backend source is not a Production
+availability guarantee; the shared AAM/Target alias adapter and canonical rule
+allowlist are still missing. The frozen `semanticAllowlist` is empty, and this
+consumer neither emits semantic events nor enables an identity bridge.
+
 The namespace symbol must match the mobile app and each datastream's
 **Adobe Target → Target Third Party ID Namespace**. Its creation/configuration
 has been confirmed by the site owner. This does not provision Analytics
