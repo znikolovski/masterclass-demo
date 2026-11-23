@@ -10,14 +10,27 @@ import loadTestAeroWorker from './lib/load-test-aero-worker.mjs';
 const worker = await loadTestAeroWorker();
 const auth = await bookingAuthFixture();
 const values = new Map();
+const authFetch = globalThis.fetch;
+const receipts = [];
+globalThis.fetch = async (url, options) => {
+  if (url !== 'https://api.brevo.com/v3/smtp/email') return authFetch(url, options);
+  const payload = JSON.parse(options.body);
+  assert([...values.entries()].some(([key, value]) => key.startsWith('customer-booking:')
+    && payload.subject.endsWith(JSON.parse(value).id)), 'Only persisted bookings send confirmations');
+  receipts.push(payload);
+  return new Response(JSON.stringify({ messageId: `test-receipt-${receipts.length}` }), { status: 201 });
+};
 const env = {
   ...auth.env,
+  WKND_BREVO_API_KEY: 'test-key-never-sent-to-provider',
+  WKND_EMAIL_FROM: 'sender@example.test',
   WKND_AERO_CATALOG: {
     get: async (key, type) => {
       const value = values.get(key);
       return value && type === 'json' ? JSON.parse(value) : value || null;
     },
     put: async (key, value) => values.set(key, value),
+    delete: async (key) => values.delete(key),
     list: async ({ prefix, cursor }) => {
       const keys = [...values.keys()].filter((key) => key.startsWith(prefix));
       const offset = cursor ? Number(Buffer.from(cursor, 'base64url').toString()) : 0;
@@ -73,6 +86,9 @@ try {
   const created = await request('/api/bookings', a, 'POST', body);
   assert.equal(created.status, 201);
   const booking = await created.json();
+  assert.equal(receipts.length, 1);
+  assert.equal(receipts[0].to[0].email, 'private@example.test');
+  assert(receipts[0].textContent.includes('This is not a real airline ticket or payment.'));
   assert.equal(booking.flight.departureAt, '2026-11-30T21:30:00.000Z');
   assert.equal(booking.flight.arrivalAt, '2026-12-01T02:50:00.000Z');
   assert.equal(booking.flight.originTimeZone, 'Australia/Melbourne');
@@ -90,9 +106,15 @@ try {
   assert.equal(detail.headers.get('Cache-Control'), 'no-store');
   assert(!JSON.stringify(await detail.json()).includes('PRIVATE'));
   assert.equal((await request('/api/bookings', a, 'POST', body)).status, 200);
+  assert.equal(receipts.length, 1, 'Idempotent booking replay must not send a second confirmation');
   assert.equal((await request('/api/bookings', a, 'POST', { ...body, seats: ['3A'] })).status, 409);
   const second = await request('/api/bookings', a, 'POST', { ...body, requestId: crypto.randomUUID() });
   assert.equal(second.status, 201);
+  assert.equal(receipts.length, 2);
+  assert.equal((await request('/api/bookings', a, 'POST', {
+    ...body, requestId: crypto.randomUUID(), passengers: [{ ...body.passengers[0], email: 'invalid' }],
+  })).status, 400);
+  assert.equal(receipts.length, 2, 'An invalid recipient must not confirm a booking or send email');
   const firstPage = await (await request('/api/bookings', a)).json();
   assert.equal(firstPage.bookings.length, 1);
   assert(firstPage.nextCursor);

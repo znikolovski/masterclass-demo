@@ -91,7 +91,8 @@ export function createBooking(body, flight) {
     || !Array.isArray(body.passengers) || body.passengers.length !== 1
     || !['first', 'last', 'email'].every((key) => (
       typeof body.passengers[0]?.[key] === 'string' && body.passengers[0][key].trim()
-    ))) {
+    ))
+    || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.passengers[0].email)) {
     throw new BookingInputError('Invalid demo booking request');
   }
   if (!flight || flight.id !== body.flightId || flight.quoteId !== body.quoteId

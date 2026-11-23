@@ -46,6 +46,56 @@ npm run deploy
 
 Set page metadata `aero-api` to your Worker URL (defaults to `https://wknd-aero-api.jaggah.workers.dev`).
 
+### Automatic booking confirmation email
+
+New confirmed bookings automatically send a transactional email through the existing
+Brevo account, from the verified `hello@wknd-adventures.run.place` sender. The message
+uses the persisted booking's flight, seats, passenger count, adventure and total;
+it explicitly identifies the booking as a **demo**, not a real airline ticket or
+payment. It does not subscribe the passenger to marketing.
+
+Provision `WKND_BREVO_API_KEY` as a Cloudflare Worker secret, never as a public
+variable or browser credential. `WKND_EMAIL_FROM` is the public verified sender
+configuration. Booking authentication and the existing delegation secret are unchanged.
+
+The pending receipt index is written before the confirmed booking snapshot.
+Sending starts only after that snapshot is persisted. The Worker attempts delivery
+immediately using `waitUntil`; the additional `*/5 * * * *` cron retries pending
+receipts automatically. The existing six-hour catalog sync remains separate.
+Retries reuse a deterministic booking/account-scoped Brevo UUID, so concurrent
+booking requests and retrying the same booking do not create different send keys.
+Only newly created bookings enter this outbox; historical bookings are not emailed.
+Receipt metadata and its index expire with the booking's original 90-day retention,
+including when delivery is retried.
+
+The write-once KV `booking-receipt-status:<provider-uuid>` record has
+`status = accepted` when Brevo accepted the request (or
+recognized the same idempotency key), not proof of inbox delivery. An uncertain
+network/provider outcome is retried only within a conservative 15-minute window,
+inside Brevo's documented [30-minute deduplication TTL](https://developers.brevo.com/docs/heterogenous-versions-batch-emails).
+After that it becomes `unknown` and logs a reconciliation error rather than risking
+a duplicate. Investigate the provider log before any manual resend. Missing
+configuration retains scheduled retries without attempting a send. Provider failures
+are retried at most once per five-minute window, then require reconciliation if no
+definite acceptance is obtained within the safe window. Separate write-once attempt,
+start and acceptance records avoid KV's per-key write-rate limit without rewriting
+the immutable booking or exposing delivery metadata in its public response.
+Provider bodies, email addresses and credentials are never logged.
+
+Validation without real sends:
+
+```bash
+node --test tools/tests/aero-booking-receipt.test.mjs
+node tools/scripts/test-booking-auth.mjs
+node tools/scripts/test-booking-checkout.mjs /absolute/path/to/screenshots
+```
+
+The first two mock Brevo and assert durable booking-before-send, retry, duplicate
+suppression, invalid recipients and unknown-outcome handling. The browser check
+uses the authenticated demo checkout harness and makes no live booking or email.
+For rollback, revert the receipt integration and additional cron together; do not
+revoke the unrelated booking-delegation secret or resend old pending receipts.
+
 ### Authenticated checkout and Check Booking
 
 Browsing and flight search remain public. Confirmation requires Auth0 sign-in;
