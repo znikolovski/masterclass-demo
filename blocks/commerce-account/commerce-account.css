@@ -175,6 +175,25 @@ main .commerce-account .account__loading {
   color: var(--shop-muted, #5c5c5c);
 }
 
+main .commerce-account .account__linkage-choice {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+}
+
+main .commerce-account .account__linkage-choice input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+}
+
+main .commerce-account .account__linkage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 /* ---------- orders + addresses drop-ins ---------- */
 main .commerce-account .account-orders-list__controls {
   margin-bottom: 20px;

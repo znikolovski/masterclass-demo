@@ -7,6 +7,7 @@
 import { getAccountState, setAccountState } from '../../scripts/account-state.js';
 import { shopPromises } from '../../scripts/shop-promises.js';
 import { shopStylesReady } from '../../scripts/shop-styles.js';
+import { getIdLinkageConfig } from '../../scripts/id-linkage-config.js';
 
 const ICONS = {
   orders: '<path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
@@ -160,6 +161,17 @@ async function hydrate(block) {
     block.querySelector('.account__email').textContent = profile.email || '';
     block.querySelector('.account__detail-name').textContent = name || '—';
     block.querySelector('.account__detail-email').textContent = profile.email || '—';
+    if (getIdLinkageConfig()) {
+      import('../../scripts/id-linkage-consent.js')
+        .then(({ default: mountIdLinkageConsent }) => mountIdLinkageConsent(block))
+        .catch(() => {
+          const error = document.createElement('p');
+          error.className = 'account__error';
+          error.setAttribute('role', 'alert');
+          error.textContent = 'Identity-linking settings could not be loaded.';
+          block.querySelector('.account__content').append(error);
+        });
+    }
   });
 
   import('./email-preferences.js')
