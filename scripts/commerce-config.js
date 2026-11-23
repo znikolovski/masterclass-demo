@@ -7,11 +7,34 @@
 // Local/preview test content lives under /drafts/shop; production under /shop.
 export const SHOP_ROOT = typeof window !== 'undefined' && window.location.pathname.startsWith('/drafts/shop') ? '/drafts/shop' : '/shop';
 
-const RUNTIME = 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce';
-export const MESH_ENDPOINT = 'https://edge-graph.adobe.io/api/46e0d9f5-4d7a-463d-bebb-678c9106d482/graphql';
+const STAGE_PILOT = typeof window !== 'undefined'
+  && window.location.origin === 'https://feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page';
+const RUNTIME = STAGE_PILOT
+  ? 'https://28538-wkndcommerce-stage.adobeioruntime.net/api/v1/web/commerce'
+  : 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce';
+export const MESH_ENDPOINT = STAGE_PILOT
+  ? 'https://edge-sandbox-graph.adobe.io/api/fd2c6dc7-f3ce-426a-83bd-63227acbcdb4/graphql'
+  : 'https://edge-graph.adobe.io/api/46e0d9f5-4d7a-463d-bebb-678c9106d482/graphql';
 export const SHOP_AUTH_CONFIG_URL = `${RUNTIME}/auth-config`;
 export const CONTENT_AI_BASE = `${RUNTIME}/content-ai`;
 export const DM_DELIVERY_ORIGIN = 'https://delivery-p115476-e1135027.adobeaemcloud.com';
+
+// Drop-ins have fixed cart keys: invalidate legacy Production state before they load.
+// Session caches are per tab; the cart cookie and badge are shared across tabs.
+if (STAGE_PILOT) {
+  const key = 'wknd:cart-environment';
+  if (window.sessionStorage.getItem(key) !== MESH_ENDPOINT) {
+    ['DROPINS_CART_ID', 'DROPIN__CART__CART__DATA', 'DROPIN__CART__SHIPPING__DATA']
+      .forEach((cartKey) => window.sessionStorage.removeItem(cartKey));
+    window.sessionStorage.setItem(key, MESH_ENDPOINT);
+  }
+  if (window.localStorage.getItem(key) !== MESH_ENDPOINT) {
+    document.cookie = 'DROPIN__CART__CART-ID=; path=/; max-age=0; SameSite=Lax; Secure';
+    window.localStorage.removeItem('DROPIN__CART__CART__AUTHENTICATED');
+    window.localStorage.removeItem('wknd:cart-count');
+    window.localStorage.setItem(key, MESH_ENDPOINT);
+  }
+}
 
 // Product imagery is generated 4:5 (1600×2000); PDP renditions are requested at this size.
 export const PDP_IMAGE_SIZES = { width: 960, height: 1200 };
