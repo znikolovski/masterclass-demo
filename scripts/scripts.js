@@ -52,9 +52,6 @@ import {
   isAeroBlock,
 } from './aero-blocks.js';
 
-/** Instrument Sans (body) + Syncopate (headings); Syncopate woff2 preloaded in head.html */
-const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@700&display=swap';
-
 const HERO_HEADING_FONT = 'Syncopate';
 
 const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero, .aero-hero';
@@ -127,18 +124,12 @@ function decoratePageBlocks(main) {
 }
 
 /**
- * Eager-load hero block CSS so above-fold layout is stable before block decoration.
- * @param {Element} main
- */
-function hasStylesheet(href) {
-  return Boolean(document.querySelector(`link[rel="stylesheet"][href="${href}"]`));
-}
-
-/**
+ * Wait for hero CSS even when the head already inserted an in-flight link.
  * @param {string} href
  */
 async function ensureHeroStylesheet(href) {
-  if (!hasStylesheet(href)) await loadCSS(href);
+  // eslint-disable-next-line no-use-before-define -- reuse the hoisted stylesheet readiness helper
+  await ensureStylesheet(href);
 }
 
 async function loadHeroBlockCss(main) {
@@ -178,9 +169,16 @@ function preloadOgImage(doc = document) {
   const og = getMetadata('og:image', doc);
   if (!og || !isUsableMetaImageUrl(og)) return;
   try {
+    const heroImg = doc.querySelector(HERO_BLOCK_SELECTOR)?.querySelector('picture img');
+    const base = doc.baseURI || window.location.href;
+    let src = resolvePictureSrc(heroImg) || og;
+    const imageUrl = new URL(src, base);
+    if (!heroImg && /\/media_[a-f0-9]+\.[a-z0-9]+$/i.test(imageUrl.pathname)) {
+      src = new URL(imageUrl.pathname + imageUrl.search, base).href;
+    }
     const { preloadHref } = buildHeroAdventureLcpUrls(
-      og,
-      doc.baseURI || window.location.href,
+      src,
+      base,
     );
     if (hasImagePreload(preloadHref)) return;
     const link = document.createElement('link');
@@ -341,7 +339,6 @@ function buildHeroBlock(main) {
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
-  loadCSS(GOOGLE_FONTS_STYLESHEET);
   await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
   try {
     if (!window.location.hostname.includes('localhost')) sessionStorage.setItem('fonts-loaded', 'true');
@@ -1289,7 +1286,6 @@ function isShopPath() {
 
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
-  doc.body?.classList.add('appear');
   await bootstrapLibraryBlockDocument(doc);
   if (!doc.querySelector('link[rel="alternate"][type="text/markdown"]')) {
     addMarkdownAlternateLink(doc);
@@ -1347,7 +1343,24 @@ async function loadEager(doc) {
     if (!primedHero) {
       primeLcpImage(main);
     }
-    document.body.classList.add('appear');
+    // Raw hero fields (especially author portraits) do not have their final layout yet.
+    const hero = main.querySelector('.section')?.querySelector(HERO_BLOCK_SELECTOR);
+    if (hero?.classList.contains('block')) {
+      await loadSiteBlock(hero);
+      await Promise.race([
+        Promise.all([
+          document.fonts.load(
+            `700 56px ${HERO_HEADING_FONT}`,
+            hero.querySelector('h1')?.textContent || ' ',
+          ),
+          document.fonts.load(
+            '400 20px "Instrument Sans"',
+            main.querySelector('.section')?.textContent || ' ',
+          ),
+        ]).catch(() => {}),
+        new Promise((resolve) => { setTimeout(resolve, 2000); }),
+      ]);
+    }
     const firstSection = main.querySelector('.section');
     if (firstSection && !lcpHero) preloadLcpHeroImage(firstSection);
     const loadFirstSection = firstSection
@@ -1357,6 +1370,7 @@ async function loadEager(doc) {
     await loadFirstSection;
     prefetchBelowFoldStyles(main, doc);
   }
+  doc.body?.classList.add('appear');
 }
 
 /**
