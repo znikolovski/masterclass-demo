@@ -34,6 +34,10 @@ and personalization settings override demo auto-consent and gates Sherpa startup
 The martech event hook rejects collection when disabled. Standalone browsers keep
 their existing policy. Native context also takes precedence over standalone web
 customer identity, avoiding accidental association with a different browser login.
+The same event guard also applies the standalone alias policy to the Sherpa SDK:
+legacy customer identities are removed, while an enabled, freshly validated
+server binding is retained. Native collection and browser-account isolation
+remain unchanged.
 
 Deploy these hooks together before enabling the app's `WKNDAdobeWebBridgeEnabled`
 flag. Until then the app pauses OF1 for opted-out users. Do not remove the hooks

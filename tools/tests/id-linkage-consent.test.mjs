@@ -9,6 +9,47 @@ import { chromium } from 'playwright';
 
 const root = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 
+test('shared standalone SDK guard drops legacy identity without network and preserves Native opt-out', async (t) => {
+  const inline = (source) => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+  const personURL = inline(await readFile(resolve(root, 'scripts/person-binding.js'), 'utf8'));
+  const customerURL = inline((await readFile(resolve(root, 'scripts/customer-identity.js'), 'utf8'))
+    .replace("'./person-binding.js'", `'${personURL}'`));
+  const nativeURL = inline((await readFile(resolve(root, 'scripts/native-context.js'), 'utf8'))
+    .replace("'./customer-identity.js'", `'${customerURL}'`));
+  const browser = await chromium.launch();
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.route('**/*', (route) => (route.request().url() === 'https://wknd-adventures.run.place/account'
+    ? route.fulfill({ contentType: 'text/html', body: '<main><h1>Account</h1></main>' })
+    : route.abort()));
+  await page.goto('https://wknd-adventures.run.place/account');
+  const result = await page.evaluate(async (url) => {
+    const native = await import(url);
+    let requests = 0;
+    window.fetch = async () => { requests += 1; throw new Error('Unexpected alias request'); };
+    const content = {
+      xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-account' }], ECID: [{ id: 'existing-device' }] } },
+    };
+    const standaloneAllowed = native.applyNativeContext(content);
+    window.wkndNativeContext = { collect: false, personalize: false };
+    return {
+      standaloneAllowed,
+      identities: content.xdm.identityMap,
+      optedOut: native.applyNativeContext({}),
+      requests,
+    };
+  }, nativeURL);
+  assert.deepEqual(result, {
+    standaloneAllowed: true,
+    identities: { ECID: [{ id: 'existing-device' }] },
+    optedOut: false,
+    requests: 0,
+  });
+  assert.deepEqual(errors, []);
+});
+
 test('account identity consent remains explicit and environment-isolated', async (t) => {
   const server = createServer(async (req, res) => {
     const file = resolve(root, `.${new URL(req.url, 'http://localhost').pathname}`);

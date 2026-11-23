@@ -14,15 +14,21 @@ async function sourceModule(path, imports = {}) {
   return import(inlineModule(source));
 }
 
-const nativeURL = inlineModule(await readFile(new URL('../../scripts/native-context.js', import.meta.url), 'utf8'));
+const nativeSource = await readFile(new URL('../../scripts/native-context.js', import.meta.url), 'utf8');
 const personURL = inlineModule(await readFile(new URL('../../scripts/person-binding.js', import.meta.url), 'utf8'));
 const customerSource = await readFile(new URL('../../scripts/customer-identity.js', import.meta.url), 'utf8');
 const customerURL = inlineModule(customerSource.replace("'./person-binding.js'", `'${personURL}'`));
+const nativeURL = inlineModule(nativeSource.replace("'./customer-identity.js'", `'${customerURL}'`));
 const native = await import(nativeURL);
 const customer = await import(customerURL);
 global.window = { location: { origin: 'https://wknd-adventures.run.place' } };
 assert.equal(native.getNativeContext(), null);
 assert.equal(native.applyNativeContext({}), true);
+const standaloneLegacy = {
+  xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-account' }], ECID: [{ id: 'existing-device' }] } },
+};
+native.applyNativeContext(standaloneLegacy);
+assert.deepEqual(standaloneLegacy.xdm.identityMap, { ECID: [{ id: 'existing-device' }] });
 window.wkndNativeContext = { collect: false, personalize: false };
 assert.equal(native.applyNativeContext({}), false);
 window.wkndNativeContext = {
@@ -154,4 +160,60 @@ assert.equal(WEB_SDK_CONFIG.onBeforeEventSend(legacyNative), true);
 assert.deepEqual(legacyNative.xdm.identityMap, { ECID: [{ id: 'existing-device' }] });
 window.wkndNativeContext = { collect: false, personalize: false };
 assert.equal(WEB_SDK_CONFIG.onBeforeEventSend({}), false);
+
+const enabledCustomerURL = inlineModule(customerSource
+  .replace('serverBindingEnabled: false', 'serverBindingEnabled: true')
+  .replace("'./person-binding.js'", `'${personURL}'`));
+const enabledNative = await import(inlineModule(nativeSource
+  .replace("'./customer-identity.js'", `'${enabledCustomerURL}'`)));
+const person = await import(personURL);
+const issued = Date.now();
+const alias = `wpa_${'a'.repeat(32)}`;
+await person.requestPersonBinding('person-binding', {
+  getToken: async () => 'test-shopper-bearer',
+  fetchImpl: async () => ({
+    ok: true,
+    json: async () => ({
+      apiVersion: 'wknd.person-binding/v1',
+      purpose: 'idLinkage',
+      status: 'ok',
+      consent: 'granted',
+      environment: 'production',
+      evidence: false,
+      financialAuthorization: false,
+      semanticAllowlist: [],
+      binding: {
+        source: 'server-issued',
+        purpose: 'idLinkage',
+        personAlias: alias,
+        environment: 'production',
+        runtimeNamespace: '28538-wkndcommerce',
+        orgId: '28260E2056581D3B7F000101@AdobeOrg',
+        dpid: '1547309',
+        namespace: 'wkndCustomerId',
+        issuer: 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce/target-diagnostic',
+        consentGeneration: '12345678-1234-4234-8234-123456789012',
+        issuedAt: new Date(issued).toISOString(),
+        expiresAt: new Date(issued + 300000).toISOString(),
+        freshnessMs: 300000,
+      },
+    }),
+  }),
+});
+delete window.wkndNativeContext;
+const approvedStandalone = {
+  xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-account' }], ECID: [{ id: 'existing-device' }] } },
+};
+assert.equal(enabledNative.applyNativeContext(approvedStandalone), true);
+assert.deepEqual(approvedStandalone.xdm.identityMap, {
+  ECID: [{ id: 'existing-device' }],
+  wkndCustomerId: [{ id: alias, authenticatedState: 'authenticated', primary: true }],
+});
+window.wkndNativeContext = { collect: true, personalize: true };
+const separateNativeAccount = {
+  xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-native' }] } },
+};
+enabledNative.applyNativeContext(separateNativeAccount);
+assert.deepEqual(separateNativeAccount.xdm.identityMap, {});
+person.clearPersonBinding();
 console.log('Native collection consent and unverified customer identity suppression passed.'); // eslint-disable-line no-console
