@@ -6,8 +6,6 @@
 import { getConfigValue, getHeaders, initializeConfig } from '@dropins/tools/lib/aem/configs.js';
 import { initializers } from '@dropins/tools/initializer.js';
 import { isAemAssetsEnabled } from '@dropins/tools/lib/aem/assets.js';
-import { CART_FRAGMENT } from '@dropins/storefront-cart/fragments.js';
-import { ORDER_SUMMARY_FRAGMENT } from '@dropins/storefront-order/fragments.js';
 import { loadCSS } from './aem.js';
 import commerceConfig, { BUNDLE_ATTRIBUTION_READY, DM_DELIVERY_ORIGIN } from './commerce-config.js';
 import { preconnectDm } from './dm-image.js';
@@ -34,8 +32,6 @@ export function configureCommerce() {
   CORE_FETCH_GRAPHQL.setFetchGraphQlHeaders((prev) => ({ ...prev, ...getHeaders('all') }));
   installBundleAttribution(CORE_FETCH_GRAPHQL, {
     enabled: BUNDLE_ATTRIBUTION_READY,
-    cartFragment: CART_FRAGMENT,
-    orderSummaryFragment: ORDER_SUMMARY_FRAGMENT,
   });
   CS_FETCH_GRAPHQL.setEndpoint(getConfigValue('commerce-endpoint'));
   CS_FETCH_GRAPHQL.setFetchGraphQlHeaders((prev) => ({ ...prev, ...getHeaders('cs') }));

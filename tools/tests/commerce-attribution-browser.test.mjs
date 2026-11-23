@@ -76,6 +76,8 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
   const errors = [];
   try {
     const page = await browser.newPage();
+    const requests = [];
+    page.on('request', (request) => requests.push(new URL(request.url()).pathname));
     page.on('pageerror', (error) => errors.push(error.message));
     await page.route('**/*', async (route) => {
       const url = new URL(route.request().url());
@@ -84,7 +86,7 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
         return;
       }
       const path = url.pathname;
-      if (path === '/scripts/commerce.js') {
+      if (path === '/scripts/commerce.js' && !url.searchParams.has('off-probe')) {
         await route.fulfill({
           contentType: 'text/javascript', body: `
           export async function initializeCommerce() {}
@@ -97,7 +99,8 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       } else if (path === '/scripts/__dropins__/tools/lib/aem/assets.js') {
         await route.fulfill({
           contentType: 'text/javascript',
-          body: 'export function tryRenderAemAssetsImage() {}',
+          body: `export function tryRenderAemAssetsImage() {}
+            export const isAemAssetsEnabled = () => false;`,
         });
       } else if (path === '/scripts/__dropins__/storefront-cart/render.js') {
         await route.fulfill({
@@ -116,6 +119,14 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       }
     });
     await page.goto(`${origin}/shop/cart`);
+    await page.evaluate(async () => {
+      window.hlx = {};
+      const { configureCommerce } = await import('/scripts/commerce.js?off-probe');
+      configureCommerce();
+    });
+    assert.equal(requests.some((path) => path.includes('/storefront-order/')
+      || path.includes('/storefront-checkout/')
+      || path.endsWith('/storefront-cart/fragments.js')), false);
     const result = await page.evaluate(async () => {
       window.hlx = {};
       const { default: decorateCart } = await import('/blocks/commerce-cart/commerce-cart.js');
@@ -131,7 +142,7 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       const api = new FetchGraphQL();
       api.setEndpoint(`${window.location.origin}/mock-graphql`);
       attribution.installBundleAttribution(api, {
-        enabled: true, cartFragment: CART_FRAGMENT, orderSummaryFragment: ORDER_SUMMARY_FRAGMENT,
+        enabled: true,
       });
       await analytics.startShopAnalytics();
       const emit = async (name, payload) => new Promise((resolve) => {

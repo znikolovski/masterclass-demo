@@ -48,6 +48,11 @@ this handoff found `OrderTotal.discounts: [Discount]`, **not `OrderDiscount`** (
 absent), and `Discount` had neither metadata field. Verify the exact types again after
 refreshing the backend source/schema; do not extend an assumed order type. Source schema
 changes alone are not readiness evidence. While closed, no optional fields are queried.
+The attribution path has no eager SDK fragment imports. Only an enabled hook handling a
+cart/order fragment query loads and caches the pinned fragments; configuration with the
+gate off adds no cart/order fragment or checkout SDK requests to the baseline. Ordinary
+shop initializers still load their normal cart SDK. The attribution configuration path
+is covered by a browser network regression, independently of external PSI scores.
 
 When enabled, raw `Cart.prices.discounts` supplies applied attribution for cart views,
 successful cart changes and checkout events. Only a successful `placeOrder.orderV2.total.discounts`

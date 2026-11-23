@@ -35,7 +35,7 @@ function hooks(enabled = true) {
   return { before, after };
 }
 
-test('gate closed adds no hooks; enabled hooks extend only exact total discount fragments', () => {
+test('gate closed adds no hooks; enabled hooks extend only exact total discount fragments', async () => {
   assert.deepEqual(hooks(false), { before: [], after: [] });
   const { before, after } = hooks();
   assert.equal(before.length, 1);
@@ -47,23 +47,26 @@ test('gate closed adds no hooks; enabled hooks extend only exact total discount 
     signal: new AbortController().signal,
     body: JSON.stringify({ query, variables: { cartId: 'mock-cart' } }),
   };
-  const result = before[0](options);
+  const result = await before[0](options);
   assert.equal(result.headers, options.headers);
   assert.equal(result.signal, options.signal);
   assert.deepEqual(JSON.parse(result.body).variables, { cartId: 'mock-cart' });
   const extended = JSON.parse(result.body).query;
   assert.equal(extended.split('wknd_bundle_id').length - 1, 1);
   assert.equal(extended.replace('        wknd_bundle_id\n        wknd_experiment_id\n', ''), query);
-  const order = before[0]({
+  const order = await before[0]({
     ...options, body: JSON.stringify({ query: ORDER_SUMMARY_FRAGMENT }),
   });
   assert.equal(JSON.parse(order.body).query.split('wknd_bundle_id').length - 1, 1);
   const unrelated = { ...options, body: JSON.stringify({ query: 'query { storeConfig { id } }' }) };
-  assert.equal(before[0](unrelated), unrelated);
-  assert.equal(before[0]({ method: 'GET' }).method, 'GET');
-  assert.throws(() => installBundleAttribution({
-    addBeforeHook() {}, addAfterHook() {},
-  }, { enabled: true, cartFragment: 'changed SDK' }), /pinned Commerce/);
+  assert.equal(await before[0](unrelated), unrelated);
+  assert.equal((await before[0]({ method: 'GET' })).method, 'GET');
+  let mismatched;
+  installBundleAttribution({
+    addBeforeHook(hook) { mismatched = hook; },
+    addAfterHook() {},
+  }, { enabled: true, cartFragment: 'changed SDK' });
+  await assert.rejects(mismatched(options), /pinned Commerce/);
 });
 
 test('raw cart totals alone supply bounded safe IDs; removed discounts and reset clear context', () => {
@@ -147,7 +150,7 @@ test('purchase uses only committed order receipt, never cart/proposed totals, an
   assert.deepEqual(takeOrderAttribution('mock-20'), {});
 });
 
-test('combined payment/placement operation uses the same committed receipt, not payment cart context', () => {
+test('combined payment/placement operation uses the same committed receipt, not payment cart context', async () => {
   const { before, after } = hooks();
   const query = `mutation setPaymentMethodAndPlaceOrder(
     $cartId: String!, $paymentMethod: PaymentMethodInput!
@@ -159,7 +162,7 @@ test('combined payment/placement operation uses the same committed receipt, not 
   }
   ${PLACE_ORDER_FRAGMENT}`;
   const variables = { cartId: 'mock-cart', paymentMethod: { code: 'wknd_demo_pay' } };
-  const request = before[0]({ method: 'POST', body: JSON.stringify({ query, variables }) });
+  const request = await before[0]({ method: 'POST', body: JSON.stringify({ query, variables }) });
   assert.deepEqual(JSON.parse(request.body).variables, variables);
   assert.equal(JSON.parse(request.body).query.split('wknd_bundle_id').length - 1, 1);
   const response = {

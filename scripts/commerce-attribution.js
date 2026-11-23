@@ -81,24 +81,43 @@ export function installBundleAttribution(fetchGraphQL, {
   enabled = false, cartFragment, orderSummaryFragment,
 } = {}) {
   if (!enabled || installed.has(fetchGraphQL)) return;
-  if (!cartFragment?.includes(CART_DISCOUNTS)
-    || !orderSummaryFragment?.includes(ORDER_DISCOUNTS)) {
-    throw new Error('Bundle attribution does not match the pinned Commerce discount fragments');
-  }
-  const extendedCart = cartFragment.replace(
-    CART_DISCOUNTS,
-    CART_DISCOUNTS.replace('        label', `        ${FIELDS}\n        label`),
-  );
-  const extendedOrder = orderSummaryFragment.replace(
-    ORDER_DISCOUNTS,
-    ORDER_DISCOUNTS.replace('      label', `      ${FIELDS}\n      label`),
-  );
-  fetchGraphQL.addBeforeHook((options) => {
+  let fragments;
+  fetchGraphQL.addBeforeHook(async (options) => {
     if (options.method !== 'POST' || typeof options.body !== 'string') return options;
     const body = JSON.parse(options.body);
     if (typeof body.query !== 'string') return options;
-    const query = body.query.replace(cartFragment, extendedCart)
-      .replace(orderSummaryFragment, extendedOrder);
+    if (!body.query.includes('fragment CART_FRAGMENT')
+      && !body.query.includes('fragment ORDER_SUMMARY_FRAGMENT')) return options;
+    fragments ||= (cartFragment || orderSummaryFragment
+      ? Promise.resolve([{ CART_FRAGMENT: cartFragment },
+        { ORDER_SUMMARY_FRAGMENT: orderSummaryFragment }])
+      : Promise.all([
+        import('@dropins/storefront-cart/fragments.js'),
+        import('@dropins/storefront-order/fragments.js'),
+      ])).then(([cart, order]) => {
+      const cartSource = cart.CART_FRAGMENT;
+      const orderSource = order.ORDER_SUMMARY_FRAGMENT;
+      if (!cartSource?.includes(CART_DISCOUNTS) || !orderSource?.includes(ORDER_DISCOUNTS)) {
+        throw new Error('Bundle attribution does not match the pinned Commerce discount fragments');
+      }
+      return {
+        cartSource,
+        orderSource,
+        extendedCart: cartSource.replace(
+          CART_DISCOUNTS,
+          CART_DISCOUNTS.replace('        label', `        ${FIELDS}\n        label`),
+        ),
+        extendedOrder: orderSource.replace(
+          ORDER_DISCOUNTS,
+          ORDER_DISCOUNTS.replace('      label', `      ${FIELDS}\n      label`),
+        ),
+      };
+    });
+    const {
+      cartSource, orderSource, extendedCart, extendedOrder,
+    } = await fragments;
+    const query = body.query.replace(cartSource, extendedCart)
+      .replace(orderSource, extendedOrder);
     return query === body.query ? options : {
       ...options, body: JSON.stringify({ ...body, query }),
     };
