@@ -2,6 +2,8 @@
  * The iOS app installs this bounded context before document scripts execute.
  * Standalone browsers retain the existing website consent and identity policy.
  */
+import { applyCustomerIdentity } from './customer-identity.js';
+
 export function getNativeContext() {
   if (typeof window === 'undefined'
     || window.location.origin !== 'https://wknd-adventures.run.place') return null;
@@ -13,7 +15,10 @@ export function getNativeContext() {
 
 export function applyNativeContext(content) {
   const context = getNativeContext();
-  if (!context) return true;
+  if (!context) {
+    applyCustomerIdentity(content);
+    return true;
+  }
   if (!context.collect) return false;
   // Legacy identity context carries neither a verified server alias nor a linkage grant.
   delete content.xdm?.identityMap?.wkndCustomerId;
