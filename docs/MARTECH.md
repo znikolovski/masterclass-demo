@@ -39,14 +39,21 @@ Deploy these hooks together before enabling the app's `WKNDAdobeWebBridgeEnabled
 flag. Until then the app pauses OF1 for opted-out users. Do not remove the hooks
 while released clients rely on them.
 
-Signed-in customer mapping is configured in `scripts/customer-identity.js` with
-the confirmed **WKND Customer ID** / **`wkndCustomerId`** namespace and Auth0 `sub`.
-The website's public Auth0 configuration and native app use the same issuer.
-Only the verified profile's subject is mapped; tokens/emails/raw profiles are
-never added. Existing shop cookies still trigger background profile restoration
-on page load. Logout, auth invalidation and a new login invalidate older pending
-profile lookups so they cannot restore the previous customer's in-memory identity
-mapping.
+Signed-in customer mapping in `scripts/customer-identity.js` is disabled:
+an authenticated Auth0 `sub` is not a server-approved pseudonymous alias, and
+signing in does not grant identity linking. The legacy native `identity` context
+is also not projected into Web SDK identity maps. Native collection consent and
+its precedence over browser identity are unchanged. Existing shop cookies still
+trigger profile restoration for account UX; profiles are not mapped to Adobe
+customer identity.
+
+Enabling cross-channel customer mapping requires an approved authenticated
+backend binding contract for **`wkndCustomerId`** / AAM DPID **1547309**, confirmed
+explicit linkage purposes, binding freshness/expiry, and withdrawal invalidation.
+Until that contract is integrated and its backend is available in Production,
+no raw subject or client-supplied identity is used as a replacement. Account
+identity-linking controls remain explicit and default unchecked; they do not
+enable this bridge or establish cross-channel qualification on their own.
 
 The namespace symbol must match the mobile app and each datastream's
 **Adobe Target → Target Third Party ID Namespace**. Its creation/configuration
