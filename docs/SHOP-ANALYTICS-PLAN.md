@@ -40,14 +40,20 @@ the existing endpoint, auth/store headers, variables and response. It replaces t
 pinned `CART_FRAGMENT` and `ORDER_SUMMARY_FRAGMENT` discount selections, not vendored files
 or arbitrary queries. No extra request, price calculation or purchase event is introduced.
 
-**Production gate is closed:** `BUNDLE_ATTRIBUTION_READY` in `scripts/commerce-config.js`
-remains `false` until the backend publisher confirms refreshed Production Mesh exposes
-`wknd_bundle_id/wknd_experiment_id` on the actual types referenced by both
-`Cart.prices.discounts` and `OrderTotal.discounts`. Read-only Production introspection during
-this handoff found `OrderTotal.discounts: [Discount]`, **not `OrderDiscount`** (that type was
-absent), and `Discount` had neither metadata field. Verify the exact types again after
-refreshing the backend source/schema; do not extend an assumed order type. Source schema
-changes alone are not readiness evidence. While closed, no optional fields are queried.
+**Production hook is enabled:** `BUNDLE_ATTRIBUTION_READY` in `scripts/commerce-config.js`
+is `true` after the backend publisher's storefront Runtime 0.0.24 release and independent
+read-only Production Mesh introspection. Both `wknd_bundle_id` and `wknd_experiment_id`
+are nullable `String` fields on shared `Discount`; both `CartPrices.discounts` and
+`OrderTotal.discounts` are lists of `Discount`, **not `OrderDiscount`**. Verify these actual
+types before activating the hook against another endpoint; source schema changes alone
+are not readiness evidence.
+
+This activation verifies schema/transport readiness, not a live financial receipt.
+Successful committed metadata on both placement paths is covered by backend GraphQL
+fixtures and frontend mock tests. No live bundle/customer checkout was performed;
+positive live bundle receipt metadata remains unproven. Ordinary unbundled discounts
+may legitimately have null metadata. No financial savings, membership or uplift claim
+is inferred from hook activation.
 The attribution path has no eager SDK fragment imports. Only an enabled hook handling a
 cart/order fragment query loads and caches the pinned fragments; configuration with the
 gate off adds no cart/order fragment or checkout SDK requests to the baseline. Ordinary
@@ -86,8 +92,9 @@ nominal **55–60-minute** first eligible tick on the five-minute alarm. This is
 one-hour runtime/inbox SLA or guaranteed AAM membership timing; ownership, opt-in,
 suppression, budgets and episode guards may delay or prevent delivery. Financial savings
 remain backend-only (10%, capped at AUD25); no browser test sends or real customer writes.
-Its Production publication is owned by the backend publisher and is not verified by this
-website change.
+Its Production publication is owned by the backend publisher; this website change
+independently verifies only the nullable discount schema, not email delivery or a live
+financial redemption.
 
 ## Site search modal (`siteSearch*`)
 

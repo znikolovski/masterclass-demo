@@ -94,6 +94,13 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
           export const checkIsAuthenticated = () => false;
           export const CORE_FETCH_GRAPHQL = {};`,
         });
+      } else if (path === '/scripts/commerce-config.js') {
+        const response = await route.fetch();
+        const body = (await response.text()).replace(
+          'export const BUNDLE_ATTRIBUTION_READY = true;',
+          'export const BUNDLE_ATTRIBUTION_READY = false;',
+        );
+        await route.fulfill({ response, body });
       } else if (path === '/scripts/initializers/cart.js') {
         await route.fulfill({ contentType: 'text/javascript', body: 'export {};' });
       } else if (path === '/scripts/__dropins__/tools/lib/aem/assets.js') {
@@ -119,11 +126,14 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       }
     });
     await page.goto(`${origin}/shop/cart`);
-    await page.evaluate(async () => {
+    const offProbe = await page.evaluate(async () => {
       window.hlx = {};
+      const { BUNDLE_ATTRIBUTION_READY } = await import('/scripts/commerce-config.js');
       const { configureCommerce } = await import('/scripts/commerce.js?off-probe');
       configureCommerce();
+      return BUNDLE_ATTRIBUTION_READY;
     });
+    assert.equal(offProbe, false);
     assert.equal(requests.some((path) => path.includes('/storefront-order/')
       || path.includes('/storefront-checkout/')
       || path.endsWith('/storefront-cart/fragments.js')), false);
