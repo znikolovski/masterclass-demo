@@ -11,9 +11,10 @@ export const ID_LINKAGE_CONFIG = Object.freeze([
   }),
   Object.freeze({
     environment: 'stage',
-    enabled: false,
-    origins: Object.freeze([]),
-    endpoint: '',
+    enabled: true,
+    diagnosticEnabled: true,
+    origins: Object.freeze(['https://feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page']),
+    endpoint: 'https://28538-wkndcommerce-stage.adobeioruntime.net/api/v1/web/commerce/target-diagnostic',
     wordingVersion: 'wknd-id-linkage-v1',
     wording,
   }),

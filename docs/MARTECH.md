@@ -59,6 +59,91 @@ remain web-owned: do not replay them natively or add duplicate Send Event rules.
 
 ## Demo traffic (Analytics)
 
+### Isolated Audience Manager Stage pilot
+
+Only `feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page` uses the
+Stage web datastream `77b2a52a-e8b9-4333-8d3b-f539db7acc11`.
+All other hosts, including main preview, localhost and production, retain
+`56dee4fc-21a9-4e37-83ab-bdd874957aba`. Selecting a staging Launch library
+alone does not isolate Edge services; this routing is in the Web SDK configuration.
+
+The pilot deliberately sends only `web.webpagedetails.pageViews`, with
+`page.environment=preview`, `page.adventureCategory` and `page.journeyStage`.
+Unrelated ACDL state and data-layer identities are discarded before applying
+the current verified `wkndCustomerId` profile and the existing Analytics mapping.
+Commerce, form, asset and proposition events are not collected by this pilot.
+Existing non-pilot behavior is unchanged.
+
+The Stage web stream enables Analytics (`ags050wkndaamstage`) and Audience Manager
+for this pilot only. The authenticated
+AAM source is `1547309`, with CURRENT/NONE profile merge rule `1547344`.
+Climbing and planning traits are `27507401` and `27507402`; Interest and Planner
+segments are `27507403` and `27507404`. Their rules require the preview page-view
+signals above. Seven-day AAM recency is not a proven exact rolling 168-hour window.
+
+Do not treat a successful Edge response as proof of segment qualification.
+Authenticated qualification, account/logout isolation, cross-device receipt,
+Target/Analytics activation and trusted backend membership provenance remain
+release gates. Public audience identifiers or cookies cannot authorize discounts.
+The Stage stream has no Target or AEP service; do not use this pilot branch for
+existing Target experiments. Cookie and URL destinations remain disabled.
+
+Validate routing, signal minimization and logout behavior with
+`node --test tools/tests/aam-pilot-routing.test.mjs`, then inspect the actual
+Edge request configuration on `/blog/yosemite-rock-climbing` and `/gear`.
+The pilot branch must not be merged as a general production activation.
+
+Deployed anonymous browser validation confirmed both signals on this Stage
+configuration, `interact` HTTP 200 and `collect` HTTP 204, at 390/768/1280 widths.
+No Production datastream requests or customer subjects were observed.
+The existing staging Launch library was unchanged. This proves routing and
+Edge acceptance, not authenticated AAM qualification or Analytics report availability.
+
+The approved diagnostic cookie destination `120277` is saved and read back:
+`wknd_aam_stage_diagnostic`, single key `segment`, one-day expiry, and only the
+exact pilot hostname above. Its only active mappings are Interest `27507403`
+to `climbing-interest` and Planner `27507404` to `climbing-planner`.
+Both mapping start dates were corrected from `2026-11-23` to `2026-11-22`
+and independently read back with the same mapping IDs, aliases and ACTIVE
+statuses. Audience Manager interprets destination start dates as midnight UTC,
+not the operator's local date. At server time `2026-11-22T23:27:40Z`, the
+original dates were still in the future (11:00 am Sydney on November 23), so
+earlier cookie tests could not establish delivery readiness. This removes a
+scheduling blocker; propagation and actual qualification still require proof.
+See [Audience Manager time zones](https://experienceleague.adobe.com/en/docs/audience-manager/user-guide/reference/aam-time-zones).
+Stage cookie delivery remains disabled: the datastream-wide switch could also
+activate existing all-domain cookie destinations `35002` and `40858`.
+Those destinations were not modified; broader delivery requires separate approval
+or a supported destination-specific restriction.
+
+With explicit approval, a bounded Stage cookie-delivery test returned an
+`activation:push` cookie instruction for the existing `aam_check` destination,
+and that cookie was present in the browser. Authenticated climbing and planning
+requests both returned HTTP 200, but neither returned the pilot diagnostic cookie.
+Delivery was disabled again after testing and the editor readback confirmed
+cookie/URL/flattened-field options off. Destination propagation or qualification
+still needs verification; the working existing cookie is not proof of either
+pilot segment. Gear navigation reproduced missing early customer identity;
+the planning request required explicit profile restoration before sending.
+
+Authenticated climbing requests carried `wkndCustomerId` on the actual Stage
+`interact` request (HTTP 200). Normal sign-out returned to the pilot `/account`;
+a subsequent climbing request remained on Stage and omitted `wkndCustomerId`,
+with signed-out UI visible. No diagnostic cookie was delivered, so neither
+membership nor stale-cookie isolation is proved. Automatic profile restoration
+timing and second-account/cross-device isolation remain unverified.
+
+The pilot now restores the verified profile (when a shop token exists) before
+martech initialization, so the first automatic page view includes the current
+authenticated identity rather than relying on the cached account-menu state.
+This wait is restricted to the exact pilot hostname and excludes native context;
+other hosts retain their loading behavior. Profile failures use the existing
+warning and clear-identity behavior; no cached subject is substituted.
+Browser testing of local code on the deployed content verified automatic Gear
+planning and climbing inspiration requests with authenticated identity, without
+manual profile restoration. Second-account/cross-device and destination
+qualification remain separate gates.
+
 Daily simulated traffic can run via GitHub Actions (`.github/workflows/daily-traffic-simulation.yaml`, 06:00 UTC) or locally:
 
 ```bash

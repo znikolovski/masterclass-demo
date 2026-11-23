@@ -17,6 +17,12 @@ const ERRORS = {
   'activation-pending': 'Your consent is awaiting confirmation. Retry after reloading its status.',
   'evidence-failed': 'We could not confirm the consent record. Reload its status before trying again.',
 };
+const DIAGNOSTIC_SCHEMA = 'wknd.target-aam-diagnostic-result/v1';
+const DIAGNOSTIC_MARKERS = {
+  'climbing-planner': 'Target selected the Climbing Planner diagnostic.',
+  'climbing-interest': 'Target selected the Climbing Interest diagnostic.',
+  control: 'Target selected the control experience. This is not negative audience membership.',
+};
 
 class ConsentError extends Error {}
 
@@ -89,18 +95,45 @@ export default async function mountIdLinkageConsent(block, {
   section.querySelector('.account__linkage-help').textContent = 'This is optional and separate from email preferences. No permission is granted by signing in.';
   let busy = false;
   let confirmed = false;
+  let consentState = 'unknown';
   let endpoint;
+  let diagnosticButton;
+  let diagnosticStatus;
+  if (config.environment === 'stage' && config.diagnosticEnabled === true) {
+    const diagnostic = document.createElement('div');
+    const heading = document.createElement('h3');
+    heading.textContent = 'Stage audience check';
+    const help = document.createElement('p');
+    help.textContent = 'An optional Target diagnostic, not complete AAM membership evidence or discount authorization.';
+    const actions = document.createElement('div');
+    actions.className = 'account__linkage-actions';
+    diagnosticButton = document.createElement('button');
+    diagnosticButton.type = 'button';
+    diagnosticButton.className = 'button secondary';
+    diagnosticButton.textContent = 'Check Stage Target audience';
+    actions.append(diagnosticButton);
+    diagnosticStatus = document.createElement('p');
+    diagnosticStatus.id = 'account-linkage-diagnostic-status';
+    diagnosticStatus.setAttribute('role', 'status');
+    diagnosticStatus.setAttribute('aria-live', 'polite');
+    diagnostic.append(heading, help, actions, diagnosticStatus);
+    section.append(diagnostic);
+  }
 
   function controls() {
     choice.disabled = busy || !canGrant || !confirmed;
     grant.disabled = busy || !canGrant || !confirmed || !choice.checked;
     withdraw.disabled = busy || !endpoint;
     reload.disabled = busy || !endpoint;
+    if (diagnosticButton) {
+      diagnosticButton.disabled = busy || !endpoint || !confirmed || consentState !== 'granted';
+    }
     form.setAttribute('aria-busy', String(busy));
   }
 
   function showError(message) {
     confirmed = false;
+    consentState = 'unknown';
     choice.checked = false;
     status.textContent = STATUS_TEXT.unknown;
     error.textContent = message;
@@ -127,6 +160,16 @@ export default async function mountIdLinkageConsent(block, {
       throw new ConsentError(typeof result?.reason === 'string' && Object.hasOwn(ERRORS, result.reason)
         ? ERRORS[result.reason] : 'We could not confirm this preference. Reload its status before trying again.');
     }
+    if (body.op === 'decide') {
+      const decided = result.status === 'decided' && typeof result.marker === 'string'
+        && Object.hasOwn(DIAGNOSTIC_MARKERS, result.marker);
+      const unavailable = result.status === 'unavailable' && typeof result.reason === 'string'
+        && result.marker === undefined;
+      if (result.schema !== DIAGNOSTIC_SCHEMA || (!decided && !unavailable)) {
+        throw new ConsentError('The Stage Target service returned an unexpected diagnostic response.');
+      }
+      return result;
+    }
     if (result.status !== 'ok' || !STATES.has(result.consent)
       || (body.op === 'consent' && (typeof result.changed !== 'boolean'
         || (body.optIn ? result.consent !== 'granted' : !['withdrawn', 'absent'].includes(result.consent))))) {
@@ -139,10 +182,12 @@ export default async function mountIdLinkageConsent(block, {
     if (busy) return;
     busy = true;
     error.textContent = '';
+    if (diagnosticStatus) diagnosticStatus.textContent = '';
     controls();
     try {
       const result = await request(body);
       confirmed = true;
+      consentState = result.consent;
       choice.checked = false;
       status.textContent = STATUS_TEXT[result.consent];
     } catch (e) {
@@ -154,6 +199,25 @@ export default async function mountIdLinkageConsent(block, {
     }
   }
 
+  async function checkTarget() {
+    if (busy || !diagnosticButton || diagnosticButton.disabled) return;
+    busy = true;
+    diagnosticStatus.textContent = 'Checking Stage Target...';
+    controls();
+    try {
+      const result = await request({ op: 'decide' });
+      diagnosticStatus.textContent = result.status === 'decided'
+        ? DIAGNOSTIC_MARKERS[result.marker]
+        : 'No Target decision is available. This does not establish non-membership.';
+    } catch {
+      diagnosticStatus.textContent = 'The Stage Target check is not ready or is unavailable. No audience or discount is confirmed.';
+    } finally {
+      busy = false;
+      controls();
+    }
+  }
+
+  if (diagnosticButton) diagnosticButton.addEventListener('click', checkTarget);
   choice.addEventListener('change', controls);
   form.addEventListener('submit', (event) => {
     event.preventDefault();

@@ -23,7 +23,8 @@ test('account identity consent remains explicit and environment-isolated', async
       else if (file.endsWith('.css')) type = 'text/css';
       res.setHeader('Content-Type', type);
       res.end(file.endsWith('.plain.html')
-        ? `<!doctype html><html><body class="appear"><main>${body}</main></body></html>` : body);
+        ? `<!doctype html><html><head><link rel="icon" href="data:,"></head>
+          <body class="appear"><main>${body}</main></body></html>` : body);
     } catch (error) {
       res.writeHead(error.code === 'ENOENT' ? 404 : 500).end();
     }
@@ -39,10 +40,14 @@ test('account identity consent remains explicit and environment-isolated', async
     t.after(() => page.close());
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(`${message.text()} (${message.location().url})`);
+    });
     // No external request is allowed: the UI's authentication and transport are injected mocks.
     await page.route('**/*', (route) => (route.request().url().startsWith(origin)
       ? route.continue() : route.abort()));
     await page.goto(`${origin}/drafts/tmp/id-linkage-account.plain.html`);
+    await page.addStyleTag({ url: `${origin}/styles/brand.css` });
     await page.addStyleTag({ url: `${origin}/styles/styles.css` });
     await page.addStyleTag({ url: `${origin}/styles/lazy-styles.css` });
     await page.addStyleTag({ url: `${origin}/blocks/commerce-account/commerce-account.css` });
@@ -80,7 +85,7 @@ test('account identity consent remains explicit and environment-isolated', async
           });
           const reply = window.replies.shift() || { status: 'ok', consent: 'absent' };
           return {
-            ok: reply.http !== 503,
+            ok: !reply.http || (reply.http >= 200 && reply.http < 300),
             json: async () => ({
               environment: config.environment,
               evidence: false,
@@ -227,11 +232,85 @@ test('account identity consent remains explicit and environment-isolated', async
     assert.equal(await page.getByRole('checkbox').isDisabled(), true);
   });
 
+  const diagnosticConfig = {
+    environment: 'stage',
+    diagnosticEnabled: true,
+    endpoint: 'https://28538-wkndcommerce-stage.adobeioruntime.net/api/v1/web/commerce/target-diagnostic',
+  };
+  const diagnosticSchema = 'wknd.target-aam-diagnostic-result/v1';
+
+  await t.test('manual Target checks are Stage-only and never automatic or permission-free', async () => {
+    const production = await setup({ config: { diagnosticEnabled: true } });
+    assert.equal(await production.page.getByRole('button', { name: 'Check Stage Target audience' }).count(), 0);
+    const { page, errors } = await setup({ config: diagnosticConfig });
+    assert.equal(await page.getByRole('button', { name: 'Check Stage Target audience' }).isDisabled(), true);
+    assert.deepEqual(await page.evaluate(() => window.consentCalls.map((call) => call.body)), [
+      { op: 'consent-status' },
+    ]);
+    assert.deepEqual(errors, []);
+  });
+
+  await t.test('explicit checks display inert markers and withdrawal clears stale decisions', async () => {
+    const { page, errors } = await setup({
+      config: diagnosticConfig,
+      replies: [
+        { status: 'ok', consent: 'granted' },
+        { schema: diagnosticSchema, status: 'decided', marker: 'climbing-interest' },
+        { schema: diagnosticSchema, status: 'decided', marker: 'control' },
+        { status: 'ok', consent: 'withdrawn', changed: true },
+      ],
+    });
+    const button = page.getByRole('button', { name: 'Check Stage Target audience' });
+    const result = page.locator('#account-linkage-diagnostic-status');
+    assert.equal((await page.evaluate(() => window.consentCalls)).length, 1);
+    await button.click();
+    await result.filter({ hasText: 'Climbing Interest diagnostic' }).waitFor();
+    assert.deepEqual(await page.evaluate(() => window.consentCalls[1].body), { op: 'decide' });
+    assert.equal(await page.getByRole('checkbox').isChecked(), false);
+    await button.click();
+    await result.filter({ hasText: 'control experience' }).waitFor();
+    assert.match(await result.innerText(), /not negative audience membership/);
+    await page.getByRole('button', { name: 'Withdraw permission' }).click();
+    await page.getByRole('status').filter({ hasText: 'Identity linking is withdrawn.' }).waitFor();
+    assert.equal(await result.innerText(), '');
+    assert.equal(await button.isDisabled(), true);
+    assert.deepEqual(errors, []);
+  });
+
+  await t.test('unavailable and malformed diagnostics preserve consent without leaking server details', async () => {
+    const { page, errors } = await setup({
+      config: diagnosticConfig,
+      replies: [
+        { status: 'ok', consent: 'granted' },
+        { schema: diagnosticSchema, status: 'unavailable', reason: 'no-decision', private: 'private-result' },
+        { schema: diagnosticSchema, status: 'decided', marker: 'untrusted-marker', private: 'private-result' },
+        { http: 403, status: 'unavailable', reason: 'not-approved', private: 'private-result' },
+      ],
+    });
+    const button = page.getByRole('button', { name: 'Check Stage Target audience' });
+    const result = page.locator('#account-linkage-diagnostic-status');
+    await button.click();
+    await result.filter({ hasText: 'does not establish non-membership' }).waitFor();
+    await button.click();
+    await result.filter({ hasText: 'not ready or is unavailable' }).waitFor();
+    await button.click();
+    await page.waitForFunction(() => window.consentCalls.length === 4
+      && document.querySelector('#identity-linking form').getAttribute('aria-busy') === 'false');
+    await result.filter({ hasText: 'not ready or is unavailable' }).waitFor();
+    assert.equal(await page.getByRole('status').filter({ hasText: 'Identity linking is allowed.' }).count(), 1);
+    assert.equal((await page.locator('body').innerText()).includes('private-result'), false);
+    assert.equal(await page.locator('.account__error').textContent(), '');
+    assert.deepEqual(errors, []);
+  });
+
   await t.test('mobile and desktop wrap long wording and actions without overflow', async () => {
     // eslint-disable-next-line no-restricted-syntax -- viewports own independent browser pages
     for (const width of [390, 768, 1350]) {
       // eslint-disable-next-line no-await-in-loop -- each viewport is checked independently
-      const { page, errors } = await setup({ width, config: { wording: 'Optional identity linking. '.repeat(30) } });
+      const { page, errors } = await setup({
+        width,
+        config: { ...diagnosticConfig, wording: 'Optional identity linking. '.repeat(30) },
+      });
       // eslint-disable-next-line no-await-in-loop
       const size = await page.evaluate(() => ({
         page: document.documentElement.clientWidth,
