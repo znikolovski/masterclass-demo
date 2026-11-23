@@ -20,7 +20,8 @@ export function getPersonBinding(now = Date.now()) {
 
 export function validatePersonBindingResponse(result, operation, now = Date.now()) {
   if (!OPERATIONS.has(operation) || !result || Array.isArray(result)
-    || result.apiVersion !== VERSION || result.environment !== 'production'
+    || result.apiVersion !== VERSION || result.purpose !== 'idLinkage'
+    || result.environment !== 'production'
     || result.evidence !== false || result.financialAuthorization !== false
     || result.status !== 'ok' || !Array.isArray(result.semanticAllowlist)
     || result.semanticAllowlist.length !== 0) {
@@ -39,7 +40,8 @@ export function validatePersonBindingResponse(result, operation, now = Date.now(
   const issued = Date.parse(receipt?.issuedAt);
   const expires = Date.parse(receipt?.expiresAt);
   if (result.consent !== 'granted' || !receipt || Array.isArray(receipt)
-    || receipt.source !== 'server-issued' || !/^wpa_[0-9a-f]{32}$/.test(receipt.personAlias)
+    || receipt.source !== 'server-issued' || receipt.purpose !== 'idLinkage'
+    || !/^wpa_[0-9a-f]{32}$/.test(receipt.personAlias)
     || receipt.environment !== 'production' || receipt.runtimeNamespace !== '28538-wkndcommerce'
     || receipt.orgId !== '28260E2056581D3B7F000101@AdobeOrg' || receipt.dpid !== '1547309'
     || receipt.namespace !== 'wkndCustomerId' || receipt.issuer !== ENDPOINT
