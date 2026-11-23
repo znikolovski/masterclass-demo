@@ -9,6 +9,8 @@ export const SHOP_ROOT = typeof window !== 'undefined' && window.location.pathna
 
 const RUNTIME = 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce';
 export const MESH_ENDPOINT = 'https://edge-graph.adobe.io/api/46e0d9f5-4d7a-463d-bebb-678c9106d482/graphql';
+// Cart/order discount metadata is verified in the refreshed Production Mesh.
+export const BUNDLE_ATTRIBUTION_READY = true;
 export const SHOP_AUTH_CONFIG_URL = `${RUNTIME}/auth-config`;
 export const CONTENT_AI_BASE = `${RUNTIME}/content-ai`;
 export const DM_DELIVERY_ORIGIN = 'https://delivery-p115476-e1135027.adobeaemcloud.com';
