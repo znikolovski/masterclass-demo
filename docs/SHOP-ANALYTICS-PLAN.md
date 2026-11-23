@@ -33,6 +33,53 @@ search-modal events.
 placed. It is pushed once when the confirmation page loads, because checkout redirects
 immediately and would otherwise drop the beacon.
 
+### Server-applied bundle attribution
+
+`scripts/commerce-attribution.js` uses the shared core GraphQL before/after hooks, retaining
+the existing endpoint, auth/store headers, variables and response. It replaces the exact
+pinned `CART_FRAGMENT` and `ORDER_SUMMARY_FRAGMENT` discount selections, not vendored files
+or arbitrary queries. No extra request, price calculation or purchase event is introduced.
+
+**Production gate is closed:** `BUNDLE_ATTRIBUTION_READY` in `scripts/commerce-config.js`
+remains `false` until the backend publisher confirms refreshed Production Mesh exposes
+`wknd_bundle_id/wknd_experiment_id` on the actual types referenced by both
+`Cart.prices.discounts` and `OrderTotal.discounts`. Read-only Production introspection during
+this handoff found `OrderTotal.discounts: [Discount]`, **not `OrderDiscount`** (that type was
+absent), and `Discount` had neither metadata field. Verify the exact types again after
+refreshing the backend source/schema; do not extend an assumed order type. Source schema
+changes alone are not readiness evidence. While closed, no optional fields are queried.
+
+When enabled, raw `Cart.prices.discounts` supplies applied attribution for cart views,
+successful cart changes and checkout events. Only a successful `placeOrder.orderV2.total.discounts`
+receipt supplies purchase attribution, keyed to its order number before the SDK strips
+unknown fields. Cart or click context cannot grant purchase attribution. Receipt metadata
+is consumed once into the existing pending-purchase payload; confirmation-page forwarding,
+analytics-off handling, journey consent and purchase deduplication remain unchanged.
+
+`data.wkndShop.bundles` contains at most five `{ bundle_id, experiment_id }` entries.
+Bundle IDs must match `bnd_` plus 32 lowercase hex characters; experiment labels are
+bounded opaque alphanumeric/underscore/hyphen IDs (64 characters maximum), otherwise `null`.
+Only these IDs are retained in transient bounded maps (20 carts/orders each); raw responses,
+coupon codes, customer details and savings are never copied to attribution. Cart reset clears
+cart context. Existing order numbers are lookup keys, not new analytics fields.
+
+The existing Analytics mapper adds `contextData['wknd.bundle_ids']` and, only when assigned,
+`contextData['wknd.experiment_ids']`. No new eVars/events or Launch send rules are allocated.
+**Reporting configuration is pending:** these context-data keys need verified report-suite
+processing-rule mappings to approved existing dimensions before they are usable in Workspace;
+they do not automatically create dimensions. Recommendation unit eVar40 and event50/51 remain
+unchanged. The current cart add-ons are product recommendations, not a displayed bundle
+candidate: no bundle exposure/click or experiment assignment is invented for them or for admin
+opportunity investigation. Attribution alone is not evidence of revenue uplift or financial approval.
+
+The coordinated backend policy uses a shared **55-minute** financial/email inactivity cutoff, with a
+nominal **55–60-minute** first eligible tick on the five-minute alarm. This is not an exact
+one-hour runtime/inbox SLA or guaranteed AAM membership timing; ownership, opt-in,
+suppression, budgets and episode guards may delay or prevent delivery. Financial savings
+remain backend-only (10%, capped at AUD25); no browser test sends or real customer writes.
+Its Production publication is owned by the backend publisher and is not verified by this
+website change.
+
 ## Site search modal (`siteSearch*`)
 
 These use the site's `interaction` ACDL shape (`interaction.label|block|detail`) plus a `search`

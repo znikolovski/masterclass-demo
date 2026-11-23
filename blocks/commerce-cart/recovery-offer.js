@@ -1,5 +1,5 @@
 /*
- * Cart recovery offer for signed-in shoppers. Eligibility (24h–7d inactive cart, no purchase
+ * Cart recovery offer for signed-in shoppers. Eligibility (55m–7d inactive cart, no purchase
  * since, one redemption per campaign) is decided only by the Commerce backend
  * (wkndRecoveryOffer / claimWkndRecoveryOffer); this UI never grants a discount itself.
  * The shopper applies the offer explicitly; an existing coupon is never replaced silently, and the
