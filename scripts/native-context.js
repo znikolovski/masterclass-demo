@@ -15,15 +15,7 @@ export function applyNativeContext(content) {
   const context = getNativeContext();
   if (!context) return true;
   if (!context.collect) return false;
-  const { identity } = context;
-  if (identity && typeof identity.namespace === 'string' && typeof identity.id === 'string'
-    && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(identity.namespace)
-    && identity.id.length > 0 && identity.id.length <= 256) {
-    content.xdm ||= {};
-    content.xdm.identityMap ||= {};
-    content.xdm.identityMap[identity.namespace] = [{
-      id: identity.id, authenticatedState: 'authenticated', primary: true,
-    }];
-  }
+  // Legacy identity context carries neither a verified server alias nor a linkage grant.
+  delete content.xdm?.identityMap?.wkndCustomerId;
   return true;
 }

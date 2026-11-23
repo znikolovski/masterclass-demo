@@ -1,4 +1,7 @@
-export const CUSTOMER_IDENTITY_CONFIG = { namespace: 'wkndCustomerId', auth0SubjectApproved: true };
+// No server-approved alias contract is available; signing in is not a linkage grant.
+export const CUSTOMER_IDENTITY_CONFIG = Object.freeze({
+  namespace: 'wkndCustomerId', auth0SubjectApproved: false,
+});
 let customerId;
 let revision = 0;
 
@@ -23,6 +26,10 @@ export async function restoreCustomerIdentity(getProfile) {
 }
 
 export function applyCustomerIdentity(content) {
+  if (!CUSTOMER_IDENTITY_CONFIG.auth0SubjectApproved) {
+    delete content.xdm?.identityMap?.[CUSTOMER_IDENTITY_CONFIG.namespace];
+    return;
+  }
   if (!customerId) return;
   content.xdm ||= {};
   content.xdm.identityMap ||= {};

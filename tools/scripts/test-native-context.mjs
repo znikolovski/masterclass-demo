@@ -30,9 +30,7 @@ window.wkndNativeContext = {
 };
 const event = {};
 assert.equal(native.applyNativeContext(event), true);
-assert.deepEqual(event.xdm.identityMap.wkndCustomerId, [{
-  id: 'opaque-account', authenticatedState: 'authenticated', primary: true,
-}]);
+assert.deepEqual(event, {});
 window.location.origin = 'https://unrelated.example';
 assert.equal(native.getNativeContext(), null);
 window.location.origin = 'https://wknd-adventures.run.place';
@@ -40,23 +38,14 @@ window.wkndNativeContext = { collect: 'yes', personalize: true };
 assert.equal(native.getNativeContext(), null);
 
 customer.updateCustomerIdentity({ sub: 'account' });
-assert.deepEqual(customer.CUSTOMER_IDENTITY_CONFIG, {
-  namespace: 'wkndCustomerId', auth0SubjectApproved: true,
-});
 const configured = {};
 customer.applyCustomerIdentity(configured);
-assert.equal(configured.xdm.identityMap.wkndCustomerId[0].id, 'account');
-customer.CUSTOMER_IDENTITY_CONFIG.auth0SubjectApproved = false;
-customer.updateCustomerIdentity({ sub: 'account' });
-const disabled = {};
-customer.applyCustomerIdentity(disabled);
-assert.deepEqual(disabled, {});
-customer.CUSTOMER_IDENTITY_CONFIG.namespace = 'wkndCustomerId';
-customer.CUSTOMER_IDENTITY_CONFIG.auth0SubjectApproved = true;
-customer.updateCustomerIdentity({ sub: 'account' });
-const authenticated = {};
-customer.applyCustomerIdentity(authenticated);
-assert.equal(authenticated.xdm.identityMap.wkndCustomerId[0].id, 'account');
+assert.deepEqual(configured, {});
+const pendingIdentity = {
+  xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-account' }], ECID: [{ id: 'existing-device' }] } },
+};
+customer.applyCustomerIdentity(pendingIdentity);
+assert.deepEqual(pendingIdentity.xdm.identityMap, { ECID: [{ id: 'existing-device' }] });
 customer.updateCustomerIdentity(null);
 const signedOut = {};
 customer.applyCustomerIdentity(signedOut);
@@ -66,9 +55,7 @@ await customer.restoreCustomerIdentity(async () => ({
 }));
 const restored = {};
 customer.applyCustomerIdentity(restored);
-assert.deepEqual(restored.xdm.identityMap, {
-  wkndCustomerId: [{ id: 'restored-account', authenticatedState: 'authenticated', primary: true }],
-});
+assert.deepEqual(restored, {});
 
 [{}, { sub: '' }, { sub: 123 }, { sub: 'x'.repeat(257) }].forEach((profile) => {
   customer.updateCustomerIdentity(profile);
@@ -87,8 +74,7 @@ async function verifyLateProfileCannotReplaceIdentity(nextProfile) {
   await pending;
   const current = {};
   customer.applyCustomerIdentity(current);
-  if (nextProfile) assert.equal(current.xdm.identityMap.wkndCustomerId[0].id, 'new-account');
-  else assert.deepEqual(current, {});
+  assert.deepEqual(current, {});
 }
 await verifyLateProfileCannotReplaceIdentity(null);
 await verifyLateProfileCannotReplaceIdentity({ sub: 'new-account' });
@@ -128,14 +114,14 @@ assert.equal(await shop.restoreShopSession(), true);
 assert.equal(global.profileLoads, 1);
 const cookieAccount = {};
 customer.applyCustomerIdentity(cookieAccount);
-assert.equal(cookieAccount.xdm.identityMap.wkndCustomerId[0].id, 'cookie-account');
+assert.deepEqual(cookieAccount, {});
 customer.updateCustomerIdentity(null);
 assert.equal(shop.syncShopSession(), true);
 await new Promise(setImmediate);
 assert.equal(global.profileLoads, 2);
 const backgroundAccount = {};
 customer.applyCustomerIdentity(backgroundAccount);
-assert.equal(backgroundAccount.xdm.identityMap.wkndCustomerId[0].id, 'cookie-account');
+assert.deepEqual(backgroundAccount, {});
 
 const { WEB_SDK_CONFIG } = await sourceModule('../../scripts/martech-config.js', {
   './analytics-page.js': inlineModule(`
@@ -149,7 +135,7 @@ customer.updateCustomerIdentity({ sub: 'browser-account' });
 delete window.wkndNativeContext;
 const standalone = {};
 assert.equal(WEB_SDK_CONFIG.onBeforeEventSend(standalone), true);
-assert.equal(standalone.xdm.identityMap.wkndCustomerId[0].id, 'browser-account');
+assert.deepEqual(standalone, {});
 window.wkndNativeContext = { collect: true, personalize: true };
 const anonymousNative = {};
 assert.equal(WEB_SDK_CONFIG.onBeforeEventSend(anonymousNative), true);
@@ -157,9 +143,12 @@ assert.deepEqual(anonymousNative, {});
 window.wkndNativeContext.identity = { namespace: 'wkndCustomerId', id: 'native-account' };
 const signedInNative = {};
 assert.equal(WEB_SDK_CONFIG.onBeforeEventSend(signedInNative), true);
-assert.deepEqual(signedInNative.xdm.identityMap.wkndCustomerId, [{
-  id: 'native-account', authenticatedState: 'authenticated', primary: true,
-}]);
+assert.deepEqual(signedInNative, {});
+const legacyNative = {
+  xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-native' }], ECID: [{ id: 'existing-device' }] } },
+};
+assert.equal(WEB_SDK_CONFIG.onBeforeEventSend(legacyNative), true);
+assert.deepEqual(legacyNative.xdm.identityMap, { ECID: [{ id: 'existing-device' }] });
 window.wkndNativeContext = { collect: false, personalize: false };
 assert.equal(WEB_SDK_CONFIG.onBeforeEventSend({}), false);
-console.log('Native consent and approved customer identity contracts passed.'); // eslint-disable-line no-console
+console.log('Native collection consent and unverified customer identity suppression passed.'); // eslint-disable-line no-console

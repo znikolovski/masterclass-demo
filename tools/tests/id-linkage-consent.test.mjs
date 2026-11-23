@@ -115,6 +115,26 @@ test('account identity consent remains explicit and environment-isolated', async
     assert.deepEqual(errors, []);
   });
 
+  await t.test('sign-in and legacy Native identity cannot bypass the unapproved binding gate', async () => {
+    const { page, errors } = await setup();
+    const identityMaps = await page.evaluate(async () => {
+      const customerUrl = '/scripts/customer-identity.js';
+      const nativeUrl = '/scripts/native-context.js';
+      const customer = await import(customerUrl);
+      const native = await import(nativeUrl);
+      await customer.restoreCustomerIdentity(async () => ({ sub: 'unapproved-subject' }));
+      const browserEvent = {
+        xdm: { identityMap: { wkndCustomerId: [{ id: 'legacy-subject' }], ECID: [{ id: 'existing-device' }] } },
+      };
+      customer.applyCustomerIdentity(browserEvent);
+      const standaloneNative = {};
+      native.applyNativeContext(standaloneNative);
+      return [browserEvent.xdm.identityMap, standaloneNative];
+    });
+    assert.deepEqual(identityMaps, [{ ECID: [{ id: 'existing-device' }] }, {}]);
+    assert.deepEqual(errors, []);
+  });
+
   await t.test('the real signed-out account retains its sign-in UX with consent disabled', async () => {
     const { page, errors } = await setup({ config: { enabled: false } });
     await page.evaluate(async () => {
