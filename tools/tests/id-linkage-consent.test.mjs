@@ -100,6 +100,20 @@ test('account identity consent remains explicit and environment-isolated', async
     assert.deepEqual(errors, []);
   });
 
+  await t.test('the real signed-out account retains its sign-in UX with consent disabled', async () => {
+    const { page, errors } = await setup({ config: { enabled: false } });
+    await page.evaluate(async () => {
+      const moduleUrl = '/blocks/commerce-account/commerce-account.js';
+      const { default: decorate } = await import(moduleUrl);
+      await decorate(document.querySelector('.commerce-account'));
+    });
+    assert.equal(await page.getByRole('button', { name: 'Sign in', exact: true }).isVisible(), true);
+    assert.equal(await page.getByRole('button', { name: 'Create account' }).isVisible(), true);
+    assert.equal(await page.locator('#identity-linking').count(), 0);
+    assert.deepEqual(await page.evaluate(() => [window.consentCalls, window.tokenCalls]), [[], []]);
+    assert.deepEqual(errors, []);
+  });
+
   await t.test('an origin outside the configured environment cannot render or request', async () => {
     const { page } = await setup({ config: { origins: ['https://wknd-adventures.run.place'] } });
     assert.equal(await page.locator('#identity-linking').count(), 0);
