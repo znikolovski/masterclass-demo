@@ -2,7 +2,8 @@
 
 The existing `/account` block adds an optional identity-linking section only after restoring the
 signed-in profile and selecting an enabled, exact-origin configuration in
-`scripts/id-linkage-config.js`. Stage and Production configurations are separate and initially OFF.
+`scripts/id-linkage-config.js`. Production is enabled only on `https://wknd-adventures.run.place`;
+the default Stage configuration remains OFF. Environment configurations stay separate.
 No authoring change is required: the `commerce-account` block retains its empty cell.
 
 The project owner has approved implementation for Stage and Production; legal review is not a
@@ -23,9 +24,10 @@ The action must independently verify its platform namespace/environment, Auth0 t
 allowlist and wording version. Its exact CORS origins must match the storefront config. Backend flags
 and final inputs cannot be overridden by this UI.
 
-No configuration is enabled in this change. Validate the backend, environment-isolated storage,
-withdrawal/upstream identity deletion and consent wording version before changing `enabled`.
-Production-capable backend integration is a separate Commerce change.
+Production uses its own Commerce diagnostic action and environment-isolated consent records.
+Enabling the account section does not grant permission, activate an audience, or authorize a discount.
+The backend must independently enable its consent wording and identity-linking configuration;
+unavailable configuration is surfaced as an error rather than a successful grant.
 The proposed wording version is `wknd-id-linkage-v1`. It describes cross-channel identity linking for
 personalization and audience measurement; it does not promise a discount or infer email permission.
 

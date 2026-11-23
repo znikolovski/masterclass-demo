@@ -95,16 +95,23 @@ test('account identity consent remains explicit and environment-isolated', async
     return { page, errors };
   }
 
-  await t.test('disabled defaults do not render, authenticate or request consent', async () => {
+  await t.test('disabled configurations remain inert while Production requires its exact origin', async () => {
     const { page, errors } = await setup({ config: { enabled: false } });
     assert.equal(await page.locator('#identity-linking').count(), 0);
     assert.deepEqual(await page.evaluate(() => [window.consentCalls, window.tokenCalls]), [[], []]);
     const selected = await page.evaluate(async () => {
       const moduleUrl = '/scripts/id-linkage-config.js';
       const { getIdLinkageConfig } = await import(moduleUrl);
-      return getIdLinkageConfig('https://wknd-adventures.run.place');
+      return {
+        production: getIdLinkageConfig('https://wknd-adventures.run.place'),
+        preview: getIdLinkageConfig('https://main--masterclass-demo--znikolovski.aem.page'),
+        liveBackend: getIdLinkageConfig('https://main--masterclass-demo--znikolovski.aem.live'),
+      };
     });
-    assert.equal(selected, null);
+    assert.equal(selected.production.environment, 'production');
+    assert.equal(selected.production.endpoint, 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce/target-diagnostic');
+    assert.equal(selected.preview, null);
+    assert.equal(selected.liveBackend, null);
     assert.deepEqual(errors, []);
   });
 
