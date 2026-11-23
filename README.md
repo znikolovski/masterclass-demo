@@ -67,3 +67,30 @@ Its centered action buttons are capped at 280px with 44px minimum touch targets.
 1. Install the [AEM CLI](https://github.com/adobe/helix-cli): `npm install -g @adobe/aem-cli`
 1. Start AEM Proxy: `aem up` (opens your browser at `http://localhost:3000`)
 1. Open the `{repo}` directory in your favorite IDE and start coding :)
+
+### Hero layout regression check
+
+With the AEM dev server running, use
+`PAGE_LAYOUT_BASE_URL=http://localhost:3000 node --test tools/tests/page-layout.test.mjs`.
+It checks the published Yosemite climbing article and Gear page at mobile/desktop
+widths: the hero must be decorated before first paint, CLS must stay at or below
+0.1, and a failed font service must not hide the page. Without the environment
+variable the browser test is skipped, not passed.
+
+The hero image is still preloaded from the head, but the page is revealed only
+after eager decoration, stylesheet readiness, and a bounded wait for its fonts.
+The provider's Latin and Latin-extended font faces are registered directly in the
+critical `head.html` styles, without a redundant Google Fonts CSS request.
+Only common Latin binaries are preloaded; eager readiness checks the actual hero
+and first-section text so extended characters also use their final font at reveal.
+Keep these pinned faces and the font preloads in sync when updating fonts.
+Empty footers stay out of the layout while deferred sections load. Above-fold
+section variant padding belongs in `styles/styles.css`, not lazy styles. Recheck both
+pages with mobile and desktop Lighthouse after changes; local results do not
+replace the branch preview's PSI check.
+For production-like local measurements, start AEM with `--no-livereload` to
+exclude its development-only reload script, not application resources.
+
+EDS media-hash preloads use the current page origin, matching the rendered hero,
+rather than downloading a second copy from the live URL in preview or local tests.
+External DAM image URLs retain their original origin.
