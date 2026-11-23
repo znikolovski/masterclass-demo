@@ -59,7 +59,7 @@ section with two independent, unticked opt-ins that each save on their own:
 
 | Option | Backend field / mutation | Wording version |
 | --- | --- | --- |
-| Cart reminders | `wknd_recovery_email_opt_in` / `setWkndRecoveryEmailOptIn` | `recovery-2026-11` |
+| Cart reminders | `wknd_recovery_email_opt_in` / `setWkndRecoveryEmailOptIn` | `recovery-2026-11-23` |
 | WKND news & offers | `wknd_marketing_email_opt_in` / `setWkndMarketingEmailOptIn` | `news-offers-2026-11` |
 
 This follows Australian Spam Act 2003 express-consent practice and APP 5/7: no pre-ticked boxes,
@@ -69,5 +69,10 @@ The backend records every change (wording version, source `WEB`/`IOS`, time) as 
 **Bump the wording version in `email-preferences.js` whenever the text in `commerce-account.js`
 changes.** Options the backend does not support stay hidden. A Brevo unsubscribe withdraws both.
 
-Before production marketing sends: author the `/privacy` page (currently missing) and have the
-wording legally reviewed. Sending is described in `../wknd-commerce/docs/PROMOTIONS.md`.
+Reminder frequency is at most one per period of inactivity (24 hours to 7 days), not one per
+cart for its lifetime. Further activity on the same cart starts a new period. The offer remains
+a separate one-time redemption per account/campaign; another reminder does not grant another use.
+
+The published `/privacy` redirects to `/privacy-and-terms`, which describes the separate email
+preferences, unsubscribe-all behavior, sender and providers, and demonstration store.
+Sending is described in `../wknd-commerce/docs/PROMOTIONS.md`.
