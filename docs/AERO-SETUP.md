@@ -196,6 +196,53 @@ audience. The Worker independently validates the assertion and derives the same
 account key as for website tokens. Ownership never comes from tool arguments,
 email, or a browser-supplied user ID.
 
+### Booking assertion key rotation (offline preparation; live approval required)
+
+`WKND_BOOKING_ASSERTION_SECRET` remains the primary verification key. Optional
+`WKND_BOOKING_ASSERTION_PREVIOUS_SECRET` accepts the old key only before
+`WKND_BOOKING_ASSERTION_PREVIOUS_EXPIRES_AT`, an explicitly approved **short**
+absolute UTC deadline expressed as a positive integer Unix timestamp in seconds
+(a decimal string binding). There is no default overlap duration or sliding
+renewal. At or after the deadline, only the primary key is accepted.
+
+Both keys must be distinct strings of at least 32 UTF-8 bytes, without surrounding
+whitespace. If either optional setting is supplied, both must be valid;
+invalid/short/duplicate keys or missing/invalid deadlines fail delegated reads
+closed with 503, even for primary-key assertions. Omitting both optional settings
+(or setting both to empty strings) preserves single-key behavior. Expired,
+otherwise-valid overlap configuration still accepts the primary key.
+
+Only an HS256 signature mismatch retries the previous key; claim or token-expiry
+failures never retry. Both paths enforce the same issuer, audience, Auth0 identity
+issuer, subject, read scope, required claims and maximum 60-second assertion age
+and lifetime. Delegation never authorizes booking writes. Normal RS256 Auth0
+checkout/account authentication does not consult these rotation settings.
+
+Future Stage/Prod cutover for the **shared Worker** (not performed by this prep):
+
+1. Obtain explicit live approval, confirm which Stage/Prod server-side signers
+   share the Worker and current key, and approve one short UTC cutoff that covers
+   their coordinated switch and the last 60-second assertion lifetime. A shared
+   verifier cannot be rotated independently for Stage and Prod.
+2. After review/merge and deployment approval, release the verifier with optional
+   rotation disabled. Authorized operators prepare one coordinated configuration
+   activation: new primary, old previous key, and approved absolute cutoff.
+   Verify the platform supports this before proceeding: setting previous equal
+   to the still-old primary or activating partial config fails closed.
+3. Switch **all** approved Stage/Prod signers to the new primary through supported
+   server-side secret provisioning. Never use ordinary LLM Apps UI Variables.
+   Validate only authorized read-only assertions and normal Auth0; do not create
+   bookings or perform customer/cart/order writes for rotation validation.
+4. Confirm old-key assertions are refused at/after the cutoff and remove both
+   optional bindings together. Do not extend the deadline to mask failed cutover;
+   any rollback or new overlap needs fresh approval.
+
+Remaining gates: reviewer acceptance, merge/deploy approval, secure signer secret
+support/access, shared Stage/Prod binding ownership, approved deadline and
+coordinated key provisioning, followed by authorized read-only live validation.
+No secrets, live bindings, deployment or Adobe configuration were read or changed
+by the offline preparation.
+
 New records live under `customer-booking:<hashed issuer+subject>:<reference>` in
 the existing KV namespace, expire after **90 days**, and snapshot server-priced
 flight details independently of the 30-minute quote. Known airport time zones
