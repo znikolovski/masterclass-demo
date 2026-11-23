@@ -16,13 +16,13 @@ function assertionKeys(env) {
   const current = env.WKND_BOOKING_ASSERTION_SECRET;
   const previous = env.WKND_BOOKING_ASSERTION_PREVIOUS_SECRET;
   const deadline = env.WKND_BOOKING_ASSERTION_PREVIOUS_EXPIRES_AT;
-  if (!env.MCP_RESOURCE || !validSecret(current)) {
+  if (!env.MCP_RESOURCE || typeof current !== 'string' || encoder.encode(current).length < 32) {
     throw new BookingAuthError('Booking delegation is not configured.', 503);
   }
   if ((previous === undefined || previous === '') && (deadline === undefined || deadline === '')) {
     return { current: encoder.encode(current) };
   }
-  if (!validSecret(previous) || previous === current
+  if (!validSecret(current) || !validSecret(previous) || previous === current
     || typeof deadline !== 'string' || !/^[1-9]\d*$/.test(deadline)
     || !Number.isSafeInteger(Number(deadline))) {
     throw new BookingAuthError('Booking delegation rotation is not configured.', 503);

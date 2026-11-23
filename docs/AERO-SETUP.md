@@ -107,9 +107,10 @@ anonymous booking creation and the previous unrestricted booking lookup.
    with `npx wrangler secret put WKND_BOOKING_ASSERTION_SECRET` in the Worker
    directory, and as the **secret** variable `WKND_BOOKING_ASSERTION_SECRET`
    in a supported server-side secret configuration for Adobe LLM Apps.
-   The current LLM Apps UI does not support secrets; do not store this key as an
-   ordinary Variable. Secure runtime provisioning is required before enabling
-   the lookup tool. Never commit it or put it in browser code.
+   Confirm the available UI input and runtime configuration are appropriate for
+   private server-side secret storage before enabling the lookup tool. Supported
+   private user-assisted secret input may be used without DOM snapshots or
+   output of the value. Never commit it or put it in browser code.
 6. Enable auth for **Check Booking**, scope `bookings:read`, in the LLM Apps UI.
    The MCP API identifier remains the canonical MCP resource, not the Worker
    API audience. See the companion README for the tool output/widget contract.
@@ -205,11 +206,13 @@ absolute UTC deadline expressed as a positive integer Unix timestamp in seconds
 (a decimal string binding). There is no default overlap duration or sliding
 renewal. At or after the deadline, only the primary key is accepted.
 
-Both keys must be distinct strings of at least 32 UTF-8 bytes, without surrounding
-whitespace. If either optional setting is supplied, both must be valid;
+During overlap, both keys must be distinct strings of at least 32 UTF-8 bytes,
+without surrounding whitespace. If either optional setting is supplied, both must be valid;
 invalid/short/duplicate keys or missing/invalid deadlines fail delegated reads
 closed with 503, even for primary-key assertions. Omitting both optional settings
-(or setting both to empty strings) preserves single-key behavior. Expired,
+(or setting both to empty strings) preserves single-key behavior, including
+valid primary keys containing surrounding whitespace (at least 32 UTF-8 bytes;
+no trimming or normalization). Expired,
 otherwise-valid overlap configuration still accepts the primary key.
 
 Only an HS256 signature mismatch retries the previous key; claim or token-expiry
@@ -230,7 +233,10 @@ Future Stage/Prod cutover for the **shared Worker** (not performed by this prep)
    Verify the platform supports this before proceeding: setting previous equal
    to the still-old primary or activating partial config fails closed.
 3. Switch **all** approved Stage/Prod signers to the new primary through supported
-   server-side secret provisioning. Never use ordinary LLM Apps UI Variables.
+   private user-assisted secret input or server-side secret provisioning, with
+   no DOM snapshots or output of the value. Confirm the available UI input and
+   runtime configuration are appropriate for private secret storage; do not
+   assume whether a particular UI has a Secrets field.
    Validate only authorized read-only assertions and normal Auth0; do not create
    bookings or perform customer/cart/order writes for rotation validation.
 4. Confirm old-key assertions are refused at/after the cutoff and remove both

@@ -128,6 +128,9 @@ try {
   assert.deepEqual(await verifyAssertion(oldAssertion), currentAccount);
   assert.deepEqual(await verifyAssertion(a, rotationEnv, 'bookings:read', false), currentAccount);
   assert.deepEqual(await verifyAssertion(assertion, { ...auth.env, WKND_BOOKING_ASSERTION_PREVIOUS_SECRET: '', WKND_BOOKING_ASSERTION_PREVIOUS_EXPIRES_AT: '' }), currentAccount);
+  const whitespacePrimary = ` ${auth.env.WKND_BOOKING_ASSERTION_SECRET} `;
+  const whitespaceAssertion = await auth.delegated('customer-a', {}, { secret: whitespacePrimary });
+  assert.deepEqual(await verifyAssertion(whitespaceAssertion, { ...auth.env, WKND_BOOKING_ASSERTION_SECRET: whitespacePrimary }), currentAccount);
   await assert.rejects(verifyAssertion(oldAssertion, auth.env), { status: 401 });
   await assert.rejects(verifyAssertion(await auth.delegated('customer-a', {}, { secret: 'test-only-unknown-assertion-key-at-least-32-bytes' })), { status: 401 });
   for (const token of [assertion, oldAssertion]) {
@@ -160,6 +163,7 @@ try {
     { WKND_BOOKING_ASSERTION_SECRET: '' },
     { WKND_BOOKING_ASSERTION_SECRET: 'short' },
     { WKND_BOOKING_ASSERTION_SECRET: 123 },
+    { WKND_BOOKING_ASSERTION_SECRET: whitespacePrimary },
   ];
   for (const invalid of invalidConfigurations) {
     const bindings = { ...rotationEnv, ...invalid };
