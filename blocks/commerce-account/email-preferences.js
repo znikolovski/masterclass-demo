@@ -10,8 +10,8 @@ const PURPOSES = {
   recovery: {
     field: 'wknd_recovery_email_opt_in',
     mutation: 'setWkndRecoveryEmailOptIn',
-    wordingVersion: 'recovery-2026-11',
-    on: 'Cart reminders are on — at most one per cart.',
+    wordingVersion: 'recovery-2026-11-23',
+    on: 'Cart reminders are on — at most one per period of inactivity.',
     off: 'Cart reminders are off.',
   },
   audience: {
