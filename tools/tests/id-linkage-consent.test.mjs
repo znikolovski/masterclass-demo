@@ -79,7 +79,15 @@ test('account identity consent remains explicit and environment-isolated', async
             redirect: request.redirect,
           });
           const reply = window.replies.shift() || { status: 'ok', consent: 'absent' };
-          return { ok: reply.http !== 503, json: async () => reply };
+          return {
+            ok: reply.http !== 503,
+            json: async () => ({
+              environment: config.environment,
+              evidence: false,
+              financialAuthorization: false,
+              ...reply,
+            }),
+          };
         },
       });
       await window.mountConsent();
@@ -208,6 +216,15 @@ test('account identity consent remains explicit and environment-isolated', async
     assert.match(await sdk.page.getByRole('alert').innerText(), /service is unavailable/);
     assert.equal((await sdk.page.locator('body').innerText()).includes('private-token'), false);
     assert.deepEqual(await sdk.page.evaluate(() => window.consentCalls), []);
+  });
+
+  await t.test('a Stage response cannot confirm Production consent', async () => {
+    const { page } = await setup({
+      replies: [{ status: 'ok', consent: 'granted', environment: 'stage' }],
+    });
+    assert.match(await page.getByRole('alert').innerText(), /unexpected environment/);
+    assert.match(await page.getByRole('status').innerText(), /could not be confirmed/);
+    assert.equal(await page.getByRole('checkbox').isDisabled(), true);
   });
 
   await t.test('mobile and desktop wrap long wording and actions without overflow', async () => {

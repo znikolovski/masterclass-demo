@@ -35,6 +35,9 @@ The UI calls only `consent-status` and `consent`, using the existing Auth0 SDK f
 It never calls `decide`, sends Adobe IDs, stores membership, or authorizes offers/discounts.
 Tokens are not logged or put in URLs. Requests have an eight-second timeout and do not automatically
 retry a mutation: a timeout can mean the server committed before the response was lost.
+The response must match the configured environment and carry `evidence:false` and
+`financialAuthorization:false`; mismatched or missing metadata is rejected rather than confirming
+another environment's consent. This requires the Production-capable Commerce diagnostic contract.
 Failed/unknown status never appears as denied or granted. Errors remain visible and the shopper can
 reload status; no preference is changed optimistically. Server and SDK error text is not echoed.
 

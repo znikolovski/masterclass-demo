@@ -119,11 +119,15 @@ export default async function mountIdLinkageConsent(block, {
       signal: AbortSignal.timeout(8000),
     });
     const result = await response.json();
+    if (!result || Array.isArray(result) || result.environment !== config.environment
+      || result.evidence !== false || result.financialAuthorization !== false) {
+      throw new ConsentError('The consent service returned an unexpected environment or contract. No preference was confirmed.');
+    }
     if (!response.ok) {
       throw new ConsentError(typeof result?.reason === 'string' && Object.hasOwn(ERRORS, result.reason)
         ? ERRORS[result.reason] : 'We could not confirm this preference. Reload its status before trying again.');
     }
-    if (!result || Array.isArray(result) || result.status !== 'ok' || !STATES.has(result.consent)
+    if (result.status !== 'ok' || !STATES.has(result.consent)
       || (body.op === 'consent' && (typeof result.changed !== 'boolean'
         || (body.optIn ? result.consent !== 'granted' : !['withdrawn', 'absent'].includes(result.consent))))) {
       throw new ConsentError('The consent service returned an unexpected response. Reload its status.');
