@@ -2,7 +2,9 @@
 
 The existing `/account` block adds an optional identity-linking section only after restoring the
 signed-in profile and selecting an enabled, exact-origin configuration in
-`scripts/id-linkage-config.js`. Stage and Production configurations are separate and initially OFF.
+`scripts/id-linkage-config.js`. Stage and Production configurations are separate.
+Stage is enabled only on `https://feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page`.
+Production remains OFF, including on `https://wknd-adventures.run.place`.
 No authoring change is required: the `commerce-account` block retains its empty cell.
 
 The project owner has approved implementation for Stage and Production; legal review is not a
@@ -23,9 +25,12 @@ The action must independently verify its platform namespace/environment, Auth0 t
 allowlist and wording version. Its exact CORS origins must match the storefront config. Backend flags
 and final inputs cannot be overridden by this UI.
 
-No configuration is enabled in this change. Validate the backend, environment-isolated storage,
-withdrawal/upstream identity deletion and consent wording version before changing `enabled`.
-Production-capable backend integration is a separate Commerce change.
+Stage consent settings use only the Stage Runtime. This does not enable ID Service calls, Target
+activity delivery, Production identity linking or financial use. Those separate backend gates remain
+closed until their technical acceptance passes.
+Validate environment-isolated storage, withdrawal/upstream identity deletion and the consent
+wording version before enabling personal identity calls. Production-capable backend integration
+is a separate Commerce change.
 The proposed wording version is `wknd-id-linkage-v1`. It describes cross-channel identity linking for
 personalization and audience measurement; it does not promise a discount or infer email permission.
 
@@ -48,3 +53,21 @@ mock authentication and responses. It makes no live Auth0, consent, Adobe or Com
 Coverage includes OFF behavior, Production/Stage endpoint isolation, explicit grant, independent
 withdrawal, unavailable/malformed responses and responsive layout. The authored account fixture is
 `drafts/tmp/id-linkage-account.plain.html`.
+
+## Manual Stage verification
+
+1. Open `https://feat-aam-stage-pilot--masterclass-demo--znikolovski.aem.page/account` and sign in
+   with the approved pilot account. The identity-linking checkbox must initially be unchecked.
+2. Reload status. A new account has no permission; signing in alone must not grant it.
+3. Deliberately check the wording and choose **Allow identity linking**. Reload status to verify
+   the server-confirmed Stage preference.
+4. Choose **Withdraw permission** independently of the checkbox, then reload to confirm withdrawal.
+5. Watch the network: consent requests must go only to `28538-wkndcommerce-stage`. No `decide`
+   request or ID Service request should be initiated by this panel.
+
+The pilot's climbing and Gear pages continue to route audience signals only to the Stage datastream.
+Consent-state success is not AAM qualification. Report lag does not excuse failed identity isolation,
+withdrawal or delivery checks, and no discount is authorized by this workflow.
+The new preference controls the optional server identity-binding purpose; it does not replace the
+existing Web SDK consent mechanism or delete previously transmitted Adobe identity links. Live
+cross-channel withdrawal and upstream deletion remain separate acceptance checks.
