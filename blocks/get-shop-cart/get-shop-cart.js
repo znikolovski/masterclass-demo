@@ -97,8 +97,8 @@ export default async function decorate(block, bridge) {
   };
 
   if (preview) {
-    const { SAMPLE_CART } = await import('../../scripts/llmapp-shop-samples.js');
-    render(SAMPLE_CART);
+    const { previewSample } = await import('../../scripts/llmapp-shop-samples.js');
+    render(previewSample('cart', bridge));
     return;
   }
   resized = connectWidget(block, bridge, {

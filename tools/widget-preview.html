@@ -50,6 +50,16 @@
       font-size: 14px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
+
+    .wp-scenario {
+      margin: 0;
+      padding: 8px 16px;
+      border-bottom: 1px solid #e3c770;
+      background: #fff6d6;
+      color: #5c4400;
+      font-size: 13px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
   </style>
 </head>
 
@@ -63,6 +73,8 @@
 
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('block');
+    // Optional simulated fixture scenario (e.g. &scenario=planner-offer); same allowlist.
+    const scenario = params.get('scenario');
 
     const stage = document.getElementById('wp-stage');
 
@@ -88,6 +100,7 @@
       return {
         hostContext: {
           preview: true,
+          ...(scenario ? { previewScenario: scenario } : {}),
           theme: prefersDark ? 'dark' : 'light',
           locale: navigator.language || 'en-US',
           displayMode: 'inline',
@@ -123,6 +136,8 @@
       showError('No block specified. Add ?block=<name> to the URL, e.g. ?block=hero.');
     } else if (!SLUG_RE.test(slug)) {
       showError(`Invalid block name "${slug}". Allowed: lowercase letters, digits and hyphens.`);
+    } else if (scenario !== null && !SLUG_RE.test(scenario)) {
+      showError(`Invalid scenario "${scenario}". Allowed: lowercase letters, digits and hyphens.`);
     } else {
       renderPreview(slug);
     }
@@ -163,7 +178,15 @@
       block.dataset.blockStatus = 'loaded';
       section.appendChild(block);
       main.appendChild(section);
-      stage.replaceChildren(main);
+      if (scenario) {
+        const label = document.createElement('p');
+        label.className = 'wp-scenario';
+        label.setAttribute('role', 'note');
+        label.textContent = `Simulated preview — scenario "${scenario}" uses fixture data, not a live Commerce result.`;
+        stage.replaceChildren(label, main);
+      } else {
+        stage.replaceChildren(main);
+      }
 
       const bridge = createPreviewBridge();
       await bridge.connect();

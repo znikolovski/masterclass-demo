@@ -142,7 +142,11 @@ the WKND LLM app (`../masterclass-demo-llmapp`, tools `search-shop-products`, `g
   preview data is in `scripts/llmapp-shop-samples.js`, loaded only for previews. Like the other tool
   widgets, each widget page is `/eds-widgets/<tool>-demo`: the block with a `placeholder` cell (local
   copies in `content/<tool>-demo.plain.html`). Preview with `/tools/widget-preview.html?block=<tool>`.
-  Previews use sample data and never call tools.
+  Previews use sample data and never call tools. Add `&scenario=planner-offer` (or
+  `planner-offer-unavailable`) to the cart or checkout widget for a **simulated** general climbing
+  planner offer (10% off selected climbing gear, capped at $25, applied automatically). The harness
+  labels it as fixture data: the shop does not send this offer yet. The renderer words each offer by
+  its `kind` and shows no offer whose kind it does not know.
 - **Gear checklist.** The `build-gear-checklist` widget shows the matching WKND product under each
   checklist item it sells. Simple products get Add to cart; products with options get Choose options
   (opens `get-shop-product`); there is also a View My Cart action.

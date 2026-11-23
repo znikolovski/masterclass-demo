@@ -330,8 +330,8 @@ export default async function decorate(block, bridge) {
   };
 
   if (preview) {
-    const { SAMPLE_CHECKOUT } = await import('../../scripts/llmapp-shop-samples.js');
-    render(SAMPLE_CHECKOUT);
+    const { previewSample } = await import('../../scripts/llmapp-shop-samples.js');
+    render(previewSample('checkout', bridge));
     return;
   }
   resized = connectWidget(block, bridge, {
