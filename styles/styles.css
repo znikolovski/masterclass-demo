@@ -32,6 +32,11 @@ footer .footer[data-block-status="loaded"] {
   visibility: visible;
 }
 
+/* Deferred sections must not push a painted, empty footer out of the viewport. */
+footer:empty {
+  display: none;
+}
+
 h1,
 h2,
 h3,
@@ -113,6 +118,23 @@ main > .section > div {
 main > .section:first-of-type {
   margin-top: 0;
   padding-top: 0;
+}
+
+/* Section variants can be above the fold; their padding must precede first paint. */
+main > div.secondary,
+main .section.secondary {
+  background-color: var(--light-color);
+  margin: 0;
+  padding: 80px 0;
+}
+
+main > div.accent,
+main .section.accent {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 80px 0;
+  text-align: center;
 }
 
 /* WKND Shop: denser commerce rhythm */
@@ -286,10 +308,6 @@ body.shop main .commerce-cart {
 
 body.shop main .commerce-cart:not([data-block-status="loaded"]) > div {
   visibility: hidden;
-}
-
-body.shop footer:empty {
-  display: none;
 }
 
 /* recommendations authored in the cart's section (so their heading paints with it) */
