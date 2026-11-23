@@ -413,10 +413,59 @@ function formatEnds(iso) {
   }).format(date);
 }
 
+/*
+ * Display copy per offer `kind` (the field the shop tools already send). The shop decides
+ * eligibility and amounts; this only words them. `welcome_back` is the live v1 offer, claimed
+ * with "Apply this offer". `climbing_planner` is the general offer the shop applies on its own
+ * (no claim step); it is only rendered from preview fixtures until the shop sends it.
+ */
+const OFFER_KINDS = {
+  welcome_back: {
+    label: 'Welcome-back offer', eyebrow: 'Welcome back', scope: 'your gear', oneUse: true, claimable: true,
+  },
+  climbing_planner: {
+    label: 'Climbing planner offer',
+    eyebrow: 'Climbing planner',
+    scope: 'selected climbing gear',
+    automatic: true,
+  },
+};
+
 /**
- * The welcome-back offer reported by `get-shop-cart` / `prepare-shop-checkout` (see offerState):
- * an Apply card when actionable, a plain non-actionable note when it can't be checked, or null.
- * Same copy as the website cart (blocks/commerce-cart/recovery-offer.js).
+ * Card copy for an actionable offer, or null (not actionable, or a `kind` this widget can't
+ * word — never shown as a generic discount). A missing `kind` is the v1 welcome-back offer.
+ * @param {object|null} offer `structuredContent.offer`
+ * @returns {{ label: string, eyebrow: string, title: string, details: string,
+ *   claimable: boolean }|null}
+ */
+export function offerCopy(offer, state = offerState(offer)) {
+  if (state?.kind !== 'actionable') return null;
+  const kind = OFFER_KINDS[offer.kind ?? 'welcome_back'];
+  if (!kind) return null;
+  const ends = formatEnds(state.expiresAt);
+  const terms = state.percent
+    ? `${state.percent}% off ${kind.scope}${state.max ? `, up to ${formatAmount(state.max)}` : ''}.`
+    : '';
+  return {
+    label: kind.label,
+    eyebrow: kind.eyebrow,
+    title: `Save ${formatAmount(state.saving, 2)} on this cart`,
+    details: [
+      terms,
+      ends ? `Ends ${ends}.` : '',
+      kind.oneUse ? 'One use per account.' : '',
+      kind.automatic ? 'Applied automatically while your cart qualifies — no code needed.' : '',
+      state.replaces ? `Replaces code ${state.replaces}.` : '',
+    ].filter(Boolean).join(' '),
+    claimable: Boolean(kind.claimable),
+  };
+}
+
+/**
+ * The offer reported by `get-shop-cart` / `prepare-shop-checkout` (see offerState/offerCopy):
+ * a card when actionable (with "Apply this offer" for claimable kinds), a plain non-actionable
+ * note when it can't be checked, or null. Welcome-back copy matches the website cart
+ * (blocks/commerce-cart/recovery-offer.js).
  * @param {object|null} offer `structuredContent.offer`
  * @param {{ onApply?: Function }} [opts]
  * @returns {HTMLElement|null}
@@ -429,24 +478,16 @@ export function offerCard(offer, { onApply } = {}) {
     note.setAttribute('role', 'status');
     return note;
   }
+  const copy = offerCopy(offer, state);
+  if (!copy) return null;
   const card = el('section', 'shop-offer');
-  card.setAttribute('aria-label', 'Welcome-back offer');
-  const ends = formatEnds(state.expiresAt);
-  const terms = state.percent
-    ? `${state.percent}% off your gear${state.max ? `, up to ${formatAmount(state.max)}` : ''}.`
-    : '';
-  const details = [
-    terms,
-    ends ? `Ends ${ends}.` : '',
-    'One use per account.',
-    state.replaces ? `Replaces code ${state.replaces}.` : '',
-  ].filter(Boolean).join(' ');
+  card.setAttribute('aria-label', copy.label);
   card.append(
-    el('p', 'shop-offer-eyebrow', 'Welcome back'),
-    el('h3', 'shop-offer-title', `Save ${formatAmount(state.saving, 2)} on this cart`),
-    el('p', 'shop-offer-text', details),
+    el('p', 'shop-offer-eyebrow', copy.eyebrow),
+    el('h3', 'shop-offer-title', copy.title),
+    el('p', 'shop-offer-text', copy.details),
   );
-  if (onApply) {
+  if (onApply && copy.claimable) {
     const apply = button('Apply this offer');
     apply.addEventListener('click', () => onApply(offer));
     card.append(apply);
