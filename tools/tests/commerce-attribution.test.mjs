@@ -2,7 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CART_FRAGMENT } from '../../scripts/__dropins__/storefront-cart/fragments.js';
-import { ORDER_SUMMARY_FRAGMENT } from '../../scripts/__dropins__/storefront-order/fragments.js';
+import {
+  ORDER_SUMMARY_FRAGMENT, PLACE_ORDER_FRAGMENT,
+} from '../../scripts/__dropins__/storefront-order/fragments.js';
 import {
   installBundleAttribution, cartAttribution, clearCartAttribution, takeOrderAttribution,
 } from '../../scripts/commerce-attribution.js';
@@ -143,6 +145,36 @@ test('purchase uses only committed order receipt, never cart/proposed totals, an
   assert.deepEqual(takeOrderAttribution('mock-0'), {});
   assert.deepEqual(takeOrderAttribution('mock-20'), metadata());
   assert.deepEqual(takeOrderAttribution('mock-20'), {});
+});
+
+test('combined payment/placement operation uses the same committed receipt, not payment cart context', () => {
+  const { before, after } = hooks();
+  const query = `mutation setPaymentMethodAndPlaceOrder(
+    $cartId: String!, $paymentMethod: PaymentMethodInput!
+  ) {
+    setPaymentMethodOnCart(input: { cart_id: $cartId, payment_method: $paymentMethod }) {
+      cart { selected_payment_method { code title } }
+    }
+    placeOrder(input: { cart_id: $cartId }) { ...PLACE_ORDER_FRAGMENT }
+  }
+  ${PLACE_ORDER_FRAGMENT}`;
+  const variables = { cartId: 'mock-cart', paymentMethod: { code: 'wknd_demo_pay' } };
+  const request = before[0]({ method: 'POST', body: JSON.stringify({ query, variables }) });
+  assert.deepEqual(JSON.parse(request.body).variables, variables);
+  assert.equal(JSON.parse(request.body).query.split('wknd_bundle_id').length - 1, 1);
+  const response = {
+    data: {
+      setPaymentMethodOnCart: {
+        cart: { id: 'mock-cart', prices: { discounts: [discount('cart-only')] } },
+      },
+      placeOrder: {
+        orderV2: { number: 'combined-receipt', total: { discounts: [discount('committed')] } },
+      },
+    },
+  };
+  assert.equal(after[0]({}, response), response);
+  assert.deepEqual(takeOrderAttribution('combined-receipt'), metadata('committed'));
+  assert.deepEqual(takeOrderAttribution('combined-receipt'), {});
 });
 
 test('existing cart events and Analytics context gain IDs without extra commerce hits or PII', () => {

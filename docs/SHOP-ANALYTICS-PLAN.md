@@ -52,7 +52,11 @@ changes alone are not readiness evidence. While closed, no optional fields are q
 When enabled, raw `Cart.prices.discounts` supplies applied attribution for cart views,
 successful cart changes and checkout events. Only a successful `placeOrder.orderV2.total.discounts`
 receipt supplies purchase attribution, keyed to its order number before the SDK strips
-unknown fields. Cart or click context cannot grant purchase attribution. Receipt metadata
+unknown fields. The pinned SDK's `placeOrder` and `setPaymentMethodAndPlaceOrder` methods
+both select `placeOrder { ...PLACE_ORDER_FRAGMENT }` and return the same
+`data.placeOrder.orderV2` receipt; the latter also sets the payment method in that request.
+There is no separate combined-operation response field to capture. Cart or click context
+cannot grant purchase attribution. Receipt metadata
 is consumed once into the existing pending-purchase payload; confirmation-page forwarding,
 analytics-off handling, journey consent and purchase deduplication remain unchanged.
 
