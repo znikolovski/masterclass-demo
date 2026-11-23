@@ -12,6 +12,7 @@ const endpoint = 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/comme
 function receipt() {
   return {
     apiVersion: 'wknd.person-binding/v1',
+    purpose: 'idLinkage',
     status: 'ok',
     consent: 'granted',
     environment: 'production',
@@ -20,6 +21,7 @@ function receipt() {
     semanticAllowlist: [],
     binding: {
       source: 'server-issued',
+      purpose: 'idLinkage',
       personAlias: `wpa_${'a'.repeat(32)}`,
       environment: 'production',
       runtimeNamespace: '28538-wkndcommerce',
@@ -71,11 +73,15 @@ test('binding and read-only status send only frozen operations with direct shopp
 
 test('scope, generation, exact freshness and non-semantic contract are enforced', () => {
   const invalid = [
+    { purpose: undefined },
+    { purpose: 'email' },
     { environment: 'stage' },
     { evidence: true },
     { financialAuthorization: true },
     { semanticAllowlist: ['unapproved-event'] },
     { binding: { ...receipt().binding, personAlias: 'raw-auth0-sub' } },
+    { binding: { ...receipt().binding, purpose: undefined } },
+    { binding: { ...receipt().binding, purpose: 'email' } },
     { binding: { ...receipt().binding, runtimeNamespace: '28538-wkndcommerce-stage' } },
     { binding: { ...receipt().binding, orgId: 'other-org' } },
     { binding: { ...receipt().binding, dpid: 1547309 } },

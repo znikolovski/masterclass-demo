@@ -66,6 +66,13 @@ consent-generation UUID, and a five-minute lifetime with exclusive expiry.
 Pending responses are invalidated by logout or consent updates; withdrawal
 does not assert upstream trait deletion.
 
+Source refinement `5b434ed1867ac55eac8add1426cfcdaac8f61b04` requires
+`purpose: idLinkage` in every person-operation response and in granted bindings.
+Missing or other purposes, including email consent, are rejected. Request bodies
+remain operation-only. Existing consent-status and consent responses cannot
+establish a customer binding. A configured wording version is not proof that the
+server has approved that wording or issued a grant.
+
 `serverBindingEnabled` remains **false**. Profile restoration does not invoke
 the new backend while disabled. The backend source is not a Production
 availability guarantee; the shared AAM/Target alias adapter and canonical rule
