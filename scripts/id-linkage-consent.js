@@ -1,5 +1,6 @@
 import { getAccessToken } from './wknd-auth.js';
 import { getIdLinkageConfig } from './id-linkage-config.js';
+import { clearPersonBinding } from './person-binding.js';
 
 const STATES = new Set(['granted', 'withdrawn', 'absent', 'unknown']);
 const STATUS_TEXT = {
@@ -137,6 +138,7 @@ export default async function mountIdLinkageConsent(block, {
 
   async function update(body) {
     if (busy) return;
+    clearPersonBinding();
     busy = true;
     error.textContent = '';
     controls();

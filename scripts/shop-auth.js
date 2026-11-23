@@ -14,6 +14,7 @@ import {
 } from './account-state.js';
 import { pushShopEvent } from './shop-analytics.js';
 import { restoreCustomerIdentity, updateCustomerIdentity } from './customer-identity.js';
+import { requestPersonBinding } from './person-binding.js';
 
 // Auth0 Allowed Callback + Logout URL: <origin>/account; the session persists across reloads.
 configureAuth({ callbackPath: ACCOUNT_PATH, persist: true });
@@ -51,7 +52,12 @@ async function emit(event, payload) {
 /** Auth0 profile (name, email) of the signed-in customer, or null. */
 export async function getShopProfile() {
   try {
-    return await restoreCustomerIdentity(() => getUserProfile(SHOP_AUTH_CONFIG_URL));
+    return await restoreCustomerIdentity(
+      () => getUserProfile(SHOP_AUTH_CONFIG_URL),
+      () => requestPersonBinding('person-status', {
+        getToken: () => getAccessToken(SHOP_AUTH_CONFIG_URL),
+      }),
+    );
   } catch {
     console.warn('WKND customer profile is unavailable; Adobe customer identity was not restored.'); // eslint-disable-line no-console
     return null;

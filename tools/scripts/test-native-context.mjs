@@ -15,7 +15,9 @@ async function sourceModule(path, imports = {}) {
 }
 
 const nativeURL = inlineModule(await readFile(new URL('../../scripts/native-context.js', import.meta.url), 'utf8'));
-const customerURL = inlineModule(await readFile(new URL('../../scripts/customer-identity.js', import.meta.url), 'utf8'));
+const personURL = inlineModule(await readFile(new URL('../../scripts/person-binding.js', import.meta.url), 'utf8'));
+const customerSource = await readFile(new URL('../../scripts/customer-identity.js', import.meta.url), 'utf8');
+const customerURL = inlineModule(customerSource.replace("'./person-binding.js'", `'${personURL}'`));
 const native = await import(nativeURL);
 const customer = await import(customerURL);
 global.window = { location: { origin: 'https://wknd-adventures.run.place' } };
@@ -109,6 +111,7 @@ const shop = await sourceModule('../../scripts/shop-auth.js', {
   `),
   './shop-analytics.js': inlineModule('export function pushShopEvent() {}'),
   './customer-identity.js': customerURL,
+  './person-binding.js': personURL,
 });
 assert.equal(await shop.restoreShopSession(), true);
 assert.equal(global.profileLoads, 1);

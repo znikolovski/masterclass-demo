@@ -1,23 +1,32 @@
-// No server-approved alias contract is available; signing in is not a linkage grant.
+import { clearPersonBinding, getPersonBinding } from './person-binding.js';
+
+// The alias collection adapter is not released; signing in is not a linkage grant.
 export const CUSTOMER_IDENTITY_CONFIG = Object.freeze({
-  namespace: 'wkndCustomerId', auth0SubjectApproved: false,
+  namespace: 'wkndCustomerId', serverBindingEnabled: false,
 });
-let customerId;
 let revision = 0;
 
-export function updateCustomerIdentity(profile) {
+export function updateCustomerIdentity() {
   revision += 1;
-  const { namespace, auth0SubjectApproved } = CUSTOMER_IDENTITY_CONFIG;
-  customerId = auth0SubjectApproved && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(namespace)
-    && typeof profile?.sub === 'string' && profile.sub.length > 0 && profile.sub.length <= 256
-    ? profile.sub : undefined;
+  clearPersonBinding();
 }
 
-export async function restoreCustomerIdentity(getProfile) {
+export async function restoreCustomerIdentity(getProfile, getStatus) {
   const started = revision;
   try {
     const profile = await getProfile();
-    if (revision === started) updateCustomerIdentity(profile);
+    if (revision === started) {
+      updateCustomerIdentity();
+      if (profile && CUSTOMER_IDENTITY_CONFIG.serverBindingEnabled && getStatus) {
+        try {
+          await getStatus();
+        } catch {
+          clearPersonBinding();
+          // eslint-disable-next-line no-console
+          console.warn('WKND identity linking is unavailable; account sign-in is unchanged.');
+        }
+      }
+    }
     return profile;
   } catch (error) {
     if (revision === started) updateCustomerIdentity(null);
@@ -26,14 +35,13 @@ export async function restoreCustomerIdentity(getProfile) {
 }
 
 export function applyCustomerIdentity(content) {
-  if (!CUSTOMER_IDENTITY_CONFIG.auth0SubjectApproved) {
-    delete content.xdm?.identityMap?.[CUSTOMER_IDENTITY_CONFIG.namespace];
-    return;
-  }
-  if (!customerId) return;
+  delete content.xdm?.identityMap?.[CUSTOMER_IDENTITY_CONFIG.namespace];
+  if (!CUSTOMER_IDENTITY_CONFIG.serverBindingEnabled) return;
+  const receipt = getPersonBinding();
+  if (!receipt) return;
   content.xdm ||= {};
   content.xdm.identityMap ||= {};
   content.xdm.identityMap[CUSTOMER_IDENTITY_CONFIG.namespace] = [{
-    id: customerId, authenticatedState: 'authenticated', primary: true,
+    id: receipt.personAlias, authenticatedState: 'authenticated', primary: true,
   }];
 }
