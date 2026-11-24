@@ -1,6 +1,7 @@
 import { getAccessToken } from './wknd-auth.js';
 import { getIdLinkageConfig } from './id-linkage-config.js';
-import { clearPersonBinding } from './person-binding.js';
+import { clearPersonBinding, requestPersonBinding } from './person-binding.js';
+import { CUSTOMER_IDENTITY_CONFIG } from './customer-identity.js';
 
 const STATES = new Set(['granted', 'withdrawn', 'absent', 'unknown']);
 const STATUS_TEXT = {
@@ -147,6 +148,17 @@ export default async function mountIdLinkageConsent(block, {
       confirmed = true;
       choice.checked = false;
       status.textContent = STATUS_TEXT[result.consent];
+      if (config.environment === 'production' && CUSTOMER_IDENTITY_CONFIG.serverBindingEnabled
+        && result.consent === 'granted') {
+        try {
+          await requestPersonBinding('person-binding', {
+            getToken: () => getToken(new URL('/api/v1/web/commerce/auth-config', endpoint).href),
+            fetchImpl,
+          });
+        } catch {
+          error.textContent = 'Your preference is confirmed, but identity linking is currently unavailable.';
+        }
+      }
     } catch (e) {
       showError(e instanceof ConsentError
         ? e.message : 'The consent service is unavailable. Reload its status before trying again.');

@@ -39,11 +39,19 @@ legacy customer identities are removed, while an enabled, freshly validated
 server binding is retained. Native collection and browser-account isolation
 remain unchanged.
 
+Native `personBinding` is the full, verified read-only server status envelope or
+explicit `null`, supplied only by the native app after confirming its own
+current linked SDK alias and grant. The receiver validates the existing v1
+scope, purpose, generation and exclusive five-minute lease on each event.
+It never borrows the standalone browser binding or trusts an incoming identity
+map. Null, personalization opt-out and invalid receipts clear the native
+customer namespace; collection opt-out still rejects the event.
+
 Deploy these hooks together before enabling the app's `WKNDAdobeWebBridgeEnabled`
 flag. Until then the app pauses OF1 for opted-out users. Do not remove the hooks
 while released clients rely on them.
 
-Signed-in customer mapping in `scripts/customer-identity.js` is disabled:
+Signed-in customer mapping in `scripts/customer-identity.js` is alias-only:
 an authenticated Auth0 `sub` is not a server-approved pseudonymous alias, and
 signing in does not grant identity linking. The legacy native `identity` context
 is also not projected into Web SDK identity maps. Native collection consent and
@@ -54,17 +62,24 @@ customer identity.
 Enabling cross-channel customer mapping requires an approved authenticated
 backend binding contract for **`wkndCustomerId`** / AAM DPID **1547309**, confirmed
 explicit linkage purposes, binding freshness/expiry, and withdrawal invalidation.
-Until that contract is integrated and its backend is available in Production,
-no raw subject or client-supplied identity is used as a replacement. Account
+The v1 contract is integrated and Production alias capability is enabled.
+No raw subject or client-supplied identity is used as a replacement. Account
 identity-linking controls remain explicit and default unchecked; they do not
-enable this bridge or establish cross-channel qualification on their own.
+establish a binding or cross-channel qualification on their own.
 
-The source-only consumer in `scripts/person-binding.js` implements backend
-contract `wknd.person-binding/v1` from source
-`0b552525257a1080d51d755698520dde80277d12`. It posts only `person-binding`,
+The published consumer in `scripts/person-binding.js` implements backend
+contract `wknd.person-binding/v1` from current required-purpose source
+`5b434ed1867ac55eac8add1426cfcdaac8f61b04`. It posts only `person-binding`,
 `person-status`, or `person-withdrawal` to the Production `target-diagnostic`
-action using an individual Auth0 shopper Bearer; signed delegation is not
-supported by that action. Status does not mint an alias or grant consent.
+action using an individual Auth0 shopper Bearer. Diagnostic 0.0.5 additionally
+supports narrowly scoped server-to-server MCP Commerce assertions for status
+and binding only; the browser does not use that delegation transport.
+Status does not mint an alias or grant consent.
+When capability is enabled, profile restoration uses grant-only
+`person-binding` issuance. Account preference checks independently refresh that
+binding after clearing the cache; a consent response never supplies the alias.
+Issuance does not create consent, and a binding failure leaves the confirmed
+preference and account UX intact while displaying an explicit linking error.
 Receipts must carry the exact Production scope, server-issued `wpa_` alias,
 consent-generation UUID, and a five-minute lifetime with exclusive expiry.
 Pending responses are invalidated by logout or consent updates; withdrawal
@@ -77,11 +92,14 @@ remain operation-only. Existing consent-status and consent responses cannot
 establish a customer binding. A configured wording version is not proof that the
 server has approved that wording or issued a grant.
 
-`serverBindingEnabled` remains **false**. Profile restoration does not invoke
-the new backend while disabled. The backend source is not a Production
-availability guarantee; the shared AAM/Target alias adapter and canonical rule
-allowlist are still missing. The frozen `semanticAllowlist` is empty, and this
-consumer neither emits semantic events nor enables an identity bridge.
+`serverBindingEnabled` is **true** following the backend publisher's confirmed
+Production alias approval (package 0.0.19, diagnostic 0.0.5). Signing in or
+enabling capability creates no consent: the server requires an existing explicit
+`idLinkage` grant before issuing an alias. Disabled capability makes no binding
+requests. The frozen `semanticAllowlist` remains empty; this consumer emits no
+semantic events and does not establish AAM qualification. Native web projection
+also requires the independently controlled native web-bridge flag and its own
+verified receipt.
 
 The namespace symbol must match the mobile app and each datastream's
 **Adobe Target → Target Third Party ID Namespace**. Its creation/configuration
