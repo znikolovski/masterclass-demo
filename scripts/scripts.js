@@ -1030,26 +1030,32 @@ async function loadMartech(doc = document) {
   if (!isMartechConfigured()) return null;
   if (!martechLoadedPromise) {
     const main = doc.querySelector('main');
-    martechLoadedPromise = getMartechModule().then((martech) => martech.initMartech(
-      WEB_SDK_CONFIG,
-      {
-        personalization: isPersonalizationEnabled(doc),
-        analytics: isAnalyticsEnabled(doc),
-        trackPageView: isAnalyticsEnabled(doc),
-        shouldProcessEvent: shouldProcessDataLayerEvent,
-        launchUrls: getLaunchUrls(),
-        decisionScopes: getTargetDecisionScopes(main, doc),
-        propositionMetadata: buildTargetApplyMetadata(main, doc),
-      },
-    ).then(() => {
-      if (!isConsentGiven() && !getNativeContext()) return undefined;
-      return martech.updateUserConsent({
-        collect: isConsentGiven(),
-        personalize: isPersonalizationEnabled(doc),
-        marketing: isConsentGiven(),
-        share: isConsentGiven(),
+    martechLoadedPromise = getMartechModule().then(async (martech) => {
+      if (!getNativeContext() && isAnalyticsEnabled(doc) && isAemProductionHost()) {
+        const { hasShopToken, getShopProfile } = await import('./shop-auth.js');
+        if (hasShopToken()) await getShopProfile({ identityStatusOnly: true });
+      }
+      return martech.initMartech(
+        WEB_SDK_CONFIG,
+        {
+          personalization: isPersonalizationEnabled(doc),
+          analytics: isAnalyticsEnabled(doc),
+          trackPageView: isAnalyticsEnabled(doc),
+          shouldProcessEvent: shouldProcessDataLayerEvent,
+          launchUrls: getLaunchUrls(),
+          decisionScopes: getTargetDecisionScopes(main, doc),
+          propositionMetadata: buildTargetApplyMetadata(main, doc),
+        },
+      ).then(() => {
+        if (!isConsentGiven() && !getNativeContext()) return undefined;
+        return martech.updateUserConsent({
+          collect: isConsentGiven(),
+          personalize: isPersonalizationEnabled(doc),
+          marketing: isConsentGiven(),
+          share: isConsentGiven(),
+        });
       });
-    }));
+    });
   }
   return martechLoadedPromise;
 }

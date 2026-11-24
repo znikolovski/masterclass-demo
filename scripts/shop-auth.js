@@ -21,6 +21,7 @@ configureAuth({ callbackPath: ACCOUNT_PATH, persist: true });
 
 const TOKEN_COOKIE = 'auth_dropin_user_token';
 const PROFILE_COOKIES = ['auth_dropin_firstname', 'auth_dropin_lastname'];
+let profilePromise;
 
 function decodeExp(token) {
   try {
@@ -50,18 +51,19 @@ async function emit(event, payload) {
 }
 
 /** Auth0 profile (name, email) of the signed-in customer, or null. */
-export async function getShopProfile() {
-  try {
-    return await restoreCustomerIdentity(
+export function getShopProfile({ identityStatusOnly = false } = {}) {
+  if (!profilePromise) {
+    profilePromise = restoreCustomerIdentity(
       () => getUserProfile(SHOP_AUTH_CONFIG_URL),
-      () => requestPersonBinding('person-binding', {
+      () => requestPersonBinding(identityStatusOnly ? 'person-status' : 'person-binding', {
         getToken: () => getAccessToken(SHOP_AUTH_CONFIG_URL),
       }),
-    );
-  } catch {
-    console.warn('WKND customer profile is unavailable; Adobe customer identity was not restored.'); // eslint-disable-line no-console
-    return null;
+    ).catch(() => {
+      console.warn('WKND customer profile is unavailable; Adobe customer identity was not restored.'); // eslint-disable-line no-console
+      return null;
+    }).finally(() => { profilePromise = undefined; });
   }
+  return profilePromise;
 }
 
 async function storeToken() {
