@@ -24,6 +24,72 @@ main .commerce-cart .cart__right-column {
   gap: var(--spacing-small);
 }
 
+main .commerce-cart .cart-bundle-offers {
+  margin-top: var(--spacing-medium);
+}
+
+main .commerce-cart .cart-bundle-offers[hidden],
+main .commerce-cart .cart-bundle-offers button[hidden] {
+  display: none;
+}
+
+main .commerce-cart .cart-bundle-offers__heading {
+  font-size: var(--heading-font-size-s);
+}
+
+main .commerce-cart .cart-bundle-offers__cards {
+  display: grid;
+  gap: 12px;
+}
+
+main .commerce-cart .cart-bundle-offers__card {
+  padding: 20px;
+  border: 1px solid #dadada;
+  border-radius: 10px;
+  background: var(--light-color);
+}
+
+main .commerce-cart .cart-bundle-offers__card h3 {
+  margin-top: 0;
+  font-size: var(--heading-font-size-xs);
+}
+
+main .commerce-cart .cart-bundle-offers__card p,
+main .commerce-cart .cart-bundle-offers__card li,
+main .commerce-cart .cart-bundle-offers__status {
+  overflow-wrap: anywhere;
+  font-size: var(--body-font-size-s);
+}
+
+main .commerce-cart .cart-bundle-offers__card ul {
+  padding-left: 20px;
+}
+
+main .commerce-cart .cart-bundle-offers button {
+  max-width: 100%;
+  padding: 12px 20px;
+  border: 2px solid var(--text-color);
+  border-radius: 999px;
+  background: var(--accent-color);
+  color: var(--text-color);
+  font: 700 12px/1.4 var(--heading-font-family);
+  cursor: pointer;
+}
+
+main .commerce-cart .cart-bundle-offers button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+main .commerce-cart .cart-bundle-offers button:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+main .commerce-cart .cart-bundle-offers__status:empty {
+  display: none;
+}
+
 main .commerce-cart .cart__order-summary[hidden],
 main .commerce-cart .cart__note[hidden] {
   display: none;
