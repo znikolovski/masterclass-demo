@@ -54,7 +54,7 @@ export async function getShopProfile() {
   try {
     return await restoreCustomerIdentity(
       () => getUserProfile(SHOP_AUTH_CONFIG_URL),
-      () => requestPersonBinding('person-status', {
+      () => requestPersonBinding('person-binding', {
         getToken: () => getAccessToken(SHOP_AUTH_CONFIG_URL),
       }),
     );

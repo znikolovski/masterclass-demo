@@ -1,8 +1,8 @@
 import { clearPersonBinding, getPersonBinding } from './person-binding.js';
 
-// The alias collection adapter is not released; signing in is not a linkage grant.
+// Capability does not grant consent; the server issues aliases only for existing linkage grants.
 export const CUSTOMER_IDENTITY_CONFIG = Object.freeze({
-  namespace: 'wkndCustomerId', serverBindingEnabled: false,
+  namespace: 'wkndCustomerId', serverBindingEnabled: true,
 });
 let revision = 0;
 

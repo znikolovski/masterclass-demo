@@ -9,13 +9,126 @@ import { chromium } from 'playwright';
 
 const root = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 
+test('grant-only account binding follows explicit consent and keeps withdrawal anonymous', async (t) => {
+  const browser = await chromium.launch();
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  await page.route('**/*', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin !== 'https://wknd-adventures.run.place') return route.abort();
+    if (url.pathname === '/account') {
+      return route.fulfill({
+        contentType: 'text/html',
+        body: '<div class="commerce-account"><div class="account__content"></div></div>',
+      });
+    }
+    if (!url.pathname.startsWith('/scripts/') || !url.pathname.endsWith('.js')) return route.abort();
+    let body = await readFile(resolve(root, `.${url.pathname}`), 'utf8');
+    if (url.pathname === '/scripts/customer-identity.js') {
+      body = body.replace('serverBindingEnabled: false', 'serverBindingEnabled: true');
+    }
+    return route.fulfill({ contentType: 'text/javascript', body });
+  });
+  await page.goto('https://wknd-adventures.run.place/account');
+  await page.evaluate(async () => {
+    const moduleUrl = '/scripts/id-linkage-consent.js';
+    const { default: mount } = await import(moduleUrl);
+    window.bindingCalls = [];
+    await mount(document.querySelector('.commerce-account'), {
+      config: {
+        environment: 'production',
+        enabled: true,
+        origins: [window.location.origin],
+        endpoint: 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce/target-diagnostic',
+        wording: 'Test identity-linking choice',
+        wordingVersion: 'test-v1',
+      },
+      getToken: async () => 'test-shopper-bearer',
+      fetchImpl: async (url, request) => {
+        const body = JSON.parse(request.body);
+        window.bindingCalls.push(body);
+        const common = {
+          environment: 'production', evidence: false, financialAuthorization: false, status: 'ok',
+        };
+        let result = { ...common, consent: 'absent' };
+        if (body.op === 'consent') {
+          result = {
+            ...common,
+            consent: body.optIn ? 'granted' : 'withdrawn',
+            changed: true,
+            binding: { personAlias: 'untrusted-consent-value' },
+          };
+        } else if (body.op === 'person-binding') {
+          const issued = Date.now();
+          result = {
+            ...common,
+            apiVersion: 'wknd.person-binding/v1',
+            purpose: 'idLinkage',
+            consent: 'granted',
+            semanticAllowlist: [],
+            binding: {
+              source: 'server-issued',
+              purpose: 'idLinkage',
+              personAlias: `wpa_${'a'.repeat(32)}`,
+              environment: 'production',
+              runtimeNamespace: '28538-wkndcommerce',
+              orgId: '28260E2056581D3B7F000101@AdobeOrg',
+              dpid: '1547309',
+              namespace: 'wkndCustomerId',
+              issuer: 'https://28538-wkndcommerce.adobeioruntime.net/api/v1/web/commerce/target-diagnostic',
+              consentGeneration: '12345678-1234-4234-8234-123456789012',
+              issuedAt: new Date(issued).toISOString(),
+              expiresAt: new Date(issued + 300000).toISOString(),
+              freshnessMs: 300000,
+            },
+          };
+        }
+        return { ok: !window.failBinding || body.op !== 'person-binding', json: async () => result };
+      },
+    });
+  });
+  const choice = page.locator('[name="identity-linkage"]');
+  const form = page.locator('.account__linkage-form');
+  assert.equal(await choice.isChecked(), false);
+  assert.deepEqual(await page.evaluate(() => window.bindingCalls), [{ op: 'consent-status' }]);
+  await choice.check();
+  await page.getByRole('button', { name: 'Allow identity linking', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.account__linkage-form').getAttribute('aria-busy') === 'false');
+  async function identities() {
+    return page.evaluate(async () => {
+      const moduleUrl = '/scripts/customer-identity.js';
+      const { applyCustomerIdentity } = await import(moduleUrl);
+      const content = { xdm: { identityMap: { ECID: [{ id: 'existing-device' }] } } };
+      applyCustomerIdentity(content);
+      return content.xdm.identityMap;
+    });
+  }
+  assert.deepEqual(await identities(), {
+    ECID: [{ id: 'existing-device' }],
+    wkndCustomerId: [{ id: `wpa_${'a'.repeat(32)}`, authenticatedState: 'authenticated', primary: true }],
+  });
+  assert.deepEqual((await page.evaluate(() => window.bindingCalls)).at(-1), { op: 'person-binding' });
+  await page.getByRole('button', { name: 'Withdraw permission', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.account__linkage-form').getAttribute('aria-busy') === 'false');
+  assert.deepEqual(await identities(), { ECID: [{ id: 'existing-device' }] });
+  await page.evaluate(() => { window.failBinding = true; });
+  await choice.check();
+  await page.getByRole('button', { name: 'Allow identity linking', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.account__linkage-form').getAttribute('aria-busy') === 'false');
+  assert.match(await page.locator('.account__linkage-status').textContent(), /allowed/);
+  assert.match(await page.locator('.account__error').textContent(), /linking is currently unavailable/);
+  assert.deepEqual(await identities(), { ECID: [{ id: 'existing-device' }] });
+  assert.equal(await form.getAttribute('aria-busy'), 'false');
+});
+
 test('shared standalone SDK guard drops legacy identity without network and preserves Native opt-out', async (t) => {
   const inline = (source) => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
   const personURL = inline(await readFile(resolve(root, 'scripts/person-binding.js'), 'utf8'));
   const customerURL = inline((await readFile(resolve(root, 'scripts/customer-identity.js'), 'utf8'))
     .replace("'./person-binding.js'", `'${personURL}'`));
   const nativeURL = inline((await readFile(resolve(root, 'scripts/native-context.js'), 'utf8'))
-    .replace("'./customer-identity.js'", `'${customerURL}'`));
+    .replace("'./customer-identity.js'", `'${customerURL}'`)
+    .replace("'./person-binding.js'", `'${personURL}'`));
   const browser = await chromium.launch();
   t.after(() => browser.close());
   const page = await browser.newPage();
