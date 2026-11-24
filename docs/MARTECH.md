@@ -75,6 +75,11 @@ action using an individual Auth0 shopper Bearer. Diagnostic 0.0.5 additionally
 supports narrowly scoped server-to-server MCP Commerce assertions for status
 and binding only; the browser does not use that delegation transport.
 Status does not mint an alias or grant consent.
+Production browser collection waits for the existing shopper profile and
+read-only `person-status` before initializing martech when a shop token is
+present. Anonymous visitors and native contexts do not run this web restoration.
+Normal account binding issuance remains unchanged; this collection check does
+not grant consent or mint a missing alias.
 When capability is enabled, profile restoration uses grant-only
 `person-binding` issuance. Account preference checks independently refresh that
 binding after clearing the cache; a consent response never supplies the alias.
@@ -109,6 +114,33 @@ cross-device receipt and account isolation still need Assurance validation.
 
 Validate with `node tools/scripts/test-native-context.mjs`. OF1/Sherpa events
 remain web-owned: do not replay them natively or add duplicate Send Event rules.
+
+### Production AAM page-view signals
+
+Production web page views carry `xdm.eventType=web.webpagedetails.pageViews`
+and `xdm.page.environment=production`. A missing event type is filled only
+when the SDK payload already contains a positive page-view counter; clicks,
+purchases and explicit other event types are not reclassified.
+The ACDL page environment and Analytics `prop1` remain `live`.
+
+The hook also sends only `eventType`, `page.environment`, and present
+`page.adventureCategory`/`page.journeyStage` through the documented
+`data.__adobe.audiencemanager` custom-signal node. This does not require XDM
+flattening and does not send account profiles or aliases as custom signals.
+The existing verified, current `wkndCustomerId` identity remains in the SDK
+identity map. Native and preview routing are unchanged.
+The active datastream must have the Audience Manager service enabled; neither
+an Edge HTTP204 nor these client fields proves segment qualification or S2S
+receipt. Keep destination/merge/source controls and downstream consumer gates
+unchanged while validating actual delivery.
+
+The Production datastream editor was independently checked during this repair:
+Audience Manager is enabled, cookie and URL destinations are off, and XDM
+flattening is on. No datastream settings were changed.
+
+Validate with `node --test tools/tests/aam-web-collection.test.mjs
+tools/tests/person-binding.test.mjs` and
+`node tools/scripts/test-native-context.mjs`.
 
 ## Demo traffic (Analytics)
 
