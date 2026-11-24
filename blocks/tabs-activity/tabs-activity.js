@@ -1,6 +1,36 @@
 // eslint-disable-next-line import/no-unresolved
-import { toClassName } from '../../scripts/aem.js';
+import {
+  buildBlock, decorateBlock, loadBlock, toClassName,
+} from '../../scripts/aem.js';
 import { pushInteractionEvent } from '../../scripts/analytics-acdl.js';
+
+function decorateNestedTables(block) {
+  block.querySelectorAll('.tabs-activity-panel table').forEach((table) => {
+    const [header, ...rows] = [...table.rows];
+    if (header?.cells.length !== 1) return;
+    // Canonical hyphenated block names distinguish insert tables from data tables.
+    const match = header.cells[0].textContent.trim()
+      .match(/^([a-z][a-z0-9]*(?:-[a-z0-9]+)+)(?:\s*\(([^)]+)\))?$/i);
+    if (!match) return;
+    const name = toClassName(match[1]);
+
+    const nested = buildBlock(name, rows.map((row) => [...row.cells].map((cell) => ({
+      elems: [...cell.childNodes],
+    }))));
+    if (match[2]) {
+      nested.classList.add(...match[2].split(',').map(toClassName).filter(Boolean));
+    }
+    const wrapper = document.createElement('div');
+    wrapper.append(nested);
+    const tableWrapper = table.parentElement;
+    if (tableWrapper.classList.contains('tableWrapper') && tableWrapper.children.length === 1) {
+      tableWrapper.replaceWith(wrapper);
+    } else {
+      table.replaceWith(wrapper);
+    }
+    decorateBlock(nested);
+  });
+}
 
 export default async function decorate(block) {
   // build tablist
@@ -52,10 +82,11 @@ export default async function decorate(block) {
   });
 
   block.prepend(tablist);
+  decorateNestedTables(block);
 
   // Group flat panel content into cards (only when h3 headings exist)
   block.querySelectorAll('.tabs-activity-panel > div').forEach((content) => {
-    if (!content.querySelector('h3')) return;
+    if (!content.querySelector('h3') || content.querySelector('.block')) return;
 
     const children = [...content.children];
     const cards = [];
@@ -91,4 +122,6 @@ export default async function decorate(block) {
     cards.forEach((c) => grid.append(c));
     content.append(grid);
   });
+
+  await Promise.all([...block.querySelectorAll('.tabs-activity-panel .block')].map(loadBlock));
 }

@@ -236,6 +236,15 @@ Authors search the catalog and insert products from the **Commerce Catalog** lib
 
   The recommendation formats use one anchor product. If several products are selected, the last
   one wins.
+  Any commerce block can be inserted into the content cell of a `tabs-activity` row, including
+  **Product cards**, **Similar gear**, **Complete the kit**, and custom insert formats. The tabs
+  block converts nested tables whose first row is a single cell containing the canonical
+  hyphenated block name (for example, `cards-commerce` or `product-recommendations`) into
+  blocks and loads them in the panel. Optional variants use `block-name (variant, variant)`.
+  Ordinary data tables remain tables. SKU and Product link insert formats remain plain content.
+  Validate nested inserts and responsive panels with
+  `node tools/scripts/test-tabs-commerce.mjs http://localhost:3000` against previewed `/gear`
+  content.
 - **`cards-commerce` block.** Use it on any page. It has one row per product with these cells:
   1. SKU
   2. Eyebrow (optional)
