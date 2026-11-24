@@ -17,12 +17,13 @@ import { shopStylesReady } from '../../scripts/shop-styles.js';
  * @param {{ maxItems?: string, $list: Element, $summary: Element, setEmpty: Function }} ctx
  */
 async function renderCart(block, {
-  maxItems, $list, $summary, setEmpty,
+  maxItems, $list, $summary, $bundles, setEmpty,
 }) {
-  const [{ initializeCommerce, getProductLink }, { pushShopEvent }] = await Promise.all([
+  const [commerce, { pushShopEvent }] = await Promise.all([
     import('../../scripts/commerce.js'),
     import('../../scripts/shop-analytics.js'),
   ]);
+  const { initializeCommerce, getProductLink, CORE_FETCH_GRAPHQL } = commerce;
   await initializeCommerce();
   await import('../../scripts/initializers/cart.js');
   const [
@@ -39,6 +40,19 @@ async function renderCart(block, {
   ]);
 
   const productLink = (item) => getProductLink(item.url?.urlKey);
+
+  import('./bundle-offers.js')
+    .then(async ({ default: init }) => {
+      const { addProductsToCart, refreshCart } = await import('@dropins/storefront-cart/api.js');
+      init($bundles, {
+        events,
+        fetchGraphQl: (...args) => CORE_FETCH_GRAPHQL.fetchGraphQl(...args),
+        addProducts: addProductsToCart,
+        refreshCart,
+      });
+    })
+    // eslint-disable-next-line no-console
+    .catch((e) => console.error('commerce-cart bundle offers', e));
 
   // Backend-decided recovery offer for signed-in shoppers (lazy; never blocks the cart render).
   import('./recovery-offer.js')
@@ -103,7 +117,10 @@ export default async function decorate(block) {
   const { 'max-items': maxItems } = readBlockConfig(block);
   const fragment = document.createRange().createContextualFragment(`
     <div class="cart__wrapper">
-      <div class="cart__left-column"><div class="cart__list"></div></div>
+      <div class="cart__left-column">
+        <div class="cart__list"></div>
+        <div class="cart__bundle-offers"></div>
+      </div>
       <div class="cart__right-column">
         <div class="cart__order-summary shop-accent"></div>
         <p class="cart__note">Prices include GST.</p>
@@ -112,6 +129,7 @@ export default async function decorate(block) {
   fragment.querySelector('.cart__right-column').append(shopPromises(['shipping', 'warranty', 'demo']));
   const $list = fragment.querySelector('.cart__list');
   const $summary = fragment.querySelector('.cart__order-summary');
+  const $bundles = fragment.querySelector('.cart__bundle-offers');
   const $note = fragment.querySelector('.cart__note');
   // an empty cart keeps the shop promises, without the order summary
   const setEmpty = (empty) => {
@@ -130,6 +148,6 @@ export default async function decorate(block) {
   // Don't await: the section is revealed when decorate() resolves, so the reserved layout
   // paints straight away instead of the page reflowing once the drop-ins have rendered.
   renderCart(block, {
-    maxItems, $list, $summary, setEmpty,
+    maxItems, $list, $summary, $bundles, setEmpty,
   }).catch((e) => console.error('commerce-cart', e));
 }

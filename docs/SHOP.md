@@ -45,6 +45,24 @@ Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, invento
 - **Checkout address headings.** `commerce-checkout.css` styles both the guest `AddressForm` title and the signed-in `Addresses` header title for shipping and billing. The latter uses `.account-addresses-header-title .dropin-header-container__title`, not `.account-address-form-wrapper__title`.
 - **Header.** The header shows a cart badge and the account menu. The cart icon opens a mini-cart drawer (`blocks/header/mini-cart.js`, drop-in `MiniCart`). Modifier-clicks and the cart/checkout pages keep the plain link. The **Ask WKND** pill opens the search modal (also on ⌘/Ctrl+K).
 
+### Complete a bundle from the cart
+
+On `/shop/cart`, an enabled automatic bundle can appear under **Complete your bundle**
+when at least one exact required variant is already in the cart. Commerce supplies the
+offer through `wkndBundleOffers`; disabled, expired, unavailable and ineligible offers
+are not shopper recommendations. No additional block authoring is needed.
+
+**Add remaining products** refreshes the cart and rechecks the offer before adding only
+the missing quantities. It never replaces a variant or adds a second complete kit.
+The existing server promotion engine applies the best eligible discount after the full
+kit is present; showing the recommendation does not grant a discount. Shipping and
+unrelated products remain outside the kit. A partial or unconfirmed add explicitly asks
+the shopper to check their cart before retrying.
+
+Publish the Commerce GraphQL extension and updated Mesh schema before publishing this
+storefront change. If the offer service is unavailable, the cart reports that explicitly
+and keeps ordinary cart editing and checkout available.
+
 ## Search modal (`blocks/search`)
 
 - **Opening it.** Focusing the header "Ask WKND" pill opens the modal. Pages can also author a `search` block, which renders a trigger button.
