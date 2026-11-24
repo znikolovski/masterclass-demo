@@ -71,8 +71,10 @@ The published consumer in `scripts/person-binding.js` implements backend
 contract `wknd.person-binding/v1` from current required-purpose source
 `5b434ed1867ac55eac8add1426cfcdaac8f61b04`. It posts only `person-binding`,
 `person-status`, or `person-withdrawal` to the Production `target-diagnostic`
-action using an individual Auth0 shopper Bearer; signed delegation is not
-supported by that action. Status does not mint an alias or grant consent.
+action using an individual Auth0 shopper Bearer. Diagnostic 0.0.5 additionally
+supports narrowly scoped server-to-server MCP Commerce assertions for status
+and binding only; the browser does not use that delegation transport.
+Status does not mint an alias or grant consent.
 When capability is enabled, profile restoration uses grant-only
 `person-binding` issuance. Account preference checks independently refresh that
 binding after clearing the cache; a consent response never supplies the alias.
@@ -91,7 +93,7 @@ establish a customer binding. A configured wording version is not proof that the
 server has approved that wording or issued a grant.
 
 `serverBindingEnabled` is **true** following the backend publisher's confirmed
-Production alias approval (package 0.0.19, diagnostic 0.0.4). Signing in or
+Production alias approval (package 0.0.19, diagnostic 0.0.5). Signing in or
 enabling capability creates no consent: the server requires an existing explicit
 `idLinkage` grant before issuing an alias. Disabled capability makes no binding
 requests. The frozen `semanticAllowlist` remains empty; this consumer emits no
