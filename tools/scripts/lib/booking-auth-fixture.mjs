@@ -32,17 +32,17 @@ export default async function bookingAuthFixture(settings = {}) {
     .setIssuedAt()
     .setExpirationTime(options.expires || '5m')
     .sign(privateKey);
-  const delegated = (sub = 'customer-a', overrides = {}) => new SignJWT({
+  const delegated = (sub = 'customer-a', overrides = {}, options = {}) => new SignJWT({
     identity_issuer: issuer, scope: 'bookings:read', ...overrides,
   })
     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
     .setSubject(sub)
-    .setIssuer(env.MCP_RESOURCE)
-    .setAudience(audience)
-    .setIssuedAt()
-    .setExpirationTime('60s')
+    .setIssuer(options.issuer || env.MCP_RESOURCE)
+    .setAudience(options.audience || audience)
+    .setIssuedAt(options.issuedAt)
+    .setExpirationTime(options.expires || '60s')
     .setJti(crypto.randomUUID())
-    .sign(new TextEncoder().encode(secret));
+    .sign(new TextEncoder().encode(options.secret || secret));
   return {
     env,
     token,

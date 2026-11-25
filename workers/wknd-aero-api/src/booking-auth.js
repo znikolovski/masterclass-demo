@@ -9,6 +9,31 @@ export class BookingAuthError extends Error {
 
 const keySets = new Map();
 
+function assertionKeys(env) {
+  const encoder = new TextEncoder();
+  const validSecret = (value) => typeof value === 'string'
+    && value.trim() === value && encoder.encode(value).length >= 32;
+  const current = env.WKND_BOOKING_ASSERTION_SECRET;
+  const previous = env.WKND_BOOKING_ASSERTION_PREVIOUS_SECRET;
+  const deadline = env.WKND_BOOKING_ASSERTION_PREVIOUS_EXPIRES_AT;
+  if (!env.MCP_RESOURCE || typeof current !== 'string' || encoder.encode(current).length < 32) {
+    throw new BookingAuthError('Booking delegation is not configured.', 503);
+  }
+  if ((previous === undefined || previous === '') && (deadline === undefined || deadline === '')) {
+    return { current: encoder.encode(current) };
+  }
+  if (!validSecret(current) || !validSecret(previous) || previous === current
+    || typeof deadline !== 'string' || !/^[1-9]\d*$/.test(deadline)
+    || !Number.isSafeInteger(Number(deadline))) {
+    throw new BookingAuthError('Booking delegation rotation is not configured.', 503);
+  }
+  return {
+    current: encoder.encode(current),
+    previous: encoder.encode(previous),
+    expiresAt: Number(deadline),
+  };
+}
+
 export async function authenticateBooking(request, env, scope) {
   const issuer = env.AUTH0_ISSUER;
   const audience = env.BOOKING_API_AUDIENCE;
@@ -24,21 +49,25 @@ export async function authenticateBooking(request, env, scope) {
   try {
     if (delegated) {
       if (scope !== 'bookings:read') throw new BookingAuthError('Read-only delegation.', 403);
-      if (!env.MCP_RESOURCE || !env.WKND_BOOKING_ASSERTION_SECRET
-        || new TextEncoder().encode(env.WKND_BOOKING_ASSERTION_SECRET).length < 32) {
-        throw new BookingAuthError('Booking delegation is not configured.', 503);
+      const keys = assertionKeys(env);
+      const options = {
+        algorithms: ['HS256'],
+        issuer: env.MCP_RESOURCE,
+        audience,
+        requiredClaims: ['sub', 'iat', 'exp', 'jti'],
+        maxTokenAge: '60s',
+      };
+      try {
+        ({ payload } = await jwtVerify(token, keys.current, options));
+      } catch (error) {
+        // Never retry claim/expiry failures, and never extend the absolute cutoff.
+        if (error.code !== 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED'
+          || !keys.previous || Date.now() / 1000 >= keys.expiresAt) throw error;
+        ({ payload } = await jwtVerify(token, keys.previous, options));
+        if (Date.now() / 1000 >= keys.expiresAt) {
+          throw new BookingAuthError('Invalid or expired booking credentials.');
+        }
       }
-      ({ payload } = await jwtVerify(
-        token,
-        new TextEncoder().encode(env.WKND_BOOKING_ASSERTION_SECRET),
-        {
-          algorithms: ['HS256'],
-          issuer: env.MCP_RESOURCE,
-          audience,
-          requiredClaims: ['sub', 'iat', 'exp', 'jti'],
-          maxTokenAge: '60s',
-        },
-      ));
       if (payload.identity_issuer !== issuer || payload.exp - payload.iat > 60) {
         throw new BookingAuthError('Invalid delegated identity.');
       }
