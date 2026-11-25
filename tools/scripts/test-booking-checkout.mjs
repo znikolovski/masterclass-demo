@@ -85,6 +85,24 @@ try {
   let gearEmpty = false;
   let gearRequests = 0;
   await context.route('https://edge-graph.adobe.io/**', async (route) => {
+    const request = route.request();
+    if (request.method() === 'POST') {
+      const { query, variables } = request.postDataJSON();
+      assert.match(query, /\bwkndAeroBundleOffer\s*\(/);
+      assert.match(variables.bookingId, /^BK_/);
+      return route.fulfill({
+        json: {
+          data: {
+            wkndAeroBundleOffer: {
+              status: 'INELIGIBLE',
+              reason: 'BOOKING_NOT_ELIGIBLE',
+              booking_id: variables.bookingId,
+              components: [],
+            },
+          },
+        },
+      });
+    }
     gearRequests += 1;
     const url = new URL(route.request().url());
     assert.deepEqual(JSON.parse(url.searchParams.get('variables')), {
