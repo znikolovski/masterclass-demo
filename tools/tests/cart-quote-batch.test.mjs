@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
-import install from '../../scripts/cart-quote-batch.js';
+import install, { BUNDLE_COMPLETION_FIELD } from '../../scripts/cart-quote-batch.js';
 
 const address = { country_code: 'AU', postcode: '2000', region: { region: '' } };
 const method = { carrier_code: 'standard', method_code: 'standard' };
@@ -24,6 +24,24 @@ const query = (name, field) => `mutation ${name}(
 }
 fragment CART_FRAGMENT on Cart { id prices { grand_total { value currency } } }`;
 const UPDATE = query('UPDATE_PRODUCTS_FROM_CART_MUTATION', 'updateCartItems');
+const ADD = `mutation ADD_PRODUCTS_TO_CART_MUTATION(
+  $cartId: String!, $cartItems: [CartItemInput!]!, $pageSize: Int! = 100
+) {
+  addProductsToCart(cartId: $cartId, cartItems: $cartItems) {
+    cart { ...CART_FRAGMENT } user_errors { code message }
+  }
+}
+fragment CART_FRAGMENT on Cart { id prices { grand_total { value currency } } }`;
+const bundleIntent = {
+  cartId: 'fixture-cart', promotionId: 'fixture-promotion', bundleId: 'fixture-bundle', cartVersion: 'v3',
+};
+const bundleOptions = {
+  variables: {
+    cartId: 'fixture-cart',
+    pageSize: 100,
+    cartItems: [{ sku: 'fixture-jacket', quantity: 1, [BUNDLE_COMPLETION_FIELD]: bundleIntent }],
+  },
+};
 const SHIPPING = 'mutation ESTIMATE_SHIPPING_METHODS_MUTATION { estimateShippingMethods }';
 const TOTALS = 'mutation GET_ESTIMATED_TOTALS_MUTATION { estimateTotals }';
 const estimateOptions = {
@@ -97,6 +115,81 @@ test('one ordered request preserves mutation output and supplies fresh shipping-
   assert.ok(document.indexOf('updateCartItems(') < document.indexOf('shipping:'));
   assert.ok(document.indexOf('shipping:') < document.indexOf('estimated:'));
   assert.ok(document.indexOf('estimated:') < document.indexOf('fragment CART_FRAGMENT'));
+});
+
+test('explicit bundle intent selects the atomic operation with no client quantities on the wire', async () => {
+  const { client, calls } = await fixture({
+    batch: {
+      data: {
+        addProductsToCart: { cart: cart(445.50), user_errors: [] },
+        shipping: shipping(0),
+        estimated: { cart: cart(445.50) },
+      },
+    },
+  });
+  const result = await client.fetchGraphQl(ADD, bundleOptions);
+  assert.equal(result.data.addProductsToCart.cart.prices.grand_total.value, 445.50);
+  await client.fetchGraphQl(SHIPPING, estimateOptions);
+  await client.fetchGraphQl(TOTALS, estimateOptions);
+  assert.equal(calls.length, 1);
+  const { document, options } = calls[0];
+  assert.match(document, /addProductsToCart:\s*completeWkndBundle\(/);
+  assert.doesNotMatch(document, /\$cartItems/);
+  assert.equal(options.variables.cartItems, undefined);
+  assert.equal(options.variables.wkndBundlePromotion, 'fixture-promotion');
+  assert.equal(options.variables.wkndBundleId, 'fixture-bundle');
+  assert.equal(options.variables.wkndBundleVersion, 'v3');
+  assert.equal(options.variables.pageSize, 100);
+  assert.ok(document.indexOf('completeWkndBundle(') < document.indexOf('shipping:'));
+  assert.ok(document.indexOf('shipping:') < document.indexOf('estimated:'));
+});
+
+test('bundle without a selected destination still uses the atomic operation', async () => {
+  const calls = [];
+  const client = {
+    async fetchGraphQl(document, options) {
+      calls.push({ document, options });
+      return { data: { addProductsToCart: { cart: cart(445.50), user_errors: [] } } };
+    },
+  };
+  install(client, { getCartDataFromCache: () => ({ items: [] }) });
+  const result = await client.fetchGraphQl(ADD, bundleOptions);
+  assert.equal(result.data.addProductsToCart.cart.prices.grand_total.value, 445.50);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].document, /addProductsToCart:\s*completeWkndBundle\(/);
+  assert.doesNotMatch(calls[0].document, /\$wkndCartEstimate:|\$cartItems/);
+  assert.equal(calls[0].options.variables.cartItems, undefined);
+});
+
+test('bundle intent fails closed for changed carts, malformed versions, mixed items or SDK documents', async () => {
+  const { client, calls } = await fixture();
+  await Promise.all([
+    { cartId: 'other-cart' }, { cartVersion: 'bad' }, { bundleId: '' },
+  ].map(async (change) => {
+    const options = structuredClone(bundleOptions);
+    Object.assign(options.variables.cartItems[0][BUNDLE_COMPLETION_FIELD], change);
+    await assert.rejects(client.fetchGraphQl(ADD, options), /Invalid bundle/);
+  }));
+  const mixed = structuredClone(bundleOptions);
+  mixed.variables.cartItems.push({ sku: 'another-product', quantity: 1 });
+  await assert.rejects(client.fetchGraphQl(ADD, mixed), /Invalid bundle/);
+  await assert.rejects(
+    client.fetchGraphQl(ADD.replace('cartItems:', 'changedItems:'), bundleOptions),
+    /cannot safely complete/,
+  );
+  assert.equal(calls.length, 0, 'must never fall back to a normal add');
+});
+
+test('atomic domain failures retain their GraphQL error and never retry as a standard add', async () => {
+  const errors = [{ message: 'Cart changed', extensions: { code: 'CART_CHANGED' }, path: ['addProductsToCart'] }];
+  const { client, calls } = await fixture({
+    batch: { data: { addProductsToCart: null }, errors },
+  });
+  const result = await client.fetchGraphQl(ADD, bundleOptions);
+  assert.deepEqual(result.errors, errors);
+  assert.equal(result.data.addProductsToCart, null);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].document, /completeWkndBundle/);
 });
 
 test('free shipping amount changes use fresh results, not a remembered rate', async () => {

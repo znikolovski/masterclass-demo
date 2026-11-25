@@ -38,7 +38,7 @@ Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, invento
 
 - **Runtime wiring.** `scripts/commerce.js` and `scripts/initializers/*` set up the drop-ins. `scripts/commerce-config.js` holds the Mesh endpoint, store headers and shop paths. `scripts/scripts.js` starts commerce early on `/shop/**`. Other blocks (OF1 gear, search) load it lazily.
 - **Drop-ins.** They are pinned in `package.json` and vendored to `scripts/__dropins__` by `npm run install:dropins`. An import map in `head.html` exposes them.
-- **Cart quote batching.** On the cart page, the public SDK transport subclass in `scripts/commerce-fetch-graphql.js` keeps the original add/update mutation and appends fresh shipping and estimated totals in one ordered request. `scripts/cart-quote-batch.js` serves those results once to the SDK's automatic post-update estimate cycle, not to later user actions. New input, cart edits, changed endpoint/auth/store headers, or expiry invalidate the continuation. Only destination and shipping-method identity persist between actions; a changed first available method requires normal fresh estimates. Partial mutation errors remain visible, and failed estimates show an alert while preserving committed cart updates. Removing the last item uses the native path. Vendor code is unchanged, and bundle completion retains its fresh cart/offer preflight.
+- **Cart quote batching.** On the cart page, the public SDK transport subclass in `scripts/commerce-fetch-graphql.js` keeps the original ordinary add/update mutation and appends fresh shipping and estimated totals in one ordered request. `scripts/cart-quote-batch.js` serves those results once to the SDK's automatic post-update estimate cycle, not to later user actions. New input, cart edits, changed endpoint/auth/store headers, or expiry invalidate the continuation. Only destination and shipping-method identity persist between actions; a changed first available method requires normal fresh estimates. Partial mutation errors remain visible, and failed estimates show an alert while preserving committed cart updates. Removing the last item uses the native path. Vendor code is unchanged; bundle completion uses the dedicated atomic operation below.
 - **Labels.** Labels default to AU wording (GST, postcode) in `scripts/commerce-utils.js`. Authors can override any drop-in string in the multi-sheet `/shop/placeholders` spreadsheet, using one sheet per drop-in (`pdp`, `cart`, `checkout`, …) with `Key` dot paths such as `Cart.Cart.heading`.
 - **Images.** Product images come from DM OpenAPI renditions (`{asset}/as/{alias}.webp?width=…`). The `pdp-markup` HTML links to images rather than embedding them, so EDS never copies them to the media bus.
 - **Design.** Shop UI reuses the site design system rather than a separate theme: drop-in buttons follow `a.button` (Syncopate pill, 2px border, offset orange shadow; `.shop-accent` = orange conversion CTA), pill tags/chips, 10px rounded cards and `--light-color` panels (`styles/commerce.css`). Product imagery is 4:5 (1600×2000); PDP gallery and cards use 4:5 frames. `shop-hero` is a dark banner block for category/landing pages (tag paragraph, heading, intro, bullet list → highlight pills).
@@ -53,12 +53,19 @@ when at least one exact required variant is already in the cart. Commerce suppli
 offer through `wkndBundleOffers`; disabled, expired, unavailable and ineligible offers
 are not shopper recommendations. No additional block authoring is needed.
 
-**Add remaining products** refreshes the cart and rechecks the offer before adding only
-the missing quantities. It never replaces a variant or adds a second complete kit.
-The existing server promotion engine applies the best eligible discount after the full
-kit is present; showing the recommendation does not grant a discount. Shipping and
-unrelated products remain outside the kit. A partial or unconfirmed add explicitly asks
-the shopper to check their cart before retrying.
+**Add remaining products** calls `completeWkndBundle` with the offer's `cart_version`,
+promotion and bundle IDs. Commerce validates the current cart, offer, prices and stock,
+derives missing quantities itself, and commits all additions with one version-checked write.
+Stale or unavailable offers fail without a partial add; the cart refreshes for review.
+It never replaces a variant or adds a second complete kit. The server promotion engine
+selects the best eligible discount; showing a recommendation does not grant one.
+Shipping and unrelated products remain outside the kit.
+
+The public SDK's per-item `customFields` carries an explicit `wknd_bundle_completion`
+intent to the project transport adapter. It replaces that marked add with the dedicated
+mutation, preserving SDK normalization, cart events and the ordered shipping/totals quote.
+No client quantities are sent to the atomic operation. Without the adapter the unknown
+input field fails GraphQL validation, rather than silently performing a standard add.
 
 Publish the Commerce GraphQL extension and updated Mesh schema before publishing this
 storefront change. If the offer service is unavailable, the cart reports that explicitly

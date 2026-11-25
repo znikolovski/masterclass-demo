@@ -1,6 +1,8 @@
+import { BUNDLE_COMPLETION_FIELD } from '../../scripts/cart-quote-batch.js';
+
 const QUERY = `query WkndBundleOffers($cartId: String!) {
   wkndBundleOffers(cart_id: $cartId) {
-    promotion_id bundle_id name quote_expires_at
+    promotion_id bundle_id name quote_expires_at cart_version
     saving { value currency }
     components {
       sku name required_quantity cart_quantity missing_quantity
@@ -26,6 +28,7 @@ function missingProducts(offer, cart) {
 
 function validateOffer(offer) {
   if (!offer || !offer.promotion_id || !offer.bundle_id || typeof offer.name !== 'string'
+    || !/^v(0|[1-9]\d{0,15})$/.test(offer.cart_version)
     || !Number.isFinite(Date.parse(offer.quote_expires_at))
     || offer.saving?.currency !== 'AUD' || !Number.isFinite(offer.saving.value)
     || offer.saving.value <= 0 || !Array.isArray(offer.components)
@@ -127,29 +130,32 @@ export default function initBundleOffers(container, {
           clearTimeout(expiryTimer);
           panel.setAttribute('aria-busy', 'true');
           cards.querySelectorAll('button').forEach((control) => { control.disabled = true; });
-          message('Checking current prices and the products already in your cart...');
+          message('Completing your bundle with current prices and availability...');
           try {
-            const freshCart = await refreshCart();
-            if (!freshCart?.id || freshCart.id !== cart.id) throw new Error('Your cart changed. Please check it before continuing.');
-            currentCart = freshCart;
-            if (!missingProducts(offer, freshCart).length) {
+            const additions = missingProducts(offer, cart);
+            if (!additions.length) {
               message('Your cart already contains this complete kit.');
               return;
             }
-            const fresh = (await request(freshCart.id)).find((o) => (
-              o.promotion_id === offer.promotion_id && o.bundle_id === offer.bundle_id
-              && Date.parse(o.quote_expires_at) > Date.now()
-            ));
-            if (!fresh) throw new Error('This bundle is no longer available. Check the latest offers.');
-            const additions = missingProducts(fresh, freshCart);
-            if (additions.length) {
-              const confirmed = await addProducts(additions);
-              if (!confirmed?.id || confirmed.id !== freshCart.id
-                || missingProducts(fresh, confirmed).length) {
-                throw new Error('The shop did not confirm every required product.');
-              }
-              currentCart = confirmed;
+            if (Date.parse(offer.quote_expires_at) <= Date.now()) {
+              throw new Error('This bundle quote expired. Check the latest offers.');
             }
+            const confirmed = await addProducts(additions.map((item) => ({
+              ...item,
+              customFields: {
+                [BUNDLE_COMPLETION_FIELD]: {
+                  cartId: cart.id,
+                  promotionId: offer.promotion_id,
+                  bundleId: offer.bundle_id,
+                  cartVersion: offer.cart_version,
+                },
+              },
+            })));
+            if (!confirmed?.id || confirmed.id !== cart.id
+              || missingProducts(offer, confirmed).length) {
+              throw new Error('The shop did not confirm every required product.');
+            }
+            currentCart = confirmed;
             message('Your cart contains the complete kit. The best eligible discount is applied automatically.');
           } catch (error) {
             report(error);
