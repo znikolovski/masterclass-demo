@@ -184,6 +184,17 @@ try {
       }
     }};`,
   }));
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.route('**/blocks/aero/booking-journey/app/index.js', (route) => route.fulfill({
+    contentType: 'text/javascript', body: 'export default function mount() {}',
+  }));
+  await page.goto(checkoutUrl);
+  await page.locator('.booking-journey-mount').waitFor({ state: 'attached' });
+  assert(await page.evaluate(() => document.querySelector('.booking-journey')
+    .getBoundingClientRect().height >= window.innerHeight),
+  'Reserve the mobile viewport while the booking app initializes');
+  await page.unroute('**/blocks/aero/booking-journey/app/index.js');
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(checkoutUrl);
   await page.locator('.flight-card').first().waitFor();
   assert.equal(await page.evaluate(() => performance.getEntriesByType('resource')
