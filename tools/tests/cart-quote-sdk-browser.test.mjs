@@ -39,7 +39,7 @@ const methods = [{
 
 test('browser: already-bound real SDK linked client uses the public subclass and one batch', {
   timeout: 15000,
-}, async () => {
+}, async (t) => {
   const calls = [];
   const server = createServer(async (request, response) => {
     const path = new URL(request.url, 'http://localhost').pathname;
@@ -93,7 +93,7 @@ test('browser: already-bound real SDK linked client uses the public subclass and
   const errors = [];
   try {
     const page = await browser.newPage();
-    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('pageerror', (error) => errors.push(error.stack));
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     const result = await page.evaluate(async () => {
       document.cookie = 'DROPIN__CART__CART-ID=fixture-cart; path=/';
@@ -216,6 +216,75 @@ test('browser: already-bound real SDK linked client uses the public subclass and
         },
       },
     }]);
+    await t.test('SDK summary groups and refreshes applied discounts without changing other rows', async () => {
+      await page.evaluate(async () => {
+        const { render, createElement } = await import('@dropins/tools/preact-bundle.js');
+        const { default: OrderSummary } = await import('@dropins/storefront-cart/containers/OrderSummary.js');
+        const { default: groupDiscounts } = await import('/blocks/commerce-cart/discounts.js');
+        const api = await import('@dropins/storefront-cart/api.js');
+        const { events } = await import('@dropins/tools/event-bus.js');
+        const cached = await api.getCartDataFromCache();
+        if (!cached?.id) throw new Error('SDK cart fixture is missing');
+        const cart = {
+          ...cached,
+          totalQuantity: 2,
+          appliedDiscounts: [
+            { label: 'Alpine Shell Jacket + Collapsible Bottle 1L', amount: { value: 23.45, currency: 'AUD' } },
+            { label: 'Welcome back', amount: { value: 25, currency: 'AUD' }, coupon: { code: 'WELCOME' } },
+          ],
+        };
+        const container = document.createElement('div');
+        container.id = 'summary';
+        document.body.append(container);
+        render(createElement(OrderSummary, {
+          initialData: cart,
+          updateLineItems: groupDiscounts,
+          slots: {
+            Coupons: (ctx) => {
+              const codes = document.createElement('div');
+              codes.textContent = 'Discount code';
+              ctx.appendChild(codes);
+            },
+          },
+        }), container);
+        events.emit('cart/data', cart);
+        window.discountFixture = { cart, events };
+      });
+      const section = page.getByRole('region', { name: 'Discounts', exact: true });
+      await page.evaluate(() => new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }));
+      assert.deepEqual(errors, []);
+      assert.equal(await section.count(), 1, await page.locator('#summary').innerHTML());
+      await section.waitFor({ timeout: 2000 });
+      assert.equal(await section.getByRole('heading', { name: 'Discounts', level: 3 }).count(), 1);
+      assert.deepEqual(await section.locator('.cart-order-summary__label').allTextContents(), [
+        'Alpine Shell Jacket + Collapsible Bottle 1L', 'Welcome back',
+      ]);
+      assert.deepEqual(await section.getByTestId('summary-discount-total').allTextContents(), [
+        '-A$23.45', '-A$25.00',
+      ]);
+      assert.equal(await section.getByText('WELCOME', { exact: true }).count(), 1);
+      assert.equal(await page.locator('#summary .cart-order-summary__coupons').textContent(), 'Discount code');
+      const total = await page.locator('#summary [data-testid^="total-including-tax"]').textContent();
+      await page.evaluate(() => {
+        const { cart, events } = window.discountFixture;
+        events.emit('cart/data', {
+          ...cart, appliedDiscounts: [{ label: 'Updated promotion', amount: { value: 10, currency: 'AUD' } }],
+        });
+      });
+      await section.getByText('Updated promotion', { exact: true }).waitFor();
+      assert.equal(await section.locator('.cart-order-summary__discount').count(), 1);
+      assert.equal(await section.getByTestId('summary-discount-total').textContent(), '-A$10.00');
+      await page.evaluate(() => {
+        const { cart, events } = window.discountFixture;
+        events.emit('cart/data', { ...cart, appliedDiscounts: [] });
+      });
+      await section.waitFor({ state: 'detached' });
+      assert.equal(await page.locator('#summary [data-testid^="total-including-tax"]').textContent(), total);
+      assert.equal(await page.locator('#summary .cart-order-summary__coupons').textContent(), 'Discount code');
+      assert.equal(calls.length, 4, 'discount grouping must not issue additional financial reads');
+    });
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();
