@@ -34,6 +34,45 @@ https://da.live/edit#/znikolovski/wknd-aero/
 
 Product Bus catalog ETL, pipeline adapter, and demo booking API.
 
+### Flight planning from the WKND LLM app
+
+The companion LLM app's public `search-flights` handler searches this existing
+demo API and returns contextual Aero checkout links. Discovery and route
+briefings provide **Find Flights** actions. Users supply their departure airport,
+date and traveller count; the arrival airport comes from the published adventure
+gateway, or an explicit traveller-provided airport when no gateway is published.
+
+The `search-flights` EDS widget uses a single-cell block with an optional H2 title:
+
+| Search Flights |
+|---|
+| H2: Find flights with WKND Aero |
+
+Author that block at `/eds-widgets/search-flights` in the main WKND content site
+and configure its URL on the companion app's public search tool in the LLM Apps
+UI. The local equivalent is `drafts/eds-widgets/search-flights.plain.html`.
+It shows **no sample fares in standalone previews**; actual results arrive over
+the existing LLM Apps bridge. See the companion README for input/output metadata
+and Stage-first deployment requirements.
+
+Checkout links include `origin`, `dest`, `depart`, `passengers`, `adv` when
+available, and `flight_id`. The booking app performs a fresh search, preselects
+the matching flight and explicitly requests refreshed-fare review without
+skipping flight selection. An unavailable selection does not fall back silently.
+These are **demo** flights, not real tickets. Quote prices are not carried over
+or locked. Auth0 sign-in and explicit traveller confirmation still protect
+booking creation; MCP delegation remains booking-read-only.
+
+The LLM flow also surfaces gear discount conditions. **Check my gear discounts**
+uses the existing authenticated `get-shop-cart` tool and shared Shop offer/totals
+renderers to show Commerce's actual discounts and currency. It performs no offer
+claim/application and does not compute or promise discounts locally. Flight-linked
+kit offers must first be verified and claimed on the confirmed Aero booking.
+Audience-qualified and welcome-back discounts continue through the existing
+Shop tool/checkout rules. A failed check is unavailable, not “no discount.”
+
+### Worker deployment
+
 ```bash
 cd workers/wknd-aero-api
 npm install

@@ -57,7 +57,7 @@ const HERO_HEADING_FONT = 'Syncopate';
 const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero, .aero-hero';
 
 /** Blocks that must load before revealing the first section (LCP). */
-const EAGER_FIRST_BLOCK_NAMES = new Set(['hero-adventure', 'carousel-hero', 'hero', 'aero-hero']);
+const EAGER_FIRST_BLOCK_NAMES = new Set(['hero-adventure', 'carousel-hero', 'hero', 'aero-hero', 'search-flights']);
 
 /** Section layout shells from inline fragments — not blocks (no blocks/{name}/ CSS). */
 const LAYOUT_CLASS_NAMES = new Set([

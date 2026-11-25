@@ -304,13 +304,14 @@ function Sidebar({
 /**
  * @param {object} props
  */
-function FlightCard({ flight, onSelect }) {
+function FlightCard({ flight, onSelect, selectedFromApp = false }) {
   const eco = flight.cabin === 'Economy';
   return h('article', { class: 'flight-card', key: flight.id }, [
     h('div', { class: 'flight-card-body' }, [
       h('div', { class: 'flight-card-time' }, formatTime(flight.departTime)),
       h('div', { class: 'flight-card-route' }, [
         h('strong', null, `${flight.origin} → ${flight.destination}`),
+        selectedFromApp && h('p', null, `Selected in the LLM app: ${flight.id}`),
         h('p', null, `${flight.departTime} · ${flight.duration} · ${flight.cabin || 'Economy'}`),
         flight.layout && h('p', { class: 'flight-card-aircraft' }, `${flight.aircraft || 'Aircraft'} · ${flight.layout}`),
         eco && h('span', { class: 'flight-card-badge eco' }, 'Lower emissions'),
@@ -321,7 +322,7 @@ function FlightCard({ flight, onSelect }) {
       ]),
     ]),
     h('div', { class: 'flight-card-action' }, [
-      h('button', { type: 'button', onClick: () => onSelect(flight) }, 'Select'),
+      h('button', { type: 'button', onClick: () => onSelect(flight) }, selectedFromApp ? 'Continue with this flight' : 'Select'),
     ]),
   ]);
 }
@@ -673,6 +674,7 @@ function BookingApp({ mount }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState(null);
+  const [handoffNotice, setHandoffNotice] = useState('');
   const [seats, setSeats] = useState([]);
   const [passenger, setPassenger] = useState({ first: '', last: '', email: '' });
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -734,6 +736,15 @@ function BookingApp({ mount }) {
     searchFlights(api, params)
       .then((data) => {
         setFlights(data.flights || []);
+        const requestedFlight = params.get('flight_id');
+        if (requestedFlight) {
+          const match = /^WK\d{3}$/.test(requestedFlight)
+            ? data.flights?.find((flight) => flight.id === requestedFlight) : null;
+          setSelected(match || null);
+          setHandoffNotice(match
+            ? `${match.id} was selected in the LLM app. Its fare has been refreshed. Review the current price and continue to confirm your choice.`
+            : 'The flight selected in the LLM app is unavailable. Choose another flight below.');
+        }
         setLoading(false);
       })
       .catch(() => {
@@ -908,6 +919,7 @@ function BookingApp({ mount }) {
       step === 0 && h('div', { class: 'booking-flights' }, [
         h('h2', null, 'Select your flight'),
         h('p', { class: 'booking-lead' }, `Showing results for ${origin} to ${dest || 'your destination'}.`),
+        handoffNotice && h('p', { role: 'status' }, handoffNotice),
         loading && h('div', { class: 'booking-empty' }, 'Searching flights…'),
         error && h('div', { class: 'booking-empty' }, error),
         !loading && !error && flights.length === 0 && h('div', { class: 'booking-empty' }, 'No flights found. Try different dates or destinations.'),
@@ -917,7 +929,9 @@ function BookingApp({ mount }) {
           flights.map((f) => h(FlightCard, {
             key: f.id,
             flight: f,
+            selectedFromApp: Boolean(handoffNotice && selected?.id === f.id),
             onSelect: (flight) => {
+              setHandoffNotice('');
               setSelected(flight);
               setSeats([]);
               go(1);
