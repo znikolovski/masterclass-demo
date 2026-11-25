@@ -1031,7 +1031,8 @@ async function loadMartech(doc = document) {
   if (!martechLoadedPromise) {
     const main = doc.querySelector('main');
     martechLoadedPromise = getMartechModule().then(async (martech) => {
-      if (!getNativeContext() && isAnalyticsEnabled(doc) && isAemProductionHost()) {
+      if (!getNativeContext() && isAnalyticsEnabled(doc) && isAemProductionHost()
+        && getRepolessSiteSlug(doc) !== 'wknd-aero') {
         const { hasShopToken, getShopProfile } = await import('./shop-auth.js');
         if (hasShopToken()) await getShopProfile({ identityStatusOnly: true });
       }

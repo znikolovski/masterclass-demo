@@ -1,6 +1,6 @@
 # Cart recovery offers (storefront)
 
-Signed-in shoppers whose cart has been inactive for 24 hours to 7 days (and who have not
+Signed-in shoppers whose cart has been inactive for the configured recovery window (and who have not
 purchased since) can recover it with a one-time offer: **10% off gear, up to AUD 25**. The
 Commerce backend decides everything; the storefront only displays and applies what the backend
 returns.
@@ -26,6 +26,18 @@ returns.
    (`wknd.promotions/v1`, see `../wknd-commerce/docs/PROMOTIONS.md`) at both order paths.
 
 No authoring is required; the offer copy is fixed and matches the backend policy.
+
+### Reproducing the offer in the LLM app
+
+The current demo recovery window starts after **55 minutes** without cart activity and ends
+after seven days. Adding a product, changing quantities or changing coupons starts a new
+inactivity period; an entitlement from an earlier period cannot authorize the new period.
+Reading the cart does not restart this clock.
+
+Sign in as the same shopper, leave a nonempty cart unchanged for at least 55 minutes, then ask
+the app to show the cart (`get_shop_cart`). Adding a product first makes the cart active again,
+so no recovery offer is expected. The app still hides offers that are already redeemed, already
+applied or no better than the current promotion. No timestamps need to be changed for a demo.
 
 ## Audience Manager and Target
 
@@ -76,7 +88,7 @@ The backend records every change (wording version, source `WEB`/`IOS`, time) as 
 **Bump the wording version in `email-preferences.js` whenever the text in `commerce-account.js`
 changes.** Options the backend does not support stay hidden. A Brevo unsubscribe withdraws both.
 
-Reminder frequency is at most one per period of inactivity (24 hours to 7 days), not one per
+Reminder frequency is at most one per configured period of inactivity, not one per
 cart for its lifetime. Further activity on the same cart starts a new period. The offer remains
 a separate one-time redemption per account/campaign; another reminder does not grant another use.
 
