@@ -247,6 +247,20 @@ main .commerce-cart .cart-order-summary__heading-text {
   font: 700 18px/1.3 var(--heading-font-family);
 }
 
+main .commerce-cart .cart__discounts {
+  display: grid;
+  gap: var(--spacing-xsmall);
+  margin-top: var(--spacing-small);
+  padding-top: var(--spacing-small);
+  border-top: 1px solid var(--color-neutral-400);
+}
+
+main .commerce-cart .cart__discounts h3 {
+  margin: 0;
+  color: var(--text-color);
+  font: var(--type-body-1-strong-font);
+}
+
 main .commerce-cart .cart-order-summary__total .cart-order-summary__label,
 main .commerce-cart .cart-order-summary__total .cart-order-summary__price {
   font-size: 20px;

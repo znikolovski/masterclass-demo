@@ -50,6 +50,7 @@ async function renderCart(block, {
   const [
     { render: provider }, { default: CartSummaryList }, { default: OrderSummary },
     { default: EstimateShipping }, { default: Coupons }, { tryRenderAemAssetsImage }, { events },
+    { default: groupDiscounts },
   ] = await Promise.all([
     import('@dropins/storefront-cart/render.js'),
     import('@dropins/storefront-cart/containers/CartSummaryList.js'),
@@ -58,6 +59,7 @@ async function renderCart(block, {
     import('@dropins/storefront-cart/containers/Coupons.js'),
     import('@dropins/tools/lib/aem/assets.js'),
     import('@dropins/tools/event-bus.js'),
+    import('./discounts.js'),
   ]);
 
   const productLink = (item) => getProductLink(item.url?.urlKey);
@@ -120,6 +122,7 @@ async function renderCart(block, {
     })($list),
     provider.render(OrderSummary, {
       routeCheckout: () => SHOP_PATHS.checkout,
+      updateLineItems: groupDiscounts,
       slots: {
         EstimateShipping: async (ctx) => {
           const wrapper = document.createElement('div');
