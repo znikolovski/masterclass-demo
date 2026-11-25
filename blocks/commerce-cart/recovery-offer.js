@@ -5,17 +5,58 @@
  * The shopper applies the offer explicitly; an existing coupon is never replaced silently, and the
  * offer is only shown when the engine says it saves more than the promotion already applied.
  */
-import { CORE_FETCH_GRAPHQL, checkIsAuthenticated } from '../../scripts/commerce.js';
+import { CORE_FETCH_GRAPHQL, checkIsAuthenticated } from '../../scripts/commerce-utils.js';
 
 const OFFER_FIELDS = 'status coupon_code percent_off max_discount { value } expires_at saving { value } current_saving { value }';
 const OFFER_QUERY = `query WkndRecoveryOffer($cartId: String!) { wkndRecoveryOffer(cart_id: $cartId) { ${OFFER_FIELDS} } }`;
+const CUSTOMER_OFFER_QUERY = `query WkndCustomerRecoveryOffer {
+  wkndCustomerRecoveryOffer {
+    cart_id items { uid quantity } applied_coupon_codes
+    offer { ${OFFER_FIELDS} }
+  }
+}`;
 const CLAIM_MUTATION = `mutation ClaimWkndRecoveryOffer($cartId: String!) { claimWkndRecoveryOffer(cart_id: $cartId) { ${OFFER_FIELDS} } }`;
 const AVAILABLE = ['ELIGIBLE', 'CLAIMED'];
+let prefetched = null;
 
 async function request(query, cartId) {
   const { data, errors } = await CORE_FETCH_GRAPHQL.fetchGraphQl(query, { method: 'POST', variables: { cartId } });
   if (errors?.length) throw new Error(errors[0].message);
   return data;
+}
+
+export function prefetchRecoveryOffer({ events }) {
+  if (prefetched || !checkIsAuthenticated()) return;
+  prefetched = request(CUSTOMER_OFFER_QUERY).then((data) => {
+    if (data?.wkndCustomerRecoveryOffer === undefined) {
+      throw new Error('The shop did not confirm the recovery offer check.');
+    }
+    return { snapshot: data.wkndCustomerRecoveryOffer };
+  }).catch((error) => ({ error }));
+  events.on('authenticated', () => { prefetched = null; });
+}
+
+function cartKey({ id, items = [], appliedCoupons = [] }) {
+  return JSON.stringify([
+    id,
+    items.map((item) => [item.uid, item.quantity]).sort(([a], [b]) => a.localeCompare(b)),
+    appliedCoupons.map(({ code }) => code?.toUpperCase()).filter(Boolean).sort(),
+  ]);
+}
+
+async function offerForCart(cart) {
+  const pending = prefetched;
+  prefetched = null;
+  if (pending) {
+    const { snapshot, error } = await pending;
+    if (error) throw error;
+    if (snapshot && cartKey(cart) === cartKey({
+      id: snapshot.cart_id,
+      items: snapshot.items,
+      appliedCoupons: snapshot.applied_coupon_codes.map((code) => ({ code })),
+    })) return snapshot.offer;
+  }
+  return (await request(OFFER_QUERY, cart.id))?.wkndRecoveryOffer;
 }
 
 const formatAud = (value, digits = 0) => new Intl.NumberFormat('en-AU', {
@@ -79,7 +120,7 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
     remove();
     let offer;
     try {
-      offer = (await request(OFFER_QUERY, cart.id))?.wkndRecoveryOffer;
+      offer = await offerForCart(cart);
     } catch (e) {
       if (run !== latest) return;
       checkedKey = null;
@@ -148,8 +189,7 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
       return;
     }
     // Savings depend on the lines too, so quantity edits re-check the comparison.
-    const lines = (cart.items || []).map((i) => `${i.uid}:${i.quantity}`).join(',');
-    const key = `${cart.id}|${(cart.appliedCoupons || []).map((c) => c.code).join(',')}|${lines}`;
+    const key = cartKey(cart);
     if (key === checkedKey) return;
     show(cart, key);
   }, { eager: true });
