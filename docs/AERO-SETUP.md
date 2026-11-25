@@ -301,6 +301,57 @@ in-progress checkout; shoppers choose sizes/options and purchase there. Gear
 is optional and separate from the flight. No cross-domain cart or sign-in
 transfer is implied. Catalog failures show a retry action and never block booking.
 
+### Flight-linked Adventure Essentials discount: not implemented
+
+The booking-aware shopping above is **not** a 50% Adventure Essentials bundle
+offer. It displays Commerce catalog prices and never creates a booking-linked
+discount entitlement or redeems one. The shop's automatic cart bundle offers
+are a separate feature; a flight confirmation does not qualify a customer for
+them.
+
+To reproduce the existing browser journey:
+
+1. Open `https://main--wknd-aero--znikolovski.aem.live/book/flights`
+   and search for a future demo flight, or enter from an adventure flight CTA.
+2. Select a flight. The seat-selection step displays matching gear when the
+   adventure/destination has in-stock tagged products.
+3. Select seats, enter passenger details, sign in, and complete the demo
+   booking. Confirmation repeats the optional gear recommendations.
+4. Open a product link. It opens
+   `https://wknd-adventures.run.place/shop/products/{urlKey}` in a separate tab;
+   it does not carry a booking reference, discount, cart, or access token.
+   Merchandise requires a separate purchase.
+
+Before adding the flight-linked offer, the Commerce owner must supply an
+agreed, authoritative contract covering:
+
+- **Eligibility and identity:** authenticated lookup for any persisted,
+  confirmed demo flight, including flights without an adventure tag. Verify
+  booking ownership server-side and bind the entitlement to the same customer
+  identity used by Commerce, not a passenger email or browser claim.
+- **Trust boundary:** specify how Commerce verifies confirmation with Aero
+  (authenticated server lookup or a narrowly scoped, short-lived attestation).
+  Aero currently stores bookings under
+  `customer-booking:{accountKey}:{bookingId}`, where `accountKey` is SHA-256
+  of the JSON array `[Auth0 issuer, subject]`. That hash identifies ownership;
+  it is not itself proof of a booking or an authorization credential.
+- **Authoritative quote:** identify the Adventure Essentials promotion and
+  bundle, purchasable variants/options, stock, currency, original and discounted
+  totals, expiry, and quote/version identifiers. The browser must not calculate
+  or authorize the 50% discount.
+- **Redemption:** define an authenticated, idempotent cart/handoff operation,
+  cart ownership checks, and atomic single-use enforcement at purchase.
+  Commerce must revalidate eligibility, prices and stock, prevent concurrent
+  or cross-account reuse, and define cancellation/expiry behavior.
+- **Wire contract and failures:** provide actual endpoints, methods, token
+  audiences/scopes or server credentials, request/response fields, and
+  unauthenticated, not-owned, not-confirmed, expired, redeemed, stale-quote and
+  unavailable responses. An offer failure must leave the flight unchanged.
+
+No such flight-linked Commerce contract is wired into the current Aero
+frontend or Worker. Do not substitute a public coupon, query parameter,
+local-storage flag, or browser-computed discounted price for this contract.
+
 The shared [page head](../head.html) supplies both Commerce and Preact import-map
 entries. Keep both: the booking block's standalone import-map fallback cannot
 replace a head map that already exists.
