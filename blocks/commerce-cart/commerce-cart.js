@@ -17,7 +17,7 @@ import { shopStylesReady } from '../../scripts/shop-styles.js';
  * @param {{ maxItems?: string, $list: Element, $summary: Element, setEmpty: Function }} ctx
  */
 async function renderCart(block, {
-  maxItems, $list, $summary, $bundles, setEmpty,
+  maxItems, $list, $summary, $bundles, $note, setEmpty,
 }) {
   const [commerce, { pushShopEvent }] = await Promise.all([
     import('../../scripts/commerce.js'),
@@ -26,6 +26,27 @@ async function renderCart(block, {
   const { initializeCommerce, getProductLink, CORE_FETCH_GRAPHQL } = commerce;
   await initializeCommerce();
   await import('../../scripts/initializers/cart.js');
+  const [{
+    enableCartQuoteBatch, invalidateCartQuoteBatch,
+  }, { getCartDataFromCache }] = await Promise.all([
+    import('../../scripts/commerce-fetch-graphql.js'),
+    import('@dropins/storefront-cart/api.js'),
+  ]);
+  const priceNote = $note.textContent;
+  enableCartQuoteBatch({
+    getCartDataFromCache,
+    onEstimateError: () => {
+      $note.textContent = "We couldn't refresh your estimated total. Check your destination and try again.";
+      $note.setAttribute('role', 'alert');
+    },
+    onEstimateSuccess: () => {
+      $note.textContent = priceNote;
+      $note.removeAttribute('role');
+    },
+  });
+  ['pointerdown', 'keydown', 'click', 'input', 'change'].forEach((event) => {
+    document.addEventListener(event, invalidateCartQuoteBatch, { capture: true });
+  });
   const [
     { render: provider }, { default: CartSummaryList }, { default: OrderSummary },
     { default: EstimateShipping }, { default: Coupons }, { tryRenderAemAssetsImage }, { events },
@@ -61,7 +82,9 @@ async function renderCart(block, {
     .catch((e) => console.error('commerce-cart recovery offer', e));
 
   let viewed = false;
+  events.on('cart/authenticated', invalidateCartQuoteBatch);
   events.on('cart/data', (cart) => {
+    if (!cart || cart.totalQuantity < 1) invalidateCartQuoteBatch();
     setEmpty(!cart || cart.totalQuantity < 1);
     if (!viewed && cart) {
       viewed = true;
@@ -148,6 +171,6 @@ export default async function decorate(block) {
   // Don't await: the section is revealed when decorate() resolves, so the reserved layout
   // paints straight away instead of the page reflowing once the drop-ins have rendered.
   renderCart(block, {
-    maxItems, $list, $summary, $bundles, setEmpty,
+    maxItems, $list, $summary, $bundles, $note, setEmpty,
   }).catch((e) => console.error('commerce-cart', e));
 }

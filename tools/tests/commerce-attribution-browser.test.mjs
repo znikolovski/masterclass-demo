@@ -57,6 +57,27 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       }));
       return;
     }
+    if (request.url === '/mock-partial-quote') {
+      response.setHeader('Content-Type', 'application/json');
+      response.end(JSON.stringify({
+        data: {
+          updateCartItems: {
+            cart: {
+              id: 'mock-partial-cart',
+              prices: { discounts: [{ wknd_bundle_id: bundleId, wknd_experiment_id: 'committed' }] },
+            },
+          },
+          estimated: {
+            cart: {
+              id: 'mock-preview-cart',
+              prices: { discounts: [{ wknd_bundle_id: bundleId, wknd_experiment_id: 'preview' }] },
+            },
+          },
+        },
+        errors: [{ message: 'Mock shipping unavailable', path: ['shipping'] }],
+      }));
+      return;
+    }
     try {
       const file = new URL(`.${request.url}`, root);
       if (!file.href.startsWith(root.href)) {
@@ -173,11 +194,15 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       await api.fetchGraphQl(ORDER_SUMMARY_FRAGMENT, { method: 'POST' });
       await emit('order/placed', { number: 'mock-receipt', grandTotal: { value: 12 }, items: [] });
       const pending = JSON.parse(sessionStorage.getItem('wknd:shop:pendingPurchase'));
+      attribution.clearCartAttribution();
+      api.setEndpoint(`${window.location.origin}/mock-partial-quote`);
+      await api.fetchGraphQl(`query { cart { ...CART_FRAGMENT } } ${CART_FRAGMENT}`, { method: 'POST' });
       return {
         offHits,
         cartBundles: cartHit.data.wkndShop.bundles,
         purchaseBundles: pending.data.bundles || null,
         purchaseBeforeRedirect: window.adobeDataLayer.filter((hit) => hit.event === 'shopPurchase').length,
+        partialQuoteAttribution: attribution.cartAttribution(),
       };
     });
     assert.equal(result.offHits, 0);
@@ -187,6 +212,9 @@ test('browser: real CMS cart content with local provider; raw receipt attributio
       [{ bundle_id: bundleId, experiment_id: 'receipt_test' }],
     );
     assert.equal(result.purchaseBeforeRedirect, 0);
+    assert.deepEqual(result.partialQuoteAttribution, {
+      bundles: [{ bundle_id: bundleId, experiment_id: 'committed' }],
+    });
     await page.getByText('Your cart is empty', { exact: true }).waitFor();
     /* eslint-disable no-restricted-syntax, no-await-in-loop -- Viewports share one browser page */
     for (const width of [375, 768, 1200]) {
