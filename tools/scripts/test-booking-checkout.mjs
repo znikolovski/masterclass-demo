@@ -185,6 +185,10 @@ try {
     }};`,
   }));
   await page.goto(checkoutUrl);
+  await page.locator('.flight-card').first().waitFor();
+  assert.equal(await page.evaluate(() => performance.getEntriesByType('resource')
+    .some(({ name }) => new URL(name).pathname === '/scripts/aero-flight-offer.js')), false,
+  'Flight offer transport must not load during flight selection');
   assert.equal(gearRequests, 0, 'No product request before a flight is selected');
   gearFailure = true;
   await page.locator('.flight-card button').first().click();

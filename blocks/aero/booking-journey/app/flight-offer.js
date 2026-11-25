@@ -1,7 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import { h } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { fetchAeroOffer } from '../../../../scripts/aero-flight-offer.js';
 import { AERO_SHOP_ORIGIN } from '../../../../scripts/aero-shop.js';
 import { getBookingAccessToken, signInForBooking } from '../../../../scripts/aero-auth.js';
 
@@ -20,6 +19,8 @@ export default function FlightOffer({ bookingId, api, signedIn }) {
     setError(false);
     try {
       const token = await getBookingAccessToken(api);
+      if (controller.signal.aborted) return;
+      const { fetchAeroOffer } = await import('../../../../scripts/aero-flight-offer.js');
       if (controller.signal.aborted) return;
       const result = await fetchAeroOffer(bookingId, token, { claim, signal: controller.signal });
       if (!controller.signal.aborted) setOffer(result);
