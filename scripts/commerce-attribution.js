@@ -61,10 +61,11 @@ export function takeOrderAttribution(number) {
 
 /** Only server cart totals and a successful placeOrder receipt can supply applied attribution. */
 function capture(response) {
-  if (response.errors?.length) return;
+  if (response.errors?.some((error) => !['shipping', 'estimated'].includes(error.path?.[0]))) return;
   const data = response.data || {};
   const cartResults = [data.cart, data.customerCart,
-    ...Object.values(data).map((result) => result?.cart)];
+    ...Object.entries(data).filter(([field]) => field !== 'estimated')
+      .map(([, result]) => result?.cart)];
   cartResults.forEach((cart) => {
     if (!cart?.id || !Object.hasOwn(cart.prices || {}, 'discounts')) return;
     currentCartId = cart.id;
