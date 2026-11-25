@@ -14,7 +14,10 @@ returns.
    ("Save $X on this cart"). Both figures (`saving`, `current_saving`) come from the Commerce
    promotion engine, so the shopper is always steered to the highest discount available. Nothing
    renders for guests, empty carts, `INELIGIBLE`/`REDEEMED`/`UNAVAILABLE`, when the current
-   promotion saves as much or more, or if the backend does not support the query yet.
+   promotion saves as much or more, or when its code is already applied.
+   A failed offer check is reported separately with **Retry offer check**; it is not treated as
+   ineligibility and does not prevent the standard cart from working. Retrying only reads the
+   backend offer; it does not claim an entitlement or apply a coupon.
 3. **Apply this offer** calls `claimWkndRecoveryOffer(cart_id)` (issues the server entitlement),
    then applies the returned code with the cart drop-in's `applyCouponsToCart(..., REPLACE)`, so the
    drop-in refreshes totals. If a (smaller) code is already applied the card says
@@ -40,7 +43,7 @@ Events go through the existing ACDL → Web SDK path (`pushShopEvent`), with `da
 | --- | --- |
 | `shopRecoveryOfferView` | Offer card shown (once per cart/code/line state) |
 | `shopRecoveryOfferApply` | Offer claimed and applied |
-| `shopRecoveryOfferError` | Claim or apply failed (card stays with the reason) |
+| `shopRecoveryOfferError` | Offer check, claim or apply failed (card stays with a retry or reason) |
 
 They are not yet mapped to Analytics eVars/events (`mapShopToAnalytics`); allocate report-suite
 slots after checking existing usage (docs/SHOP-ANALYTICS-PLAN.md). No customer identifiers,
@@ -48,9 +51,13 @@ entitlements or codes are sent.
 
 ## Testing
 
-The backend fields must be deployed (Commerce storefront action + API Mesh). Until then the card
-stays hidden. Component behaviour (eligible, claim failure, ineligible, backend error) was
-verified headlessly with the GraphQL client and cart API stubbed at the module boundary.
+The backend fields must be deployed (Commerce storefront action + API Mesh).
+Run `node --test tools/tests/cart-recovery-offer.test.mjs` for browser regressions covering a
+failed check followed by a same-cart retry, stale replies after an empty cart or sign-out, and
+ineligible or inferior offers. The GraphQL client and authentication predicate are stubbed at
+the module boundary; these tests do not sign in a customer, issue entitlements or call Commerce.
+Eligible offers remain backend-decided. An email link does not bypass sign-in, inactivity,
+purchase, redemption or best-discount checks.
 
 ## Email preferences (express consent)
 

@@ -72,14 +72,31 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
     $offer = null;
   };
 
-  async function show(cart) {
+  async function show(cart, key) {
     latest += 1;
     const run = latest;
+    checkedKey = key;
+    remove();
     let offer;
     try {
       offer = (await request(OFFER_QUERY, cart.id))?.wkndRecoveryOffer;
     } catch (e) {
-      offer = null; // backend without recovery offers or transient failure: keep the standard cart
+      if (run !== latest) return;
+      checkedKey = null;
+      // eslint-disable-next-line no-console
+      console.error('commerce-cart recovery offer check failed', e?.name || 'Error');
+      const fragment = document.createRange().createContextualFragment(`
+        <section class="cart-recovery-offer" aria-label="Recovery offer check">
+          <p class="cart-recovery-offer__status" role="status" aria-live="polite">
+            We couldn't check your recovery offer. Your cart has not been changed.
+          </p>
+          <button type="button" class="cart-recovery-offer__apply">Retry offer check</button>
+        </section>`);
+      $offer = fragment.firstElementChild;
+      container.before($offer);
+      $offer.querySelector('button').addEventListener('click', () => show(cart, key));
+      pushShopEvent('shopRecoveryOfferError', { eventType: 'web.webinteraction.linkClicks', data: { offerStatus: 'ERROR' } });
+      return;
     }
     if (run !== latest) return; // a newer cart state is being checked
     remove();
@@ -115,9 +132,17 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
     });
   }
 
+  events.on('authenticated', (signedIn) => {
+    if (signedIn) return;
+    latest += 1;
+    checkedKey = null;
+    remove();
+  });
+
   // Re-check when the cart or its applied code changes (e.g. after sign-in or a coupon edit).
   events.on('cart/data', (cart) => {
     if (!cart?.id || !(cart.totalQuantity > 0) || !checkIsAuthenticated()) {
+      latest += 1;
       checkedKey = null;
       remove();
       return;
@@ -126,7 +151,6 @@ export default function initRecoveryOffer(container, { events, pushShopEvent }) 
     const lines = (cart.items || []).map((i) => `${i.uid}:${i.quantity}`).join(',');
     const key = `${cart.id}|${(cart.appliedCoupons || []).map((c) => c.code).join(',')}|${lines}`;
     if (key === checkedKey) return;
-    checkedKey = key;
-    show(cart);
+    show(cart, key);
   }, { eager: true });
 }
