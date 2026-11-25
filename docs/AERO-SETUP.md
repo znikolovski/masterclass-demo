@@ -321,15 +321,24 @@ with the best eligible saving applied and no stacking:
 - 1 × `WKND-LGT-001` — Alpine Start Headlamp 400
 - 1 × `WKND-TRV-009` — Wilderness First Aid Kit
 
-Commerce uses `X-WKND-Delegation: commerce`, issuer
-`urn:wknd-commerce:storefront`, and its dedicated
-`WKND_COMMERCE_BOOKING_ASSERTION_SECRET`. The coordinator provisions the same
-secret on Aero and Commerce without rotating the existing MCP secret. Assertions
+Commerce uses `X-WKND-Delegation: commerce` and issuer
+`urn:wknd-commerce:storefront`. Provision the dedicated value as
+`WKND_COMMERCE_BOOKING_ASSERTION_SECRET` on the Aero Worker and
+`WKND_BOOKING_ASSERTION_SECRET` on Commerce, without rotating the existing MCP secret. Assertions
 remain HS256, at most 60 seconds old/lived, scoped to `bookings:read`, addressed
 to the existing booking audience, and bound to the configured Auth0
 `identity_issuer` and customer subject. The existing account-key ownership lookup
 is unchanged. Commerce assertions cannot create bookings, omit the delegation
 header, or use the MCP signing key/issuer. No secret is sent to the browser.
+
+Commerce receives its two new inputs, `AERO_BUNDLE_ENABLED=true` and the dedicated
+signing secret, through the private `commerce-aero` package binding to `commerce`.
+Mesh's storefront source uses `commerce-aero/storefront`; browser clients keep
+the same Mesh endpoint and public auth configuration. Original action/package
+parameters remain untouched: never replay opaque GET values or replace their
+parameter arrays to add these inputs. The existing Adobe-managed package
+validators remain trusted Runtime dependencies; their execute-only source is
+not independently audited, and no existing sequences or sharing settings change.
 
 The UI renders the server-supplied components, promotion, percentage and expiry;
 it does not hardcode eligibility, manufacture prices, calculate a saving,
