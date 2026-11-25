@@ -151,6 +151,16 @@ function buildCard(item, i, bridge, isTop, intent, tracking) {
   if (bridge) secondary.addEventListener('click', () => bridge.sendMessage(`Compare adventures: ${name}`));
   actions.appendChild(secondary);
 
+  const flights = document.createElement('button');
+  flights.className = 'da-cta da-cta-secondary';
+  flights.type = 'button';
+  flights.textContent = 'Find Flights';
+  flights.disabled = !bridge;
+  if (bridge) {
+    flights.addEventListener('click', () => bridge.sendMessage(`Find WKND Aero demo flights for ${name} (adventure_id: ${item.adventure_id}). Ask me for my departure airport, exact departure date and traveller count before searching. Use the published adventure gateway, not an inferred airport.`));
+  }
+  actions.appendChild(flights);
+
   const tertiary = document.createElement('button');
   tertiary.className = 'da-cta da-cta-tertiary';
   tertiary.type = 'button';

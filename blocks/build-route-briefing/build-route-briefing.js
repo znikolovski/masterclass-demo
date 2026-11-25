@@ -175,6 +175,7 @@ function renderBriefing(block, item, bridge) {
   const actions = [
     ['Create Gear Checklist', `Create a gear checklist for ${routeName}`],
     ['Plan Permits & Access', `Help me plan permits and access for ${routeName}`],
+    ['Find Flights', `Find WKND Aero demo flights for ${routeName}${item.adventure_id ? ` (adventure_id: ${item.adventure_id})` : ''}. Ask me for my departure airport, exact departure date and traveller count before searching. Use the published adventure gateway, not an inferred airport.`],
     ['Compare Another Route', `Compare another route with ${routeName}`],
   ];
   const ctaRow = el('div', 'build-route-briefing-ctas');

@@ -195,6 +195,20 @@ try {
   'Reserve the mobile viewport while the booking app initializes');
   await page.unroute('**/blocks/aero/booking-journey/app/index.js');
   await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(`${checkoutUrl}&flight_id=WK205`);
+  await page.getByRole('button', { name: 'Continue with this flight' }).waitFor();
+  assert.match(await page.locator('.booking-flights').innerText(), /WK205.*fare has been refreshed/);
+  assert.match(await page.locator('.flight-card').filter({ hasText: 'Selected in the LLM app' }).innerText(), /WK205/);
+  assert.equal(
+    await page.getByRole('heading', { name: 'Select your flight', exact: true }).count(),
+    1,
+    'LLM selection must not skip refreshed-fare confirmation',
+  );
+  assert.equal(posts, 0, 'Handoff must not create a booking');
+  await page.goto(`${checkoutUrl}&flight_id=WK999`);
+  await page.getByRole('status').filter({ hasText: 'selected in the LLM app is unavailable' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Continue with this flight' }).count(), 0);
+  gearRequests = 0;
   await page.goto(checkoutUrl);
   await page.locator('.flight-card').first().waitFor();
   assert.equal(await page.evaluate(() => performance.getEntriesByType('resource')
