@@ -18,6 +18,16 @@ async function decorateAndLoad(sectionHtml) {
 export default async function decorate(block) {
   const config = readBlockConfig(block);
 
+  if ([
+    'test-of1-nov20--masterclass-demo--znikolovski.aem.page',
+    'test-of1-nov20--masterclass-demo--znikolovski.aem.live',
+  ].includes(window.location.hostname)) {
+    config['api-base'] = new URL(
+      '/api/v1/web/wknd-mcp/of1-gateway-nov20',
+      'https://28538-914blueshark.adobeioruntime.net',
+    ).href;
+  }
+
   if (!config['api-endpoint']) {
     config['api-endpoint'] = DEFAULT_WORKER_URL;
   }

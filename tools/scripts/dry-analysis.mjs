@@ -243,13 +243,10 @@ function renderReport(files, findings) {
 }
 
 /**
- * Reads `--name value` or `--name=value` (CI passes the `=` form).
  * @param {string} arg
  * @returns {string|null}
  */
 function readArg(arg) {
-  const inline = process.argv.find((a) => a.startsWith(`${arg}=`));
-  if (inline) return inline.slice(arg.length + 1) || null;
   const idx = process.argv.indexOf(arg);
   if (idx === -1) return null;
   return process.argv[idx + 1] || null;
@@ -259,13 +256,6 @@ function main() {
   const base = readArg('--base') || 'main';
   const output = readArg('--output');
   process.env.DRY_BASE = base;
-
-  try {
-    execSync(`git rev-parse --verify --quiet ${base}^{commit}`, { cwd: ROOT, stdio: 'ignore' });
-  } catch {
-    console.error(`DRY analysis: base "${base}" is not a resolvable commit (fetch it first).`);
-    process.exit(2);
-  }
 
   let files = getChangedFiles(base);
   if (files.length === 0) {

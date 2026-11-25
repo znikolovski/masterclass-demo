@@ -1,6 +1,28 @@
 # Your Project's Title...
 Your project's description...
 
+## OF1 historical diagnostic branch - do not merge
+
+`test-of1-nov20` restores website code from
+`ff4fb027a0deba85e34b9b8ba4713d47b2bb9838`, the November 20 release with
+recorded successful adventure generation. The only differences from that tree
+are this note and a hostname-scoped API-base override in `blocks/of1/of1.js`.
+
+- Test: https://test-of1-nov20--masterclass-demo--znikolovski.aem.page/of1
+- Gateway: https://28538-914blueshark.adobeioruntime.net/api/v1/web/wknd-mcp/of1-gateway-nov20
+- Gateway ZIP: the exact archived original `0.0.7` artifact, SHA-256
+  `92e64e9c754bb5ee457b731880934454257e06ec1272aca9a2fad0065bad9f24`.
+  The separate action starts at its own version `0.0.1`; its executable bytes
+  match the original `0.0.7`. Product-first remains enabled.
+- Main website code, live gateway `of1-gateway`, and authored `/of1` are unchanged.
+
+The CMS content, remote OF1 SDK/generator, tenant state, and Commerce backend
+remain current. This restores website and gateway code, not the entire
+historical environment. Test `?q=jacket` as the product control and the original
+Ohrid question as the adventure case. Do not merge this diagnostic rollback into
+main or use it for checkout, bookings, consent, or other write journeys.
+Historical lint failures are intentionally not repaired in this baseline.
+
 ## Environments
 - Preview: https://main--{repo}--{owner}.aem.page/
 - Live: https://main--{repo}--{owner}.aem.live/
@@ -67,30 +89,3 @@ Its centered action buttons are capped at 280px with 44px minimum touch targets.
 1. Install the [AEM CLI](https://github.com/adobe/helix-cli): `npm install -g @adobe/aem-cli`
 1. Start AEM Proxy: `aem up` (opens your browser at `http://localhost:3000`)
 1. Open the `{repo}` directory in your favorite IDE and start coding :)
-
-### Hero layout regression check
-
-With the AEM dev server running, use
-`PAGE_LAYOUT_BASE_URL=http://localhost:3000 node --test tools/tests/page-layout.test.mjs`.
-It checks the published Yosemite climbing article and Gear page at mobile/desktop
-widths: the hero must be decorated before first paint, CLS must stay at or below
-0.1, and a failed font service must not hide the page. Without the environment
-variable the browser test is skipped, not passed.
-
-The hero image is still preloaded from the head, but the page is revealed only
-after eager decoration, stylesheet readiness, and a bounded wait for its fonts.
-The provider's Latin and Latin-extended font faces are registered directly in the
-critical `head.html` styles, without a redundant Google Fonts CSS request.
-Only common Latin binaries are preloaded; eager readiness checks the actual hero
-and first-section text so extended characters also use their final font at reveal.
-Keep these pinned faces and the font preloads in sync when updating fonts.
-Empty footers stay out of the layout while deferred sections load. Above-fold
-section variant padding belongs in `styles/styles.css`, not lazy styles. Recheck both
-pages with mobile and desktop Lighthouse after changes; local results do not
-replace the branch preview's PSI check.
-For production-like local measurements, start AEM with `--no-livereload` to
-exclude its development-only reload script, not application resources.
-
-EDS media-hash preloads use the current page origin, matching the rendered hero,
-rather than downloading a second copy from the live URL in preview or local tests.
-External DAM image URLs retain their original origin.

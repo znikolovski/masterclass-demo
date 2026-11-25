@@ -247,11 +247,7 @@ main .build-gear-checklist .bgc-scroll::-webkit-scrollbar-thumb {
   main .build-gear-checklist .bgc-cta { border-top-color: rgb(244 242 239 / 14%); }
   main .build-gear-checklist .bgc-weight-pill { color: #f0834a; }
   main .build-gear-checklist .bgc-unresolved-label { color: #f0834a; }
-
-  main .build-gear-checklist .bgc-badge-conditional {
-    color: #f0834a;
-    border-color: #f0834a;
-  }
+  main .build-gear-checklist .bgc-badge-conditional { color: #f0834a; border-color: #f0834a; }
 }
 
 body.dark main .build-gear-checklist .bgc-card {
@@ -266,8 +262,4 @@ body.dark main .build-gear-checklist .bgc-group-label { border-bottom-color: rgb
 body.dark main .build-gear-checklist .bgc-cta { border-top-color: rgb(244 242 239 / 14%); }
 body.dark main .build-gear-checklist .bgc-weight-pill { color: #f0834a; }
 body.dark main .build-gear-checklist .bgc-unresolved-label { color: #f0834a; }
-
-body.dark main .build-gear-checklist .bgc-badge-conditional {
-  color: #f0834a;
-  border-color: #f0834a;
-}
+body.dark main .build-gear-checklist .bgc-badge-conditional { color: #f0834a; border-color: #f0834a; }

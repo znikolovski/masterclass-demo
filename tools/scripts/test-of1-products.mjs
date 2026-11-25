@@ -3,7 +3,6 @@
  * Real OF1 SDK + gateway + Commerce/drop-ins, backed by an isolated in-memory catalog/cart.
  * Requires the sibling wknd-commerce and wknd-automation workspaces; never mutates live carts.
  * Run: node tools/scripts/test-of1-products.mjs [http://localhost:3001]
- * Pass an explicit /of1 URL to replay a published site.
  * Start AEM with --html-folder drafts.
  */
 /* eslint-disable no-await-in-loop, no-restricted-syntax -- sequential browser interactions */
@@ -20,8 +19,7 @@ const { main: gateway } = require('../../../wknd-automation/actions/of1-gateway/
 // eslint-disable-next-line import/extensions
 const catalog = structuredClone(require('../../../wknd-commerce/data/catalog.json'));
 
-const pageUrl = new URL(process.argv[2] || 'http://localhost:3001');
-const of1Url = new URL(pageUrl.pathname === '/' ? '/drafts/of1' : pageUrl.pathname, pageUrl.origin).href;
+const base = process.argv[2] || 'http://localhost:3001';
 const screenshots = process.argv[3];
 const torrent = catalog.products.find((p) => p.sku === 'WKND-JKT-003');
 // Make a real variant-price boundary deterministic, independent of the seed's stock pattern.
@@ -99,7 +97,7 @@ try {
     body: 'const q = window.alloy.q; const run = ([resolve]) => resolve({}); q.push = run; q.forEach(run);',
   }));
   const query = 'Compare Alpine Shell Jacket and Torrent Rain Jacket';
-  await page.goto(`${of1Url}?q=${encodeURIComponent(query)}`);
+  await page.goto(`${base}/drafts/of1?q=${encodeURIComponent(query)}`);
   const panel = page.locator('.generated-section .product-comparison').first();
   await panel.locator('.product-comparison__card').first().waitFor({ timeout: 45000 });
   assert.equal(await panel.locator('.product-comparison__card').count(), 2);
@@ -107,24 +105,7 @@ try {
   assert((await panel.textContent()).includes('410'), 'catalog-backed weight');
   assert((await panel.textContent()).includes('20'), 'catalog-backed waterproofing');
   assert.equal(await page.locator('.generated-section .product-recommendations').count(), 0, 'no duplicate adventure gear');
-  assert.equal(await page.locator('.generated-section .aero-options').count(), 0);
-  const sherpa = page.locator('.generated-section .sherpa-options');
-  assert.equal(await sherpa.count(), 1, 'one visible product Sherpa handoff');
-  const chat = sherpa.getByRole('link', { name: 'Chat with WKND Sherpa', exact: true });
-  assert(await chat.isVisible(), 'product results expose the Sherpa CTA');
-  const handoff = await chat.evaluate((link) => {
-    link.addEventListener('click', (event) => event.preventDefault(), { once: true });
-    link.click();
-    return link.getAttribute('href');
-  });
-  const handoffParams = new URLSearchParams(handoff.slice('#sherpa?'.length));
-  assert.equal(handoffParams.get('send'), 'true');
-  assert.equal(handoffParams.get('prompt'), [
-    'Help me choose WKND products and compare which options best fit my needs.',
-    `My current search is: ${query}.`,
-    'The products shown include: Alpine Shell Jacket; Torrent Rain Jacket.',
-  ].join(' '));
-  console.log('PASS automatically rendered product Sherpa CTA and exact product-specific handoff');
+  assert.equal(await page.locator('.generated-section .sherpa-options, .generated-section .aero-options').count(), 0);
   assert.equal(await page.locator('.generated-section .cards a[href*="/blog/"]').count(), 3);
   assert.equal(await panel.locator('.product-comparison__eyebrow').textContent(), 'WKND gear finder');
   assert.equal(await panel.getByRole('link', { name: 'View cart', exact: true }).count(), 1);
@@ -185,7 +166,6 @@ try {
   };
   await followUp('WKND-PCK-005', 2);
   const simple = page.locator('.generated-section .product-comparison').last();
-  assert.equal(await sherpa.count(), 2, 'one Sherpa handoff per product turn');
   assert.equal(await simple.locator('table').count(), 0, 'single product does not get a fake comparison');
   const simpleAdd = simple.getByRole('button', { name: /Add .* to cart/ });
   await simpleAdd.click();
@@ -246,7 +226,7 @@ try {
   assert.deepEqual(pageErrors, [], `page errors: ${pageErrors.join(' | ')}`);
   console.log('PASS no page errors');
   await page.route('**/scripts/initializers/cart.js', (route) => route.abort());
-  await page.goto(`${of1Url}?q=WKND-PCK-005`);
+  await page.goto(`${base}/drafts/of1?q=WKND-PCK-005`);
   await page.locator('.product-comparison').getByRole('button', { name: 'Reload page', exact: true }).waitFor();
   console.log('PASS failed Commerce initialization offers reload instead of a cached failing retry');
 } catch (error) {

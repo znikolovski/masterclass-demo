@@ -235,16 +235,6 @@ The deployed site-side card/Sherpa handoff, `send=true`, two-column grids, and
 unique-caption image recovery pass independently of this ingestion failure.
 Their deterministic browser checks do not prove live Aero retrieval.
 
-Product and adventure results both generate a visible Sherpa handoff panel.
-Product results still exclude adventure-only gear, planning and flight panels.
-Sherpa handoffs use the originating OF1 turn. A product-comparison result asks for
-help choosing and comparing WKND products, including the search and loaded product
-names rather than its supporting adventure cards. The prompt refreshes on activation
-to include asynchronously loaded products. Empty product results remain shopping
-requests; earlier-turn links retain their own context. Adventure-only handoffs keep
-their existing preparation prompt. Validate with
-`node tools/scripts/test-of1-actions.mjs http://localhost:3001`.
-
 The site now also renders a separate source-backed **WKND Aero flight options**
 section after Planning notes. It reads structured fields from the five published
 Aero entities and matches the current query/result headings. Airports,

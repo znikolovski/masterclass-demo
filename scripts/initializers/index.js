@@ -6,7 +6,6 @@ import { getCookie } from '@dropins/tools/lib.js';
 import { CORE_FETCH_GRAPHQL } from '../commerce-utils.js';
 import { syncShopSession } from '../shop-auth.js';
 import { startShopAnalytics } from '../shop-analytics.js';
-import { SHOP_PATHS } from '../commerce-config.js';
 
 export const getUserTokenCookie = () => getCookie('auth_dropin_user_token');
 
@@ -37,12 +36,5 @@ export default async function initializeDropins() {
   events.on('authenticated', setAuthHeaders, { eager: true });
 
   await import('./auth.js');
-  if (window.location.pathname.replace(/\/$/, '') === SHOP_PATHS.cart
-    && getUserTokenCookie()) {
-    import('../../blocks/commerce-cart/recovery-offer.js')
-      .then(({ prefetchRecoveryOffer }) => prefetchRecoveryOffer({ events }))
-      // eslint-disable-next-line no-console
-      .catch((error) => console.error('commerce-cart recovery prefetch', error));
-  }
   await import('./cart.js');
 }

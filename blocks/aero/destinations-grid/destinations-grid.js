@@ -21,21 +21,13 @@ function formatCategory(category) {
 }
 
 /**
- * @param {object} item Catalog entity
- * @returns {string|undefined} Adventure category
- */
-function categoryOf(item) {
-  return item.adventureCategory || item.extensions?.adventureCategory;
-}
-
-/**
  * @param {Element} block
  * @param {object[]} items
  * @param {string} filter
  */
 function renderGrid(block, items, filter) {
   const filtered = filter && filter !== 'all'
-    ? items.filter((item) => categoryOf(item) === filter)
+    ? items.filter((item) => (item.adventureCategory || item.extensions?.adventureCategory) === filter)
     : items;
 
   const grid = document.createElement('div');
@@ -81,7 +73,7 @@ function renderGrid(block, items, filter) {
  * @param {string} activeFilter
  */
 function renderFilters(block, items, activeFilter) {
-  const categories = [...new Set(items.map(categoryOf).filter(Boolean))];
+  const categories = [...new Set(items.map((item) => item.adventureCategory || item.extensions?.adventureCategory).filter(Boolean))];
   if (categories.length < 2) return;
 
   const filters = document.createElement('div');

@@ -2,9 +2,6 @@
  * The iOS app installs this bounded context before document scripts execute.
  * Standalone browsers retain the existing website consent and identity policy.
  */
-import { applyCustomerIdentity, CUSTOMER_IDENTITY_CONFIG } from './customer-identity.js';
-import { validatePersonBindingResponse } from './person-binding.js';
-
 export function getNativeContext() {
   if (typeof window === 'undefined'
     || window.location.origin !== 'https://wknd-adventures.run.place') return null;
@@ -16,32 +13,17 @@ export function getNativeContext() {
 
 export function applyNativeContext(content) {
   const context = getNativeContext();
-  if (!context) {
-    if (typeof window !== 'undefined'
-      && window.location.origin === 'https://wknd-adventures.run.place'
-      && window.wkndNativeContext != null) {
-      delete content.xdm?.identityMap?.wkndCustomerId;
-      console.warn('Native privacy context is invalid; collection is disabled.'); // eslint-disable-line no-console
-      return false;
-    }
-    applyCustomerIdentity(content);
-    return true;
-  }
+  if (!context) return true;
   if (!context.collect) return false;
-  // Legacy identity context carries neither a verified server alias nor a linkage grant.
-  delete content.xdm?.identityMap?.wkndCustomerId;
-  if (!CUSTOMER_IDENTITY_CONFIG.serverBindingEnabled || !context.personalize
-    || context.personBinding == null) return true;
-  try {
-    const result = validatePersonBindingResponse(context.personBinding, 'person-status');
-    if (result.consent !== 'granted') throw new Error('Native binding is not granted.');
+  const { identity } = context;
+  if (identity && typeof identity.namespace === 'string' && typeof identity.id === 'string'
+    && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(identity.namespace)
+    && identity.id.length > 0 && identity.id.length <= 256) {
     content.xdm ||= {};
     content.xdm.identityMap ||= {};
-    content.xdm.identityMap.wkndCustomerId = [{
-      id: result.binding.personAlias, authenticatedState: 'authenticated', primary: true,
+    content.xdm.identityMap[identity.namespace] = [{
+      id: identity.id, authenticatedState: 'authenticated', primary: true,
     }];
-  } catch {
-    console.warn('Native identity linking is unavailable; collection consent is unchanged.'); // eslint-disable-line no-console
   }
   return true;
 }

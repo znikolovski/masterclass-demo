@@ -7,10 +7,9 @@ import { getConfigValue, getHeaders, initializeConfig } from '@dropins/tools/lib
 import { initializers } from '@dropins/tools/initializer.js';
 import { isAemAssetsEnabled } from '@dropins/tools/lib/aem/assets.js';
 import { loadCSS } from './aem.js';
-import commerceConfig, { BUNDLE_ATTRIBUTION_READY, DM_DELIVERY_ORIGIN } from './commerce-config.js';
+import commerceConfig, { DM_DELIVERY_ORIGIN } from './commerce-config.js';
 import { preconnectDm } from './dm-image.js';
 import { CORE_FETCH_GRAPHQL, CS_FETCH_GRAPHQL } from './commerce-utils.js';
-import { installBundleAttribution } from './commerce-attribution.js';
 
 export * from './commerce-utils.js';
 
@@ -30,9 +29,6 @@ export function configureCommerce() {
   loadCSS(`${window.hlx?.codeBasePath || ''}/styles/commerce.css`);
   CORE_FETCH_GRAPHQL.setEndpoint(getConfigValue('commerce-core-endpoint'));
   CORE_FETCH_GRAPHQL.setFetchGraphQlHeaders((prev) => ({ ...prev, ...getHeaders('all') }));
-  installBundleAttribution(CORE_FETCH_GRAPHQL, {
-    enabled: BUNDLE_ATTRIBUTION_READY,
-  });
   CS_FETCH_GRAPHQL.setEndpoint(getConfigValue('commerce-endpoint'));
   CS_FETCH_GRAPHQL.setFetchGraphQlHeaders((prev) => ({ ...prev, ...getHeaders('cs') }));
   if (isAemAssetsEnabled()) {

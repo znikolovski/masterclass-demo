@@ -353,6 +353,22 @@ main .section.accent .button-group .button-ghost:hover {
   box-shadow: 5px 5px 0 0 #fff;
 }
 
+main > div.secondary,
+main .section.secondary {
+  background-color: var(--light-color);
+  margin: 0;
+  padding: 80px 0;
+}
+
+main > div.accent,
+main .section.accent {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 80px 0;
+  text-align: center;
+}
+
 main .section.hero-adventure-container:has(+ .section.accent) {
   padding-bottom: 0;
 }

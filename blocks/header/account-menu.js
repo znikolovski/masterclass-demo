@@ -30,7 +30,7 @@ function onPointerDown(e) {
 }
 
 async function runAuth(action, trigger) {
-  const error = panel.querySelector('.nav-account-menu-error');
+  const error = panel.querySelector('.nav-account-menu__error');
   error.textContent = '';
   trigger.disabled = true;
   try {
@@ -54,25 +54,25 @@ async function runAuth(action, trigger) {
 
 function render() {
   const state = getAccountState();
-  panel.classList.toggle('nav-account-menu-signed-in', !!state);
+  panel.classList.toggle('nav-account-menu--signed-in', !!state);
   panel.innerHTML = state ? `
-    <p class="nav-account-menu-eyebrow">WKND account</p>
-    <p class="nav-account-menu-title"></p>
-    <ul class="nav-account-menu-links">
+    <p class="nav-account-menu__eyebrow">WKND account</p>
+    <p class="nav-account-menu__title"></p>
+    <ul class="nav-account-menu__links">
       <li><a href="${ACCOUNT_PATH}">Account overview</a></li>
       <li><a href="${ACCOUNT_PATH}#orders">Orders</a></li>
       <li><a href="${ACCOUNT_PATH}#addresses">Saved addresses</a></li>
     </ul>
     <button type="button" class="button secondary" data-action="signout">Sign out</button>
-    <p class="nav-account-menu-error" role="alert"></p>` : `
-    <p class="nav-account-menu-eyebrow">WKND account</p>
-    <p class="nav-account-menu-title">Sign in to WKND</p>
-    <p class="nav-account-menu-copy">Track your gear orders, check out faster and keep your addresses. One account for WKND Adventures and WKND Aero.</p>
+    <p class="nav-account-menu__error" role="alert"></p>` : `
+    <p class="nav-account-menu__eyebrow">WKND account</p>
+    <p class="nav-account-menu__title">Sign in to WKND</p>
+    <p class="nav-account-menu__copy">Track your gear orders, check out faster and keep your addresses. One account for WKND Adventures and WKND Aero.</p>
     <button type="button" class="button primary" data-action="signin">Sign in</button>
     <button type="button" class="button secondary" data-action="signup">Create account</button>
-    <p class="nav-account-menu-error" role="alert"></p>`;
+    <p class="nav-account-menu__error" role="alert"></p>`;
   if (state) {
-    panel.querySelector('.nav-account-menu-title').textContent = state.firstName ? `Hi, ${state.firstName}` : 'Hi there';
+    panel.querySelector('.nav-account-menu__title').textContent = state.firstName ? `Hi, ${state.firstName}` : 'Hi there';
   }
   panel.querySelectorAll('[data-action]').forEach((el) => {
     el.addEventListener('click', () => runAuth(el.dataset.action, el));

@@ -633,14 +633,14 @@ header nav .nav-commerce .nav-account-menu p {
   margin: 0;
 }
 
-header nav .nav-commerce .nav-account-menu-eyebrow {
+header nav .nav-commerce .nav-account-menu__eyebrow {
   color: var(--accent-color);
   font: 700 11px/1.4 var(--heading-font-family);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-header nav .nav-commerce .nav-account-menu-title {
+header nav .nav-commerce .nav-account-menu__title {
   color: var(--text-color);
   font-family: var(--heading-font-family);
   font-size: 20px;
@@ -648,14 +648,14 @@ header nav .nav-commerce .nav-account-menu-title {
   line-height: 1.2;
 }
 
-header nav .nav-commerce .nav-account-menu-copy {
+header nav .nav-commerce .nav-account-menu__copy {
   color: var(--text-color);
   font-family: var(--body-font-family);
   font-size: 15px;
   line-height: 1.5;
 }
 
-header nav .nav-commerce .nav-account-menu-links {
+header nav .nav-commerce .nav-account-menu__links {
   display: grid;
   margin: 0;
   padding: 0;
@@ -663,11 +663,11 @@ header nav .nav-commerce .nav-account-menu-links {
   list-style: none;
 }
 
-header nav .nav-commerce .nav-account-menu-links li {
+header nav .nav-commerce .nav-account-menu__links li {
   border-bottom: 1px solid #dadada;
 }
 
-header nav .nav-tools .nav-commerce .nav-account-menu-links a:any-link {
+header nav .nav-tools .nav-commerce .nav-account-menu__links a:any-link {
   display: block;
   width: auto;
   height: auto;
@@ -682,7 +682,7 @@ header nav .nav-tools .nav-commerce .nav-account-menu-links a:any-link {
   text-transform: none;
 }
 
-header nav .nav-tools .nav-commerce .nav-account-menu-links a:hover {
+header nav .nav-tools .nav-commerce .nav-account-menu__links a:hover {
   background: transparent;
   color: var(--accent-color);
   box-shadow: none;
@@ -693,12 +693,12 @@ header nav .nav-commerce .nav-account-menu .button {
   width: 100%;
 }
 
-header nav .nav-commerce .nav-account-menu-error {
+header nav .nav-commerce .nav-account-menu__error {
   color: #b42318;
   font-size: 14px;
 }
 
-header nav .nav-commerce .nav-account-menu-error:empty {
+header nav .nav-commerce .nav-account-menu__error:empty {
   display: none;
 }
 

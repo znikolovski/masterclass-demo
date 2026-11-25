@@ -1,10 +1,7 @@
 /** Adventures site origin for catalog images (Media Bus paths from query-index). */
 export const ADVENTURES_IMAGE_ORIGIN = 'https://main--masterclass-demo--znikolovski.aem.live';
 
-/**
- * WKND Aero delivery origin — use for hero fallbacks,
- * never content.da.live/.index (401 cross-site).
- */
+/** WKND Aero delivery origin — use for hero fallbacks, never content.da.live/.index (401 cross-site). */
 export const AERO_IMAGE_ORIGIN = 'https://main--wknd-aero--znikolovski.aem.live';
 
 /** Shared hero media hash (available on both Adventures and Aero delivery buses). */

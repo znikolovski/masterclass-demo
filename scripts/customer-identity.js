@@ -1,32 +1,20 @@
-import { clearPersonBinding, getPersonBinding } from './person-binding.js';
-
-// Capability does not grant consent; the server issues aliases only for existing linkage grants.
-export const CUSTOMER_IDENTITY_CONFIG = Object.freeze({
-  namespace: 'wkndCustomerId', serverBindingEnabled: true,
-});
+export const CUSTOMER_IDENTITY_CONFIG = { namespace: 'wkndCustomerId', auth0SubjectApproved: true };
+let customerId;
 let revision = 0;
 
-export function updateCustomerIdentity() {
+export function updateCustomerIdentity(profile) {
   revision += 1;
-  clearPersonBinding();
+  const { namespace, auth0SubjectApproved } = CUSTOMER_IDENTITY_CONFIG;
+  customerId = auth0SubjectApproved && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(namespace)
+    && typeof profile?.sub === 'string' && profile.sub.length > 0 && profile.sub.length <= 256
+    ? profile.sub : undefined;
 }
 
-export async function restoreCustomerIdentity(getProfile, getStatus) {
+export async function restoreCustomerIdentity(getProfile) {
   const started = revision;
   try {
     const profile = await getProfile();
-    if (revision === started) {
-      updateCustomerIdentity();
-      if (profile && CUSTOMER_IDENTITY_CONFIG.serverBindingEnabled && getStatus) {
-        try {
-          await getStatus();
-        } catch {
-          clearPersonBinding();
-          // eslint-disable-next-line no-console
-          console.warn('WKND identity linking is unavailable; account sign-in is unchanged.');
-        }
-      }
-    }
+    if (revision === started) updateCustomerIdentity(profile);
     return profile;
   } catch (error) {
     if (revision === started) updateCustomerIdentity(null);
@@ -35,13 +23,10 @@ export async function restoreCustomerIdentity(getProfile, getStatus) {
 }
 
 export function applyCustomerIdentity(content) {
-  delete content.xdm?.identityMap?.[CUSTOMER_IDENTITY_CONFIG.namespace];
-  if (!CUSTOMER_IDENTITY_CONFIG.serverBindingEnabled) return;
-  const receipt = getPersonBinding();
-  if (!receipt) return;
+  if (!customerId) return;
   content.xdm ||= {};
   content.xdm.identityMap ||= {};
   content.xdm.identityMap[CUSTOMER_IDENTITY_CONFIG.namespace] = [{
-    id: receipt.personAlias, authenticatedState: 'authenticated', primary: true,
+    id: customerId, authenticatedState: 'authenticated', primary: true,
   }];
 }

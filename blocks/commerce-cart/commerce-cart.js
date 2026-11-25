@@ -3,8 +3,6 @@
  * Authoring (key/value rows, all optional):
  *   max-items  limit the number of line items shown
  * Prices are AUD incl. GST; coupons such as WKND10 are validated by the commerce backend.
- * Signed-in shoppers with an eligible inactive cart see the backend recovery offer
- * (recovery-offer.js); no authoring is needed.
  */
 import { readBlockConfig } from '../../scripts/aem.js';
 import { SHOP_PATHS } from '../../scripts/commerce-config.js';
@@ -17,40 +15,17 @@ import { shopStylesReady } from '../../scripts/shop-styles.js';
  * @param {{ maxItems?: string, $list: Element, $summary: Element, setEmpty: Function }} ctx
  */
 async function renderCart(block, {
-  maxItems, $list, $summary, $bundles, $note, setEmpty,
+  maxItems, $list, $summary, setEmpty,
 }) {
-  const [commerce, { pushShopEvent }] = await Promise.all([
+  const [{ initializeCommerce, getProductLink }, { pushShopEvent }] = await Promise.all([
     import('../../scripts/commerce.js'),
     import('../../scripts/shop-analytics.js'),
   ]);
-  const { initializeCommerce, getProductLink, CORE_FETCH_GRAPHQL } = commerce;
   await initializeCommerce();
   await import('../../scripts/initializers/cart.js');
-  const [{
-    enableCartQuoteBatch, invalidateCartQuoteBatch,
-  }, { getCartDataFromCache }] = await Promise.all([
-    import('../../scripts/commerce-fetch-graphql.js'),
-    import('@dropins/storefront-cart/api.js'),
-  ]);
-  const priceNote = $note.textContent;
-  enableCartQuoteBatch({
-    getCartDataFromCache,
-    onEstimateError: () => {
-      $note.textContent = "We couldn't refresh your estimated total. Check your destination and try again.";
-      $note.setAttribute('role', 'alert');
-    },
-    onEstimateSuccess: () => {
-      $note.textContent = priceNote;
-      $note.removeAttribute('role');
-    },
-  });
-  ['pointerdown', 'keydown', 'click', 'input', 'change'].forEach((event) => {
-    document.addEventListener(event, invalidateCartQuoteBatch, { capture: true });
-  });
   const [
     { render: provider }, { default: CartSummaryList }, { default: OrderSummary },
     { default: EstimateShipping }, { default: Coupons }, { tryRenderAemAssetsImage }, { events },
-    { default: groupDiscounts },
   ] = await Promise.all([
     import('@dropins/storefront-cart/render.js'),
     import('@dropins/storefront-cart/containers/CartSummaryList.js'),
@@ -59,56 +34,12 @@ async function renderCart(block, {
     import('@dropins/storefront-cart/containers/Coupons.js'),
     import('@dropins/tools/lib/aem/assets.js'),
     import('@dropins/tools/event-bus.js'),
-    import('./discounts.js'),
   ]);
 
   const productLink = (item) => getProductLink(item.url?.urlKey);
 
-  if (new URLSearchParams(window.location.search).has('aero_booking')) {
-    import('./aero-offer.js').then(async ({ default: init }) => {
-      const [{ signInToShop }, { checkIsAuthenticated }, {
-        refreshCart, addProductsToCart,
-      }] = await Promise.all([
-        import('../../scripts/shop-auth.js'),
-        import('../../scripts/commerce-utils.js'),
-        import('@dropins/storefront-cart/api.js'),
-      ]);
-      init($bundles, {
-        events,
-        fetchGraphQl: (...args) => CORE_FETCH_GRAPHQL.fetchGraphQl(...args),
-        isAuthenticated: checkIsAuthenticated,
-        signIn: () => signInToShop({ surface: 'aero-offer' }),
-        refreshCart,
-        addProducts: addProductsToCart,
-      });
-    })
-      // eslint-disable-next-line no-console
-      .catch((e) => console.error('commerce-cart flight offer', e));
-  }
-
-  import('./bundle-offers.js')
-    .then(async ({ default: init }) => {
-      const { addProductsToCart, refreshCart } = await import('@dropins/storefront-cart/api.js');
-      init($bundles, {
-        events,
-        fetchGraphQl: (...args) => CORE_FETCH_GRAPHQL.fetchGraphQl(...args),
-        addProducts: addProductsToCart,
-        refreshCart,
-      });
-    })
-    // eslint-disable-next-line no-console
-    .catch((e) => console.error('commerce-cart bundle offers', e));
-
-  // Backend-decided recovery offer for signed-in shoppers (lazy; never blocks the cart render).
-  import('./recovery-offer.js')
-    .then(({ default: init }) => init($summary, { events, pushShopEvent }))
-    // eslint-disable-next-line no-console
-    .catch((e) => console.error('commerce-cart recovery offer', e));
-
   let viewed = false;
-  events.on('cart/authenticated', invalidateCartQuoteBatch);
   events.on('cart/data', (cart) => {
-    if (!cart || cart.totalQuantity < 1) invalidateCartQuoteBatch();
     setEmpty(!cart || cart.totalQuantity < 1);
     if (!viewed && cart) {
       viewed = true;
@@ -144,7 +75,6 @@ async function renderCart(block, {
     })($list),
     provider.render(OrderSummary, {
       routeCheckout: () => SHOP_PATHS.checkout,
-      updateLineItems: groupDiscounts,
       slots: {
         EstimateShipping: async (ctx) => {
           const wrapper = document.createElement('div');
@@ -165,10 +95,7 @@ export default async function decorate(block) {
   const { 'max-items': maxItems } = readBlockConfig(block);
   const fragment = document.createRange().createContextualFragment(`
     <div class="cart__wrapper">
-      <div class="cart__left-column">
-        <div class="cart__list"></div>
-        <div class="cart__bundle-offers"></div>
-      </div>
+      <div class="cart__left-column"><div class="cart__list"></div></div>
       <div class="cart__right-column">
         <div class="cart__order-summary shop-accent"></div>
         <p class="cart__note">Prices include GST.</p>
@@ -177,7 +104,6 @@ export default async function decorate(block) {
   fragment.querySelector('.cart__right-column').append(shopPromises(['shipping', 'warranty', 'demo']));
   const $list = fragment.querySelector('.cart__list');
   const $summary = fragment.querySelector('.cart__order-summary');
-  const $bundles = fragment.querySelector('.cart__bundle-offers');
   const $note = fragment.querySelector('.cart__note');
   // an empty cart keeps the shop promises, without the order summary
   const setEmpty = (empty) => {
@@ -196,6 +122,6 @@ export default async function decorate(block) {
   // Don't await: the section is revealed when decorate() resolves, so the reserved layout
   // paints straight away instead of the page reflowing once the drop-ins have rendered.
   renderCart(block, {
-    maxItems, $list, $summary, $bundles, $note, setEmpty,
+    maxItems, $list, $summary, setEmpty,
   }).catch((e) => console.error('commerce-cart', e));
 }

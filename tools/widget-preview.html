@@ -50,16 +50,6 @@
       font-size: 14px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-
-    .wp-scenario {
-      margin: 0;
-      padding: 8px 16px;
-      border-bottom: 1px solid #e3c770;
-      background: #fff6d6;
-      color: #5c4400;
-      font-size: 13px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
   </style>
 </head>
 
@@ -73,8 +63,6 @@
 
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('block');
-    // Optional simulated fixture scenario (e.g. &scenario=planner-offer); same allowlist.
-    const scenario = params.get('scenario');
 
     const stage = document.getElementById('wp-stage');
 
@@ -100,7 +88,6 @@
       return {
         hostContext: {
           preview: true,
-          ...(scenario ? { previewScenario: scenario } : {}),
           theme: prefersDark ? 'dark' : 'light',
           locale: navigator.language || 'en-US',
           displayMode: 'inline',
@@ -136,36 +123,16 @@
       showError('No block specified. Add ?block=<name> to the URL, e.g. ?block=hero.');
     } else if (!SLUG_RE.test(slug)) {
       showError(`Invalid block name "${slug}". Allowed: lowercase letters, digits and hyphens.`);
-    } else if (scenario !== null && !SLUG_RE.test(scenario)) {
-      showError(`Invalid scenario "${scenario}". Allowed: lowercase letters, digits and hyphens.`);
     } else {
       renderPreview(slug);
     }
 
-    // Resolves once the stylesheet (including its nested @imports) has loaded, or failed.
-    function loadStylesheet(href) {
-      return new Promise((resolve) => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        link.onload = resolve;
-        link.onerror = resolve;
-        document.head.appendChild(link);
-      });
-    }
-
-    // Reveal only after the block is styled and web fonts have settled, so the first paint
-    // is the final layout (an unstyled first paint caused large layout shifts).
-    async function reveal() {
-      if (document.fonts?.ready) {
-        await Promise.race([document.fonts.ready, new Promise((r) => { setTimeout(r, 1000); })]);
-      }
-      document.body.classList.add('appear');
-    }
-
     async function renderPreview(name) {
       // Block CSS — code bus, same branch.
-      const cssLoaded = loadStylesheet(`/blocks/${name}/${name}.css`);
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = `/blocks/${name}/${name}.css`;
+      document.head.appendChild(css);
 
       // Reproduce the EDS decorated DOM: main > section > "<name> block".
       const main = document.createElement('main');
@@ -178,28 +145,20 @@
       block.dataset.blockStatus = 'loaded';
       section.appendChild(block);
       main.appendChild(section);
-      if (scenario) {
-        const label = document.createElement('p');
-        label.className = 'wp-scenario';
-        label.setAttribute('role', 'note');
-        label.textContent = `Simulated preview — scenario "${scenario}" uses fixture data, not a live Commerce result.`;
-        stage.replaceChildren(label, main);
-      } else {
-        stage.replaceChildren(main);
-      }
+      stage.replaceChildren(main);
 
       const bridge = createPreviewBridge();
       await bridge.connect();
 
       try {
-        const [mod] = await Promise.all([import(`/blocks/${name}/${name}.js`), cssLoaded]);
+        const mod = await import(`/blocks/${name}/${name}.js`);
         if (typeof mod.default !== 'function') {
           throw new Error('block has no default decorate() export');
         }
         await mod.default(block, bridge);
         // EDS styles.css keeps <body> hidden until `.appear` is set (normally
         // added by scripts.js/aem-embed). Reveal it now that the block is in.
-        await reveal();
+        document.body.classList.add('appear');
       } catch (err) {
         showError(`Failed to load block "${name}": ${err && err.message ? err.message : err}`);
       }

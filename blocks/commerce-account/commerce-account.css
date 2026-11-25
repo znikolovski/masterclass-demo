@@ -175,25 +175,6 @@ main .commerce-account .account__loading {
   color: var(--shop-muted, #5c5c5c);
 }
 
-main .commerce-account .account__linkage-choice {
-  display: flex;
-  gap: 12px;
-  align-items: start;
-}
-
-main .commerce-account .account__linkage-choice input {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  margin-top: 4px;
-}
-
-main .commerce-account .account__linkage-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 /* ---------- orders + addresses drop-ins ---------- */
 main .commerce-account .account-orders-list__controls {
   margin-bottom: 20px;
@@ -348,54 +329,4 @@ main .commerce-account .account-empty-list .dropin-illustrated-message__message 
     background: transparent;
     color: var(--accent-color);
   }
-}
-
-/* cart-reminder email preference (explicit opt-in) */
-main .commerce-account .account__section[hidden] {
-  display: none;
-}
-
-main .commerce-account .account__preference {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin-top: 16px;
-  cursor: pointer;
-}
-
-main .commerce-account .account__preference[hidden] {
-  display: none;
-}
-
-main .commerce-account .account__preference strong {
-  display: block;
-}
-
-main .commerce-account .account__preference-intro,
-main .commerce-account .account__preference-note {
-  margin: 0;
-  color: #5f5b55;
-  font-size: var(--body-font-size-xs);
-}
-
-main .commerce-account .account__preference-note {
-  margin-top: 16px;
-}
-
-main .commerce-account .account__preference input {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  margin: 2px 0 0;
-  accent-color: var(--accent-color);
-}
-
-main .commerce-account .account__preference-status {
-  margin: 8px 0 0;
-  color: #5f5b55;
-  font-size: var(--body-font-size-xs);
-}
-
-main .commerce-account .account__preference-status:empty {
-  display: none;
 }

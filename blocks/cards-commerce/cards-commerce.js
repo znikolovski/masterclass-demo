@@ -73,20 +73,20 @@ function el(tag, className, text) {
 }
 
 function priceMarkup(product) {
-  const p = el('p', 'cards-commerce-price');
+  const p = el('p', 'cards-commerce__price');
   const { final, regular } = priceOf(product);
   const max = product.priceRange?.maximum?.final?.amount;
   const from = max && final && max.value !== final.value ? 'From ' : '';
   p.append(el('strong', '', `${from}${money(final)}`));
   const percent = discountPercent(product);
   if (percent) {
-    p.classList.add('cards-commerce-price-sale');
+    p.classList.add('cards-commerce__price--sale');
     p.append(' ', el('del', '', money(regular)));
     const saving = { value: regular.value - final.value, currency: final.currency };
-    p.append(el('span', 'cards-commerce-saving', `Save ${money(saving)} (${percent}% off)`));
+    p.append(el('span', 'cards-commerce__saving', `Save ${money(saving)} (${percent}% off)`));
   }
   // the badges sit in the aria-hidden image link, so stock is repeated for assistive tech
-  if (product.inStock === false) p.append(el('span', 'cards-commerce-sr', ' Sold out'));
+  if (product.inStock === false) p.append(el('span', 'cards-commerce__sr', ' Sold out'));
   return p;
 }
 
@@ -126,46 +126,46 @@ function link(href, className, content) {
 function renderCard(card, row, product) {
   const href = row.ctaHref || SHOP_PATHS.product(product.urlKey);
   const eyebrowText = row.eyebrow || productAttr(product, 'activity') || '';
-  card.classList.remove('cards-commerce-card-loading');
+  card.classList.remove('cards-commerce__card--loading');
   card.replaceChildren();
 
   // the image repeats the name link: keep it out of the tab order and accessibility tree
-  const media = link(href, 'cards-commerce-media', picture(product));
+  const media = link(href, 'cards-commerce__media', picture(product));
   media.tabIndex = -1;
   media.setAttribute('aria-hidden', 'true');
   const badges = cardBadges(product);
   if (badges.length) {
-    const list = el('span', 'cards-commerce-badges');
+    const list = el('span', 'cards-commerce__badges');
     badges.forEach(([variant, text]) => {
-      list.append(el('span', `cards-commerce-badge${variant ? ` cards-commerce-badge-${variant}` : ''}`, text));
+      list.append(el('span', `cards-commerce__badge${variant ? ` cards-commerce__badge--${variant}` : ''}`, text));
     });
     media.append(list);
   }
   const specs = cardSpecs(product);
-  if (specs.length) media.append(el('span', 'cards-commerce-specbar', `Specs: ${specs.join(' / ')}`));
+  if (specs.length) media.append(el('span', 'cards-commerce__specbar', `Specs: ${specs.join(' / ')}`));
 
   const body = document.createElement('div');
-  body.className = 'cards-commerce-body';
+  body.className = 'cards-commerce__body';
   if (eyebrowText) {
     const eyebrow = document.createElement('p');
-    eyebrow.className = 'cards-commerce-eyebrow';
+    eyebrow.className = 'cards-commerce__eyebrow';
     eyebrow.textContent = eyebrowText;
     body.append(eyebrow);
   }
   const name = document.createElement('h3');
-  name.className = 'cards-commerce-name';
+  name.className = 'cards-commerce__name';
   name.append(link(href, '', product.name));
   body.append(name);
   const descriptionText = row.description || product.shortDescription || '';
   if (descriptionText) {
     const description = document.createElement('p');
-    description.className = 'cards-commerce-description';
+    description.className = 'cards-commerce__description';
     description.textContent = descriptionText;
     body.append(description);
   }
   body.append(priceMarkup(product));
   const cta = document.createElement('p');
-  cta.className = 'cards-commerce-cta';
+  cta.className = 'cards-commerce__cta';
   cta.append(link(href, 'button secondary', row.ctaText || 'View gear'));
   body.append(cta);
   card.append(media, body);
@@ -174,11 +174,11 @@ function renderCard(card, row, product) {
 export default async function decorate(block) {
   const rows = readRows(block);
   const list = document.createElement('ul');
-  list.className = 'cards-commerce-list';
+  list.className = 'cards-commerce__list';
   const cards = rows.map(() => {
     const li = document.createElement('li');
-    li.className = 'cards-commerce-card cards-commerce-card-loading';
-    li.innerHTML = '<div class="cards-commerce-media"></div><div class="cards-commerce-body"><p></p><p></p><p></p></div>';
+    li.className = 'cards-commerce__card cards-commerce__card--loading';
+    li.innerHTML = '<div class="cards-commerce__media"></div><div class="cards-commerce__body"><p></p><p></p><p></p></div>';
     list.append(li);
     return li;
   });
@@ -198,5 +198,5 @@ export default async function decorate(block) {
     if (product) renderCard(cards[i], row, product);
     else cards[i].remove();
   });
-  if (!list.children.length) block.closest('.section')?.classList.add('cards-commerce-empty');
+  if (!list.children.length) block.closest('.section')?.classList.add('cards-commerce--empty');
 }

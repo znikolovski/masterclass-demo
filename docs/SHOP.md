@@ -38,40 +38,12 @@ Admin (ExC Shell SPA) ──IMS──► commerce-admin/admin (products, invento
 
 - **Runtime wiring.** `scripts/commerce.js` and `scripts/initializers/*` set up the drop-ins. `scripts/commerce-config.js` holds the Mesh endpoint, store headers and shop paths. `scripts/scripts.js` starts commerce early on `/shop/**`. Other blocks (OF1 gear, search) load it lazily.
 - **Drop-ins.** They are pinned in `package.json` and vendored to `scripts/__dropins__` by `npm run install:dropins`. An import map in `head.html` exposes them.
-- **Cart quote batching.** On the cart page, the public SDK transport subclass in `scripts/commerce-fetch-graphql.js` keeps the original ordinary add/update mutation and appends fresh shipping and estimated totals in one ordered request. `scripts/cart-quote-batch.js` serves those results once to the SDK's automatic post-update estimate cycle, not to later user actions. New input, cart edits, changed endpoint/auth/store headers, or expiry invalidate the continuation. Only destination and shipping-method identity persist between actions; a changed first available method requires normal fresh estimates. Partial mutation errors remain visible, and failed estimates show an alert while preserving committed cart updates. Removing the last item uses the native path. Vendor code is unchanged; bundle completion uses the dedicated atomic operation below.
 - **Labels.** Labels default to AU wording (GST, postcode) in `scripts/commerce-utils.js`. Authors can override any drop-in string in the multi-sheet `/shop/placeholders` spreadsheet, using one sheet per drop-in (`pdp`, `cart`, `checkout`, …) with `Key` dot paths such as `Cart.Cart.heading`.
 - **Images.** Product images come from DM OpenAPI renditions (`{asset}/as/{alias}.webp?width=…`). The `pdp-markup` HTML links to images rather than embedding them, so EDS never copies them to the media bus.
 - **Design.** Shop UI reuses the site design system rather than a separate theme: drop-in buttons follow `a.button` (Syncopate pill, 2px border, offset orange shadow; `.shop-accent` = orange conversion CTA), pill tags/chips, 10px rounded cards and `--light-color` panels (`styles/commerce.css`). Product imagery is 4:5 (1600×2000); PDP gallery and cards use 4:5 frames. `shop-hero` is a dark banner block for category/landing pages (tag paragraph, heading, intro, bullet list → highlight pills).
 - **WKND account.** One sign-in for WKND Adventures and WKND Aero (Auth0 popup; `scripts/wknd-auth.js`). WKND Adventures configures a persistent session (`configureAuth`: rotating refresh tokens cached in `localStorage`) and the `/account` callback. `scripts/shop-auth.js` hands the access token to the drop-ins and caches the first name and initials in `scripts/account-state.js`, so the header shows the signed-in state on every page without loading Auth0. The header account menu (`blocks/header/account-menu.js`) offers Sign in / Create account (`screen_hint=signup`) or account links and Sign out. Checkout offers sign-in up front (guests can continue). The order drop-in treats order refs longer than 20 characters as guest tokens, so the backend lets a signed-in customer open their own order by number through `guestOrderByToken`.
-- **Applied discounts.** The cart order summary groups automatic promotions and applied coupon savings in a visible **Discounts** section, separate from tax details and the discount-code entry form. It reuses the drop-in's authoritative discount rows through `OrderSummary.updateLineItems`; no pricing calculations change. The section disappears when no discounts apply.
-- **Welcome-back recovery offer.** On `/shop/cart`, after authentication the initializer starts `wkndCustomerRecoveryOffer` independently of cart loading. The backend selects the existing owned active cart without creating or changing one. The UI consumes that initial response once, only after its cart ID, item UIDs/quantities and coupon codes match the confirmed cart; changed snapshots use a fresh cart-specific check. Sign-out or newer cart events prevent stale results from appearing. Failures retain the visible retry action. This read does not claim or apply an offer, reset inactivity or delay cart rendering. Deploy the additive Commerce/Mesh query before the frontend.
 - **Checkout address headings.** `commerce-checkout.css` styles both the guest `AddressForm` title and the signed-in `Addresses` header title for shipping and billing. The latter uses `.account-addresses-header-title .dropin-header-container__title`, not `.account-address-form-wrapper__title`.
 - **Header.** The header shows a cart badge and the account menu. The cart icon opens a mini-cart drawer (`blocks/header/mini-cart.js`, drop-in `MiniCart`). Modifier-clicks and the cart/checkout pages keep the plain link. The **Ask WKND** pill opens the search modal (also on ⌘/Ctrl+K).
-
-### Complete a bundle from the cart
-
-On `/shop/cart`, an enabled automatic bundle can appear under **Complete your bundle**
-when at least one exact required variant is already in the cart. Commerce supplies the
-offer through `wkndBundleOffers`; disabled, expired, unavailable and ineligible offers
-are not shopper recommendations. No additional block authoring is needed.
-
-**Add remaining products** calls `completeWkndBundle` with the offer's `cart_version`,
-promotion and bundle IDs. Commerce validates the current cart, offer, prices and stock,
-derives missing quantities itself, and commits all additions with one version-checked write.
-Stale or unavailable offers fail without a partial add; the cart refreshes for review.
-It never replaces a variant or adds a second complete kit. The server promotion engine
-selects the best eligible discount; showing a recommendation does not grant one.
-Shipping and unrelated products remain outside the kit.
-
-The public SDK's per-item `customFields` carries an explicit `wknd_bundle_completion`
-intent to the project transport adapter. It replaces that marked add with the dedicated
-mutation, preserving SDK normalization, cart events and the ordered shipping/totals quote.
-No client quantities are sent to the atomic operation. Without the adapter the unknown
-input field fails GraphQL validation, rather than silently performing a standard add.
-
-Publish the Commerce GraphQL extension and updated Mesh schema before publishing this
-storefront change. If the offer service is unavailable, the cart reports that explicitly
-and keeps ordinary cart editing and checkout available.
 
 ## Search modal (`blocks/search`)
 
@@ -162,19 +134,15 @@ the WKND LLM app (`../masterclass-demo-llmapp`, tools `search-shop-products`, `g
   |---|---|
   | `search-shop-products` | Results grid with option pickers and Add to cart |
   | `get-shop-product` | One product in detail; options the shopper named are preselected |
-  | `get-shop-cart` | The cart with quantity controls and the welcome-back offer card; "Check out" hands off to checkout |
-  | `prepare-shop-checkout` | Delivery details, delivery method, coupon or welcome-back offer, Demo Pay review, receipt |
+  | `get-shop-cart` | The cart with quantity controls; "Check out" hands off to checkout |
+  | `prepare-shop-checkout` | Delivery details, delivery method, coupon, Demo Pay review, receipt |
 
   `add-shop-cart-items`, `update-shop-cart-items` and `place-shop-demo-order` are tool-only (the
   widgets call them). Shared rendering is in `scripts/llmapp-shop.js` and `styles/llmapp-shop.css`;
   preview data is in `scripts/llmapp-shop-samples.js`, loaded only for previews. Like the other tool
   widgets, each widget page is `/eds-widgets/<tool>-demo`: the block with a `placeholder` cell (local
   copies in `content/<tool>-demo.plain.html`). Preview with `/tools/widget-preview.html?block=<tool>`.
-  Previews use sample data and never call tools. Add `&scenario=planner-offer` (or
-  `planner-offer-unavailable`) to the cart or checkout widget for a **simulated** general climbing
-  planner offer (10% off selected climbing gear, capped at $25, applied automatically). The harness
-  labels it as fixture data: the shop does not send this offer yet. The renderer words each offer by
-  its `kind` and shows no offer whose kind it does not know.
+  Previews use sample data and never call tools.
 - **Gear checklist.** The `build-gear-checklist` widget shows the matching WKND product under each
   checklist item it sells. Simple products get Add to cart; products with options get Choose options
   (opens `get-shop-product`); there is also a View My Cart action.
@@ -246,15 +214,6 @@ Authors search the catalog and insert products from the **Commerce Catalog** lib
 
   The recommendation formats use one anchor product. If several products are selected, the last
   one wins.
-  Any commerce block can be inserted into the content cell of a `tabs-activity` row, including
-  **Product cards**, **Similar gear**, **Complete the kit**, and custom insert formats. The tabs
-  block converts nested tables whose first row is a single cell containing the canonical
-  hyphenated block name (for example, `cards-commerce` or `product-recommendations`) into
-  blocks and loads them in the panel. Optional variants use `block-name (variant, variant)`.
-  Ordinary data tables remain tables. SKU and Product link insert formats remain plain content.
-  Validate nested inserts and responsive panels with
-  `node tools/scripts/test-tabs-commerce.mjs http://localhost:3000` against previewed `/gear`
-  content.
 - **`cards-commerce` block.** Use it on any page. It has one row per product with these cells:
   1. SKU
   2. Eyebrow (optional)

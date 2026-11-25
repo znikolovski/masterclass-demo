@@ -35,6 +35,8 @@ const SAMPLE_DATA = {
 };
 
 // Brand tokens (DESIGN_TOKENS): ember accent on near-black ink.
+const ACCENT = '#e8651a';
+const INK = '#0f1a14';
 
 function stepStatus(text) {
   if (/sell|first|early|urgent|\bnow\b|on arrival/i.test(text)) return 'urgent';
@@ -49,6 +51,45 @@ function splitStep(text) {
     return { lead: text.slice(0, idx).trim(), body: text.slice(idx + 1).trim() };
   }
   return { lead: '', body: text.trim() };
+}
+
+export default async function decorate(block, bridge) {
+  let item;
+
+  if (bridge) {
+    bridge.applyHostStyles();
+    const isPreview = bridge.hostContext?.preview === true;
+    if (isPreview) {
+      item = SAMPLE_DATA;
+    } else {
+      // Detail concept — structuredContent IS the item (flat). No wrapper key.
+      const _result = await bridge.toolResult;
+      item = _result?.structuredContent || {};
+    }
+  } else {
+    item = SAMPLE_DATA;
+  }
+
+  block.textContent = '';
+
+  if (!item || !item.route_title) {
+    const empty = document.createElement('p');
+    empty.className = 'ppa-empty';
+    empty.textContent = 'No matching route logistics were found.';
+    block.appendChild(empty);
+  } else {
+    renderPlan(block, item, bridge);
+  }
+
+  if (bridge) {
+    bridge.reportSize(block.offsetWidth, block.offsetHeight);
+    let resizeTimer;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
+    });
+    ro.observe(block);
+  }
 }
 
 function renderPlan(block, item, bridge) {
@@ -100,7 +141,7 @@ function renderPlan(block, item, bridge) {
       const { lead, body } = splitStep(raw);
 
       const li = document.createElement('li');
-      li.className = `ppa-step ppa-step-${status}`;
+      li.className = `ppa-step ppa-step--${status}`;
 
       const node = document.createElement('span');
       node.className = 'ppa-node';
@@ -121,7 +162,7 @@ function renderPlan(block, item, bridge) {
       }
 
       const badge = document.createElement('span');
-      badge.className = `ppa-badge ppa-badge-${status}`;
+      badge.className = `ppa-badge ppa-badge--${status}`;
       badge.textContent = STATUS_LABEL[status];
       topRow.appendChild(badge);
 
@@ -193,43 +234,4 @@ function renderPlan(block, item, bridge) {
 
   card.appendChild(actions);
   block.appendChild(card);
-}
-
-export default async function decorate(block, bridge) {
-  let item;
-
-  if (bridge) {
-    bridge.applyHostStyles();
-    const isPreview = bridge.hostContext?.preview === true;
-    if (isPreview) {
-      item = SAMPLE_DATA;
-    } else {
-      // Detail concept — structuredContent IS the item (flat). No wrapper key.
-      const result = await bridge.toolResult;
-      item = result?.structuredContent || {};
-    }
-  } else {
-    item = SAMPLE_DATA;
-  }
-
-  block.textContent = '';
-
-  if (!item || !item.route_title) {
-    const empty = document.createElement('p');
-    empty.className = 'ppa-empty';
-    empty.textContent = 'No matching route logistics were found.';
-    block.appendChild(empty);
-  } else {
-    renderPlan(block, item, bridge);
-  }
-
-  if (bridge) {
-    bridge.reportSize(block.offsetWidth, block.offsetHeight);
-    let resizeTimer;
-    const ro = new ResizeObserver(() => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => bridge.reportSize(block.offsetWidth, block.offsetHeight), 150);
-    });
-    ro.observe(block);
-  }
 }

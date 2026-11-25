@@ -7,7 +7,6 @@ import { renderPipelinePage } from './pipeline.js';
 import { searchFlights, createBooking, BookingInputError } from './booking.js';
 import { authenticateBooking, checkoutAuthConfig, BookingAuthError } from './booking-auth.js';
 import bookingPreparation from './booking-preparation.js';
-import { prepareBookingReceipt, dispatchBookingReceipt, drainBookingReceipts } from './booking-receipt.js';
 // eslint-disable-next-line import/no-relative-packages -- shared browser/Worker contract
 import { JOURNEY_ID_PATTERN } from '../../../scripts/journey-context.js';
 
@@ -56,7 +55,7 @@ function json(data, status = 200, headers = {}) {
 }
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const cors = corsHeaders(request, env);
 
@@ -144,14 +143,7 @@ export default {
         }
         booking.preparation = bookingPreparation(booking.adventure);
         const expirationTtl = 90 * 86400;
-        const receiptKey = await prepareBookingReceipt(env, storageKey, booking);
         await env.WKND_AERO_CATALOG.put(storageKey, JSON.stringify(booking), { expirationTtl });
-        const delivery = dispatchBookingReceipt(env, receiptKey).catch(() => {
-          // eslint-disable-next-line no-console
-          console.error('WKND Aero receipt storage failed; scheduled retry retained.');
-        });
-        if (ctx) ctx.waitUntil(delivery);
-        else await delivery;
         return json(booking, 201, { ...cors, 'Cache-Control': 'no-store' });
       }
 
@@ -222,10 +214,6 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    if (event.cron === '*/5 * * * *') {
-      ctx.waitUntil(drainBookingReceipts(env));
-    } else {
-      ctx.waitUntil(syncCatalogFromAdventures(env).catch(() => {}));
-    }
+    ctx.waitUntil(syncCatalogFromAdventures(env).catch(() => {}));
   },
 };

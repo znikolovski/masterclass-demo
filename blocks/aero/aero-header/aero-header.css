@@ -105,7 +105,7 @@
   color: var(--aero-orange);
 }
 
-.aero-header .aero-header-action-primary {
+.aero-header .aero-header-action--primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -126,7 +126,7 @@
   font-size: var(--body-font-size-s);
 }
 
-.aero-header .aero-header-action-primary:hover {
+.aero-header .aero-header-action--primary:hover {
   border-color: var(--aero-orange);
   color: var(--aero-orange);
 }

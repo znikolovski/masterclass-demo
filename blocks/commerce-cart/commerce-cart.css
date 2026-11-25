@@ -24,142 +24,8 @@ main .commerce-cart .cart__right-column {
   gap: var(--spacing-small);
 }
 
-main .commerce-cart .cart-bundle-offers {
-  margin-top: var(--spacing-medium);
-}
-
-main .commerce-cart .cart-bundle-offers[hidden],
-main .commerce-cart .cart-bundle-offers button[hidden] {
-  display: none;
-}
-
-main .commerce-cart .cart-bundle-offers__heading {
-  font-size: var(--heading-font-size-s);
-}
-
-main .commerce-cart .cart-bundle-offers__cards {
-  display: grid;
-  gap: 12px;
-}
-
-main .commerce-cart .cart-bundle-offers__card {
-  padding: 20px;
-  border: 1px solid #dadada;
-  border-radius: 10px;
-  background: var(--light-color);
-}
-
-main .commerce-cart .cart-bundle-offers__card h3 {
-  margin-top: 0;
-  font-size: var(--heading-font-size-xs);
-}
-
-main .commerce-cart .cart-bundle-offers__card p,
-main .commerce-cart .cart-bundle-offers__card li,
-main .commerce-cart .cart-bundle-offers__status {
-  overflow-wrap: anywhere;
-  font-size: var(--body-font-size-s);
-}
-
-main .commerce-cart .cart-bundle-offers__card ul {
-  padding-left: 20px;
-}
-
-main .commerce-cart .cart-bundle-offers button {
-  max-width: 100%;
-  padding: 12px 20px;
-  border: 2px solid var(--text-color);
-  border-radius: 999px;
-  background: var(--accent-color);
-  color: var(--text-color);
-  font: 700 12px/1.4 var(--heading-font-family);
-  cursor: pointer;
-}
-
-main .commerce-cart .cart-bundle-offers button:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-main .commerce-cart .cart-bundle-offers button:focus-visible {
-  outline: 2px solid var(--text-color);
-  outline-offset: 3px;
-}
-
-main .commerce-cart .cart-bundle-offers__status:empty {
-  display: none;
-}
-
 main .commerce-cart .cart__order-summary[hidden],
 main .commerce-cart .cart__note[hidden] {
-  display: none;
-}
-
-/* backend recovery offer (signed-in, eligible carts only) */
-main .commerce-cart .cart-recovery-offer {
-  display: grid;
-  gap: 8px;
-  padding: 20px;
-  border-radius: 12px;
-  background: var(--dark-color);
-  color: var(--background-color);
-}
-
-main .commerce-cart .cart-recovery-offer__eyebrow {
-  margin: 0;
-  color: var(--accent-color);
-  font: 700 12px/1.4 var(--heading-font-family);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-main .commerce-cart .cart-recovery-offer__title {
-  margin: 0;
-  color: inherit;
-  font: 700 var(--heading-font-size-s)/1.25 var(--heading-font-family);
-  text-transform: uppercase;
-}
-
-main .commerce-cart .cart-recovery-offer__text,
-main .commerce-cart .cart-recovery-offer__status {
-  margin: 0;
-  color: rgb(255 255 255 / 80%);
-  font-size: var(--body-font-size-xs);
-  line-height: 1.5;
-}
-
-main .commerce-cart .cart-recovery-offer__apply {
-  justify-self: start;
-  margin: 8px 0 0;
-  padding: 12px 24px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--accent-color);
-  color: var(--dark-color);
-  font: 700 12px/1.4 var(--heading-font-family);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-main .commerce-cart .cart-recovery-offer__apply:hover,
-main .commerce-cart .cart-recovery-offer__apply:focus-visible {
-  background: var(--background-color);
-  color: var(--dark-color);
-}
-
-main .commerce-cart .cart-recovery-offer__apply:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 3px;
-}
-
-main .commerce-cart .cart-recovery-offer__apply:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-main .commerce-cart .cart-recovery-offer__status:empty {
   display: none;
 }
 
@@ -247,20 +113,6 @@ main .commerce-cart .cart-order-summary__heading-text {
   font: 700 18px/1.3 var(--heading-font-family);
 }
 
-main .commerce-cart .cart__discounts {
-  display: grid;
-  gap: var(--spacing-xsmall);
-  margin-top: var(--spacing-small);
-  padding-top: var(--spacing-small);
-  border-top: 1px solid var(--color-neutral-400);
-}
-
-main .commerce-cart .cart__discounts h3 {
-  margin: 0;
-  color: var(--text-color);
-  font: var(--type-body-1-strong-font);
-}
-
 main .commerce-cart .cart-order-summary__total .cart-order-summary__label,
 main .commerce-cart .cart-order-summary__total .cart-order-summary__price {
   font-size: 20px;
@@ -302,12 +154,4 @@ main .commerce-cart .cart__note {
     position: sticky;
     top: calc(var(--nav-height) + var(--spacing-medium));
   }
-}
-
-/* Kept outside the order summary so the flight offer is usable with an empty cart. */
-main .commerce-cart .cart-aero-offer {
-  padding: 24px;
-  margin-block: 24px;
-  border: 1px solid currentcolor;
-  overflow-wrap: anywhere;
 }

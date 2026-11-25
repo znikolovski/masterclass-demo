@@ -95,7 +95,7 @@ function trendingCardHtml(item, slot) {
 
   if (slot === 0) {
     return `
-      <article class="travel-inspiration-trending-card travel-inspiration-trending-card-feature">
+      <article class="travel-inspiration-trending-card travel-inspiration-trending-card--feature">
         <a href="${detailUrl}" class="travel-inspiration-trending-link">
           ${img ? `<img class="travel-inspiration-trending-bg" src="${img}" alt="${name}" loading="eager" />` : '<div class="travel-inspiration-trending-bg-placeholder" aria-hidden="true"></div>'}
           <div class="travel-inspiration-trending-copy">
@@ -109,10 +109,10 @@ function trendingCardHtml(item, slot) {
 
   if (slot === 3) {
     return `
-      <article class="travel-inspiration-trending-card travel-inspiration-trending-card-wide">
+      <article class="travel-inspiration-trending-card travel-inspiration-trending-card--wide">
         <a href="${detailUrl}" class="travel-inspiration-trending-link">
           ${img ? `<img class="travel-inspiration-trending-bg" src="${img}" alt="${name}" loading="lazy" />` : '<div class="travel-inspiration-trending-bg-placeholder" aria-hidden="true"></div>'}
-          <div class="travel-inspiration-trending-copy travel-inspiration-trending-copy-side">
+          <div class="travel-inspiration-trending-copy travel-inspiration-trending-copy--side">
             <h3>${location}</h3>
             ${desc ? `<p>${desc}</p>` : ''}
           </div>
@@ -122,7 +122,7 @@ function trendingCardHtml(item, slot) {
 
   if (slot === 1) {
     return `
-      <article class="travel-inspiration-trending-card travel-inspiration-trending-card-compact travel-inspiration-trending-card-slot-1">
+      <article class="travel-inspiration-trending-card travel-inspiration-trending-card--compact travel-inspiration-trending-card--slot-1">
         <a href="${bookUrl}" class="travel-inspiration-trending-link">
           ${img ? `<img class="travel-inspiration-trending-bg" src="${img}" alt="${name}" loading="lazy" />` : '<div class="travel-inspiration-trending-bg-placeholder" aria-hidden="true"></div>'}
           <div class="travel-inspiration-trending-copy">
@@ -134,7 +134,7 @@ function trendingCardHtml(item, slot) {
 
   if (slot === 2) {
     return `
-      <article class="travel-inspiration-trending-card travel-inspiration-trending-card-compact travel-inspiration-trending-card-slot-2">
+      <article class="travel-inspiration-trending-card travel-inspiration-trending-card--compact travel-inspiration-trending-card--slot-2">
         <a href="${bookUrl}" class="travel-inspiration-trending-link">
           ${img ? `<img class="travel-inspiration-trending-bg" src="${img}" alt="${name}" loading="lazy" />` : '<div class="travel-inspiration-trending-bg-placeholder" aria-hidden="true"></div>'}
           <div class="travel-inspiration-trending-copy">
@@ -145,7 +145,7 @@ function trendingCardHtml(item, slot) {
   }
 
   return `
-    <article class="travel-inspiration-trending-card travel-inspiration-trending-card-compact">
+    <article class="travel-inspiration-trending-card travel-inspiration-trending-card--compact">
       <a href="${bookUrl}" class="travel-inspiration-trending-link">
         ${img ? `<img class="travel-inspiration-trending-bg" src="${img}" alt="${name}" loading="lazy" />` : '<div class="travel-inspiration-trending-bg-placeholder" aria-hidden="true"></div>'}
         <div class="travel-inspiration-trending-copy">
@@ -250,7 +250,7 @@ export default async function decorate(block) {
     </article>
     <div class="travel-inspiration-routes">
       ${routes.map((route) => `
-        <article class="travel-inspiration-route${route.active ? ' travel-inspiration-route-active' : ''}">
+        <article class="travel-inspiration-route${route.active ? ' travel-inspiration-route--active' : ''}">
           <p class="travel-inspiration-route-label">${route.label}</p>
           <h3>${route.title}</h3>
           <p class="travel-inspiration-route-meta">${route.meta}</p>
@@ -359,8 +359,8 @@ export default async function decorate(block) {
         <h2>${accentHeadline(departureHeading)}</h2>
         <p>${departureBody}</p>
         <div class="travel-inspiration-departure-actions">
-          <a href="${primaryUrl}" class="travel-inspiration-btn travel-inspiration-btn-primary">${primaryCta}</a>
-          <a href="${secondaryUrl}" class="travel-inspiration-btn travel-inspiration-btn-outline">${secondaryCta}</a>
+          <a href="${primaryUrl}" class="travel-inspiration-btn travel-inspiration-btn--primary">${primaryCta}</a>
+          <a href="${secondaryUrl}" class="travel-inspiration-btn travel-inspiration-btn--outline">${secondaryCta}</a>
         </div>
       </div>
       <aside class="travel-inspiration-flight-card" aria-label="Sample flight status">

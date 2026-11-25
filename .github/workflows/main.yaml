@@ -13,6 +13,4 @@ jobs:
     - run: npm ci
     - name: Install Aero Worker runtime dependencies
       run: npm ci --prefix workers/wknd-aero-api --omit=dev
-    - name: Install OF1 ingestion Worker dependencies
-      run: npm ci --prefix workers/wknd-of1-ingestion
     - run: npm run lint

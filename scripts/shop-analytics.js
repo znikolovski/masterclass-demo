@@ -5,16 +5,11 @@
  * PII (no email, names or addresses), and correlates with the WKND journey id.
  */
 import { getJourney } from './journey-analytics.js';
-import { cartAttribution, clearCartAttribution, takeOrderAttribution } from './commerce-attribution.js';
 
 const CURRENCY = 'AUD';
 const VIEW_HISTORY_KEY = 'wknd:shop:productViewHistory';
 const MAX_HISTORY = 20;
 const PENDING_PURCHASE_KEY = 'wknd:shop:pendingPurchase';
-const CART_EVENTS = new Set([
-  'shopCartView', 'shopCartAdd', 'shopCartRemove', 'shopCartUpdate',
-  'shopCheckoutStart', 'shopCheckoutStep',
-]);
 let started = false;
 
 function analyticsDisabled() {
@@ -66,11 +61,7 @@ export function pushShopEvent(event, {
     },
     data: {
       wkndShop: {
-        event,
-        currency: CURRENCY,
-        customer: signedIn() ? 'signed-in' : 'guest',
-        ...data,
-        ...(CART_EVENTS.has(event) ? cartAttribution() : {}),
+        event, currency: CURRENCY, customer: signedIn() ? 'signed-in' : 'guest', ...data,
       },
       ...(journey ? { wkndJourney: { id: journey.id, source: journey.source } } : {}),
     },
@@ -118,12 +109,6 @@ export function mapShopToAnalytics(content) {
   if (shop) {
     s.eVar44 = shop.customer;
     if (shop.recommendation?.unitId) s.eVar40 = shop.recommendation.unitId;
-    if (shop.bundles?.length) {
-      s.contextData ||= {};
-      s.contextData['wknd.bundle_ids'] = shop.bundles.map((bundle) => bundle.bundle_id).join(',');
-      const experiments = shop.bundles.map((bundle) => bundle.experiment_id).filter(Boolean);
-      if (experiments.length) s.contextData['wknd.experiment_ids'] = experiments.join(',');
-    }
     if (shop.checkout?.step) {
       s.eVar41 = `${shop.checkout.step}-${CHECKOUT_STEPS[shop.checkout.step] || 'step'}`;
     }
@@ -180,9 +165,6 @@ export async function startShopAnalytics() {
   flushPendingPurchase();
   const { events } = await import('@dropins/tools/event-bus.js');
   const viewed = new Set();
-  events.on('cart/data', (cart) => {
-    if (!cart) clearCartAttribution();
-  }, { eager: true });
 
   events.on('pdp/data', (product) => {
     if (!product?.sku || viewed.has(product.sku)) return;
@@ -241,9 +223,7 @@ export async function startShopAnalytics() {
         },
       },
       items: (order?.items || []).map(toProductListItem),
-      data: {
-        demo: true, orderNumber, guest: !order?.customerId, ...takeOrderAttribution(orderNumber),
-      },
+      data: { demo: true, orderNumber, guest: !order?.customerId },
     };
     try {
       sessionStorage.setItem(PENDING_PURCHASE_KEY, JSON.stringify(purchase));

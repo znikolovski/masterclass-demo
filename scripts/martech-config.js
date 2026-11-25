@@ -6,35 +6,15 @@
 
 import { mapPageToAnalytics, isAemProductionHost } from './analytics-page.js';
 import { applyNativeContext, getNativeContext } from './native-context.js';
-
-export function applyAamPageSignals(content) {
-  if (getNativeContext() || !isAemProductionHost()) return true;
-  const { xdm } = content;
-  const pageView = 'web.webpagedetails.pageViews';
-  if (!xdm || (xdm.eventType !== pageView
-    && (xdm.eventType || !(xdm.web?.webPageDetails?.pageViews?.value > 0)))) return true;
-
-  xdm.eventType = pageView;
-  // Keep the ACDL/Analytics "live" dimension unchanged; AAM uses "production".
-  xdm.page = { ...xdm.page, environment: 'production' };
-  const signals = { eventType: pageView, 'page.environment': 'production' };
-  ['adventureCategory', 'journeyStage'].forEach((key) => {
-    const value = xdm.page[key];
-    if (typeof value === 'string' && value) signals[`page.${key}`] = value;
-  });
-  content.data ||= {};
-  /* eslint-disable no-underscore-dangle -- Reserved Web SDK service node. */
-  content.data.__adobe ||= {};
-  content.data.__adobe.audiencemanager = signals;
-  /* eslint-enable no-underscore-dangle */
-  return true;
-}
+import { applyCustomerIdentity } from './customer-identity.js';
 
 export const WEB_SDK_CONFIG = {
   datastreamId: '56dee4fc-21a9-4e37-83ab-bdd874957aba',
   orgId: '28260E2056581D3B7F000101@AdobeOrg',
-  onBeforeEventSend: (content) => applyNativeContext(content)
-    && mapPageToAnalytics(content) && applyAamPageSignals(content),
+  onBeforeEventSend: (content) => {
+    if (!getNativeContext()) applyCustomerIdentity(content);
+    return applyNativeContext(content) && mapPageToAnalytics(content);
+  },
 };
 
 /**

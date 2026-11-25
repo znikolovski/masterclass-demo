@@ -52,6 +52,9 @@ import {
   isAeroBlock,
 } from './aero-blocks.js';
 
+/** Instrument Sans (body) + Syncopate (headings); Syncopate woff2 preloaded in head.html */
+const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@700&display=swap';
+
 const HERO_HEADING_FONT = 'Syncopate';
 
 const HERO_BLOCK_SELECTOR = '.hero-adventure, .carousel-hero, .hero, .aero-hero';
@@ -124,12 +127,18 @@ function decoratePageBlocks(main) {
 }
 
 /**
- * Wait for hero CSS even when the head already inserted an in-flight link.
+ * Eager-load hero block CSS so above-fold layout is stable before block decoration.
+ * @param {Element} main
+ */
+function hasStylesheet(href) {
+  return Boolean(document.querySelector(`link[rel="stylesheet"][href="${href}"]`));
+}
+
+/**
  * @param {string} href
  */
 async function ensureHeroStylesheet(href) {
-  // eslint-disable-next-line no-use-before-define -- reuse the hoisted stylesheet readiness helper
-  await ensureStylesheet(href);
+  if (!hasStylesheet(href)) await loadCSS(href);
 }
 
 async function loadHeroBlockCss(main) {
@@ -169,16 +178,9 @@ function preloadOgImage(doc = document) {
   const og = getMetadata('og:image', doc);
   if (!og || !isUsableMetaImageUrl(og)) return;
   try {
-    const heroImg = doc.querySelector(HERO_BLOCK_SELECTOR)?.querySelector('picture img');
-    const base = doc.baseURI || window.location.href;
-    let src = resolvePictureSrc(heroImg) || og;
-    const imageUrl = new URL(src, base);
-    if (!heroImg && /\/media_[a-f0-9]+\.[a-z0-9]+$/i.test(imageUrl.pathname)) {
-      src = new URL(imageUrl.pathname + imageUrl.search, base).href;
-    }
     const { preloadHref } = buildHeroAdventureLcpUrls(
-      src,
-      base,
+      og,
+      doc.baseURI || window.location.href,
     );
     if (hasImagePreload(preloadHref)) return;
     const link = document.createElement('link');
@@ -339,6 +341,7 @@ function buildHeroBlock(main) {
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
+  loadCSS(GOOGLE_FONTS_STYLESHEET);
   await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
   try {
     if (!window.location.hostname.includes('localhost')) sessionStorage.setItem('fonts-loaded', 'true');
@@ -751,6 +754,19 @@ export function decorateMain(main) {
     const turnStart = sections.findLastIndex((section) => (
       section.classList.contains('of1-turn-anchor')
     ));
+    const hasSherpa = sections.slice(turnStart + 1)
+      .some((section) => section.querySelector('.sherpa-options'));
+    if (adventureCards && !main.querySelector('.sherpa-options') && !hasSherpa) {
+      const section = document.createElement('div');
+      section.append(buildBlock('sherpa-options', [[
+        '<h2>Talk it through with WKND Sherpa</h2>'
+        + '<p>Need help choosing? Compare your options and discuss what to prepare with '
+        + 'your AI adventure guide, or keep browsing the field notes below.</p>'
+        + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
+      ]]));
+      const cardSection = [...main.children].find((child) => child.contains(adventureCards));
+      main.insertBefore(section, cardSection);
+    }
     // Gear recommendations from the WKND shop, anchored on the adventures this response covers.
     const adventureSection = adventureCards || main.querySelector('.adventure-facts');
     const hasGear = sections.slice(turnStart + 1)
@@ -771,27 +787,6 @@ export function decorateMain(main) {
       ]));
       const after = [...main.children].find((child) => child.contains(adventureSection));
       main.insertBefore(section, after?.nextElementSibling || null);
-    }
-  }
-  if (isGeneratedOf1) {
-    const result = isProductOf1 || main.querySelector('.cards .cards-card-actions')?.closest('.cards');
-    const sections = [...document.querySelector('main').children];
-    const turnStart = sections.findLastIndex((section) => section.classList.contains('of1-turn-anchor'));
-    const hasSherpa = sections.slice(turnStart + 1)
-      .some((section) => section.querySelector('.sherpa-options'));
-    if (result && !main.querySelector('.sherpa-options') && !hasSherpa) {
-      const section = document.createElement('div');
-      const description = isProductOf1
-        ? 'Need help choosing gear? Compare products and find the options that fit your needs with WKND Sherpa.'
-        : 'Need help choosing? Compare your options and discuss what to prepare with '
-          + 'your AI adventure guide, or keep browsing the field notes below.';
-      section.append(buildBlock('sherpa-options', [[
-        '<h2>Talk it through with WKND Sherpa</h2>'
-        + `<p>${description}</p>`
-        + '<p><a href="#sherpa">Chat with WKND Sherpa</a></p>',
-      ]]));
-      const resultSection = [...main.children].find((child) => child.contains(result));
-      main.insertBefore(section, resultSection);
     }
   }
   // hopefully forward compatible button decoration
@@ -1030,33 +1025,26 @@ async function loadMartech(doc = document) {
   if (!isMartechConfigured()) return null;
   if (!martechLoadedPromise) {
     const main = doc.querySelector('main');
-    martechLoadedPromise = getMartechModule().then(async (martech) => {
-      if (!getNativeContext() && isAnalyticsEnabled(doc) && isAemProductionHost()
-        && getRepolessSiteSlug(doc) !== 'wknd-aero') {
-        const { hasShopToken, getShopProfile } = await import('./shop-auth.js');
-        if (hasShopToken()) await getShopProfile({ identityStatusOnly: true });
-      }
-      return martech.initMartech(
-        WEB_SDK_CONFIG,
-        {
-          personalization: isPersonalizationEnabled(doc),
-          analytics: isAnalyticsEnabled(doc),
-          trackPageView: isAnalyticsEnabled(doc),
-          shouldProcessEvent: shouldProcessDataLayerEvent,
-          launchUrls: getLaunchUrls(),
-          decisionScopes: getTargetDecisionScopes(main, doc),
-          propositionMetadata: buildTargetApplyMetadata(main, doc),
-        },
-      ).then(() => {
-        if (!isConsentGiven() && !getNativeContext()) return undefined;
-        return martech.updateUserConsent({
-          collect: isConsentGiven(),
-          personalize: isPersonalizationEnabled(doc),
-          marketing: isConsentGiven(),
-          share: isConsentGiven(),
-        });
+    martechLoadedPromise = getMartechModule().then((martech) => martech.initMartech(
+      WEB_SDK_CONFIG,
+      {
+        personalization: isPersonalizationEnabled(doc),
+        analytics: isAnalyticsEnabled(doc),
+        trackPageView: isAnalyticsEnabled(doc),
+        shouldProcessEvent: shouldProcessDataLayerEvent,
+        launchUrls: getLaunchUrls(),
+        decisionScopes: getTargetDecisionScopes(main, doc),
+        propositionMetadata: buildTargetApplyMetadata(main, doc),
+      },
+    ).then(() => {
+      if (!isConsentGiven() && !getNativeContext()) return undefined;
+      return martech.updateUserConsent({
+        collect: isConsentGiven(),
+        personalize: isPersonalizationEnabled(doc),
+        marketing: isConsentGiven(),
+        share: isConsentGiven(),
       });
-    });
+    }));
   }
   return martechLoadedPromise;
 }
@@ -1293,6 +1281,7 @@ function isShopPath() {
 
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  doc.body?.classList.add('appear');
   await bootstrapLibraryBlockDocument(doc);
   if (!doc.querySelector('link[rel="alternate"][type="text/markdown"]')) {
     addMarkdownAlternateLink(doc);
@@ -1350,24 +1339,7 @@ async function loadEager(doc) {
     if (!primedHero) {
       primeLcpImage(main);
     }
-    // Raw hero fields (especially author portraits) do not have their final layout yet.
-    const hero = main.querySelector('.section')?.querySelector(HERO_BLOCK_SELECTOR);
-    if (hero?.classList.contains('block')) {
-      await loadSiteBlock(hero);
-      await Promise.race([
-        Promise.all([
-          document.fonts.load(
-            `700 56px ${HERO_HEADING_FONT}`,
-            hero.querySelector('h1')?.textContent || ' ',
-          ),
-          document.fonts.load(
-            '400 20px "Instrument Sans"',
-            main.querySelector('.section')?.textContent || ' ',
-          ),
-        ]).catch(() => {}),
-        new Promise((resolve) => { setTimeout(resolve, 2000); }),
-      ]);
-    }
+    document.body.classList.add('appear');
     const firstSection = main.querySelector('.section');
     if (firstSection && !lcpHero) preloadLcpHeroImage(firstSection);
     const loadFirstSection = firstSection
@@ -1377,7 +1349,6 @@ async function loadEager(doc) {
     await loadFirstSection;
     prefetchBelowFoldStyles(main, doc);
   }
-  doc.body?.classList.add('appear');
 }
 
 /**
@@ -1487,23 +1458,15 @@ async function loadLazy(doc) {
   if (hasQE) import('../tools/quick-edit/quick-edit.js').then((mod) => mod.default());
 })();
 
-/**
- * Loads an Experience Workspace canvas agent (remote ES module) when the page is framed.
- * @param {string} url Absolute module URL
- */
-function loadCanvasAgent(url) {
-  if (window.top !== window) import(url).catch(() => {});
-}
-
 // Block Source: lets the Experience Workspace plugin preview branch blocks on the canvas.
-loadCanvasAgent('https://28538-blocksource.adobeio-static.net/agent.js');
+if (window.top !== window) import('https://28538-blocksource.adobeio-static.net/agent.js').catch(() => {});
 
 // Content check: lets the Experience Workspace sapling.ai plugin access blocks directly
 // on the canvas in order to make content updates.
-loadCanvasAgent('https://28538-copycheck.adobeio-static.net/agent.js');
+if (window.top !== window) import('https://28538-copycheck.adobeio-static.net/agent.js').catch(() => {});
 
 // Plane: lets the Experience Workspace Plane panel attach screenshots of the canvas to comments.
-loadCanvasAgent('https://28538-planeew.adobeio-static.net/agent.js');
+if (window.top !== window) import('https://28538-planeew.adobeio-static.net/agent.js').catch(() => {});
 
 /**
  * Loads everything that happens a lot later,

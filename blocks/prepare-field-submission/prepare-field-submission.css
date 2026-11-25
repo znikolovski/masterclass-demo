@@ -55,17 +55,17 @@ main .prepare-field-submission .pfs-chip {
   border-radius: 6px;
 }
 
-main .prepare-field-submission .pfs-chip-type {
+main .prepare-field-submission .pfs-chip--type {
   background: rgb(15 26 20 / 8%);
   color: #0f1a14;
 }
 
-main .prepare-field-submission .pfs-chip-ready {
+main .prepare-field-submission .pfs-chip--ready {
   background: #1f7a4d;
   color: #fff;
 }
 
-main .prepare-field-submission .pfs-chip-warn {
+main .prepare-field-submission .pfs-chip--warn {
   background: var(--widget-accent);
   color: var(--widget-ink);
 }
@@ -217,29 +217,29 @@ main .prepare-field-submission .pfs-panel {
   border-left-width: 3px;
 }
 
-main .prepare-field-submission .pfs-panel-evidence {
+main .prepare-field-submission .pfs-panel--evidence {
   border-left-color: #1f7a4d;
 }
 
-main .prepare-field-submission .pfs-panel-missing {
+main .prepare-field-submission .pfs-panel--missing {
   border-left-color: #d99a2b;
 }
 
-main .prepare-field-submission .pfs-panel-flags {
+main .prepare-field-submission .pfs-panel--flags {
   border-left-color: #e8651a;
 }
 
-main .prepare-field-submission .pfs-panel-evidence .pfs-panel-count {
+main .prepare-field-submission .pfs-panel--evidence .pfs-panel-count {
   background: rgb(31 122 77 / 14%);
   color: #14603b;
 }
 
-main .prepare-field-submission .pfs-panel-missing .pfs-panel-count {
+main .prepare-field-submission .pfs-panel--missing .pfs-panel-count {
   background: rgb(176 118 20 / 16%);
   color: #8a5c0f;
 }
 
-main .prepare-field-submission .pfs-panel-flags .pfs-panel-count {
+main .prepare-field-submission .pfs-panel--flags .pfs-panel-count {
   background: rgb(232 101 26 / 16%);
   color: #9c3f0c;
 }
@@ -271,14 +271,14 @@ main .prepare-field-submission .pfs-btn {
   flex: 1 1 auto;
 }
 
-main .prepare-field-submission .pfs-btn-secondary {
+main .prepare-field-submission .pfs-btn--secondary {
   background: transparent;
   color: var(--widget-text);
   border-color: var(--widget-text);
 }
 
-main .prepare-field-submission .pfs-btn-secondary:hover,
-main .prepare-field-submission .pfs-btn-secondary:focus-visible {
+main .prepare-field-submission .pfs-btn--secondary:hover,
+main .prepare-field-submission .pfs-btn--secondary:focus-visible {
   background: rgb(15 26 20 / 5%);
   border-color: var(--widget-text);
 }
@@ -304,142 +304,54 @@ main .prepare-field-submission .pfs-empty {
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   main .prepare-field-submission { color: #ececec; }
-
-  main .prepare-field-submission .pfs-card {
-    background: #161c18;
-    border-color: #2b332d;
-  }
-
-  main .prepare-field-submission .pfs-header {
-    background: #1c231e;
-    border-bottom-color: #2b332d;
-  }
+  main .prepare-field-submission .pfs-card { background: #161c18; border-color: #2b332d; }
+  main .prepare-field-submission .pfs-header { background: #1c231e; border-bottom-color: #2b332d; }
   main .prepare-field-submission .pfs-title { color: #f4f2ef; }
-
-  main .prepare-field-submission .pfs-chip-type {
-    background: rgb(255 255 255 / 12%);
-    color: #ececec;
-  }
+  main .prepare-field-submission .pfs-chip--type { background: rgb(255 255 255 / 12%); color: #ececec; }
   main .prepare-field-submission .pfs-meta-key { color: #9aa39c; }
   main .prepare-field-submission .pfs-meta-val { color: #f4f2ef; }
-
-  main .prepare-field-submission .pfs-copyable {
-    background: #1c231e;
-    border-color: #2b332d;
-  }
+  main .prepare-field-submission .pfs-copyable { background: #1c231e; border-color: #2b332d; }
   main .prepare-field-submission .pfs-copyable-label { color: #9aa39c; }
   main .prepare-field-submission .pfs-copyable-value { color: #d5dad6; }
-
-  main .prepare-field-submission .pfs-copy-btn {
-    background: #232b25;
-    color: #ececec;
-    border-color: #3a423b;
-  }
+  main .prepare-field-submission .pfs-copy-btn { background: #232b25; color: #ececec; border-color: #3a423b; }
 
   main .prepare-field-submission .pfs-copy-btn:hover,
-  main .prepare-field-submission .pfs-copy-btn:focus-visible {
-    background: #2b332d;
-    border-color: #f2823f;
-  }
+  main .prepare-field-submission .pfs-copy-btn:focus-visible { background: #2b332d; border-color: #f2823f; }
   main .prepare-field-submission .pfs-panel-title { color: #f4f2ef; }
-
-  main .prepare-field-submission .pfs-panel-count {
-    background: rgb(255 255 255 / 12%);
-    color: #ececec;
-  }
+  main .prepare-field-submission .pfs-panel-count { background: rgb(255 255 255 / 12%); color: #ececec; }
   main .prepare-field-submission .pfs-panel { border-color: #2b332d; }
 
   main .prepare-field-submission .pfs-outline-list li,
   main .prepare-field-submission .pfs-panel-list li { color: #d5dad6; }
   main .prepare-field-submission .pfs-outline-list li::marker { color: #f2823f; }
-
-  main .prepare-field-submission .pfs-panel-evidence .pfs-panel-count {
-    background: rgb(45 202 114 / 18%);
-    color: #6fdb9d;
-  }
-
-  main .prepare-field-submission .pfs-panel-missing .pfs-panel-count {
-    background: rgb(217 154 43 / 20%);
-    color: #edb659;
-  }
-
-  main .prepare-field-submission .pfs-panel-flags .pfs-panel-count {
-    background: rgb(232 101 26 / 22%);
-    color: #f2823f;
-  }
-
-  main .prepare-field-submission .pfs-actions {
-    background: #1c231e;
-    border-top-color: #2b332d;
-  }
+  main .prepare-field-submission .pfs-panel--evidence .pfs-panel-count { background: rgb(45 202 114 / 18%); color: #6fdb9d; }
+  main .prepare-field-submission .pfs-panel--missing .pfs-panel-count { background: rgb(217 154 43 / 20%); color: #edb659; }
+  main .prepare-field-submission .pfs-panel--flags .pfs-panel-count { background: rgb(232 101 26 / 22%); color: #f2823f; }
+  main .prepare-field-submission .pfs-actions { background: #1c231e; border-top-color: #2b332d; }
 }
 
 body.dark main .prepare-field-submission { color: #ececec; }
-
-body.dark main .prepare-field-submission .pfs-card {
-  background: #161c18;
-  border-color: #2b332d;
-}
-
-body.dark main .prepare-field-submission .pfs-header {
-  background: #1c231e;
-  border-bottom-color: #2b332d;
-}
+body.dark main .prepare-field-submission .pfs-card { background: #161c18; border-color: #2b332d; }
+body.dark main .prepare-field-submission .pfs-header { background: #1c231e; border-bottom-color: #2b332d; }
 body.dark main .prepare-field-submission .pfs-title { color: #f4f2ef; }
-
-body.dark main .prepare-field-submission .pfs-chip-type {
-  background: rgb(255 255 255 / 12%);
-  color: #ececec;
-}
+body.dark main .prepare-field-submission .pfs-chip--type { background: rgb(255 255 255 / 12%); color: #ececec; }
 body.dark main .prepare-field-submission .pfs-meta-key { color: #9aa39c; }
 body.dark main .prepare-field-submission .pfs-meta-val { color: #f4f2ef; }
-
-body.dark main .prepare-field-submission .pfs-copyable {
-  background: #1c231e;
-  border-color: #2b332d;
-}
+body.dark main .prepare-field-submission .pfs-copyable { background: #1c231e; border-color: #2b332d; }
 body.dark main .prepare-field-submission .pfs-copyable-label { color: #9aa39c; }
 body.dark main .prepare-field-submission .pfs-copyable-value { color: #d5dad6; }
-
-body.dark main .prepare-field-submission .pfs-copy-btn {
-  background: #232b25;
-  color: #ececec;
-  border-color: #3a423b;
-}
+body.dark main .prepare-field-submission .pfs-copy-btn { background: #232b25; color: #ececec; border-color: #3a423b; }
 
 body.dark main .prepare-field-submission .pfs-copy-btn:hover,
-body.dark main .prepare-field-submission .pfs-copy-btn:focus-visible {
-  background: #2b332d;
-  border-color: #f2823f;
-}
+body.dark main .prepare-field-submission .pfs-copy-btn:focus-visible { background: #2b332d; border-color: #f2823f; }
 body.dark main .prepare-field-submission .pfs-panel-title { color: #f4f2ef; }
-
-body.dark main .prepare-field-submission .pfs-panel-count {
-  background: rgb(255 255 255 / 12%);
-  color: #ececec;
-}
+body.dark main .prepare-field-submission .pfs-panel-count { background: rgb(255 255 255 / 12%); color: #ececec; }
 body.dark main .prepare-field-submission .pfs-panel { border-color: #2b332d; }
 
 body.dark main .prepare-field-submission .pfs-outline-list li,
 body.dark main .prepare-field-submission .pfs-panel-list li { color: #d5dad6; }
 body.dark main .prepare-field-submission .pfs-outline-list li::marker { color: #f2823f; }
-
-body.dark main .prepare-field-submission .pfs-panel-evidence .pfs-panel-count {
-  background: rgb(45 202 114 / 18%);
-  color: #6fdb9d;
-}
-
-body.dark main .prepare-field-submission .pfs-panel-missing .pfs-panel-count {
-  background: rgb(217 154 43 / 20%);
-  color: #edb659;
-}
-
-body.dark main .prepare-field-submission .pfs-panel-flags .pfs-panel-count {
-  background: rgb(232 101 26 / 22%);
-  color: #f2823f;
-}
-
-body.dark main .prepare-field-submission .pfs-actions {
-  background: #1c231e;
-  border-top-color: #2b332d;
-}
+body.dark main .prepare-field-submission .pfs-panel--evidence .pfs-panel-count { background: rgb(45 202 114 / 18%); color: #6fdb9d; }
+body.dark main .prepare-field-submission .pfs-panel--missing .pfs-panel-count { background: rgb(217 154 43 / 20%); color: #edb659; }
+body.dark main .prepare-field-submission .pfs-panel--flags .pfs-panel-count { background: rgb(232 101 26 / 22%); color: #f2823f; }
+body.dark main .prepare-field-submission .pfs-actions { background: #1c231e; border-top-color: #2b332d; }

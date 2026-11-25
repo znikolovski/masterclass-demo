@@ -165,7 +165,7 @@
   padding: 0 0 0 28px;
 }
 
-.travel-inspiration-route-active {
+.travel-inspiration-route--active {
   border-left-color: var(--aero-orange);
 }
 
@@ -186,7 +186,7 @@
   text-transform: uppercase;
 }
 
-.travel-inspiration-route-active h3 {
+.travel-inspiration-route--active h3 {
   color: var(--aero-orange);
 }
 
@@ -424,7 +424,7 @@
   background: linear-gradient(to top, rgb(15 26 20 / 90%) 0%, rgb(15 26 20 / 0%) 100%);
 }
 
-.travel-inspiration-trending-copy-side {
+.travel-inspiration-trending-copy--side {
   inset: 0;
   display: flex;
   flex-direction: column;
@@ -453,7 +453,7 @@
   color: #fff;
 }
 
-.travel-inspiration-trending-card-feature .travel-inspiration-trending-copy h3 {
+.travel-inspiration-trending-card--feature .travel-inspiration-trending-copy h3 {
   font-size: clamp(1.25rem, 3vw, 1.75rem);
 }
 
@@ -474,11 +474,11 @@
   color: #fff;
 }
 
-.travel-inspiration-trending-card-compact .travel-inspiration-trending-copy {
+.travel-inspiration-trending-card--compact .travel-inspiration-trending-copy {
   background: rgb(15 26 20 / 20%);
 }
 
-.travel-inspiration-trending-card-compact .travel-inspiration-trending-copy h3 {
+.travel-inspiration-trending-card--compact .travel-inspiration-trending-copy h3 {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -499,22 +499,22 @@
     min-height: 0;
   }
 
-  .travel-inspiration-trending-card-feature {
+  .travel-inspiration-trending-card--feature {
     grid-column: 1 / span 2;
     grid-row: 1 / span 2;
   }
 
-  .travel-inspiration-trending-card-slot-1 {
+  .travel-inspiration-trending-card--slot-1 {
     grid-column: 3;
     grid-row: 1;
   }
 
-  .travel-inspiration-trending-card-slot-2 {
+  .travel-inspiration-trending-card--slot-2 {
     grid-column: 4;
     grid-row: 1;
   }
 
-  .travel-inspiration-trending-card-wide {
+  .travel-inspiration-trending-card--wide {
     grid-column: 3 / span 2;
     grid-row: 2;
   }
@@ -593,24 +593,24 @@
   white-space: nowrap;
 }
 
-.travel-inspiration-btn-primary:any-link {
+.travel-inspiration-btn--primary:any-link {
   background: var(--aero-orange);
   color: #fff;
 }
 
-.travel-inspiration-btn-primary:any-link:hover,
-.travel-inspiration-btn-primary:any-link:focus-visible {
+.travel-inspiration-btn--primary:any-link:hover,
+.travel-inspiration-btn--primary:any-link:focus-visible {
   background: var(--aero-orange-hover);
   color: #fff;
 }
 
-.travel-inspiration-btn-outline:any-link {
+.travel-inspiration-btn--outline:any-link {
   border: 2px solid #fff;
   color: #fff;
 }
 
-.travel-inspiration-btn-outline:any-link:hover,
-.travel-inspiration-btn-outline:any-link:focus-visible {
+.travel-inspiration-btn--outline:any-link:hover,
+.travel-inspiration-btn--outline:any-link:focus-visible {
   background: rgb(255 255 255 / 10%);
   color: #fff;
 }

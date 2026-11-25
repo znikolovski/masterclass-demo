@@ -46,56 +46,6 @@ npm run deploy
 
 Set page metadata `aero-api` to your Worker URL (defaults to `https://wknd-aero-api.jaggah.workers.dev`).
 
-### Automatic booking confirmation email
-
-New confirmed bookings automatically send a transactional email through the existing
-Brevo account, from the verified `hello@wknd-adventures.run.place` sender. The message
-uses the persisted booking's flight, seats, passenger count, adventure and total;
-it explicitly identifies the booking as a **demo**, not a real airline ticket or
-payment. It does not subscribe the passenger to marketing.
-
-Provision `WKND_BREVO_API_KEY` as a Cloudflare Worker secret, never as a public
-variable or browser credential. `WKND_EMAIL_FROM` is the public verified sender
-configuration. Booking authentication and the existing delegation secret are unchanged.
-
-The pending receipt index is written before the confirmed booking snapshot.
-Sending starts only after that snapshot is persisted. The Worker attempts delivery
-immediately using `waitUntil`; the additional `*/5 * * * *` cron retries pending
-receipts automatically. The existing six-hour catalog sync remains separate.
-Retries reuse a deterministic booking/account-scoped Brevo UUID, so concurrent
-booking requests and retrying the same booking do not create different send keys.
-Only newly created bookings enter this outbox; historical bookings are not emailed.
-Receipt metadata and its index expire with the booking's original 90-day retention,
-including when delivery is retried.
-
-The write-once KV `booking-receipt-status:<provider-uuid>` record has
-`status = accepted` when Brevo accepted the request (or
-recognized the same idempotency key), not proof of inbox delivery. An uncertain
-network/provider outcome is retried only within a conservative 15-minute window,
-inside Brevo's documented [30-minute deduplication TTL](https://developers.brevo.com/docs/heterogenous-versions-batch-emails).
-After that it becomes `unknown` and logs a reconciliation error rather than risking
-a duplicate. Investigate the provider log before any manual resend. Missing
-configuration retains scheduled retries without attempting a send. Provider failures
-are retried at most once per five-minute window, then require reconciliation if no
-definite acceptance is obtained within the safe window. Separate write-once attempt,
-start and acceptance records avoid KV's per-key write-rate limit without rewriting
-the immutable booking or exposing delivery metadata in its public response.
-Provider bodies, email addresses and credentials are never logged.
-
-Validation without real sends:
-
-```bash
-node --test tools/tests/aero-booking-receipt.test.mjs
-node tools/scripts/test-booking-auth.mjs
-node tools/scripts/test-booking-checkout.mjs /absolute/path/to/screenshots
-```
-
-The first two mock Brevo and assert durable booking-before-send, retry, duplicate
-suppression, invalid recipients and unknown-outcome handling. The browser check
-uses the authenticated demo checkout harness and makes no live booking or email.
-For rollback, revert the receipt integration and additional cron together; do not
-revoke the unrelated booking-delegation secret or resend old pending receipts.
-
 ### Authenticated checkout and Check Booking
 
 Browsing and flight search remain public. Confirmation requires Auth0 sign-in;
@@ -107,23 +57,11 @@ anonymous booking creation and the previous unrestricted booking lookup.
 1. In Auth0 create **WKND Aero Booking API**, identifier
    `https://wknd-aero-api.jaggah.workers.dev`, signing algorithm **RS256**.
    Add `bookings:create` and `bookings:read`.
-2. Use the dedicated Aero application with client ID
-   `PrVnVZDYQKOtjcEUHGpVj8nJ1ywobf8k` in tenant
-   `dev-g4kzp3zwgwzs8oha.us.auth0.com`. Set **Application Type** to
-   **Single Page Application** and **Token Endpoint Authentication Method** to
-   **None**. This is separate from the shop's existing SPA and the Native client
-   used by ChatGPT/Claude. Enable exactly the same connection(s) on the Aero
-   client as on the shop client, and keep the LLM login connection aligned.
-   A shared tenant alone does not guarantee a shared identity across connections:
-   the same shopper signing in through a different connection can receive a
-   different `sub`. Cart ownership and recovery eligibility use issuer + subject;
-   a second identity has separate cart history and recovery-redemption history.
+2. Create **WKND Checkout**, type **Single Page Application**, for our website.
+   This is separate from the Native client used by ChatGPT/Claude. Enable the
+   same customer connection used for the LLM login so issuer + subject match.
    Allow user-delegated access to the two booking scopes; no client-credentials
-   grant is needed. Under **Applications > APIs > WKND Aero Booking API >
-   Application Access**, add an explicit **user-access** grant for the Aero
-   SPA with only `bookings:create` and `bookings:read`. If the API requires
-   explicit grants, URL allowlists alone are insufficient. Do not broaden its
-   policy to allow all applications or grant the Aero client Commerce API access.
+   grant is needed.
 3. For each checkout origin you use, add `{origin}/book/flights` to **Allowed
    Callback URLs** and `{origin}` to **Allowed Web Origins** and **Allowed Origins
    (CORS)**. For example:
@@ -131,28 +69,10 @@ anonymous booking creation and the previous unrestricted booking lookup.
    origin `https://main--wknd-aero--znikolovski.aem.live`.
    Local browser testing uses `http://localhost:3000/book/flights` and
    `http://localhost:3000`. Do not wildcard callback URLs.
-   Configure these entries on the dedicated Aero application, not the shop's
-   application. Keep the shop's client configuration, existing `/account`
-   callbacks and origins unchanged. A `Callback URL mismatch`
-   screen is an Auth0 application allowlist error, not a password or Worker error.
-   Both Aero preview and live origins must be configured separately:
-
-   | Setting | Aero entries to add (preserve existing entries) |
-   |---------|------------------------------------------------|
-   | Allowed Callback URLs | `https://main--wknd-aero--znikolovski.aem.page/book/flights`, `https://main--wknd-aero--znikolovski.aem.live/book/flights`, `http://localhost:3000/book/flights` |
-   | Allowed Web Origins / Allowed Origins (CORS) / Allowed Logout URLs | `https://main--wknd-aero--znikolovski.aem.page`, `https://main--wknd-aero--znikolovski.aem.live`, `http://localhost:3000` |
 4. The public checkout SPA client ID is configured as `AUTH0_CHECKOUT_CLIENT_ID`
    under `[vars]` in `workers/wknd-aero-api/wrangler.toml`.
-   The issuer remains `https://dev-g4kzp3zwgwzs8oha.us.auth0.com/` and the API
-   audience remains `https://wknd-aero-api.jaggah.workers.dev`. A new SPA client
-   does not require changing either value or the MCP resource. Do not change
-   the shop's separate `auth-config` action or put a client secret in the website.
-   If Aero later calls protected Commerce APIs, request the same API audience
-   used by the shop. Commerce validates issuer + audience without binding tokens
-   to an `azp`/client ID, so a dedicated SPA client is compatible; it does not
-   make a token for a different audience valid. Any future Commerce API grant
-   requires separate coordination. The current read-only Aero product suggestions
-   use public catalog requests and transfer no shopper token.
+   The issuer, Worker audience and MCP resource are also configured there; change them together when deploying
+   to another environment.
 5. Generate a strong random shared secret (at least 32 bytes) locally. Store it
    with `npx wrangler secret put WKND_BOOKING_ASSERTION_SECRET` in the Worker
    directory, and as the **secret** variable `WKND_BOOKING_ASSERTION_SECRET`
@@ -166,56 +86,6 @@ anonymous booking creation and the previous unrestricted booking lookup.
    Make `booking_id` optional to enable listing, and declare optional `cursor`
    for pagination; the existing required-ID schema still supports direct lookup.
 7. Deploy the Worker, website code and companion app, then refresh host tools.
-
-#### SDK installation and verification
-
-The website already loads the official **Auth0 SPA SDK** from Auth0's CDN in
-`scripts/wknd-auth.js`; `scripts/aero-auth.js` connects the Aero header and booking
-journey to it. This vanilla JavaScript EDS site has no Vite build or npm SDK
-bundling step. Do not add a second SDK instance or paste the standalone
-quickstart HTML into the booking page.
-
-The existing integration uses `Auth0Client`, `loginWithPopup`, `checkSession`,
-`isAuthenticated`, `getTokenSilently`, `getUser`, and `logout`. Popup login is
-intentional: the SDK handles authorization code/PKCE and the callback without
-navigating away from an in-progress booking. Do not add a separate manual
-redirect/callback flow. Tokens remain in memory; no SDK storage or shared shop
-authentication changes are needed for this client configuration.
-
-For a new environment, complete and save the application settings above in the
-Auth0 dashboard before switching clients. Changing the client ID alone cannot
-make login work. After deployment is approved, deploy the Worker configuration
-and check the configuration consumed by the browser:
-
-```bash
-curl -fsS https://wknd-aero-api.jaggah.workers.dev/api/auth/config
-```
-
-Expected public response:
-
-```json
-{
-  "issuer": "https://dev-g4kzp3zwgwzs8oha.us.auth0.com/",
-  "clientId": "PrVnVZDYQKOtjcEUHGpVj8nJ1ywobf8k",
-  "audience": "https://wknd-aero-api.jaggah.workers.dev"
-}
-```
-
-Website code deployment alone does not update this Worker setting.
-For local booking-page testing, run the EDS dev server on port 3000 using the
-repository setup command; ensure it serves Aero content rather than another
-site. A local page that still uses the hosted Worker also uses its deployed
-Auth0 configuration.
-
-On both preview and live `/book/flights`, select a flight, sign in from the
-header or checkout, and verify both surfaces update without losing the selection.
-Reload to check Auth0 session restoration, then sign out and verify the site
-origin is accepted as the logout return URL. Repeat on localhost if used.
-The automated checks below mock the SDK and validate application behavior;
-they do not prove that the tenant allowlists or a real user login are configured.
-If authentication succeeds but booking access fails, verify the client can
-request the Booking API audience and both booking scopes, rather than removing
-the Worker's authentication checks.
 
 Check Booking is an **EDS widget**, configured with script URL
 `https://main--masterclass-demo--znikolovski.aem.live/scripts/llmapp-embed.js`
@@ -274,7 +144,6 @@ Focused regression checks:
 node tools/scripts/test-booking-auth.mjs
 node tools/scripts/test-journey-context.mjs
 node tools/scripts/test-booking-checkout.mjs
-node tools/scripts/test-aero-shop.mjs
 node tools/scripts/test-check-booking-widget.mjs
 ```
 
@@ -282,106 +151,6 @@ Before enabling the live tool, create a new booking signed in as customer A,
 retrieve it in the host signed in as A, then verify customer B cannot retrieve it
 through either the direct API or the tool. Host login alone does not validate
 the website client, delegated secret, or ownership mapping.
-
-### Booking-aware shopping
-
-The existing `Booking Journey` block needs no new author fields. After a flight
-is selected, it shows up to four in-stock products tagged with the booking's
-adventure. Confirmation uses the confirmed booking's adventure first. Direct
-flight searches without an adventure use matching destination entries from the
-public Aero adventure catalog. No matching adventure/products produces an
-explicit empty state, not unrelated trending recommendations.
-
-Products and prices come from the existing Commerce Mesh `productSearch` API.
-Only public adventure slugs are sent to Commerce: no booking reference, access
-token, passenger details, or payment information. This read-only integration
-does not change promotions or the shared customer identity implementation.
-Product links open the canonical WKND Adventures shop in a new tab to preserve
-in-progress checkout; shoppers choose sizes/options and purchase there. Gear
-is optional and separate from the flight. No cross-domain cart or sign-in
-transfer is implied. Catalog failures show a retry action and never block booking.
-
-### Flight-linked Adventure Essentials offer
-
-This offer is separate from the public product recommendations above. After
-confirmation, Aero uses its existing authenticated Bearer token to query
-Commerce Mesh `wkndAeroBundleOffer(booking_id: String!)`. Only a server
-`ELIGIBLE` response shows **Claim flight-linked offer**. The explicit action
-calls `claimWkndAeroBundleOffer`; it saves an entitlement, not a cart or order.
-The existing Aero and Shop issuer/audience match; no new token admission or
-Worker proxy is needed.
-
-Commerce verifies ownership of a persisted `demo: true`, confirmed flight
-through Aero's existing short-lived server delegation. Any destination
-qualifies, including flights without an adventure. Terms are 50% off one exact
-complete kit, valid seven days from booking creation, once per booking/shopper,
-with the best eligible saving applied and no stacking:
-
-- 1 × `WKND-HYD-002` — Collapsible Bottle 1L
-- 1 × `WKND-LGT-001` — Alpine Start Headlamp 400
-- 1 × `WKND-TRV-009` — Wilderness First Aid Kit
-
-Commerce uses `X-WKND-Delegation: commerce` and issuer
-`urn:wknd-commerce:storefront`. Provision the dedicated value as
-`WKND_COMMERCE_BOOKING_ASSERTION_SECRET` on the Aero Worker and
-`WKND_BOOKING_ASSERTION_SECRET` on Commerce, without rotating the existing MCP secret. Assertions
-remain HS256, at most 60 seconds old/lived, scoped to `bookings:read`, addressed
-to the existing booking audience, and bound to the configured Auth0
-`identity_issuer` and customer subject. The existing account-key ownership lookup
-is unchanged. Commerce assertions cannot create bookings, omit the delegation
-header, or use the MCP signing key/issuer. No secret is sent to the browser.
-
-Commerce receives its two new inputs, `AERO_BUNDLE_ENABLED=true` and the dedicated
-signing secret, through the private `commerce-aero` package binding to `commerce`.
-Mesh's storefront source uses `commerce-aero/storefront`; browser clients keep
-the same Mesh endpoint and public auth configuration. Original action/package
-parameters remain untouched: never replay opaque GET values or replace their
-parameter arrays to add these inputs. The existing Adobe-managed package
-validators remain trusted Runtime dependencies; their execute-only source is
-not independently audited, and no existing sequences or sharing settings change.
-
-The UI renders the server-supplied components, promotion, percentage and expiry;
-it does not hardcode eligibility, manufacture prices, calculate a saving,
-issue a coupon, or authorize redemption. Commerce remains responsible for
-stock, current prices, exact-kit qualification and single-use purchase checks.
-`INELIGIBLE` and `REDEEMED` responses have no claim action. Provider/GraphQL
-failures produce an explicit retry state, not an offer.
-
-To reproduce after the Commerce roots and promotion are published:
-
-1. Open `https://main--wknd-aero--znikolovski.aem.live/book/flights`,
-   search for any future demo flight, sign in, and complete its checkout.
-2. On confirmation, check **Your flight-linked gear offer** and claim it.
-3. Choose **Shop your kit**. This opens
-   `https://wknd-adventures.run.place/shop/cart?aero_booking={bookingId}`.
-   The URL contains only the booking reference, never a Bearer token or grant.
-4. Sign in to Shop with the same account. Its cart panel rechecks the offer.
-   Choose **Add missing kit products** to explicitly add missing quantities
-   through the existing cart API. Claiming alone never adds products.
-5. Review the cart's authoritative prices and applied discount, then purchase
-   the gear through ordinary, separate Shop checkout. No flight payment or
-   reservation is changed. Existing exact kit quantities are not duplicated.
-   An add failure refreshes the cart and asks you to review possible partial
-   additions before retrying.
-6. Reopen with another account, an expired booking, or a redeemed entitlement:
-   Commerce must reject eligibility or show the consumed state, never expose
-   another customer's booking.
-
-The existing Booking Journey and Commerce Cart content need no new author
-fields. Test content remains `/book/flights` and `/shop/cart`
-(`drafts/shop/cart.plain.html` locally). The Shop panel is loaded only when
-`aero_booking` is present and remains visible with an empty cart.
-
-Deployment prerequisite: publish both Commerce GraphQL roots/schema and the
-approved promotion/server-verification configuration before enabling this
-frontend. Missing roots fail visibly without blocking ordinary checkout.
-Focused browser contract coverage:
-`node --test tools/tests/aero-flight-offer.test.mjs`. Worker trust/ownership
-coverage: `node tools/scripts/test-booking-auth.mjs`.
-
-The shared [page head](../head.html) supplies both Commerce and Preact import-map
-entries. Keep both: the booking block's standalone import-map fallback cannot
-replace a head map that already exists.
 
 ## Local dev
 

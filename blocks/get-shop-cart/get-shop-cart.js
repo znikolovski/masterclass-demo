@@ -1,14 +1,13 @@
 /*
  * Get Shop Cart — dedicated LLM app widget for the `get-shop-cart` tool.
  * The signed-in shopper's WKND cart (the same cart as the website). Quantity changes and removals
- * use the `update-shop-cart-items` tool; "Apply this offer" (welcome-back offer, when the shop
- * reports one) uses `prepare-shop-checkout` with `apply_offer`; "Check out" continues the
- * conversation so the assistant opens the dedicated `prepare-shop-checkout` widget.
+ * use the `update-shop-cart-items` tool; "Check out" continues the conversation so the assistant
+ * opens the dedicated `prepare-shop-checkout` widget.
  * Widget page: /eds-widgets/get-shop-cart-demo (placeholder cell, as for the other tools).
  * An optional H2 replaces the default title ("Your WKND cart").
  */
 import {
-  el, button, alertBox, cartLines, totalsList, offerCard, followUpButton, connectWidget, isPreview,
+  el, button, alertBox, cartLines, totalsList, followUpButton, connectWidget, isPreview,
   callShopTool, openSiteLink, busyRunner, SITE_ORIGIN,
 } from '../../scripts/llmapp-shop.js';
 
@@ -41,20 +40,6 @@ export default async function decorate(block, bridge) {
     }
   });
 
-  // The shop claims the offer and applies it server-side; the result is the updated cart.
-  const applyOffer = () => run(async () => {
-    if (preview) {
-      render({ ...current, error: { message: 'Preview only — open this in ChatGPT and sign in to use your offer.' } }, true);
-      return;
-    }
-    try {
-      const data = await callShopTool(bridge, 'prepare-shop-checkout', { cart_version: current.cart.version, apply_offer: true });
-      render(data.cart ? data : { ...current, error: data.error }, true);
-    } catch (error) {
-      render({ ...current, error: { message: error?.message || 'We couldn’t apply this offer. Please try again.' } }, true);
-    }
-  });
-
   render = (data, fromUser) => {
     const nodes = [title];
     if (!data?.cart || !Array.isArray(data.cart.lines)) {
@@ -73,11 +58,8 @@ export default async function decorate(block, bridge) {
         nodes.push(
           el('p', 'shop-widget-muted', `${cart.item_count} item${cart.item_count === 1 ? '' : 's'}`),
           cartLines(cart, { onQuantity: setQuantity }),
+          totalsList(cart.totals),
         );
-        const offer = offerCard(data.offer, { onApply: applyOffer });
-        if (offer) nodes.push(offer);
-        nodes.push(totalsList(cart.totals));
-        if (cart.offer_applied) nodes.push(el('p', 'shop-widget-muted', 'Welcome-back offer applied.'));
         const actions = el('div', 'shop-widget-actions');
         const site = button('Open on WKND', 'secondary');
         site.addEventListener('click', () => openSiteLink(bridge, `${SITE_ORIGIN}/shop/cart`).catch(() => {
@@ -97,8 +79,8 @@ export default async function decorate(block, bridge) {
   };
 
   if (preview) {
-    const { previewSample } = await import('../../scripts/llmapp-shop-samples.js');
-    render(previewSample('cart', bridge));
+    const { SAMPLE_CART } = await import('../../scripts/llmapp-shop-samples.js');
+    render(SAMPLE_CART);
     return;
   }
   resized = connectWidget(block, bridge, {

@@ -7,7 +7,6 @@
 import { getAccountState, setAccountState } from '../../scripts/account-state.js';
 import { shopPromises } from '../../scripts/shop-promises.js';
 import { shopStylesReady } from '../../scripts/shop-styles.js';
-import { getIdLinkageConfig } from '../../scripts/id-linkage-config.js';
 
 const ICONS = {
   orders: '<path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
@@ -110,20 +109,6 @@ function renderSignedInShell(block, state) {
           <h2 id="account-addresses-title">Saved addresses</h2>
           <div class="account__addresses"><p class="account__loading">Loading your addresses…</p></div>
         </section>
-        <section id="preferences" class="account__section" aria-labelledby="account-preferences-title" hidden>
-          <h2 id="account-preferences-title">Email preferences</h2>
-          <p class="account__preference-intro">Choose the emails you’d like from WKND Adventures. Each one is optional and off unless you turn it on.</p>
-          <label class="account__preference" data-purpose="recovery">
-            <input type="checkbox" name="recovery-email">
-            <span><strong>Cart reminders</strong> Email me a reminder when my cart has been inactive for 24 hours to 7 days — at most one per period of inactivity, sometimes with a one-off offer.</span>
-          </label>
-          <label class="account__preference" data-purpose="audience" hidden>
-            <input type="checkbox" name="marketing-email">
-            <span><strong>WKND news &amp; offers</strong> Email me gear offers, trip ideas and member deals from WKND Adventures. These may be tailored to what I browse and buy on WKND websites and apps.</span>
-          </label>
-          <p class="account__preference-status" role="status" aria-live="polite"></p>
-          <p class="account__preference-note">You can change your mind at any time here or with the unsubscribe link in every email — unsubscribing stops all marketing email from us. We use your email address and activity as described in our <a href="/privacy">Privacy Policy</a>. This is a demo store.</p>
-        </section>
       </div>
     </div>`);
   fragment.querySelector('.account__avatar').textContent = state.initials;
@@ -161,22 +146,7 @@ async function hydrate(block) {
     block.querySelector('.account__email').textContent = profile.email || '';
     block.querySelector('.account__detail-name').textContent = name || '—';
     block.querySelector('.account__detail-email').textContent = profile.email || '—';
-    if (getIdLinkageConfig()) {
-      import('../../scripts/id-linkage-consent.js')
-        .then(({ default: mountIdLinkageConsent }) => mountIdLinkageConsent(block))
-        .catch(() => {
-          const error = document.createElement('p');
-          error.className = 'account__error';
-          error.setAttribute('role', 'alert');
-          error.textContent = 'Identity-linking settings could not be loaded.';
-          block.querySelector('.account__content').append(error);
-        });
-    }
   });
-
-  import('./email-preferences.js')
-    .then(({ default: init }) => init(block.querySelector('#preferences')))
-    .catch(() => {});
 
   await import('../../scripts/initializers/account.js');
   const [

@@ -32,7 +32,7 @@ main .youtube-video .youtube-video-caption {
 }
 
 main .inverse > .youtube-video .youtube-video-caption {
-  color: rgb(255 255 255);
+  color: rgb(255, 255, 255);
 }
 
 main .youtube-video .youtube-video-caption::before {
