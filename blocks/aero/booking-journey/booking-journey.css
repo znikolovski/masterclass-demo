@@ -8,7 +8,7 @@
   --aero-label: #584238;
   --aero-muted: #dbdad7;
 
-  min-height: 70vh;
+  min-height: 100svh;
   padding: 0;
   background: var(--aero-cream);
   color: var(--aero-forest);
@@ -78,6 +78,10 @@
 }
 
 @media (width >= 900px) {
+  .booking-journey {
+    min-height: 70vh;
+  }
+
   .booking-journey .booking-gear-products {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }

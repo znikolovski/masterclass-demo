@@ -303,3 +303,11 @@ main .commerce-cart .cart__note {
     top: calc(var(--nav-height) + var(--spacing-medium));
   }
 }
+
+/* Kept outside the order summary so the flight offer is usable with an empty cart. */
+main .commerce-cart .cart-aero-offer {
+  padding: 24px;
+  margin-block: 24px;
+  border: 1px solid currentcolor;
+  overflow-wrap: anywhere;
+}

@@ -64,6 +64,28 @@ async function renderCart(block, {
 
   const productLink = (item) => getProductLink(item.url?.urlKey);
 
+  if (new URLSearchParams(window.location.search).has('aero_booking')) {
+    import('./aero-offer.js').then(async ({ default: init }) => {
+      const [{ signInToShop }, { checkIsAuthenticated }, {
+        refreshCart, addProductsToCart,
+      }] = await Promise.all([
+        import('../../scripts/shop-auth.js'),
+        import('../../scripts/commerce-utils.js'),
+        import('@dropins/storefront-cart/api.js'),
+      ]);
+      init($bundles, {
+        events,
+        fetchGraphQl: (...args) => CORE_FETCH_GRAPHQL.fetchGraphQl(...args),
+        isAuthenticated: checkIsAuthenticated,
+        signIn: () => signInToShop({ surface: 'aero-offer' }),
+        refreshCart,
+        addProducts: addProductsToCart,
+      });
+    })
+      // eslint-disable-next-line no-console
+      .catch((e) => console.error('commerce-cart flight offer', e));
+  }
+
   import('./bundle-offers.js')
     .then(async ({ default: init }) => {
       const { addProductsToCart, refreshCart } = await import('@dropins/storefront-cart/api.js');

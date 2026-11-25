@@ -18,22 +18,26 @@ export async function authenticateBooking(request, env, scope) {
   const token = request.headers.get('Authorization')?.match(/^Bearer ([^\s]+)$/i)?.[1];
   if (!token) throw new BookingAuthError('Sign in to access your bookings.');
 
-  // Only read requests accept delegated MCP assertions. Checkout uses Auth0 directly.
-  const delegated = request.headers.get('X-WKND-Delegation') === 'mcp';
+  // Server delegation is read-only and each caller has its own issuer and signing key.
+  const delegation = request.headers.get('X-WKND-Delegation');
+  const delegated = delegation === 'mcp' || delegation === 'commerce';
   let payload;
   try {
     if (delegated) {
       if (scope !== 'bookings:read') throw new BookingAuthError('Read-only delegation.', 403);
-      if (!env.MCP_RESOURCE || !env.WKND_BOOKING_ASSERTION_SECRET
-        || new TextEncoder().encode(env.WKND_BOOKING_ASSERTION_SECRET).length < 32) {
+      const delegationIssuer = delegation === 'commerce'
+        ? 'urn:wknd-commerce:storefront' : env.MCP_RESOURCE;
+      const secret = delegation === 'commerce'
+        ? env.WKND_COMMERCE_BOOKING_ASSERTION_SECRET : env.WKND_BOOKING_ASSERTION_SECRET;
+      if (!delegationIssuer || !secret || new TextEncoder().encode(secret).length < 32) {
         throw new BookingAuthError('Booking delegation is not configured.', 503);
       }
       ({ payload } = await jwtVerify(
         token,
-        new TextEncoder().encode(env.WKND_BOOKING_ASSERTION_SECRET),
+        new TextEncoder().encode(secret),
         {
           algorithms: ['HS256'],
-          issuer: env.MCP_RESOURCE,
+          issuer: delegationIssuer,
           audience,
           requiredClaims: ['sub', 'iat', 'exp', 'jti'],
           maxTokenAge: '60s',

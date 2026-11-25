@@ -85,6 +85,24 @@ try {
   let gearEmpty = false;
   let gearRequests = 0;
   await context.route('https://edge-graph.adobe.io/**', async (route) => {
+    const request = route.request();
+    if (request.method() === 'POST') {
+      const { query, variables } = request.postDataJSON();
+      assert.match(query, /\bwkndAeroBundleOffer\s*\(/);
+      assert.match(variables.bookingId, /^BK_/);
+      return route.fulfill({
+        json: {
+          data: {
+            wkndAeroBundleOffer: {
+              status: 'INELIGIBLE',
+              reason: 'BOOKING_NOT_ELIGIBLE',
+              booking_id: variables.bookingId,
+              components: [],
+            },
+          },
+        },
+      });
+    }
     gearRequests += 1;
     const url = new URL(route.request().url());
     assert.deepEqual(JSON.parse(url.searchParams.get('variables')), {
@@ -166,7 +184,22 @@ try {
       }
     }};`,
   }));
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.route('**/blocks/aero/booking-journey/app/index.js', (route) => route.fulfill({
+    contentType: 'text/javascript', body: 'export default function mount() {}',
+  }));
   await page.goto(checkoutUrl);
+  await page.locator('.booking-journey-mount').waitFor({ state: 'attached' });
+  assert(await page.evaluate(() => document.querySelector('.booking-journey')
+    .getBoundingClientRect().height >= window.innerHeight),
+  'Reserve the mobile viewport while the booking app initializes');
+  await page.unroute('**/blocks/aero/booking-journey/app/index.js');
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto(checkoutUrl);
+  await page.locator('.flight-card').first().waitFor();
+  assert.equal(await page.evaluate(() => performance.getEntriesByType('resource')
+    .some(({ name }) => new URL(name).pathname === '/scripts/aero-flight-offer.js')), false,
+  'Flight offer transport must not load during flight selection');
   assert.equal(gearRequests, 0, 'No product request before a flight is selected');
   gearFailure = true;
   await page.locator('.flight-card button').first().click();

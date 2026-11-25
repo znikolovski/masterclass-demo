@@ -8,6 +8,7 @@ import { JOURNEY_ID_PATTERN } from '../../../../scripts/journey-context.js';
 import { fetchAdventureCatalog, getCatalogItems } from '../../../../scripts/aero-catalog.js';
 import { fetchBookingProducts, getAeroShopLink, AERO_SHOP_ORIGIN } from '../../../../scripts/aero-shop.js';
 import { dmRendition, isDmUrl } from '../../../../scripts/dm-image.js';
+import FlightOffer from './flight-offer.js';
 import {
   signInForBooking, getBookingAccessToken, invalidateBookingAuth,
   restoreBookingSession, subscribeToBookingAuth,
@@ -887,6 +888,7 @@ function BookingApp({ mount }) {
         h('p', null, `${selected?.origin} → ${selected?.destination} · ${formatTime(selected?.departTime)}`),
         h('a', { href: '/', class: 'booking-btn booking-btn-primary' }, 'Return home'),
       ]),
+      h(FlightOffer, { bookingId: confirmed.id, api, signedIn }),
       h(BookingGear, {
         adventureId: confirmed.adventure?.id || adventureId,
         destination: confirmed.flight?.destination || selected?.destination,

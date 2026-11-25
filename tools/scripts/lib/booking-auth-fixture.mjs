@@ -17,12 +17,14 @@ export default async function bookingAuthFixture(settings = {}) {
     return originalFetch(input, ...args);
   };
   const secret = 'test-only-delegation-secret-at-least-32-bytes';
+  const commerceSecret = 'test-only-commerce-separate-secret-at-least-32-bytes';
   const env = {
     AUTH0_ISSUER: issuer,
     AUTH0_CHECKOUT_CLIENT_ID: 'test-checkout',
     BOOKING_API_AUDIENCE: audience,
     MCP_RESOURCE: settings.resource || 'https://mcp.test/mcp',
     WKND_BOOKING_ASSERTION_SECRET: secret,
+    WKND_COMMERCE_BOOKING_ASSERTION_SECRET: commerceSecret,
   };
   const token = (sub = 'customer-a', scope = 'bookings:create bookings:read', options = {}) => new SignJWT({ scope })
     .setProtectedHeader({ alg: 'RS256', kid: jwk.kid })
@@ -43,10 +45,22 @@ export default async function bookingAuthFixture(settings = {}) {
     .setExpirationTime('60s')
     .setJti(crypto.randomUUID())
     .sign(new TextEncoder().encode(secret));
+  const commerceDelegated = (sub = 'customer-a', options = {}) => new SignJWT({
+    identity_issuer: issuer, scope: 'bookings:read', ...options.claims,
+  })
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setSubject(sub)
+    .setIssuer(options.issuer || 'urn:wknd-commerce:storefront')
+    .setAudience(options.audience || audience)
+    .setIssuedAt()
+    .setExpirationTime(options.expires || '60s')
+    .setJti(crypto.randomUUID())
+    .sign(new TextEncoder().encode(commerceSecret));
   return {
     env,
     token,
     delegated,
+    commerceDelegated,
     restore: () => { globalThis.fetch = originalFetch; },
   };
 }
