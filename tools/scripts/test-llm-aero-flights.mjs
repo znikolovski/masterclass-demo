@@ -174,7 +174,8 @@ try {
     await page.waitForFunction(() => window.links.length > 0);
     assert.match(JSON.stringify(await page.evaluate(() => window.links)), /flight_id=WK205/);
     if (process.env.LLM_AERO_SCREENSHOT_DIR) {
-      await page.screenshot({ path: resolve(process.env.LLM_AERO_SCREENSHOT_DIR, `llm-aero-${width}.png`), fullPage: true });
+      await block.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
+      await block.screenshot({ path: resolve(process.env.LLM_AERO_SCREENSHOT_DIR, `llm-aero-${width}.png`) });
     }
     await page.evaluate(() => { window.cartOutput = { isError: true, structuredContent: { error: { message: 'Sign in to check your discounts.' } } }; });
     await block.getByRole('button', { name: 'Check my gear discounts', exact: true }).click();
@@ -205,6 +206,28 @@ try {
     await block.getByRole('alert').filter({ hasText: 'Flight search is unavailable' }).waitFor();
     assert.equal(await block.getByText('No flights found. Try a different date or route.', { exact: true }).count(), 0);
   }
+  await page.goto(`${base}/host`);
+  const themed = page.frameLocator('iframe').locator('.search-flights');
+  await themed.getByRole('link', { name: 'Continue in Aero with WK205' }).waitFor();
+  const palette = () => themed.locator('.search-flights-card').first().evaluate((card) => ({
+    background: getComputedStyle(card).backgroundColor,
+    text: getComputedStyle(card).color,
+  }));
+  const light = await palette();
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  const dark = await palette();
+  assert.notEqual(dark.background, light.background, 'Flight cards use the shared dark surface');
+  assert.notEqual(dark.text, light.text, 'Flight text adapts to the shared dark theme');
+  assert.notEqual(dark.text, dark.background, 'Dark flight text remains visible');
+  assert.equal(await themed.getByLabel('Departure date', { exact: true })
+    .evaluate((input) => getComputedStyle(input).colorScheme), 'dark', 'Native date controls follow the dark theme');
+  assert.equal(await themed.getByRole('link', { name: 'Continue in Aero with WK205' })
+    .evaluate((link) => getComputedStyle(link).transitionDuration), '0s', 'Aero links respect reduced motion');
+  assert(await themed.evaluate((node) => node.scrollWidth <= node.clientWidth), 'No dark-theme overflow');
+  if (process.env.LLM_AERO_SCREENSHOT_DIR) {
+    await themed.screenshot({ path: resolve(process.env.LLM_AERO_SCREENSHOT_DIR, 'llm-aero-dark.png') });
+  }
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference' });
   await page.goto(`${base}/host?preview=1`);
   const preview = page.frameLocator('iframe').locator('.search-flights');
   await preview.getByText(/No fares are shown in page previews/).waitFor();

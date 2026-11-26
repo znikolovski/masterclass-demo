@@ -55,6 +55,11 @@ It shows **no sample fares in standalone previews**; actual results arrive over
 the existing LLM Apps bridge. See the companion README for input/output metadata
 and Stage-first deployment requirements.
 
+The flight widget shares the other LLM widgets' Instrument Sans/Syncopate fonts,
+theme tokens and pill-shaped accent-shadow buttons through
+`styles/llmapp-widgets.css`. Flight-specific layout is scoped to `search-flights`;
+there is no separate flight-widget palette or authoring contract.
+
 Checkout links include `origin`, `dest`, `depart`, `passengers`, `adv` when
 available, and `flight_id`. The booking app performs a fresh search, preselects
 the matching flight and explicitly requests refreshed-fare review without
@@ -417,6 +422,37 @@ frontend. Missing roots fail visibly without blocking ordinary checkout.
 Focused browser contract coverage:
 `node --test tools/tests/aero-flight-offer.test.mjs`. Worker trust/ownership
 coverage: `node tools/scripts/test-booking-auth.mjs`.
+
+### Claim and add the kit inside the LLM app
+
+After booking, return to **Check Booking** with the confirmation reference and
+the same WKND account. **Check flight-linked offer** reads the actual
+booking-specific Commerce offer, including its components, expiry and claim
+status. **Claim flight-linked offer** explicitly saves that same entitlement;
+it does not add products. An offer already claimed on Aero is shown as saved.
+
+Once claimed, **Add kit to cart** adds all missing kit items at once through
+Commerce's revision-checked, atomic `completeWkndBundle` operation. Existing
+quantities are not duplicated, no partial additions are used as a fallback,
+and no order is placed. Its returned cart prices and applied discount are shown
+immediately. **Check applied kit savings** explicitly refreshes the same Shop
+cart. Empty, ineligible, expired, redeemed, unauthorized, stock-failure and
+changed-cart states must not show a successful claim/add or stale savings.
+
+The companion provides `get-flight-gear-offer`, `claim-flight-gear-offer` and
+`add-flight-gear-kit`; each takes only `booking_id` and requires `shop:cart`.
+Keep Check Booking's existing `bookings:read` unchanged. The three tools share
+this widget and its CSP, adding the Shop redirect origin only as needed.
+No browser token, new secret, booking mutation or coupon is introduced.
+Commerce's protected-Aero empty-cart completion update must be published before
+enabling the Add button's tool. Existing ordinary bundle suggestions remain
+partial-cart-only, and the server still requires this kit to win the current
+promotion evaluation. A better discount is never replaced or stacked.
+
+The authored Check Booking heading and fixture are unchanged. Validate with
+`node tools/scripts/test-check-booking-widget.mjs`, the companion's
+`test/actions/flight-gear-offer.test.js`, and Commerce's `test/aero-bundle.test.js`.
+Source changes alone do not deploy the UI-managed LLM tools.
 
 The shared [page head](../head.html) supplies both Commerce and Preact import-map
 entries. Keep both: the booking block's standalone import-map fallback cannot

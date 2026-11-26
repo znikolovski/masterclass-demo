@@ -16,7 +16,7 @@ export default async function decorate(block, bridge) {
   block.replaceChildren(element('h2', '', title));
   const status = element('p', 'search-flights-status');
   status.setAttribute('role', 'status');
-  const note = element('p', 'search-flights-note', 'Demo flights only, not real airline tickets. USD base fares exclude taxes and seat fees. Aero refreshes the fare at checkout; you sign in and confirm there.');
+  const note = element('p', 'search-flights-note shop-widget-notice', 'Demo flights only, not real airline tickets. USD base fares exclude taxes and seat fees. Aero refreshes the fare at checkout; you sign in and confirm there.');
   const form = element('form', 'search-flights-form');
   const fields = {};
   [
@@ -45,14 +45,14 @@ export default async function decorate(block, bridge) {
     wrapper.append(input);
     form.append(wrapper);
   });
-  const submit = element('button', 'search-flights-submit', 'Search demo flights');
+  const submit = element('button', 'search-flights-submit shop-widget-btn', 'Search demo flights');
   submit.type = 'submit';
   form.append(submit);
   const results = element('div', 'search-flights-results');
   const discounts = element('section', 'search-flights-discounts');
   discounts.setAttribute('aria-label', 'WKND gear discounts');
   const discountNote = element('p', '', 'Gear discounts are separate from the flight fare. Flight-linked offers require a confirmed, eligible booking and are reviewed on your Aero confirmation. Check your signed-in Shop cart for audience-qualified offers and applied savings; Commerce determines eligibility and pricing.');
-  const checkDiscounts = element('button', 'search-flights-submit', 'Check my gear discounts');
+  const checkDiscounts = element('button', 'search-flights-submit shop-widget-btn', 'Check my gear discounts');
   checkDiscounts.type = 'button';
   checkDiscounts.disabled = !bridge?.isEmbedded || bridge.hostContext?.preview === true;
   const discountResults = element('div', 'search-flights-discount-results');
@@ -157,7 +157,7 @@ export default async function decorate(block, bridge) {
           element('p', '', `${flight.duration} · ${flight.cabin} · ${flight.aircraft}`),
           element('p', 'search-flights-price', `USD ${flight.base_fare_per_person.toFixed(2)} base fare per traveller`),
         );
-        const link = element('a', 'search-flights-continue', 'Continue in Aero');
+        const link = element('a', 'search-flights-continue shop-widget-btn', 'Continue in Aero');
         link.href = url.href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
