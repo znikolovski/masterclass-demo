@@ -17,6 +17,7 @@ test('flight offer uses verified Commerce responses and a separate Shop sign-in'
       '/offer.js': '../../blocks/commerce-cart/aero-offer.js',
       '/scripts/commerce-config.js': '../../scripts/commerce-config.js',
       '/scripts/aero-flight-offer.js': '../../scripts/aero-flight-offer.js',
+      '/scripts/aero-offer-validation.js': '../../scripts/aero-offer-validation.js',
       '/cart.css': '../../blocks/commerce-cart/commerce-cart.css',
       '/booking.css': '../../blocks/aero/booking-journey/booking-journey.css',
       '/styles/styles.css': '../../styles/styles.css',

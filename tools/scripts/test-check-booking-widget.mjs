@@ -8,6 +8,11 @@ import { resolve, extname } from 'node:path';
 import { chromium } from 'playwright'; // eslint-disable-line import/no-extraneous-dependencies
 
 const root = resolve(process.env.BOOKING_WIDGET_ROOT || '.');
+const editorAgents = [
+  'https://28538-blocksource.adobeio-static.net/agent.js',
+  'https://28538-copycheck.adobeio-static.net/agent.js',
+  'https://28538-planeew.adobeio-static.net/agent.js',
+];
 const id = 'BK_0123456789abcdef';
 const booking = {
   id,
@@ -40,6 +45,40 @@ const details = { structuredContent: { mode: 'details', booking } };
 const listing = { structuredContent: { mode: 'list', bookings: [booking], nextCursor: 'page-2' } };
 const empty = { structuredContent: { mode: 'list', bookings: [], nextCursor: null } };
 const denied = { isError: true, structuredContent: { error: { message: 'Sign in to view your bookings.' } } };
+const flightOffer = {
+  status: 'ELIGIBLE',
+  booking_id: id,
+  promotion_id: 'prm_test',
+  bundle_id: 'bundle_test',
+  name: 'Adventure Essentials — confirmed demo flight',
+  percent_off: 50,
+  expires_at: new Date(Date.now() + 86400000).toISOString(),
+  components: [
+    { sku: 'WKND-HYD-002', quantity: 1, name: 'Collapsible Bottle 1L' },
+    { sku: 'WKND-LGT-001', quantity: 1, name: 'Alpine Start Headlamp 400' },
+    { sku: 'WKND-TRV-009', quantity: 1, name: 'Wilderness First Aid Kit' },
+  ],
+};
+const eligible = { structuredContent: { mode: 'flight-offer', offer: flightOffer } };
+const claimed = { structuredContent: { mode: 'flight-offer', offer: { ...flightOffer, status: 'CLAIMED' } } };
+const kitCart = {
+  currency: 'AUD',
+  lines: flightOffer.components,
+  totals: {
+    subtotal: { value: 300, currency: 'AUD' },
+    discounts: [{ label: flightOffer.name, amount: { value: 150, currency: 'AUD' } }],
+    grand_total: { value: 150, currency: 'AUD' },
+    shipping: null,
+    tax_included: [],
+  },
+};
+const added = {
+  structuredContent: {
+    ...claimed.structuredContent,
+    cart: kitCart,
+    message: 'All missing kit products were added together. Your flight is unchanged.',
+  },
+};
 const mime = {
   '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.woff2': 'font/woff2',
 };
@@ -53,14 +92,20 @@ const server = createServer(async (req, res) => {
   if (pathname === '/host') {
     const mode = searchParams.get('mode') || 'details';
     const output = {
-      details, list: listing, empty, error: denied,
+      details, list: listing, empty, error: denied, offer: eligible, claimed, added,
     }[mode];
     res.setHeader('Content-Type', 'text/html');
-    res.end(`<!doctype html><html><head><style>
+    res.end(`<!doctype html><html><head><meta charset="utf-8"><style>
       body{margin:0}iframe{display:block;border:0;width:100%;height:1800px}
       </style></head><body><iframe title="Booking widget" src="/widget"></iframe>
       <script>
         window.output=${JSON.stringify(output)};
+        window.toolOutputs=${JSON.stringify({
+    'get-flight-gear-offer': eligible,
+    'claim-flight-gear-offer': claimed,
+    'add-flight-gear-kit': added,
+    'get-shop-cart': { structuredContent: { cart: kitCart } },
+  })};
         window.calls=[];
         window.sizes=[];
         window.sendResult=(result)=>document.querySelector('iframe').contentWindow.postMessage({
@@ -79,12 +124,15 @@ const server = createServer(async (req, res) => {
             if(window.rejectCall){
               event.source.postMessage({jsonrpc:'2.0',id:message.id,error:{code:-32603,message:'Denied'}},event.origin);
             } else if(!window.holdCall){
-              event.source.postMessage({jsonrpc:'2.0',id:message.id,result:window.output},event.origin);
+              event.source.postMessage({jsonrpc:'2.0',id:message.id,result:window.toolOutputs[message.params.name]||window.output},event.origin);
             } else {
               window.heldRequest={id:message.id,source:event.source,origin:event.origin};
             }
           } else if(message?.method==='ui/notifications/size-changed'){
             window.sizes.push(message.params);
+            if(Number.isFinite(message.params?.height)){
+              document.querySelector('iframe').style.height=message.params.height+'px';
+            }
           }
         });
       </script></body></html>`);
@@ -115,6 +163,10 @@ let browser;
 try {
   browser = await chromium.launch();
   const page = await browser.newPage();
+  // The framed page loader also imports authoring agents; keep those services out of this SDK test.
+  for (const url of editorAgents) {
+    await page.route(url, (route) => route.fulfill({ contentType: 'text/javascript', body: 'export {};' }));
+  }
   const errors = [];
   const external = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -135,6 +187,7 @@ try {
   page.on('request', (request) => {
     const url = new URL(request.url());
     if (!request.url().startsWith(base)
+      && !editorAgents.includes(request.url())
       && !['fonts.googleapis.com', 'fonts.gstatic.com'].includes(url.hostname)) {
       external.push(request.url());
     }
@@ -174,6 +227,63 @@ try {
       if (process.argv[2]) await block.screenshot({ path: `${process.argv[2]}/booking-eds-${mode}-${width}.png` });
     }
   }
+  for (const width of [375, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`${base}/host?mode=details`);
+    const offerBlock = page.frameLocator('iframe').locator('.check-booking');
+    await offerBlock.getByText('Booking details loaded.', { exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => window.calls.length), 0, 'No automatic offer or cart call');
+    await offerBlock.getByRole('button', { name: 'Check flight-linked offer', exact: true }).click();
+    await offerBlock.getByRole('button', { name: 'Claim flight-linked offer', exact: true }).waitFor();
+    assert.match(await offerBlock.innerText(), /50% off one exact complete kit/);
+    assert.equal(await offerBlock.getByRole('button', { name: 'Add kit to cart', exact: true }).count(), 0);
+    await offerBlock.getByRole('button', { name: 'Claim flight-linked offer', exact: true }).click();
+    await offerBlock.getByText('Offer saved to your account. No gear has been added or purchased.', { exact: true }).waitFor();
+    assert.deepEqual(await page.evaluate(() => window.calls.map((call) => call.name)), [
+      'get-flight-gear-offer', 'claim-flight-gear-offer',
+    ]);
+    await offerBlock.getByRole('button', { name: 'Add kit to cart', exact: true }).click();
+    await offerBlock.getByText('All missing kit products were added together. Your flight is unchanged.', { exact: true }).waitFor();
+    assert.match(await offerBlock.locator('.check-booking-offer-cart').innerText(), /150\.00/);
+    assert.match(await offerBlock.locator('.check-booking-offer-cart').innerText(), /Adventure Essentials/);
+    assert.deepEqual(await page.evaluate(() => window.calls), [
+      { name: 'get-flight-gear-offer', arguments: { booking_id: id } },
+      { name: 'claim-flight-gear-offer', arguments: { booking_id: id } },
+      { name: 'add-flight-gear-kit', arguments: { booking_id: id } },
+    ]);
+    assert(await offerBlock.evaluate((node) => node.scrollWidth <= node.clientWidth), `Offer overflow at ${width}`);
+    if (process.argv[2]) {
+      await offerBlock.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
+      await offerBlock.locator('.check-booking-flight-offer').screenshot({ path: `${process.argv[2]}/flight-kit-${width}.png` });
+    }
+    await page.evaluate(() => {
+      window.toolOutputs['get-shop-cart'] = { isError: true, structuredContent: { error: { message: 'Sign in to check your cart.' } } };
+    });
+    await offerBlock.getByRole('button', { name: 'Check applied kit savings', exact: true }).click();
+    await offerBlock.getByRole('alert').filter({ hasText: 'Sign in to check your cart' }).waitFor();
+    assert.equal(await offerBlock.locator('.shop-widget-totals').count(), 0, 'No stale savings on authorization failure');
+  }
+  await page.goto(`${base}/host?mode=offer`);
+  const directOffer = page.frameLocator('iframe').locator('.check-booking');
+  await directOffer.getByRole('button', { name: 'Claim flight-linked offer', exact: true }).waitFor();
+  await page.evaluate((output) => window.sendResult(output), added);
+  await directOffer.getByText(added.structuredContent.message, { exact: true }).waitFor();
+  assert.equal(await directOffer.getByText('Offer saved to your account. No gear has been added or purchased.', { exact: true }).count(), 0);
+  assert.match(await directOffer.locator('.check-booking-offer-cart').innerText(), /150\.00/);
+  for (const state of ['INELIGIBLE', 'REDEEMED']) {
+    await page.evaluate((output) => window.sendResult(output), {
+      structuredContent: { mode: 'flight-offer', offer: { ...flightOffer, status: state } },
+    });
+    await directOffer.getByText(state === 'REDEEMED'
+      ? 'This flight-linked offer has already been used.'
+      : 'No flight-linked offer is available for this booking and account.', { exact: true }).waitFor();
+    assert.equal(await directOffer.getByRole('button', { name: 'Claim flight-linked offer', exact: true }).count(), 0);
+    assert.equal(await directOffer.getByRole('button', { name: 'Add kit to cart', exact: true }).count(), 0);
+  }
+  await page.evaluate((output) => window.sendResult(output), {
+    structuredContent: { mode: 'flight-offer', offer: { ...flightOffer, expires_at: '2020-01-01T00:00:00Z' } },
+  });
+  await directOffer.getByRole('alert').filter({ hasText: 'invalid or expired' }).waitFor();
   await page.goto(`${base}/host?mode=list`);
   const block = page.frameLocator('iframe').locator('.check-booking');
   await block.getByRole('button', { name: `View details for ${id}` }).waitFor();

@@ -1,4 +1,5 @@
 @import url('../../styles/llmapp-widgets.css');
+@import url('../../styles/llmapp-shop.css');
 
 main .check-booking {
   box-sizing: border-box;
@@ -127,6 +128,16 @@ main .check-booking a {
 
 main .check-booking .check-booking-muted {
   opacity: 0.85;
+}
+
+main .check-booking .check-booking-flight-offer {
+  margin-block: 24px;
+  border-top: 1px solid var(--widget-border);
+  padding-top: 20px;
+}
+
+main .check-booking .check-booking-flight-offer li {
+  overflow-wrap: anywhere;
 }
 
 main .check-booking [role="alert"] {

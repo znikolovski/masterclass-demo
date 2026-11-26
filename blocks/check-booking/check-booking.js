@@ -1,3 +1,6 @@
+import validateAeroOffer from '../../scripts/aero-offer-validation.js';
+import { callShopTool, totalsList } from '../../scripts/llmapp-shop.js';
+
 function element(tag, text, className) {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
@@ -127,6 +130,112 @@ export default function decorate(block, bridge) {
     safeLink(card, 'Published preparation source', data?.sourceUrl);
   }
 
+  function flightOfferCard(bookingId, initialOffer, initialCart, initialMessage) {
+    const section = element('section', undefined, 'check-booking-flight-offer');
+    section.append(element('h3', 'Your flight-linked gear offer'));
+    section.append(element('p', 'Optional WKND gear is purchased separately. Your flight is unchanged.'));
+    const notice = element('p', 'Check the offer for this booking using the same WKND account.');
+    notice.setAttribute('role', 'status');
+    const controls = element('div');
+    const content = element('div');
+    const cartResult = element('div', undefined, 'check-booking-offer-cart');
+    const check = element('button', 'Check flight-linked offer', 'check-booking-button');
+    check.type = 'button';
+    section.append(notice, controls, content, cartResult);
+    controls.append(check);
+    let request;
+
+    function showCart(cart) {
+      if (!Array.isArray(cart?.lines) || !Array.isArray(cart?.totals?.discounts)
+        || !Number.isFinite(cart?.totals?.grand_total?.value) || typeof cart.currency !== 'string') {
+        throw new Error('The shop returned invalid cart prices. Check your cart again.');
+      }
+      cartResult.replaceChildren();
+      cartResult.append(element('h4', `Your current Shop cart (${cart.currency})`));
+      cartResult.append(element('p', cart.lines.length
+        ? 'The amounts below come from Commerce. The exact kit must be present for its offer to qualify; a better eligible discount may win.'
+        : 'Your cart is empty. Add the kit before checking its savings.'));
+      cartResult.append(totalsList(cart.totals));
+    }
+
+    function show(offer) {
+      validateAeroOffer(offer, bookingId);
+      content.replaceChildren();
+      if (offer.status === 'INELIGIBLE' || offer.status === 'REDEEMED') {
+        notice.textContent = offer.status === 'REDEEMED'
+          ? 'This flight-linked offer has already been used.'
+          : 'No flight-linked offer is available for this booking and account.';
+        return;
+      }
+      notice.textContent = offer.status === 'CLAIMED'
+        ? 'Offer saved to your account. No gear has been added or purchased.'
+        : 'This booking has an available gear offer. Claiming is optional.';
+      content.append(element('h4', offer.name));
+      content.append(element('p', `${offer.percent_off}% off one exact complete kit, until ${new Date(offer.expires_at).toLocaleString()}. One use per booking and shopper. The best eligible discount applies; offers do not stack.`));
+      const kit = element('ul');
+      offer.components.forEach((item) => kit.append(element('li', `${item.quantity} × ${item.name} (${item.sku})`)));
+      content.append(kit);
+      if (offer.status === 'ELIGIBLE') {
+        const claim = element('button', 'Claim flight-linked offer', 'check-booking-button');
+        claim.type = 'button';
+        claim.addEventListener('click', () => request('claim-flight-gear-offer'));
+        content.append(claim);
+      } else {
+        const addKit = element('button', 'Add kit to cart', 'check-booking-button');
+        addKit.type = 'button';
+        addKit.addEventListener('click', () => request('add-flight-gear-kit'));
+        content.append(addKit);
+        safeLink(content, 'Shop your kit (opens in a new tab)', `https://wknd-adventures.run.place/shop/cart?aero_booking=${encodeURIComponent(bookingId)}`);
+        const viewCart = element('button', 'Check applied kit savings', 'check-booking-button');
+        viewCart.type = 'button';
+        viewCart.addEventListener('click', () => request('get-shop-cart'));
+        content.append(viewCart);
+        content.append(element('p', 'Add the kit with the same account, then check your cart. Only Commerce determines current prices and the best eligible saving; your airfare is unchanged.'));
+      }
+    }
+
+    request = async (name) => {
+      if (busy) return;
+      revision += 1;
+      const current = revision;
+      setBusy(true);
+      cartResult.replaceChildren();
+      notice.setAttribute('role', 'status');
+      notice.textContent = name === 'claim-flight-gear-offer'
+        ? 'Saving your flight-linked offer...' : 'Checking your current offer or cart...';
+      try {
+        const data = await callShopTool(bridge, name, name === 'get-shop-cart' ? {} : { booking_id: bookingId });
+        if (current !== revision || !section.isConnected) return;
+        if (data.error) throw new Error(data.error.message || 'The offer or cart could not be confirmed.');
+        if (name === 'get-shop-cart') {
+          notice.textContent = 'Current cart prices loaded. Gear is purchased separately from your flight.';
+          showCart(data.cart);
+        } else {
+          show(data.offer);
+          if (name === 'add-flight-gear-kit') {
+            showCart(data.cart);
+            notice.textContent = data.message || 'Kit cart prices loaded. Review them before checkout.';
+          }
+        }
+      } catch (error) {
+        if (current !== revision || !section.isConnected) return;
+        content.replaceChildren();
+        notice.setAttribute('role', 'alert');
+        notice.textContent = `${error.message || 'Unable to confirm your offer.'} Check the offer again before retrying a claim. Your flight is unchanged.`;
+      } finally {
+        if (current === revision && section.isConnected) setBusy(false);
+      }
+    };
+
+    check.addEventListener('click', () => request('get-flight-gear-offer'));
+    if (initialOffer) show(initialOffer);
+    if (initialCart) {
+      showCart(initialCart);
+      notice.textContent = initialMessage || 'Current cart prices loaded. Gear is purchased separately from your flight.';
+    }
+    return section;
+  }
+
   function bookingCard(booking, details) {
     const card = element('article', undefined, 'check-booking-card');
     card.append(element('h3', booking.id));
@@ -158,8 +267,12 @@ export default function decorate(block, bridge) {
       card.append(element('h4', booking.adventure.title || 'Adventure'));
       safeLink(card, 'Read the published adventure', booking.adventure.editorialUrl);
     }
-    if (details) preparation(card, booking.preparation);
-    else {
+    if (details) {
+      preparation(card, booking.preparation);
+      if (booking.status === 'confirmed' && booking.demo === true) {
+        card.append(flightOfferCard(booking.id));
+      }
+    } else {
       const button = element('button', 'View details', 'check-booking-button');
       button.type = 'button';
       button.setAttribute('aria-label', `View details for ${booking.id}`);
@@ -178,7 +291,16 @@ export default function decorate(block, bridge) {
     }
     results.replaceChildren();
     status.setAttribute('role', 'status');
-    if (data?.mode === 'details' && isBooking(data.booking)) {
+    if (data?.mode === 'flight-offer' && /^BK_[0-9a-f]{16}$/.test(data.offer?.booking_id)) {
+      try {
+        input.value = data.offer.booking_id;
+        results.append(flightOfferCard(data.offer.booking_id, data.offer, data.cart, data.message));
+        status.textContent = 'Flight-linked offer loaded.';
+      } catch {
+        failure('The flight-linked offer is invalid or expired. Check it again before claiming.');
+        return;
+      }
+    } else if (data?.mode === 'details' && isBooking(data.booking)) {
       input.value = data.booking.id;
       results.append(bookingCard(data.booking, true));
       status.textContent = 'Booking details loaded.';
