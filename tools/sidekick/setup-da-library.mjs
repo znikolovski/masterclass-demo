@@ -181,11 +181,12 @@ function buildLibraryRows(existingRows = []) {
 }
 
 /**
- * Insert formats for the Commerce Catalog plugin (seeded once; authors edit the sheet in DA).
+ * Insert formats for the Commerce Catalog plugin (preserves author edits to the sheet in DA).
  * Product cards = blocks/cards-commerce (one row per selected product).
  */
 const COMMERCE_TEMPLATES = [
   { name: 'Product cards', template: '<div class="cards-commerce"><div><div>{{sku}}</div></div></div>' },
+  { name: 'Product kit (add all)', template: '<div class="product-kit"><div><div>{{sku}}</div></div></div>' },
   { name: 'Product link', template: '<p><a href="/shop/products/{{urlKey}}">{{name}}</a></p>' },
   { name: 'SKU', template: '{{sku}}' },
   { name: 'Similar gear (recommendations)', template: '<div class="product-recommendations"><div><div>unit-id</div><div>wknd-pdp-more-like-this</div></div><div><div>sku</div><div>{{sku}}</div></div></div>' },
@@ -193,7 +194,18 @@ const COMMERCE_TEMPLATES = [
 ];
 
 function commerceTemplatesSheet(existing) {
-  if (existing?.['commerce-templates']) return existing['commerce-templates'];
+  const sheet = existing?.['commerce-templates'];
+  if (sheet) {
+    const kit = COMMERCE_TEMPLATES.find(({ name }) => name === 'Product kit (add all)');
+    if (sheet.data.some(({ name }) => name === kit.name)) return sheet;
+    const data = [...sheet.data, kit];
+    return {
+      ...sheet,
+      total: data.length,
+      ...(sheet.limit !== undefined ? { limit: Math.max(sheet.limit, data.length) } : {}),
+      data,
+    };
+  }
   return {
     total: COMMERCE_TEMPLATES.length,
     limit: COMMERCE_TEMPLATES.length,
