@@ -1119,8 +1119,11 @@ async function loadEagerFirstSection(section) {
 
   section.dataset.sectionStatus = 'loading';
   const blocks = [...section.querySelectorAll('div.block')];
-  const eagerBlocks = blocks.filter(isEagerFirstBlock);
-  const deferredBlocks = blocks.filter((block) => !isEagerFirstBlock(block));
+  const eagerProductSet = !section.querySelector(HERO_BLOCK_SELECTOR)
+    && blocks.some((block) => block.dataset.blockName === 'product-kit');
+  const eagerBlocks = blocks.filter((block) => isEagerFirstBlock(block)
+    || (eagerProductSet && block.dataset.blockName === 'product-kit'));
+  const deferredBlocks = blocks.filter((block) => !eagerBlocks.includes(block));
   const primedHero = section.querySelector(
     `${HERO_BLOCK_SELECTOR} picture img[data-lcp-primed="true"]`,
   );
@@ -1130,6 +1133,9 @@ async function loadEagerFirstSection(section) {
     : deferredBlocks;
 
   if (lcpHero) {
+    if (eagerProductSet) {
+      await Promise.all(eagerBlocks.map((block) => loadSiteBlock(block)));
+    }
     if (!primedHero) {
       primeLcpImage(section);
     }

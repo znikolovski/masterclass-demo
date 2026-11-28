@@ -51,7 +51,7 @@ test('Product Kit: authored products and real SDK bulk addition', {
   const server = createServer(async (request, response) => {
     try {
       const { pathname, searchParams } = new URL(request.url, 'http://localhost');
-      if (pathname === '/') {
+      if (pathname === '/' || pathname === '/eager') {
         response.setHeader('Content-Type', 'text/html');
         response.end(`<!doctype html><html><head>
           <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -63,7 +63,10 @@ test('Product Kit: authored products and real SDK bulk addition', {
           <script type="importmap">{"imports":{
             "@dropins/tools/":"/scripts/__dropins__/tools/",
             "@dropins/storefront-cart/":"/scripts/__dropins__/storefront-cart/"
-          }}</script></head><body class="appear"><main>${draft}</main></body></html>`);
+          }          }</script></head><body${pathname === '/' ? ' class="appear"' : ''}>
+          <main>${draft}</main>
+          ${pathname === '/eager' ? '<script type="module" src="/scripts/scripts.js"></script>' : ''}
+          </body></html>`);
         return;
       }
       if (pathname === '/scripts/commerce.js') {
@@ -164,6 +167,34 @@ test('Product Kit: authored products and real SDK bulk addition', {
     };
     const skuRows = '<div><div>WKND-PNT-002</div></div><div><div>WKND-TRV-007</div></div>';
 
+    await t.test('first-section products are rendered before the page is revealed', async () => {
+      const cold = await browser.newPage();
+      try {
+        await cold.route('**/*', (route) => (
+          route.request().url().startsWith(origin) ? route.continue() : route.abort()
+        ));
+        await cold.addInitScript(() => {
+          const observer = new MutationObserver(() => {
+            if (!document.body?.classList.contains('appear')) return;
+            window.productsAtReveal = document.querySelectorAll('.product-kit article').length;
+            observer.disconnect();
+          });
+          observer.observe(document, { attributes: true, childList: true, subtree: true });
+        });
+        await cold.goto(`${origin}/eager`);
+        await cold.waitForFunction(() => window.productsAtReveal !== undefined);
+        const details = await cold.evaluate(() => (
+          JSON.stringify({
+            main: document.querySelector('main').innerText,
+            sections: [...document.querySelectorAll('.section')].map((section) => section.className),
+            block: document.querySelector('.product-kit')?.outerHTML,
+          })
+        ));
+        assert.equal(await cold.evaluate(() => window.productsAtReveal), 2, details);
+      } finally {
+        await cold.close();
+      }
+    });
     await t.test('catalog cards, complete variants, one bulk mutation and exact increments', async () => {
       assert.equal(await block.locator('article').count(), 2);
       assert.equal(await block.locator('img').count(), 2);

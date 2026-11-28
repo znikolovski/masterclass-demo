@@ -77,6 +77,7 @@ can supply the ID when neither field is authored.
 - Prevent repeated clicks and report catalog, stock, read/write and partial errors.
 - Preserve promotion-kit behavior; do not depend on it for SKU lists.
 - Keep keyboard controls usable and avoid overflow at 375, 768 and 1280 pixels.
+- Render first-section product sets before revealing the page to avoid layout shifts.
 
 Local content: `drafts/shop/product-set.plain.html`.
 The browser fixture uses an in-memory Commerce store and real cart SDK, never
