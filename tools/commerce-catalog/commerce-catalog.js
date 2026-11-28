@@ -19,6 +19,10 @@ const DEFAULT_TEMPLATES = [
     name: 'Commerce Card block',
     template: '<div class="cards-commerce"><div><div>{{sku}}</div></div></div>',
   },
+  {
+    name: 'Product kit (add all)',
+    template: '<div class="product-kit"><div><div>{{sku}}</div></div></div>',
+  },
 ];
 
 const EMPTY_CONFIG = { endpoint: '', headers: {} };
